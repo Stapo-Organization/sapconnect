@@ -12,6 +12,11 @@ use Filament\Tables\Table;
 
 class EmailLogResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
     protected static ?string $model = EmailLog::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';

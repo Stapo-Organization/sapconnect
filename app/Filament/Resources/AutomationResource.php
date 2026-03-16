@@ -18,7 +18,7 @@ class AutomationResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasRole('Branch Manager');
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
     }
 
     protected static ?string $model = Automation::class;

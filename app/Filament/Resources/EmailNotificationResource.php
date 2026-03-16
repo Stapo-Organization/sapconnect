@@ -12,6 +12,11 @@ use Filament\Tables\Table;
 
 class EmailNotificationResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
     protected static ?string $model = EmailNotification::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
