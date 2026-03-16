@@ -309,7 +309,7 @@ class StockTransferService
                     'doc_num' => $docNum,
                     'from_warehouse' => $fromWarehouseCode,
                     'to_warehouse' => $toWarehouseCode,
-                    'link' => url('/admin/stock-transfers/' . $transfer->id), 
+                    'link' => url('/admin/stock-transfers/' . $transfer->id . '/edit'), 
                     'items_table_ar' => $itemsHtmlAr,
                     'items_table_en' => $itemsHtmlEn,
                 ];
