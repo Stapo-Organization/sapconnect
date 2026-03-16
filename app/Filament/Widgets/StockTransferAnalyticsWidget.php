@@ -15,7 +15,7 @@ class StockTransferAnalyticsWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasRole('Branch Manager');
     }
 
         protected function getStats(): array
