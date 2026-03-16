@@ -297,10 +297,6 @@ class StockTransferResource extends Resource
                     ->searchable(),
 
                 // To Warehouse Filter
-                Tables\Filters\SelectFilter::make('to_warehouse')
-                    ->label(__('To Warehouse'))
-                    ->options(\App\Models\Warehouse::pluck('warehouse_name', 'warehouse_code'))
-                    ->searchable(),
 
                 // Document Date Filter
                 Tables\Filters\Filter::make('doc_date')
@@ -338,6 +334,21 @@ class StockTransferResource extends Resource
                         \App\Models\StockTransfer::STATUS_RECEIVED => __('Received'),
                         \App\Models\StockTransfer::STATUS_COMPLETED => __('Completed'),
                     ]),
+
+                // Warehouse Filters
+                Tables\Filters\SelectFilter::make('from_warehouse')
+                    ->label(__('From Warehouse'))
+                    ->options(function () {
+                        return \App\Models\Warehouse::pluck('warehouse_name', 'warehouse_code')->toArray();
+                    })
+                    ->searchable(),
+
+                Tables\Filters\SelectFilter::make('to_warehouse')
+                    ->label(__('To Warehouse'))
+                    ->options(function () {
+                        return \App\Models\Warehouse::pluck('warehouse_name', 'warehouse_code')->toArray();
+                    })
+                    ->searchable(),
 
                 // SAP Received Qty Filter
                 Tables\Filters\Filter::make('sap_received_qty')
