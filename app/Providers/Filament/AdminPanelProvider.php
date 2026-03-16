@@ -44,7 +44,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 \App\Filament\Widgets\DatabaseStatusWidget::class,
-                \App\Filament\Resources\SapImportResource\Widgets\SapStatusWidget::class, // Global Status Widget
                 Widgets\AccountWidget::class,
                 \App\Filament\Widgets\TopLevelMetricsWidget::class,
                 \App\Filament\Widgets\StockTransferAnalyticsWidget::class,
