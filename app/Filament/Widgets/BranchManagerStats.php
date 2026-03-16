@@ -26,6 +26,8 @@ class BranchManagerStats extends BaseWidget
             return [];
         }
 
+        $primaryCode = reset($codes);
+
         // Pending Incoming: New or Shipped and heading to this branch (not yet completed)
         $pendingIncoming = StockTransfer::whereIn('to_warehouse', $codes)
             ->whereIn('internal_status', [StockTransfer::STATUS_NEW, StockTransfer::STATUS_SHIPPED])
@@ -62,6 +64,7 @@ class BranchManagerStats extends BaseWidget
                 ->url(route('filament.admin.resources.stock-transfers.index', [
                     'tableFilters[internal_status][values][0]' => StockTransfer::STATUS_NEW,
                     'tableFilters[internal_status][values][1]' => StockTransfer::STATUS_SHIPPED,
+                    'tableFilters[to_warehouse][value]' => $primaryCode,
                 ])),
 
             Stat::make(__('شحنات صادرة قيد الانتظار'), $pendingOutgoing)
@@ -70,6 +73,7 @@ class BranchManagerStats extends BaseWidget
                 ->color('gray')
                 ->url(route('filament.admin.resources.stock-transfers.index', [
                     'tableFilters[internal_status][value]' => StockTransfer::STATUS_NEW,
+                    'tableFilters[from_warehouse][value]' => $primaryCode,
                 ])),
 
             Stat::make(__('شحنات متأخرة جداً'), $delayedTransfers)
