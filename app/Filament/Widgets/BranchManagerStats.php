@@ -42,7 +42,7 @@ class BranchManagerStats extends BaseWidget
                       ->orWhereIn('to_warehouse', $codes);
             })
             ->where('internal_status', '!=', StockTransfer::STATUS_COMPLETED)
-            ->where('created_at', '<', Carbon::now()->subDays(30))
+            ->where('created_at', '<', Carbon::now()->subDays(7))
             ->count();
 
         // Completed This Month
@@ -66,7 +66,7 @@ class BranchManagerStats extends BaseWidget
                 ->color('gray'),
 
             Stat::make(__('شحنات متأخرة جداً'), $delayedTransfers)
-                ->description(__('تجاوزت شهر - يرجى المتابعة'))
+                ->description(__('تجاوزت اسبوع - يرجى المتابعة'))
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color($delayedTransfers > 0 ? 'danger' : 'success'),
 
