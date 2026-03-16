@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Filament\Widgets;
+
+use App\Models\StockTransfer;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
+use Carbon\Carbon;
+
+class BranchManagerStats extends BaseWidget
+{
+    protected static ?int $sort = 1;
+
+    public static function canView(): bool
+    {
+        return auth()->user()->hasRole('Branch Manager');
+    }
+
+    protected function getStats(): array
+    {
+        $user = auth()->user();
+        $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
+        $codes = array_filter($codes);
+
+        if (empty($codes)) {
+            return [];
+        }
+
+        // Pending Incoming: New or Shipped and heading to this branch (not yet completed)
+        $pendingIncoming = StockTransfer::whereIn('to_warehouse', $codes)
+            ->whereIn('internal_status', [StockTransfer::STATUS_NEW, StockTransfer::STATUS_SHIPPED])
+            ->count();
+
+        // Pending Outgoing: New and leaving this branch
+        $pendingOutgoing = StockTransfer::whereIn('from_warehouse', $codes)
+            ->where('internal_status', StockTransfer::STATUS_NEW)
+            ->count();
+
+        // Delayed Transfers: Open (not Completed) and older than 30 days
+        $delayedTransfers = StockTransfer::where(function ($query) use ($codes) {
+                $query->whereIn('from_warehouse', $codes)
+                      ->orWhereIn('to_warehouse', $codes);
+            })
+            ->where('internal_status', '!=', StockTransfer::STATUS_COMPLETED)
+            ->where('created_at', '<', Carbon::now()->subDays(30))
+            ->count();
+
+        // Completed This Month
+        $completedThisMonth = StockTransfer::where(function ($query) use ($codes) {
+                $query->whereIn('from_warehouse', $codes)
+                      ->orWhereIn('to_warehouse', $codes);
+            })
+            ->where('internal_status', StockTransfer::STATUS_COMPLETED)
+            ->where('updated_at', '>=', Carbon::now()->startOfMonth())
+            ->count();
+
+        return [
+            Stat::make(__('شحنات واردة قيد الانتظار'), $pendingIncoming)
+                ->description(__('في الطريق أو قيد التجهيز للمستودع'))
+                ->descriptionIcon('heroicon-m-arrow-down-tray')
+                ->color('warning'),
+
+            Stat::make(__('شحنات صادرة قيد الانتظار'), $pendingOutgoing)
+                ->description(__('تنتظر الشحن'))
+                ->descriptionIcon('heroicon-m-arrow-up-tray')
+                ->color('gray'),
+
+            Stat::make(__('شحنات متأخرة جداً'), $delayedTransfers)
+                ->description(__('تجاوزت شهر - يرجى المتابعة'))
+                ->descriptionIcon('heroicon-m-exclamation-triangle')
+                ->color($delayedTransfers > 0 ? 'danger' : 'success'),
+
+            Stat::make(__('شحنات مكتملة (هذا الشهر)'), $completedThisMonth)
+                ->description(__('شحنات تم إغلاقها بنجاح'))
+                ->descriptionIcon('heroicon-m-check-badge')
+                ->color('success'),
+        ];
+    }
+}

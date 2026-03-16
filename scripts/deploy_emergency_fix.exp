@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no app/Livewire/DatabaseSwitcher.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Livewire/DatabaseSwitcher.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no resources/views/livewire/database-switcher.blade.php $user@$ip:/home/sapapimuntajat/sapconnect_app/resources/views/livewire/database-switcher.blade.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/SapImportResource/Widgets/SapStatusWidget.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Filament/Resources/SapImportResource/Widgets/SapStatusWidget.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no resources/views/filament/resources/sap-import-resource/widgets/sap-status-widget.blade.php $user@$ip:/home/sapapimuntajat/sapconnect_app/resources/views/filament/resources/sap-import-resource/widgets/sap-status-widget.blade.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "php artisan optimize:clear\r"
+send "exit\r"
+expect eof

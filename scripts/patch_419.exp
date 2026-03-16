@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# 1. Upload new bootstrap/app.php
+spawn scp -o StrictHostKeyChecking=no bootstrap/app.php $user@$ip:/home/sapapimuntajat/sapconnect_app/bootstrap/app.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# 2. SSH to perform config changes
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Update .env
+# Set APP_URL to https
+expect "$*"
+send "sed -i 's|APP_URL=http://sapapi.muntajat.sa|APP_URL=https://sapapi.muntajat.sa|' .env\r"
+
+# Set SESSION_SECURE_COOKIE to true
+expect "$*"
+send "sed -i 's/SESSION_SECURE_COOKIE=false/SESSION_SECURE_COOKIE=true/' .env\r"
+
+# Set TRUSTED PROXIES (Not env, done in code, but ensuring config is clear)
+expect "$*"
+send "php artisan config:clear\r"
+send "php artisan route:clear\r"
+send "php artisan view:clear\r"
+
+# Ensure permissions on sessions again just in case
+expect "$*"
+send "chmod -R 775 storage/framework/sessions\r"
+
+expect "$*"
+send "exit\r"
+expect eof

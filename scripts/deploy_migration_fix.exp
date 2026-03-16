@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# Upload
+spawn scp -o StrictHostKeyChecking=no migration_fix.tar.gz $user@$ip:/home/sapapimuntajat/migration_fix.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# SSH and Extract
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf migration_fix.tar.gz -C sapconnect_app\r"
+send "rm migration_fix.tar.gz\r"
+send "cd sapconnect_app\r"
+
+# Run Migrations
+send "php artisan migrate --force\r"
+
+# Retry Test Command
+send "php artisan sap:sync-stock-transfers --code=sync_stock_transfers_PPTC_V5_PROD\r"
+
+send "exit\r"
+expect eof

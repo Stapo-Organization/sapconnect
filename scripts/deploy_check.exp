@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+set timeout 60
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r" }
+}
+
+expect -re {[\$#]}
+send "ls -la\r"
+expect -re {[\$#]}
+send "ls -la sapconnect_app\r"
+expect -re {[\$#]}
+send "exit\r"
+expect eof

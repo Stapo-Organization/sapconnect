@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+# Generate Token
+send "php artisan tinker --execute=\"echo App\\Models\\User::first()->createToken('TestToken')->plainTextToken;\"\r"
+expect -re "(\\d+\\|\[a-zA-Z0-9\]+)"
+set token $expect_out(0,string)
+
+# Curl Request
+send "curl -v -H 'Host: sapapi.muntajat.sa' -H 'Authorization: Bearer $token' 'http://62.138.14.178/api/sap/Items?view=TestDB'\r"
+expect "$*"
+send "exit\r"
+expect eof

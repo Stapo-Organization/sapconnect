@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+set root_pass "@m123811407M@"
+
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r"; exp_continue }
+}
+
+# Wait for login
+expect -re {[\$#]}
+send "su -\r"
+expect "assword:"
+send "$root_pass\r"
+
+expect -re {[\$#]}
+send "echo '--- User Check ---'\r"
+send "grep apache /etc/passwd\r"
+send "grep www /etc/passwd\r"
+send "grep nginx /etc/passwd\r"
+
+send "echo '--- Directory Check ---'\r"
+send "ls -F /var/www\r"
+send "ls -F /home\r"
+send "ls -F /srv\r"
+
+send "echo '--- Find Artisan ---'\r"
+send "find /var -name artisan -maxdepth 4 2>/dev/null\r"
+send "find /home -name artisan -maxdepth 4 2>/dev/null\r"
+
+send "exit\r"
+send "exit\r"
+expect eof

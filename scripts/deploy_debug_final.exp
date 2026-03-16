@@ -1,0 +1,29 @@
+#!/usr/bin/expect
+
+set timeout 120
+
+# Upload
+spawn scp -o StrictHostKeyChecking=no debug_final.tar.gz sapapimuntajat@62.138.14.178:/home/sapapimuntajat/debug_final.tar.gz
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof
+
+# Extract and Clear Cache
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+expect "Password:"
+send "Muntajat@2025\r"
+expect {
+    "Last login" { }
+    "$" { }
+}
+
+send "cd sapconnect_app\r"
+expect "$"
+send "tar -xzf ../debug_final.tar.gz\r"
+expect "$"
+send "rm ../debug_final.tar.gz\r"
+expect "$"
+send "php artisan optimize:clear\r"
+expect "$"
+send "exit\r"
+expect eof

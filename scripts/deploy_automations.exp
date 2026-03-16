@@ -1,0 +1,29 @@
+#!/usr/bin/expect
+
+set timeout 120
+
+# Upload
+spawn scp -o StrictHostKeyChecking=no automations_update.tar.gz sapapimuntajat@62.138.14.178:/home/sapapimuntajat/automations_update.tar.gz
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof
+
+# Extract and Optimize
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+expect "Password:"
+send "Muntajat@2025\r"
+expect {
+    "Last login" { }
+    "$" { }
+}
+
+send "cd sapconnect_app\r"
+expect "$"
+send "tar -xzf ../automations_update.tar.gz\r"
+expect "$"
+send "rm ../automations_update.tar.gz\r"
+expect "$"
+send "php artisan optimize:clear\r"
+expect "$"
+send "exit\r"
+expect eof

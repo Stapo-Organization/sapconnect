@@ -1,0 +1,41 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+set db_name "sapapimuntajat_apisap"
+set db_user "sapapimuntajat_apisap"
+set db_pass "-;fKo]@j8zdY5H3u"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Update .env
+expect "$*"
+send "sed -i 's/DB_DATABASE=sapconnect/DB_DATABASE=$db_name/' .env\r"
+send "sed -i 's/DB_USERNAME=root/DB_USERNAME=$db_user/' .env\r"
+send "sed -i '/DB_PASSWORD=/d' .env\r"
+# Use single quotes for echo to avoid shell expansion issues with special chars
+send "echo 'DB_PASSWORD=\"$db_pass\"' >> .env\r"
+
+expect "$*"
+send "php artisan config:clear\r"
+
+# Run Migrations
+expect "$*"
+send "php artisan migrate --force\r"
+
+# Create Filament User (escaped brackets for Tcl)
+expect "$*"
+# We use \\\[ and \\\] to escape square brackets in Expect/Tcl
+send "php artisan tinker --execute=\"\\App\\Models\\User::create(\\\['name' => 'Admin', 'email' => 'admin@muntajat.sa', 'password' => bcrypt('password')\\\]);\"\r"
+
+expect "$*"
+send "exit\r"
+expect eof

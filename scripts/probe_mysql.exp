@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Try combination 1: sapapimuntajat_apisap / -;fKo]@j8zdY5H3u
+send "mysql -u sapapimuntajat_apisap -p'-;fKo]@j8zdY5H3u' -e 'SELECT 1;' && echo 'WINNER: 1'\r"
+
+# Try combination 2: sapapimuntajat_apisap / \"FuM&vb0FIXFP?avt\"
+send "mysql -u sapapimuntajat_apisap -p'FuM&vb0FIXFP?avt' -e 'SELECT 1;' && echo 'WINNER: 2'\r"
+
+# Try combination 3: sapapimuntajat / \"FuM&vb0FIXFP?avt\"
+send "mysql -u sapapimuntajat -p'FuM&vb0FIXFP?avt' -e 'SELECT 1;' && echo 'WINNER: 3'\r"
+
+# Try combination 4: sapapimuntajat / -;fKo]@j8zdY5H3u
+send "mysql -u sapapimuntajat -p'-;fKo]@j8zdY5H3u' -e 'SELECT 1;' && echo 'WINNER: 4'\r"
+
+expect "$*"
+send "exit\r"
+expect eof

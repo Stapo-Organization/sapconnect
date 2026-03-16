@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Check DB Name
+send "php artisan tinker\r"
+expect ">"
+send "echo 'DB Name: ' . DB::connection()->getDatabaseName();\r"
+expect ">"
+send "echo 'Has Table Prod: ' . (Schema::hasTable('sap_stock_transfers_prod') ? 'Yes' : 'No');\r"
+expect ">"
+send "echo 'Has Table Test: ' . (Schema::hasTable('sap_stock_transfers_test') ? 'Yes' : 'No');\r"
+expect ">"
+send "exit\r"
+
+send "exit\r"
+expect eof

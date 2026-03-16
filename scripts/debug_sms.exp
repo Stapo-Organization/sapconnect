@@ -1,0 +1,19 @@
+#!/usr/bin/expect
+
+set timeout 20
+set mobile [lindex $argv 0]
+
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+expect "Password:"
+send "FuM&vb0FIXFP?avt\r"
+
+expect "$ "
+send "cd sapconnect_app\r"
+
+expect "$ "
+send "php artisan debug:sms $mobile\r"
+
+expect "$ "
+send "exit\r"
+
+expect eof

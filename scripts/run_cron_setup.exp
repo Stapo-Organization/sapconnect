@@ -1,0 +1,15 @@
+#!/usr/bin/expect
+
+set timeout 60
+
+# Upload
+spawn scp -o StrictHostKeyChecking=no setup_cron.sh sapapimuntajat@62.138.14.178:/home/sapapimuntajat/setup_cron.sh
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof
+
+# Execute
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "chmod +x setup_cron.sh && ./setup_cron.sh"
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof

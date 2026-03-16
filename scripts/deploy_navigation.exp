@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no navigation_update.tar.gz $user@$ip:/home/sapapimuntajat/navigation_update.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf navigation_update.tar.gz -C sapconnect_app\r"
+send "rm navigation_update.tar.gz\r"
+send "cd sapconnect_app\r"
+# Clear cache to refresh Filament navigation
+send "php artisan filament:cache-components\n" 
+send "php artisan optimize:clear\r"
+send "exit\r"
+expect eof

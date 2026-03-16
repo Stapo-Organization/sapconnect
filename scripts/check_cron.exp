@@ -1,0 +1,14 @@
+#!/usr/bin/expect
+
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+expect "Password:"
+send "Muntajat@2025\r"
+expect "$"
+
+send "crontab -l\r"
+expect "$"
+send "ps aux | grep php\r"
+expect "$"
+send "exit\r"
+expect eof

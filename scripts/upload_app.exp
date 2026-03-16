@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+set file "sapconnect.tar.gz"
+set remote_path "/home/sapapimuntajat/"
+
+spawn scp -o StrictHostKeyChecking=no $file $user@$ip:$remote_path
+expect "*assword:*"
+send "$password\r"
+expect eof

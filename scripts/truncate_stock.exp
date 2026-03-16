@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+sleep 2
+expect "*assword*"
+send "FuM&vb0FIXFP?avt\r"
+
+expect "$ "
+send "cd sapconnect_app\r"
+
+expect "$ "
+send "php artisan stock:truncate\r"
+
+expect "Are you really sure?"
+sleep 1
+send "yes\r"
+
+expect "$ "
+send "exit\r"

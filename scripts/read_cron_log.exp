@@ -1,0 +1,8 @@
+#!/usr/bin/expect
+
+set timeout 30
+
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cat /home/sapapimuntajat/cron_debug.log"
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof

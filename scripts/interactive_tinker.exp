@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "php artisan tinker\r"
+
+expect ">"
+send "dump(config('database.default'));\r"
+
+expect ">"
+send "\$l = \\App\\Models\\ApiLog::create(\['method' => 'INTERACTIVE_LOG', 'endpoint' => 'TEST', 'status_code' => 201\]);\r"
+
+expect ">"
+send "dump(\$l->id);\r"
+
+expect ">"
+send "dump(\\App\\Models\\ApiLog::find(\$l->id));\r"
+
+expect ">"
+send "dump(\\App\\Models\\ApiLog::count());\r"
+
+# Check if it persists in new session (simulate by exiting and re-entering? No, need to check if commit happens)
+# If transaction is active, it might not show in another session.
+expect ">"
+send "dump(DB::transactionLevel());\r"
+
+send "exit\r"
+send "exit\r"
+expect eof

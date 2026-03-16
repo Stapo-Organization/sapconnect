@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# PHP script to run in tinker
+set tinker_script "
+\$old = \\App\\Models\\Automation::where('code', 'sync_stock_transfers')->first();
+if (\$old) { \$old->delete(); echo \\\"Deleted legacy automation 'sync_stock_transfers'.\\\\n\\\"; } else { echo \\\"Legacy automation not found.\\\\n\\\"; }
+
+\$new = \\App\\Models\\Automation::where('code', 'sync_stock_transfers_PPTC_V5_PROD')->first();
+if (\$new) {
+    echo \\\"Found new automation: \\\" . \$new->name . \\\"\\\\n\\\";
+    if (!\$new->is_active) {
+        \$new->update(['is_active' => true]);
+        echo \\\"Activated new automation.\\\\n\\\";
+    }
+} else {
+    echo \\\"New automation 'sync_stock_transfers_PPTC_V5_PROD' not found! Creating it.\\\\n\\\";
+    \$new = \\App\\Models\\Automation::create([
+        'code' => 'sync_stock_transfers_PPTC_V5_PROD',
+        'name' => 'Import Stock Transfers (PPTC_V5_PROD)',
+        'sap_database' => 'PPTC_V5_PROD',
+        'command_signature' => 'sap:sync-stock-transfers --code=sync_stock_transfers_PPTC_V5_PROD',
+        'schedule_frequency' => 'hourly',
+        'is_active' => true,
+        'notify_sms' => true
+    ]);
+}
+
+echo \\\"\\\\nRunning the automation command now...\\\\n\\\";
+\\Illuminate\\Support\\Facades\\Artisan::call('sap:sync-stock-transfers', ['--code' => 'sync_stock_transfers_PPTC_V5_PROD']);
+echo \\Illuminate\\Support\\Facades\\Artisan::output();
+"
+
+send "php artisan tinker --execute=\"$tinker_script\"\r"
+expect "$*"
+send "exit\r"
+expect eof

@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no app/Http/Controllers/Api/StockTransferController.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Http/Controllers/Api/StockTransferController.php
+expect "*assword:*"
+send "$password\r"
+expect eof

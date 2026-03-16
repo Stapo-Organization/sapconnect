@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php artisan tinker --execute=\"echo App\\\\Models\\\\User::where('email', 'admin@muntajat.sa')->first();\""
+expect "Password:"
+send "Muntaj@2024\r"
+expect eof

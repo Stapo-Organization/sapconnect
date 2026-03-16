@@ -1,0 +1,7 @@
+#!/usr/bin/expect
+
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cat ~/sapconnect_app/storage/logs/laravel.log | tail -n 100"
+expect "Password:"
+send "FuM&vb0FIXFP?avt\r"
+expect eof

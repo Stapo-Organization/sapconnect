@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+# Add Crontab Entry safely
+# 1. Echo new cron into a temp file
+send "echo '* * * * * cd /home/sapapimuntajat/sapconnect_app && php artisan schedule:run >> /dev/null 2>&1' > cron.tmp\r"
+# 2. Load it
+send "crontab cron.tmp\r"
+# 3. Remove temp
+send "rm cron.tmp\r"
+# 4. Verify
+send "crontab -l\r"
+
+send "exit\r"
+expect eof

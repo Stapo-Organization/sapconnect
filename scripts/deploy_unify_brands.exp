@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no brands_unify.tar.gz $user@$ip:/home/sapapimuntajat/brands_unify.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf brands_unify.tar.gz -C sapconnect_app\r"
+send "rm brands_unify.tar.gz\r"
+send "cd sapconnect_app\r"
+# Remove BrandTestResource from server as well
+send "rm app/Filament/Resources/BrandTestResource.php\r"
+send "rm -rf app/Filament/Resources/BrandTestResource\r"
+send "php artisan optimize:clear\r"
+send "exit\r"
+expect eof

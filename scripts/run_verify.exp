@@ -1,0 +1,12 @@
+#!/usr/bin/expect
+
+set timeout 60
+spawn scp -o StrictHostKeyChecking=no configure_automation.php sapapimuntajat@62.138.14.178:/home/sapapimuntajat/sapconnect_app/configure_automation.php
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php configure_automation.php"
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof

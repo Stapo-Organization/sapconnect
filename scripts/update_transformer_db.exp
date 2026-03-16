@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Update DB record via Tinker
+# Note: Using escaped JSON / Array structure carefully
+send "php artisan tinker\r"
+expect ">>>"
+
+# Find and update
+send "\$t = \\App\\Models\\ApiTransformer::where('name', 'TestDB')->first();\r"
+expect ">>>"
+send "\$t->mapping = [ ['source' => 'ItemCode', 'target' => 'ItemCode', 'type' => 'string'], ['source' => 'ItemName', 'target' => 'ItemName', 'type' => 'string'], ['source' => 'ItemPrices', 'target' => 'ItemPrices', 'type' => 'array', 'sub_mapping' => [ ['source' => 'PriceList', 'target' => 'PriceList', 'type' => 'integer'], ['source' => 'Price', 'target' => 'Price', 'type' => 'float'] ] ] ];\r"
+expect ">>>"
+send "\$t->save();\r"
+expect ">>>"
+send "exit\r"
+
+expect "$*"
+send "exit\r"
+expect eof

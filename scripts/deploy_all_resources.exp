@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+set remote_dir "/home/sapapimuntajat/sapconnect_app"
+
+spawn scp -o StrictHostKeyChecking=no -r app/Filament/Resources app/Filament/Pages app/Filament/Widgets app/Http/Middleware/SetSapEnvironment.php $user@$ip:$remote_dir/app/Filament/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# We need a separate scp for middleware to put it in the correct directory
+spawn scp -o StrictHostKeyChecking=no app/Http/Middleware/SetSapEnvironment.php $user@$ip:$remote_dir/app/Http/Middleware/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd $remote_dir\r"
+send "php artisan optimize:clear\r"
+expect "$*"
+send "exit\r"
+expect eof

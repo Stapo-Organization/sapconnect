@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ config('app.name') }} Notification</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background-color: #f4f7f6; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: #2B3A42; color: #ffffff; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 500; }
+        .content { padding: 30px; color: #333333; }
+        .arabic-section { direction: rtl; text-align: right; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; }
+        .english-section { direction: ltr; text-align: left; }
+        .footer { background: #f9f9f9; text-align: center; padding: 15px; font-size: 12px; color: #777777; border-top: 1px solid #eeeeee; }
+        a.button { display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 5px; background-color: #007bff; color: white; font-weight: bold; margin-top: 15px;}
+        .button-en { background-color: #3f51b5; }
+        .button-ar { background-color: #00897b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ config('app.name') }} System Notification</h1>
+        </div>
+        
+        <div class="content">
+            @if(!empty($bodyAr))
+            <div class="arabic-section">
+                {!! $bodyAr !!}
+            </div>
+            @endif
+
+            @if(!empty($bodyEn))
+            <div class="english-section">
+                {!! $bodyEn !!}
+            </div>
+            @endif
+        </div>
+
+        <div class="footer">
+            &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
+            هذه رسالة تلقائية من النظام، يرجى عدم الرد عليها.
+        </div>
+    </div>
+</body>
+</html>

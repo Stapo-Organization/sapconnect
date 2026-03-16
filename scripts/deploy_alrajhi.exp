@@ -1,0 +1,89 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+set root_pass "@m123811407M@"
+
+set app_root "/home/sapapimuntajat/sapconnect_app"
+set source_base "/Users/mohamedmahgoub/Desktop/Muntajat/sapconnect"
+
+# 1. SCP Files
+# Migration
+spawn scp database/migrations/2026_01_06_000000_create_alrajhi_transactions_table.php $user@$host:.
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    "yes/no" { send "yes\r"; exp_continue }
+    eof
+}
+wait
+
+# Model
+spawn scp app/Models/AlrajhiTransaction.php $user@$host:.
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    eof
+}
+wait
+
+# Resource
+spawn scp app/Filament/Resources/AlrajhiTransactionResource.php $user@$host:.
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    eof
+}
+wait
+
+# Resource Page
+spawn scp app/Filament/Resources/AlrajhiTransactionResource/Pages/ListAlrajhiTransactions.php $user@$host:.
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    eof
+}
+wait
+
+# 2. SSH and Deploy
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r" }
+}
+
+expect -re {[\$#]}
+send "su -\r"
+expect "assword:"
+send "$root_pass\r"
+expect -re {[\$#]}
+
+send "cd $app_root\r"
+expect -re {[\$#]}
+
+# Move files to correct locations
+send "mv -f /home/$user/2026_01_06_000000_create_alrajhi_transactions_table.php database/migrations/\r"
+expect -re {[\$#]}
+
+send "mv -f /home/$user/AlrajhiTransaction.php app/Models/\r"
+expect -re {[\$#]}
+
+# Create directory if not exists (Resources might exist, but check)
+send "mkdir -p app/Filament/Resources/AlrajhiTransactionResource/Pages\r"
+expect -re {[\$#]}
+
+send "mv -f /home/$user/AlrajhiTransactionResource.php app/Filament/Resources/\r"
+expect -re {[\$#]}
+
+send "mv -f /home/$user/ListAlrajhiTransactions.php app/Filament/Resources/AlrajhiTransactionResource/Pages/\r"
+expect -re {[\$#]}
+
+# Run Migrations
+send "php artisan migrate --force\r"
+expect -re {[\$#]}
+
+# Fix Permissions
+send "chown -R sapapimuntajat:sapapimuntajat $app_root\r"
+expect -re {[\$#]}
+
+send "exit\r"
+send "exit\r"
+expect eof

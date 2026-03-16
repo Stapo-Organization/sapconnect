@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no seed_prompts_payload.php $user@$ip:/home/$user/seed_prompts_payload.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "cat /home/$user/seed_prompts_payload.php | php artisan tinker\r"
+
+expect "$*"
+send "rm /home/$user/seed_prompts_payload.php\r"
+
+expect "$*"
+send "exit\r"
+expect eof

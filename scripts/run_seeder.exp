@@ -1,0 +1,7 @@
+#!/usr/bin/expect
+
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php seed_piece_barcode_view.php"
+expect "Password:"
+send "FuM&vb0FIXFP?avt\r"
+expect eof

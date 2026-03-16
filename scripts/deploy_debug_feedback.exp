@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# 1. Upload Service & Resource
+spawn scp -o StrictHostKeyChecking=no app/Services/StockTransferService.php app/Filament/Resources/StockTransferResource.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Services/
+# Oops, need to split scp or copy to correct paths.
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# Try again with tar to be safe and clean
+# NO, let's use separate scp commands for precision in this script
+
+spawn scp -o StrictHostKeyChecking=no app/Services/StockTransferService.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Services/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/StockTransferResource.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Filament/Resources/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# 2. Clear Cache
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "*$*"
+send "cd sapconnect_app\r"
+send "php artisan optimize:clear\r"
+
+expect "*$*"
+send "exit\r"
+expect eof

@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "sed -i 's/DB_USERNAME=sapapimuntajat/DB_USERNAME=sapapimuntajat_apisap/g' .env\r"
+send "php artisan config:clear\r"
+send "php artisan cache:clear\r"
+expect "$*"
+send "exit\r"
+expect eof

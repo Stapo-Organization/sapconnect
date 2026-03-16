@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+# Check if the file contains the new pagination logic ($top, $skip)
+send "grep -A 5 'Explicit pagination' app/Console/Commands/SyncBrands.php\r"
+
+# Check the latest log output
+send "php artisan tinker --execute=\"echo \\App\\Models\\ApiLog::where('endpoint', 'ItemGroups')->latest()->first()->response_body;\"\r"
+
+send "exit\r"
+expect eof

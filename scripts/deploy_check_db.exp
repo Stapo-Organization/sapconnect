@@ -1,0 +1,8 @@
+#!/usr/bin/expect
+
+set timeout 20
+# Note the extensive escaping for the PHP one-liner inside the spawn command string
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php -r \"require 'vendor/autoload.php'; \\\$app = require_once 'bootstrap/app.php'; \\\$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); echo 'DB_HOST: ' . config('database.connections.mysql.host') . ' | DB_NAME: ' . config('database.connections.mysql.database') . ' | COUNT: ' . App\Models\Automation::count();\""
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof

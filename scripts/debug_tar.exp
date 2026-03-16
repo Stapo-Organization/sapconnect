@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "tar -tf sapconnect.tar.gz | head -n 10"
+expect "*assword:*"
+send "$password\r"
+expect eof

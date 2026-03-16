@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no update_creds.sh $user@$ip:/home/sapapimuntajat/sapconnect_app/update_creds.sh
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "chmod +x update_creds.sh\r"
+send "./update_creds.sh\r"
+send "rm update_creds.sh\r"
+
+expect "$*"
+send "exit\r"
+expect eof

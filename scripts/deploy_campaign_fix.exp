@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+
+# 1. SCP
+spawn scp campaign_debug.tar.gz $user@$host:.
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    "yes/no" { send "yes\r"; exp_continue }
+    eof
+}
+wait
+
+# 2. SSH
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r" }
+}
+
+expect -re {[\$#]}
+
+# 3. Navigate and Deploy
+send "cd sapconnect_app\r"
+expect -re {[\$#]}
+
+send "mv ../campaign_debug.tar.gz .\r"
+expect -re {[\$#]}
+
+send "tar -xzf campaign_debug.tar.gz\r"
+expect -re {[\$#]}
+
+send "rm campaign_debug.tar.gz\r"
+expect -re {[\$#]}
+
+send "exit\r"
+expect eof

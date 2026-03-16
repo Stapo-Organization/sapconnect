@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "grep -C 5 'Preview' app/Filament/Resources/SapImportResource.php\r"
+
+expect "$*"
+send "exit\r"
+expect eof

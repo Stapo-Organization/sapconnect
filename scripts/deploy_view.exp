@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no database/migrations/2025_01_01_000012_seed_stock_transfer_view.php $user@$ip:/home/sapapimuntajat/sapconnect_app/database/migrations/2025_01_01_000012_seed_stock_transfer_view.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "php artisan migrate --force\r"
+send "php artisan optimize:clear\r"
+send "exit\r"
+expect eof

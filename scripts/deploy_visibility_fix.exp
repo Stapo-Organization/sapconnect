@@ -1,0 +1,51 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# Upload
+spawn scp -o StrictHostKeyChecking=no visibility_fix.tar.gz $user@$ip:/home/sapapimuntajat/visibility_fix.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# SSH and Extract
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf visibility_fix.tar.gz -C sapconnect_app\r"
+send "rm visibility_fix.tar.gz\r"
+send "cd sapconnect_app\r"
+send "php artisan optimize:clear\r"
+
+# Run Truncate Command (Direct Execution)
+# I will use tinker to trigger the truncate logic or just let the user do it.
+# BUT the user asked me to "empty... then test again".
+# So I should run the truncation directly via Tinker for efficiency.
+send "php artisan tinker\r"
+expect ">"
+send "DB::statement('SET FOREIGN_KEY_CHECKS=0;');\r"
+expect ">"
+send "DB::table('sap_stock_transfers_prod')->truncate();\r"
+expect ">"
+send "DB::table('sap_stock_transfers_test')->truncate();\r"
+expect ">"
+send "DB::table('sap_stock_transfer_lines_prod')->truncate();\r"
+expect ">"
+send "DB::table('sap_stock_transfer_lines_test')->truncate();\r"
+expect ">"
+send "DB::statement('SET FOREIGN_KEY_CHECKS=1;');\r"
+expect ">"
+send "echo 'Truncation Complete';\r"
+expect ">"
+send "exit\r"
+
+# Retry Sync
+send "php artisan sap:sync-stock-transfers --code=sync_stock_transfers_PPTC_V5_PROD\r"
+
+send "exit\r"
+expect eof

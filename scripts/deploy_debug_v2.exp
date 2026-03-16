@@ -1,0 +1,31 @@
+#!/usr/bin/expect
+
+set timeout 120
+
+# Upload the file
+spawn scp -o StrictHostKeyChecking=no debug_deploy.tar.gz sapapimuntajat@62.138.14.178:/home/sapapimuntajat/debug_deploy.tar.gz
+expect {
+    "Password:" { send "Muntajat@2025\r" }
+    timeout { puts "SCP Timeout"; exit 1 }
+}
+expect eof
+
+# Deploy and Optimize
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+expect "Password:"
+send "Muntajat@2025\r"
+expect {
+    "Last login" { }
+    "$" { }
+}
+
+send "cd sapconnect_app\r"
+expect "$"
+send "tar -xzf ../debug_deploy.tar.gz\r"
+expect "$"
+send "rm ../debug_deploy.tar.gz\r"
+expect "$"
+send "php artisan optimize:clear\r"
+expect "$"
+send "exit\r"
+expect eof

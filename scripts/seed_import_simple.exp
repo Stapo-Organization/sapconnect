@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Create a temporary PHP script to run
+send "cat > seed_import.php <<EOF\r"
+send "\$mapping = \[\r"
+send "    \['csv_header' => 'SAP Code', 'sap_field' => 'InventoryCountingLines.ItemCode'\],\r"
+send "    \['csv_header' => 'Batch Number', 'sap_field' => 'InventoryCountingLines.BatchNumbers.BatchNumber'\],\r"
+send "    \['csv_header' => 'Expiry Date', 'sap_field' => 'InventoryCountingLines.BatchNumbers.ExpiryDate'\],\r"
+send "    \['csv_header' => 'Qty', 'sap_field' => 'InventoryCountingLines.BatchNumbers.Quantity'\],\r"
+send "    \['csv_header' => 'Warehouse', 'sap_field' => 'WhsCode'\],\r"
+send "    \['csv_header' => 'Count Date', 'sap_field' => 'CountDate'\]\r"
+send "\];\r"
+send "App\\\\Models\\\\SapImport::updateOrCreate(\r"
+send "    \['name' => 'Inventory Counting'\],\r"
+send "    \[\r"
+send "        'resource' => 'InventoryCountings',\r"
+send "        'import_mode' => 'Document',\r"
+send "        'mapping' => \$mapping\r"
+send "    \]\r"
+send ");\r"
+send "echo 'Seeding Complete';\r"
+send "EOF\r"
+
+expect "$*"
+send "cat seed_import.php | php artisan tinker\r"
+expect "Seeding Complete"
+
+send "rm seed_import.php\r"
+expect "$*"
+send "exit\r"
+expect eof

@@ -1,0 +1,5848 @@
+[
+    {
+        "InventoryCountingLines": [
+            {
+                "ItemCode": "P15901791",
+                "CountedQuantity": 636,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05.12.2026",
+                        "Quantity": 636
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901792",
+                "CountedQuantity": 596,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05.12.2026",
+                        "Quantity": 596
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901787",
+                "CountedQuantity": 593,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44932",
+                        "Quantity": 593
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901783",
+                "CountedQuantity": 566,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05/12/2026",
+                        "Quantity": 566
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901785",
+                "CountedQuantity": 566,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05.12.2026",
+                        "Quantity": 566
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901786",
+                "CountedQuantity": 523,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05.12.2026",
+                        "Quantity": 523
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901784",
+                "CountedQuantity": 520,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05/12/2026",
+                        "Quantity": 520
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600082",
+                "CountedQuantity": 508,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "TCTHN601",
+                        "Quantity": 508
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600083",
+                "CountedQuantity": 503,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "8s5652",
+                        "Quantity": 503
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600079",
+                "CountedQuantity": 494,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "568956",
+                        "Quantity": 494
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600080",
+                "CountedQuantity": 489,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "85686",
+                        "Quantity": 489
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600081",
+                "CountedQuantity": 489,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "TCTHN531",
+                        "Quantity": 489
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600085",
+                "CountedQuantity": 485,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "98563256",
+                        "Quantity": 485
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600058",
+                "CountedQuantity": 446,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25659856",
+                        "Quantity": 446
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600180",
+                "CountedQuantity": 313,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "27052022",
+                        "Quantity": 313
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12300101",
+                "CountedQuantity": 232,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "P-233",
+                        "Quantity": 232
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600002",
+                "CountedQuantity": 228,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44993",
+                        "Quantity": 228
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600005",
+                "CountedQuantity": 222,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "21-03-23",
+                        "Quantity": 222
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600004",
+                "CountedQuantity": 221,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "SCRRG-F",
+                        "Quantity": 221
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900016",
+                "CountedQuantity": 217,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-05-23",
+                        "Quantity": 217
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600063",
+                "CountedQuantity": 215,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13-05-23",
+                        "Quantity": 215
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600006",
+                "CountedQuantity": 214,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11062030",
+                        "Quantity": 214
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600057",
+                "CountedQuantity": 206,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13/12/2024",
+                        "Quantity": 206
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800029",
+                "CountedQuantity": 203,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 203
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600096",
+                "CountedQuantity": 195,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14-12-23",
+                        "Quantity": 195
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600064",
+                "CountedQuantity": 191,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45033",
+                        "Quantity": 191
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900040",
+                "CountedQuantity": 190,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2568099SNP059",
+                        "Quantity": 190
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600047",
+                "CountedQuantity": 189,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/10/25",
+                        "Quantity": 189
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600015",
+                "CountedQuantity": 187,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44928",
+                        "Quantity": 187
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800045",
+                "CountedQuantity": 184,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "46084",
+                        "Quantity": 184
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600065",
+                "CountedQuantity": 183,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12-12-23",
+                        "Quantity": 183
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300037",
+                "CountedQuantity": 330,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "04/04/2026",
+                        "Quantity": 330
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300001",
+                "CountedQuantity": 330,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "46084",
+                        "Quantity": 330
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300010",
+                "CountedQuantity": 330,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "07/04/2026",
+                        "Quantity": 330
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100054",
+                "CountedQuantity": 172,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-09-23",
+                        "Quantity": 172
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800069",
+                "CountedQuantity": 311,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14/04/2024",
+                        "Quantity": 311
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300063",
+                "CountedQuantity": 233,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "26/03/2026",
+                        "Quantity": 233
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800052",
+                "CountedQuantity": 154,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/2024",
+                        "Quantity": 154
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900030",
+                "CountedQuantity": 212,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024983",
+                        "Quantity": 212
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800011",
+                "CountedQuantity": 151,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 151
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900042",
+                "CountedQuantity": 150,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2568076SNP062",
+                        "Quantity": 150
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800070",
+                "CountedQuantity": 269,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14/04/2024",
+                        "Quantity": 269
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800044",
+                "CountedQuantity": 147,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/24",
+                        "Quantity": 147
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900018",
+                "CountedQuantity": 144,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "07-01-23",
+                        "Quantity": 144
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800078",
+                "CountedQuantity": 144,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1111111111541",
+                        "Quantity": 144
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800050",
+                "CountedQuantity": 141,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/2024",
+                        "Quantity": 141
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16100011",
+                "CountedQuantity": 140,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "MRTCRJ",
+                        "Quantity": 140
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800082",
+                "CountedQuantity": 135,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2222222222451",
+                        "Quantity": 135
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800041",
+                "CountedQuantity": 135,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/2024",
+                        "Quantity": 135
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800080",
+                "CountedQuantity": 135,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1111111124",
+                        "Quantity": 135
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800037",
+                "CountedQuantity": 133,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13/02/25",
+                        "Quantity": 133
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600094",
+                "CountedQuantity": 131,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45270",
+                        "Quantity": 131
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300036",
+                "CountedQuantity": 130,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "23/03/2026",
+                        "Quantity": 130
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800081",
+                "CountedQuantity": 130,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14111111245",
+                        "Quantity": 130
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800046",
+                "CountedQuantity": 151,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1012029",
+                        "Quantity": 151
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800045",
+                "CountedQuantity": 126,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/24",
+                        "Quantity": 126
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800047",
+                "CountedQuantity": 125,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "AA56",
+                        "Quantity": 125
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800042",
+                "CountedQuantity": 123,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13/02/24",
+                        "Quantity": 123
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900028",
+                "CountedQuantity": 182,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024948",
+                        "Quantity": 182
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300034",
+                "CountedQuantity": 119,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09/03/24",
+                        "Quantity": 119
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600045",
+                "CountedQuantity": 119,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/10/24",
+                        "Quantity": 119
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300015",
+                "CountedQuantity": 159,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "20/11/2026",
+                        "Quantity": 159
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300014",
+                "CountedQuantity": 159,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "08/10/2026",
+                        "Quantity": 159
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901704",
+                "CountedQuantity": 118,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 118
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800055",
+                "CountedQuantity": 113,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/24",
+                        "Quantity": 113
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800024",
+                "CountedQuantity": 111,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1032029",
+                        "Quantity": 111
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400013",
+                "CountedQuantity": 106,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "211019",
+                        "Quantity": 106
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500108",
+                "CountedQuantity": 172,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45021",
+                        "Quantity": 172
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800053",
+                "CountedQuantity": 99,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14/02/24",
+                        "Quantity": 99
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901713",
+                "CountedQuantity": 98,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 98
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800038",
+                "CountedQuantity": 97,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13/02/25",
+                        "Quantity": 97
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18400047",
+                "CountedQuantity": 96,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2712202700",
+                        "Quantity": 96
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700174",
+                "CountedQuantity": 95,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10633",
+                        "Quantity": 95
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700171",
+                "CountedQuantity": 95,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10630",
+                        "Quantity": 95
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300039",
+                "CountedQuantity": 94,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "8006ML-A",
+                        "Quantity": 94
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16100015",
+                "CountedQuantity": 94,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "MPTCRJ",
+                        "Quantity": 94
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300050",
+                "CountedQuantity": 92,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/03/2026",
+                        "Quantity": 92
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700180",
+                "CountedQuantity": 91,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10660",
+                        "Quantity": 91
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700181",
+                "CountedQuantity": 90,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10661",
+                        "Quantity": 90
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900006",
+                "CountedQuantity": 120,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024794",
+                        "Quantity": 120
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300020",
+                "CountedQuantity": 89,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09/07/25",
+                        "Quantity": 89
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800040",
+                "CountedQuantity": 87,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13/02/24",
+                        "Quantity": 87
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800074",
+                "CountedQuantity": 85,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11111111",
+                        "Quantity": 85
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900034",
+                "CountedQuantity": 115,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024975",
+                        "Quantity": 115
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800019",
+                "CountedQuantity": 83,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 83
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800077",
+                "CountedQuantity": 81,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11115",
+                        "Quantity": 81
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500103",
+                "CountedQuantity": 80,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25-02-23",
+                        "Quantity": 80
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800075",
+                "CountedQuantity": 78,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11111145",
+                        "Quantity": 78
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800020",
+                "CountedQuantity": 78,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30012026",
+                        "Quantity": 78
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901712",
+                "CountedQuantity": 78,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 78
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800072",
+                "CountedQuantity": 77,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "444444444444",
+                        "Quantity": 77
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800028",
+                "CountedQuantity": 76,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 76
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800051",
+                "CountedQuantity": 74,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/2024",
+                        "Quantity": 74
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901705",
+                "CountedQuantity": 73,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 73
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800084",
+                "CountedQuantity": 72,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "22222222541",
+                        "Quantity": 72
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18400035",
+                "CountedQuantity": 71,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "DXUAM",
+                        "Quantity": 71
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18400034",
+                "CountedQuantity": 71,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1801202700",
+                        "Quantity": 71
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500040",
+                "CountedQuantity": 111,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000393573",
+                        "Quantity": 111
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500114",
+                "CountedQuantity": 105,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 105
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900397",
+                "CountedQuantity": 119,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "46138",
+                        "Quantity": 119
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900398",
+                "CountedQuantity": 118,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45040",
+                        "Quantity": 118
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800086",
+                "CountedQuantity": 66,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2551",
+                        "Quantity": 66
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800076",
+                "CountedQuantity": 66,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "111114541",
+                        "Quantity": 66
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900399",
+                "CountedQuantity": 114,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45042",
+                        "Quantity": 114
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900014",
+                "CountedQuantity": 64,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-04-23",
+                        "Quantity": 64
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500162",
+                "CountedQuantity": 64,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10-12-23",
+                        "Quantity": 64
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500111",
+                "CountedQuantity": 63,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10-02-23",
+                        "Quantity": 63
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800048",
+                "CountedQuantity": 63,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/2024",
+                        "Quantity": 63
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800083",
+                "CountedQuantity": 61,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "111111341",
+                        "Quantity": 61
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901037",
+                "CountedQuantity": 110,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "24-04-26",
+                        "Quantity": 110
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18400030",
+                "CountedQuantity": 59,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2101202700",
+                        "Quantity": 59
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16100020",
+                "CountedQuantity": 59,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "72027",
+                        "Quantity": 59
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18300001",
+                "CountedQuantity": 58,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31-12-2027",
+                        "Quantity": 58
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900400",
+                "CountedQuantity": 108,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4-ZLX-PSOR",
+                        "Quantity": 108
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900402",
+                "CountedQuantity": 106,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45040",
+                        "Quantity": 106
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12700033",
+                "CountedQuantity": 85,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 85
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600166",
+                "CountedQuantity": 55,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1454",
+                        "Quantity": 55
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100017",
+                "CountedQuantity": 55,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45144",
+                        "Quantity": 55
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800049",
+                "CountedQuantity": 55,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45018",
+                        "Quantity": 55
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000026",
+                "CountedQuantity": 55,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18/10/2024",
+                        "Quantity": 55
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500106",
+                "CountedQuantity": 90,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-03-23",
+                        "Quantity": 90
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600172",
+                "CountedQuantity": 54,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4741",
+                        "Quantity": 54
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300007",
+                "CountedQuantity": 94,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05/01/25",
+                        "Quantity": 94
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800023",
+                "CountedQuantity": 53,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "449600",
+                        "Quantity": 53
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901788",
+                "CountedQuantity": 53,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05.12.2026",
+                        "Quantity": 53
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900401",
+                "CountedQuantity": 102,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4-ZLX-PSOL",
+                        "Quantity": 102
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901036",
+                "CountedQuantity": 101,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "24-04-23",
+                        "Quantity": 101
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600168",
+                "CountedQuantity": 51,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44451",
+                        "Quantity": 51
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500053",
+                "CountedQuantity": 50,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000400137",
+                        "Quantity": 50
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600218",
+                "CountedQuantity": 50,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "46295",
+                        "Quantity": 50
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300057",
+                "CountedQuantity": 88,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/09/2026",
+                        "Quantity": 88
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500034",
+                "CountedQuantity": 88,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "J50012127",
+                        "Quantity": 88
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900017",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09-01-23",
+                        "Quantity": 48
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300072",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/04/2026",
+                        "Quantity": 48
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600042",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/10/25",
+                        "Quantity": 48
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800056",
+                "CountedQuantity": 47,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/24",
+                        "Quantity": 47
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11500054",
+                "CountedQuantity": 47,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09/01/25",
+                        "Quantity": 47
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300059",
+                "CountedQuantity": 87,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/09/2026",
+                        "Quantity": 87
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900389",
+                "CountedQuantity": 76,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45042",
+                        "Quantity": 76
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600216",
+                "CountedQuantity": 46,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC-87927",
+                        "Quantity": 46
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300058",
+                "CountedQuantity": 86,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/09/2026",
+                        "Quantity": 86
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100018",
+                "CountedQuantity": 46,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "27032026",
+                        "Quantity": 46
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900015",
+                "CountedQuantity": 46,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45021",
+                        "Quantity": 46
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18400031",
+                "CountedQuantity": 46,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "DXUAL",
+                        "Quantity": 46
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800043",
+                "CountedQuantity": 45,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14/02/24",
+                        "Quantity": 45
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300049",
+                "CountedQuantity": 45,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "8253ML-A",
+                        "Quantity": 45
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300017",
+                "CountedQuantity": 44,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45015",
+                        "Quantity": 44
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600076",
+                "CountedQuantity": 44,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25-03-23",
+                        "Quantity": 44
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18300005",
+                "CountedQuantity": 44,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31-12-2027",
+                        "Quantity": 44
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300041",
+                "CountedQuantity": 43,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "5060122493048",
+                        "Quantity": 43
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300021",
+                "CountedQuantity": 43,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45015",
+                        "Quantity": 43
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300022",
+                "CountedQuantity": 43,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "SD2816",
+                        "Quantity": 43
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600124",
+                "CountedQuantity": 43,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14-02-2024",
+                        "Quantity": 43
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500092",
+                "CountedQuantity": 82,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000399130",
+                        "Quantity": 82
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600217",
+                "CountedQuantity": 42,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC-87934",
+                        "Quantity": 42
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300055",
+                "CountedQuantity": 69,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "523252",
+                        "Quantity": 69
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800046",
+                "CountedQuantity": 41,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14/02/24",
+                        "Quantity": 41
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900013",
+                "CountedQuantity": 41,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-01-23",
+                        "Quantity": 41
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10900012",
+                "CountedQuantity": 41,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45109",
+                        "Quantity": 41
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300012",
+                "CountedQuantity": 71,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-03-23",
+                        "Quantity": 71
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300064",
+                "CountedQuantity": 59,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11/01/25",
+                        "Quantity": 59
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300024",
+                "CountedQuantity": 40,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "29-03-23",
+                        "Quantity": 40
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300031",
+                "CountedQuantity": 39,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12/01/25",
+                        "Quantity": 39
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100032",
+                "CountedQuantity": 39,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "Chweaa",
+                        "Quantity": 39
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600071",
+                "CountedQuantity": 39,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25-03-23",
+                        "Quantity": 39
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300015",
+                "CountedQuantity": 38,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-03-23",
+                        "Quantity": 38
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300029",
+                "CountedQuantity": 38,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12/01/25",
+                        "Quantity": 38
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300021",
+                "CountedQuantity": 38,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "8002ML-A",
+                        "Quantity": 38
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15900394",
+                "CountedQuantity": 67,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45042",
+                        "Quantity": 67
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300013",
+                "CountedQuantity": 37,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 37
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600144",
+                "CountedQuantity": 36,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "114541241541",
+                        "Quantity": 36
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300042",
+                "CountedQuantity": 66,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11/01/25",
+                        "Quantity": 66
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P13400020",
+                "CountedQuantity": 60,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11/01/24",
+                        "Quantity": 60
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300052",
+                "CountedQuantity": 66,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/04/2026",
+                        "Quantity": 66
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300001",
+                "CountedQuantity": 35,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14-06-23",
+                        "Quantity": 35
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300009",
+                "CountedQuantity": 35,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44959",
+                        "Quantity": 35
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P13400022",
+                "CountedQuantity": 59,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "02/01/24",
+                        "Quantity": 59
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600251",
+                "CountedQuantity": 34,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC88184",
+                        "Quantity": 34
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600140",
+                "CountedQuantity": 34,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "143011224",
+                        "Quantity": 34
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300019",
+                "CountedQuantity": 34,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "29-03-23",
+                        "Quantity": 34
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100034",
+                "CountedQuantity": 34,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13-08-23",
+                        "Quantity": 34
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901534",
+                "CountedQuantity": 33,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/06/2026",
+                        "Quantity": 33
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300034",
+                "CountedQuantity": 73,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "523261",
+                        "Quantity": 73
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300044",
+                "CountedQuantity": 45,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44929",
+                        "Quantity": 45
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18300006",
+                "CountedQuantity": 33,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31-12-2027",
+                        "Quantity": 33
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700012",
+                "CountedQuantity": 32,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "115464",
+                        "Quantity": 32
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500013",
+                "CountedQuantity": 62,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 62
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600145",
+                "CountedQuantity": 31,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "328011224",
+                        "Quantity": 31
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800085",
+                "CountedQuantity": 30,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1111111111",
+                        "Quantity": 30
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600167",
+                "CountedQuantity": 30,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1411",
+                        "Quantity": 30
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800079",
+                "CountedQuantity": 30,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11114641",
+                        "Quantity": 30
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600227",
+                "CountedQuantity": 30,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "03/02/25",
+                        "Quantity": 30
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600170",
+                "CountedQuantity": 30,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44517",
+                        "Quantity": 30
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500112",
+                "CountedQuantity": 44,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 44
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300005",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05/09/25",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800049",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/2024",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600231",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11/02/25",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600141",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "443011224",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300008",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4072",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600249",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC88207",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16100030",
+                "CountedQuantity": 28,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "L000021",
+                        "Quantity": 28
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300017",
+                "CountedQuantity": 29,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-02-23",
+                        "Quantity": 29
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300012",
+                "CountedQuantity": 28,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/09/25",
+                        "Quantity": 28
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300016",
+                "CountedQuantity": 27,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "02-02-23",
+                        "Quantity": 27
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800002",
+                "CountedQuantity": 27,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 27
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600072",
+                "CountedQuantity": 26,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25-03-23",
+                        "Quantity": 26
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500007",
+                "CountedQuantity": 26,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 26
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800071",
+                "CountedQuantity": 26,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1124",
+                        "Quantity": 26
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000019",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "22/10/2024",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300007",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45080",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P13400013",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "0523G",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800036",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12/02/25",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900025",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024873",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600232",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11/02/25",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700006",
+                "CountedQuantity": 25,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1144",
+                        "Quantity": 25
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11900016",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45656",
+                        "Quantity": 48
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P13400023",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "03/01/24",
+                        "Quantity": 48
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11900015",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "02/01/24",
+                        "Quantity": 48
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600143",
+                "CountedQuantity": 24,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "205011224",
+                        "Quantity": 24
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500127",
+                "CountedQuantity": 24,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25-02-23",
+                        "Quantity": 24
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P13400007",
+                "CountedQuantity": 48,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P13400015",
+                "CountedQuantity": 24,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "28/12/2024",
+                        "Quantity": 24
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600185",
+                "CountedQuantity": 24,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC-6871B",
+                        "Quantity": 24
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901529",
+                "CountedQuantity": 23,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01.06.24",
+                        "Quantity": 23
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800043",
+                "CountedQuantity": 23,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 23
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100057",
+                "CountedQuantity": 22,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-05-23",
+                        "Quantity": 22
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901016",
+                "CountedQuantity": 40,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09/07/24",
+                        "Quantity": 40
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800035",
+                "CountedQuantity": 22,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12/02/24",
+                        "Quantity": 22
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901524",
+                "CountedQuantity": 22,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18562",
+                        "Quantity": 22
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300071",
+                "CountedQuantity": 22,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 22
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100026",
+                "CountedQuantity": 22,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05-11-23",
+                        "Quantity": 22
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800050",
+                "CountedQuantity": 21,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1-04-23",
+                        "Quantity": 21
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600230",
+                "CountedQuantity": 21,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10/02/24",
+                        "Quantity": 21
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16900046",
+                "CountedQuantity": 21,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25/05/2025",
+                        "Quantity": 21
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300011",
+                "CountedQuantity": 21,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/09/25",
+                        "Quantity": 21
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300054",
+                "CountedQuantity": 20,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "26/08/2025",
+                        "Quantity": 20
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500149",
+                "CountedQuantity": 20,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "333",
+                        "Quantity": 20
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500124",
+                "CountedQuantity": 20,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "23-05-23",
+                        "Quantity": 20
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100056",
+                "CountedQuantity": 20,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-09-23",
+                        "Quantity": 20
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300002",
+                "CountedQuantity": 19,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05-05-23",
+                        "Quantity": 19
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800051",
+                "CountedQuantity": 19,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 19
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100055",
+                "CountedQuantity": 19,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-09-23",
+                        "Quantity": 19
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600228",
+                "CountedQuantity": 18,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01/02/25",
+                        "Quantity": 18
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16900041",
+                "CountedQuantity": 18,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "22/01/2024",
+                        "Quantity": 18
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P13400012",
+                "CountedQuantity": 18,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1423G",
+                        "Quantity": 18
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500113",
+                "CountedQuantity": 18,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45239",
+                        "Quantity": 18
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901014",
+                "CountedQuantity": 36,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "13/09/2024",
+                        "Quantity": 36
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901717",
+                "CountedQuantity": 18,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 18
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300030",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10/01/25",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800051",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "354011224",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600174",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45139",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100076",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "DR22604200",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600009",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45309",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300016",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "46327",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700010",
+                "CountedQuantity": 17,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1145",
+                        "Quantity": 17
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900035",
+                "CountedQuantity": 16,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024519",
+                        "Quantity": 16
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600175",
+                "CountedQuantity": 16,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "23052026",
+                        "Quantity": 16
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300071",
+                "CountedQuantity": 16,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/04/2026",
+                        "Quantity": 16
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500037",
+                "CountedQuantity": 16,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "04-03-23",
+                        "Quantity": 16
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300039",
+                "CountedQuantity": 16,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/09/2026",
+                        "Quantity": 16
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500140",
+                "CountedQuantity": 16,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "17/01/2024",
+                        "Quantity": 16
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800055",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500116",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45527",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700055",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1544748",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300001",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "28/02/26",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100069",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "DR22601085",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900007",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024442",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100009",
+                "CountedQuantity": 30,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18-01-23",
+                        "Quantity": 30
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500055",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14-05-23",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300013",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/10/2026",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400008",
+                "CountedQuantity": 15,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25/08/2024",
+                        "Quantity": 15
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500054",
+                "CountedQuantity": 27,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12/09/2027",
+                        "Quantity": 27
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901532",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "29.05.2026",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14700025",
+                "CountedQuantity": 26,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "92027-4P",
+                        "Quantity": 26
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300070",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44986",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600233",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15/02/25",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400002",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "24190",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600122",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45338",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100023",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "06-11-23",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P11100033",
+                "CountedQuantity": 14,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09-08-23",
+                        "Quantity": 14
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800048",
+                "CountedQuantity": 13,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 13
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300015",
+                "CountedQuantity": 13,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "07/09/25",
+                        "Quantity": 13
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500061",
+                "CountedQuantity": 13,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "22-01-23",
+                        "Quantity": 13
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300026",
+                "CountedQuantity": 24,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3236",
+                        "Quantity": 24
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800040",
+                "CountedQuantity": 12,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "146011224",
+                        "Quantity": 12
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300043",
+                "CountedQuantity": 24,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45110",
+                        "Quantity": 24
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800037",
+                "CountedQuantity": 12,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 12
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901527",
+                "CountedQuantity": 12,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "29.05.2026",
+                        "Quantity": 12
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300025",
+                "CountedQuantity": 12,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "12022026",
+                        "Quantity": 12
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16000028",
+                "CountedQuantity": 12,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P10500172",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "7004898",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901528",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "22.05.2026",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100033",
+                "CountedQuantity": 23,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31-05-23",
+                        "Quantity": 23
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400025",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44989",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700041",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "33333",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600032",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1924",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300066",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05-06-23",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400019",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "21285",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600100",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10-02-23",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500064",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "03-01-23",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300017",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "461701",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700011",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "111114",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500133",
+                "CountedQuantity": 20,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "331",
+                        "Quantity": 20
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800041",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "147011224",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300009",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "08/09/25",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700016",
+                "CountedQuantity": 11,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "15478588",
+                        "Quantity": 11
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300020",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44988",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300018",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "08/09/25",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600099",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "03-02-23",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800058",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600098",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "03-02-23",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700013",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "6666",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400005",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25/08/2024",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600101",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45691",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400030",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "240631",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600179",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44971",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18100010",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18/02/2024",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300006",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "05/09/25",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100053",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-09-23",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600220",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "28072026",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400006",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "23087",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18100002",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18/02/2024",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300181",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "00",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600008",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45675",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700024",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1111",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400007",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01092026",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400020",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45630",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300051",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-02-23",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600011",
+                "CountedQuantity": 9,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45675",
+                        "Quantity": 9
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18100011",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18/02/2024",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600012",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P15900403",
+                "CountedQuantity": 58,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45042",
+                        "Quantity": 58
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600007",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45675",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14700002",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1062027",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700028",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "225415",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300008",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "07/09/25",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500141",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18-04-23",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800037",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "415011224",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000006",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024955",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500118",
+                "CountedQuantity": 43,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 43
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600010",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45675",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500006",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/04/2024",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700047",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "55555555555",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16000053",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P18000025",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31/08/2024",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700037",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "116161",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300114",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "421621",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000016",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "20/08/2024",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000013",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "22/08/2024",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700025",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14741",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18100003",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18/02/2024",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700044",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "145555555",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500112",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "241203",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500165",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "380779",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800031",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800010",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3032026",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000010",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/08/2024",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300041",
+                "CountedQuantity": 12,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-12-23",
+                        "Quantity": 12
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800071",
+                "CountedQuantity": 7,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "131011124",
+                        "Quantity": 7
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800049",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "355011224",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901710",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14700001",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "068209",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901703",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600001",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "0695 7 1",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600242",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC9358",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300014",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "07/09/25",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901709",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600097",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "44961",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500013",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "7001671",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700035",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11541",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600024",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766220041",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901707",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901723",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600012",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2694",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800054",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "305011224",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901715",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500032",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "J50012125",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600239",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC9327",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901727",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-26",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600018",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766000384",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600022",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1505 4 2",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500135",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "29-03-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100035",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P15901718",
+                "CountedQuantity": 6,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 6
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600021",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1495 4 2",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300023",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "02/07/25",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400022",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "17/02/2024",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100020",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P17800032",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "128011224",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300011",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "461712",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600028",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766217065",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800038",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500019",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "255755",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500033",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30-03-23",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900009",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024678",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600030",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766218031",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300006",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600091",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45172",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800041",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-04-23",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600035",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766002685",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300119",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "LL077",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600070",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45172",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900003",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024450",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901721",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "06-23",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17800072",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "132011224",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600241",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC9341",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300046",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "04/01/25",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901724",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500019",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4501978",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500171",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "09/08/2026",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300175",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "421521",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500060",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000407348",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300011",
+                "CountedQuantity": 10,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-09-23",
+                        "Quantity": 10
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500089",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000407345",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100005",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18-01-23",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600038",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2226",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700039",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4445455",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14700030",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "167160",
+                        "Quantity": 8
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700033",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "222241",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400011",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "210201",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500010",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000397937",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500058",
+                "CountedQuantity": 44,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000398127",
+                        "Quantity": 44
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16000050",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "WWS996",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500100",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "30/04/2026",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15400025",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1062027",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14300038",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31/10/2026",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600016",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45170",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901708",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "01-06-23",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600234",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC9310",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500048",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600236",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC9280",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600040",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766211032",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500035",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45017",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900021",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024915",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500149",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000397276",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901531",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31/05/2026",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600238",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "KC9372",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500055",
+                "CountedQuantity": 4,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000405894",
+                        "Quantity": 4
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16300022",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10/07/25",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12800030",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400007",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25/08/2023",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700036",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14715",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500017",
+                "CountedQuantity": 33,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 33
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600014",
+                "CountedQuantity": 3,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1914",
+                        "Quantity": 3
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18100006",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "18/02/2024",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900015",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024636",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700021",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1165",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000017",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "20/08/2024",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700049",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45545",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16100031",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "L000020",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700034",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "124555",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300116",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "421040",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901526",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "6578",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900004",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "20243450",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000009",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "10/08/24",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10500087",
+                "CountedQuantity": 5,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "7005265",
+                        "Quantity": 5
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600036",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1924",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16100026",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "L000274",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300009",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "4492915",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900008",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024796",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900010",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024781",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600016",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2205",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700048",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "11111124",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16800054",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "14/02/24",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700051",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "55555555555",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17900011",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "2024680",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700043",
+                "CountedQuantity": 2,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "444444451",
+                        "Quantity": 2
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17100027",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "20-02-23",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600020",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766000377",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300067",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "28/02/25",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16900001",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "29/11/2024",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500051",
+                "CountedQuantity": 31,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 31
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15300144",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "LL106",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12600229",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "03/02/25",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700031",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "444444444",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P15901018",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "21/09/2024",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700019",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "1471",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12500068",
+                "CountedQuantity": 31,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "3000407074",
+                        "Quantity": 31
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600025",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766220126",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P14700013",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "459011224",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17300010",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P17100029",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "20-02-23",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16600031",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "93766000179",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P16400010",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "25/08/2023",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17700038",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "66666",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P17300013",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P12500037",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "45019",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P18000008",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "17/09/2024",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P10300019",
+                "CountedQuantity": 1,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "31-06-23",
+                        "Quantity": 1
+                    }
+                ]
+            },
+            {
+                "ItemCode": "P12700024",
+                "CountedQuantity": 40,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC"
+            },
+            {
+                "ItemCode": "P14700027",
+                "CountedQuantity": 8,
+                "WarehouseCode": "RUH008",
+                "UoMCode": "PC",
+                "InventoryCountingBatchNumbers": [
+                    {
+                        "BatchNumber": "P14700027",
+                        "Quantity": 8
+                    }
+                ]
+            }
+        ],
+        "CountDate": "2025-12-18",
+        "CountTime": "14:09:09",
+        "BranchID": "1",
+        "DocumentStatus": "cds_Open"
+    }
+]

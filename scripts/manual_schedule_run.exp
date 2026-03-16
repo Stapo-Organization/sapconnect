@@ -1,0 +1,8 @@
+#!/usr/bin/expect
+
+set timeout 60
+
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php artisan schedule:run"
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof

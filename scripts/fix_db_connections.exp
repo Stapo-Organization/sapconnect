@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Check if queue workers are taking up connections
+send "ps aux | grep queue:work\r"
+expect "$*"
+
+# Kill all sleeping connections or queue workers
+send "pkill -f queue:work\r"
+expect "$*"
+
+send "php artisan queue:restart\r"
+expect "$*"
+
+send "exit\r"
+expect eof

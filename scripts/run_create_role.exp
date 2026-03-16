@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no scripts/create_role.php $user@$ip:/home/sapapimuntajat/sapconnect_app/create_role.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "php create_role.php\r"
+expect "$*"
+send "rm create_role.php\r"
+send "exit\r"
+expect eof

@@ -1,0 +1,28 @@
+#!/usr/bin/expect -f
+
+set timeout 600
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# 1. Upload Script
+spawn scp -o StrictHostKeyChecking=no run_import_cli.php $user@$ip:/home/sapapimuntajat/sapconnect_app/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# 2. Run Script & Tail Logs
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "*$*"
+send "cd sapconnect_app\r"
+send "php run_import_cli.php\r"
+
+expect "*$*"
+send "tail -n 100 storage/logs/laravel.log\r"
+
+expect "*$*"
+send "exit\r"
+expect eof

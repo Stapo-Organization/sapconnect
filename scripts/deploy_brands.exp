@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no brands_feature.tar.gz $user@$ip:/home/sapapimuntajat/brands_feature.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf brands_feature.tar.gz -C sapconnect_app\r"
+send "rm brands_feature.tar.gz\r"
+send "cd sapconnect_app\r"
+send "php artisan migrate --force\r"
+send "php artisan optimize:clear\r"
+send "php artisan sap:sync-brands\r"
+send "exit\r"
+expect eof

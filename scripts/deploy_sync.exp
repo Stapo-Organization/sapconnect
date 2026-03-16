@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# AdminPanelProvider (API Docs Link)
+spawn scp -o StrictHostKeyChecking=no app/Providers/Filament/AdminPanelProvider.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Providers/Filament/AdminPanelProvider.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# SapImportResource (Help Instructions)
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/SapImportResource.php $user@$ip:/home/sapapimuntajat/sapconnect_app/app/Filament/Resources/SapImportResource.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# Migrations (StockTransfers Views)
+spawn scp -o StrictHostKeyChecking=no database/migrations/2025_01_01_000012_seed_stock_transfer_view.php $user@$ip:/home/sapapimuntajat/sapconnect_app/database/migrations/2025_01_01_000012_seed_stock_transfer_view.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no database/migrations/2025_01_01_000013_add_dates_to_stock_transfers_view.php $user@$ip:/home/sapapimuntajat/sapconnect_app/database/migrations/2025_01_01_000013_add_dates_to_stock_transfers_view.php
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# Clear Cache
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+expect "$*"
+send "cd sapconnect_app\r"
+send "php artisan optimize:clear\r"
+send "exit\r"
+expect eof

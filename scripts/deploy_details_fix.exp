@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no details_fix.tar.gz $user@$ip:/home/sapapimuntajat/details_fix.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf details_fix.tar.gz -C sapconnect_app\r"
+send "rm details_fix.tar.gz\r"
+send "cd sapconnect_app\r"
+
+# 1. Delete one record to force 'New' detection
+send "php artisan tinker\r"
+expect ">"
+send "DB::table('sap_stock_transfers_prod')->orderBy('doc_entry', 'desc')->limit(1)->delete();\r"
+expect ">"
+send "exit\r"
+
+# 2. Run sync
+send "php artisan sap:sync-stock-transfers --code=sync_stock_transfers_PPTC_V5_PROD\r"
+
+# 3. Check Log
+send "php -r \"require 'vendor/autoload.php'; \\\$app = require_once 'bootstrap/app.php'; \\\$kernel = \\\$app->make(Illuminate\\\\Contracts\\\\Console\\\\Kernel::class); \\\$kernel->bootstrap(); \\\$log = App\\\\Models\\\\AutomationLog::latest()->first(); echo 'Latest Log Message: ' . \\\$log->message . PHP_EOL;\"\r"
+
+send "exit\r"
+expect eof

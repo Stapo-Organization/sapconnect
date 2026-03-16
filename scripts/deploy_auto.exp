@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no sapconnect_auto.tar.gz $user@$ip:/home/sapapimuntajat/sapconnect_auto.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf sapconnect_auto.tar.gz -C sapconnect_app --strip-components=1\r"
+send "rm sapconnect_auto.tar.gz\r"
+send "cd sapconnect_app && php artisan optimize:clear\r"
+
+expect "$*"
+send "exit\r"
+expect eof

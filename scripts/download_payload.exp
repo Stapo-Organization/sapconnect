@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178:/home/sapapimuntajat/sapconnect_app/storage/app/last_payload_preview.json payload_preview.json
+expect {
+    -re ".*assword:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

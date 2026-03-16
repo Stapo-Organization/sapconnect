@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no sapconnect_rbac.tar.gz $user@$ip:/home/sapapimuntajat/sapconnect_rbac.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf sapconnect_rbac.tar.gz -C sapconnect_app\r"
+send "rm sapconnect_rbac.tar.gz\r"
+send "cd sapconnect_app\r"
+send "php artisan optimize:clear\r"
+send "php artisan migrate --force\r"
+send "exit\r"
+expect eof

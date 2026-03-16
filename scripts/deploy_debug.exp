@@ -1,0 +1,61 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+set root_pass "@m123811407M@"
+
+set app_root "/home/sapapimuntajat/sapconnect_app"
+set source_dir "/home/$user"
+
+# 1. SCP debug script
+spawn scp debug_stock_prod.php $user@$host:.
+expect {
+    "assword:" { 
+        send "$user_pass\r"
+        exp_continue
+    }
+    "yes/no" { 
+        send "yes\r"
+        exp_continue
+    }
+    eof
+}
+wait
+
+# 2. SSH and Run
+spawn ssh $user@$host
+expect {
+    "assword:" { 
+        send "$user_pass\r"
+        exp_continue
+    }
+    "yes/no" { 
+        send "yes\r"
+        exp_continue
+    }
+}
+
+expect -re {[\$#]}
+send "su -\r"
+expect "assword:"
+send "$root_pass\r"
+expect -re {[\$#]}
+
+send "cd $app_root\r"
+expect -re {[\$#]}
+
+send "mv -f $source_dir/debug_stock_prod.php .\r"
+expect -re {[\$#]}
+
+send "php debug_stock_prod.php\r"
+expect -re {[\$#]}
+
+# Cleanup (optional, but good practice)
+send "rm debug_stock_prod.php\r"
+expect -re {[\$#]}
+
+send "exit\r"
+send "exit\r"
+expect eof

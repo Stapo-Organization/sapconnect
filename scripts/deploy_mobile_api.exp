@@ -1,0 +1,64 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+set root_pass "@m123811407M@"
+
+# Files to Deploy
+set app_root "/home/sapapimuntajat/sapconnect_app"
+set source_dir "/home/$user"
+
+# 1. SCP files to User Home
+spawn scp -r \
+    app/Http/Controllers/Api/AuthController.php \
+    $user@$host:.
+
+expect {
+    "assword:" { 
+        send "$user_pass\r"
+        exp_continue
+    }
+    "yes/no" { 
+        send "yes\r"
+        exp_continue
+    }
+    eof
+}
+wait
+
+# 2. SSH and Switch to Root (Same flow as before)
+set ssh_spawn_id $spawn_id
+
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r"; exp_continue }
+}
+
+# Wait for prompt
+expect -re {[\$#]}
+send "su -\r"
+expect "assword:"
+send "$root_pass\r"
+expect -re {[\$#]}
+
+# 3. Move Files
+send "cd $app_root\r"
+expect -re {[\$#]}
+
+send "mv -f $source_dir/AuthController.php app/Http/Controllers/Api/\r"
+expect -re {[\$#]}
+
+# Fix Permissions
+send "chown -R sapapimuntajat:sapapimuntajat $app_root\r"
+expect -re {[\$#]}
+
+# Optimize to refresh routes/docs if needed (though controller logic change usually doesn't need route cache clear, Scramble might need reflection update)
+send "php artisan optimize:clear\r"
+expect -re {[\$#]}
+
+send "exit\r"
+send "exit\r"
+expect eof

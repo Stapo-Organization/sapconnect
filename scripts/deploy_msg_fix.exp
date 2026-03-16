@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no msg_fix.tar.gz $user@$ip:/home/sapapimuntajat/msg_fix.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf msg_fix.tar.gz -C sapconnect_app\r"
+send "rm msg_fix.tar.gz\r"
+send "cd sapconnect_app\r"
+
+# Run sync again to generate a new log
+send "php artisan sap:sync-stock-transfers --code=sync_stock_transfers_PPTC_V5_PROD\r"
+
+# Check the latest log message
+send "php -r \"require 'vendor/autoload.php'; \\\$app = require_once 'bootstrap/app.php'; \\\$kernel = \\\$app->make(Illuminate\\\\Contracts\\\\Console\\\\Kernel::class); \\\$kernel->bootstrap(); \\\$log = App\\\\Models\\\\AutomationLog::latest()->first(); echo 'Latest Log Message: ' . \\\$log->message . PHP_EOL;\"\r"
+
+send "exit\r"
+expect eof

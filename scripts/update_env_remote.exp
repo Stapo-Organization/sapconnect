@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+send "echo '' >> .env\r"
+send "echo '# Taqnyat SMS' >> .env\r"
+send "echo 'TAQNYAT_BEARER_TOKEN=60cad7ddd1d6300aec7c96750ea8c922' >> .env\r"
+send "echo 'TAQNYAT_SENDER=PPTCO' >> .env\r"
+send "php artisan config:clear\r"
+send "php artisan cache:clear\r"
+send "exit\r"
+expect eof

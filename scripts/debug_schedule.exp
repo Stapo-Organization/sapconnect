@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Check Scheduled Commands
+send "php artisan schedule:list\r"
+
+# Check Automation Data
+send "php artisan tinker\r"
+expect ">"
+send "App\Models\Automation::all()->toArray();\r"
+expect ">"
+send "exit\r"
+
+send "exit\r"
+expect eof

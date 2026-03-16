@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# 1. Upload Script
+spawn scp -o StrictHostKeyChecking=no simple_verify.php $user@$ip:/home/sapapimuntajat/sapconnect_app/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# 2. Run Script
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "*$*"
+send "cd sapconnect_app\r"
+send "php simple_verify.php\r"
+
+expect "*$*"
+send "exit\r"
+expect eof

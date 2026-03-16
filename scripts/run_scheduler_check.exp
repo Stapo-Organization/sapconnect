@@ -1,0 +1,15 @@
+#!/usr/bin/expect
+
+set timeout 60
+
+# Upload
+spawn scp -o StrictHostKeyChecking=no check_scheduler_status.php sapapimuntajat@62.138.14.178:/home/sapapimuntajat/sapconnect_app/check_scheduler_status.php
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof
+
+# Run
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php check_scheduler_status.php"
+expect "Password:"
+send "Muntajat@2025\r"
+expect eof

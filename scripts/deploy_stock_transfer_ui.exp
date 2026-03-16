@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+set remote_dir "/home/sapapimuntajat/sapconnect_app"
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/UserResource.php app/Filament/Resources/StockTransferResource.php $user@$ip:$remote_dir/app/Filament/Resources/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/StockTransferResource/Pages/EditStockTransfer.php $user@$ip:$remote_dir/app/Filament/Resources/StockTransferResource/Pages/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd $remote_dir\r"
+send "php artisan optimize:clear\r"
+expect "$*"
+send "exit\r"
+expect eof

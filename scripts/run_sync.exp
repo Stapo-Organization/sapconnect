@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "cd sapconnect_app && php artisan sap:sync-stock-transfers --full"
+expect "*assword:*"
+send "$password\r"
+expect eof

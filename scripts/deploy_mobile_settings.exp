@@ -1,0 +1,91 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+set root_pass "@m123811407M@"
+
+# 1. SCP files to User Home
+spawn scp -r \
+    app/Filament/Pages/MobileAppSettings.php \
+    resources/views/filament/pages/mobile-app-settings.blade.php \
+    app/Models/MobileAppSetting.php \
+    database/migrations/2026_01_01_000000_create_mobile_app_settings_table.php \
+    routes/api.php \
+    app/Http/Middleware/SetSapEnvironment.php \
+    app/Http/Resources/StockTransferLineResource.php \
+    bootstrap/app.php \
+    $user@$host:.
+
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    "yes/no" { send "yes\r"; exp_continue }
+    eof
+}
+
+# 2. SSH and Switch to Root
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r"; exp_continue }
+}
+
+# Wait for login banner/prompt to settle
+expect -re {[\$#]}
+send "su -\r"
+expect "assword:"
+send "$root_pass\r"
+
+# 3. Operations as Root
+set app_root "/home/sapapimuntajat/sapconnect_app"
+set source_dir "/home/$user"
+
+# Wait for su - to complete
+expect -re {[\$#]}
+send "cd $app_root\r"
+sleep 1
+
+# Move files from user home to app dir
+# Force overwrite
+send "mv -f $source_dir/MobileAppSettings.php app/Filament/Pages/\r"
+sleep 1
+
+send "mv -f $source_dir/mobile-app-settings.blade.php resources/views/filament/pages/\r"
+sleep 1
+
+send "mv -f $source_dir/MobileAppSetting.php app/Models/\r"
+sleep 1
+
+send "mv -f $source_dir/2026_01_01_000000_create_mobile_app_settings_table.php database/migrations/\r"
+sleep 1
+
+send "mv -f $source_dir/SetSapEnvironment.php app/Http/Middleware/\r"
+sleep 1
+
+send "mv -f $source_dir/StockTransferLineResource.php app/Http/Resources/\r"
+sleep 1
+
+# Config files
+send "mv -f $source_dir/api.php routes/api.php\r"
+sleep 1
+
+send "mv -f $source_dir/app.php bootstrap/app.php\r"
+sleep 1
+
+# Fix Permissions (Safety)
+send "chown -R sapapimuntajat:sapapimuntajat $app_root\r"
+sleep 1
+
+# Migrations & Optimize
+send "php artisan migrate --force\r"
+# Migration might take time
+sleep 5
+
+send "php artisan optimize:clear\r"
+sleep 2
+
+send "exit\r"
+sleep 1
+send "exit\r"
+expect eof

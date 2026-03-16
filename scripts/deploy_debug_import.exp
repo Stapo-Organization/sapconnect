@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn scp -o StrictHostKeyChecking=no debug_import_products.tar.gz $user@$ip:/home/sapapimuntajat/debug_import_products.tar.gz
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "tar -xzf debug_import_products.tar.gz -C sapconnect_app\r"
+send "rm debug_import_products.tar.gz\r"
+send "cd sapconnect_app\r"
+# Force clear all caches
+send "php artisan optimize:clear\r"
+send "php artisan config:clear\r"
+send "php artisan cache:clear\r"
+# Check if opcache reset is possible (usually needs web server restart, but maybe CLI?)
+send "exit\r"
+expect eof

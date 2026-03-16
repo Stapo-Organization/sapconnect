@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+# 1. Upload
+spawn scp -o StrictHostKeyChecking=no sapconnect.tar.gz $user@$ip:/home/sapapimuntajat/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+# 2. Extract & Migrate
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "*$*"
+# Extract over existing directory
+send "tar -xzf sapconnect.tar.gz -C sapconnect_app\r"
+
+# Run Migrations
+expect "*$*"
+send "cd sapconnect_app\r"
+send "php artisan migrate --force\r"
+
+# Clear Cache
+expect "*$*"
+send "php artisan optimize:clear\r"
+
+# Exit
+expect "*$*"
+send "exit\r"
+expect eof

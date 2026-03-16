@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# 1. Publish Spatie Permissions Migration
+expect "$*"
+send "php artisan vendor:publish --provider=\"Spatie\\Permission\\PermissionServiceProvider\"\r"
+
+# 2. Run Migrations again
+expect "$*"
+send "php artisan migrate --force\r"
+
+# 3. Clear Cache (just in case permission cache is holding on)
+expect "$*"
+send "php artisan permission:cache-reset\r"
+send "php artisan cache:clear\r"
+
+expect "$*"
+send "exit\r"
+expect eof

@@ -1,0 +1,28 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+# Disable pager for this session
+send "export PAGER=cat\r" 
+send "php artisan tinker\r"
+
+expect ">"
+send "\$log = \\App\\Models\\ApiLog::where('endpoint', 'ItemGroups')->latest()->first();\r"
+
+expect ">"
+# Use raw json_encode output to avoid pretty print pager
+send "echo \$log ? \$log->response_body : 'NO_LOG';\r"
+
+expect ">"
+send "exit\r"
+send "exit\r"
+expect eof

@@ -1,0 +1,55 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+
+set app_root "/home/sapapimuntajat/sapconnect_app"
+set source_dir "/home/$user"
+
+# 1. SCP Middleware
+spawn scp app/Http/Middleware/TrackUserActivity.php $user@$host:.
+expect {
+    "assword:" { 
+        send "$user_pass\r"
+        exp_continue
+    }
+    "yes/no" { 
+        send "yes\r"
+        exp_continue
+    }
+    eof
+}
+wait
+
+# 2. SSH and Move
+spawn ssh $user@$host
+expect {
+    "assword:" { 
+        send "$user_pass\r"
+        exp_continue
+    }
+    "yes/no" { 
+        send "yes\r"
+        exp_continue
+    }
+}
+
+expect -re {[\$#]}
+
+send "cd $app_root\r"
+expect -re {[\$#]}
+
+send "mv -f $source_dir/TrackUserActivity.php app/Http/Middleware/\r"
+expect -re {[\$#]}
+
+# Fix Permissions
+# send "chown -R sapapimuntajat:sapapimuntajat $app_root\r"
+# expect -re {[\$#]}
+
+send "php artisan optimize:clear\r"
+expect -re {[\$#]}
+
+send "exit\r"
+expect eof

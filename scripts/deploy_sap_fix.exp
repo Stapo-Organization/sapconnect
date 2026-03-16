@@ -1,0 +1,50 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set user "sapapimuntajat"
+set host "62.138.14.178"
+set user_pass $env(DEPLOY_PASSWORD)
+set root_pass "@m123811407M@"
+
+set app_root "/home/sapapimuntajat/sapconnect_app"
+
+# SCP Service
+spawn scp app/Services/SapImportService.php $user@$host:.
+expect {
+    "assword:" { send "$user_pass\r"; exp_continue }
+    "yes/no" { send "yes\r"; exp_continue }
+    eof
+}
+wait
+
+# SSH and Deploy
+spawn ssh $user@$host
+expect {
+    "assword:" { send "$user_pass\r" }
+    "yes/no" { send "yes\r" }
+}
+
+expect -re {[\$#]}
+# send "su -\r"
+# expect "assword:"
+# send "$root_pass\r"
+# expect -re {[\$#]}
+
+send "cd $app_root\r"
+expect -re {[\$#]}
+
+# Move File
+send "mv -f /home/$user/SapImportService.php app/Services/\r"
+expect -re {[\$#]}
+
+# Fix Permissions
+send "chown -R sapapimuntajat:sapapimuntajat $app_root\r"
+expect -re {[\$#]}
+
+# Restart Queue (Optional but good just in case)
+send "php artisan queue:restart\r"
+expect -re {[\$#]}
+
+send "exit\r"
+send "exit\r"
+expect eof

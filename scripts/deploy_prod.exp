@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "app.ppte.sa"
+set user "forge"
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "$*"
+send "cd muntajat_annual\r"
+send "git pull origin main\r"
+send "php artisan optimize:clear\r"
+expect "$*"
+send "exit\r"
+expect eof

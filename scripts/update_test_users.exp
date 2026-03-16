@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+expect "$*"
+send "cd sapconnect_app\r"
+send "php artisan tinker\r"
+
+expect ">"
+send "\$u1 = \\App\\Models\\User::firstOrCreate(\['mobile_number' => '966580000001'\], \['name' => 'Test Sender', 'otp_code' => '1111', 'email' => 'sender_uzh001@example.com', 'password' => bcrypt('password')\]);\r"
+
+expect ">"
+send "\$u1->update(\['warehouse_code' => \['UZH001'\]\]);\r"
+
+expect ">"
+send "\$u2 = \\App\\Models\\User::firstOrCreate(\['mobile_number' => '966580000002'\], \['name' => 'Test Receiver', 'otp_code' => '1111', 'email' => 'receiver_uzh002@example.com', 'password' => bcrypt('password')\]);\r"
+
+expect ">"
+send "\$u2->update(\['warehouse_code' => \['UZH002'\]\]);\r"
+
+expect ">"
+send "\$st = \\App\\Models\\StockTransfer::where('from_warehouse', 'UZH001')->where('to_warehouse', 'UZH002')->first();\r"
+
+expect ">"
+send "if (!\$st) { \$st = \\App\\Models\\StockTransfer::create(\['sap_database' => config('sap.company_db', 'PPTC_V5_PROD'), 'doc_entry' => 999999, 'doc_num' => 'TEST999', 'doc_date' => now(), 'from_warehouse' => 'UZH001', 'to_warehouse' => 'UZH002', 'document_status' => 'bost_Open', 'internal_status' => 'New'\]); \\App\\Models\\StockTransferLine::create(\['stock_transfer_id' => \$st->id, 'line_num' => 0, 'item_code' => 'TEST_ITEM', 'item_name' => 'Test Product', 'quantity' => 10, 'sent_quantity' => 0, 'actual_received_quantity' => 0\]); }\r"
+
+expect ">"
+send "if (\$st && \$st->internal_status !== 'New') { \$st->update(\['internal_status' => 'New', 'sent_quantity' => 0, 'actual_received_quantity' => 0\]); \\App\\Models\\StockTransferLine::where('stock_transfer_id', \$st->id)->update(\['sent_quantity' => 0, 'actual_received_quantity' => 0\]); }\r"
+
+expect ">"
+send "dump(\['u1' => \$u1->mobile_number, 'u2' => \$u2->mobile_number, 'st' => \$st->doc_num\]);\r"
+
+expect ">"
+send "exit\r"
+send "exit\r"
+expect eof

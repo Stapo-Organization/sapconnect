@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set ip "62.138.14.178"
+set user "sapapimuntajat"
+set password $env(DEPLOY_PASSWORD)
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "$*"
+send "cd sapconnect_app\r"
+
+# Check Automation Logs
+send "php artisan tinker\r"
+# Handle potential log prompts or just wait for shell
+expect {
+    "Overwrite, Append, or Don't log?" { send "D\r"; exp_continue }
+    ">" { }
+}
+
+send "App\\Models\\AutomationLog::latest()->take(5)->get()->toArray();\r"
+expect ">"
+send "exit\r"
+
+# Check if cron is running (ps aux)
+send "ps aux | grep artisan\r"
+
+send "exit\r"
+expect eof
