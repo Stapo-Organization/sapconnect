@@ -10,6 +10,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AlrajhiAnalyticsWidget extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
     // Make sure this widget spans the full width of the dashboard, below the transfer analytics.
     protected int | string | array $columnSpan = 'full';
     

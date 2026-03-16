@@ -15,7 +15,7 @@ class ApiStatsWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return !auth()->user()->hasRole('Branch Manager');
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
     }
 
     protected function getStats(): array

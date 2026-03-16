@@ -15,6 +15,11 @@ class TransferTimeBarChart extends ChartWidget
     // Sort next to the Donut Chart
     protected static ?int $sort = 4;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
     protected function getData(): array
     {
         // Calculates average delivery time (in days) per warehouse

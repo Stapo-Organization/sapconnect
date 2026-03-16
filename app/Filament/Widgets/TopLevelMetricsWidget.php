@@ -16,6 +16,11 @@ class TopLevelMetricsWidget extends BaseWidget
     // Sort position: prioritize it to the top.
     protected static ?int $sort = 1;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
     protected function getStats(): array
     {
         $productDate = \App\Models\Product::max('updated_at');

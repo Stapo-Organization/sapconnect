@@ -13,6 +13,11 @@ class StockTransferAnalyticsWidget extends BaseWidget
 {
     protected static ?int $sort = 2; // Right below TopLevelMetrics
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
         protected function getStats(): array
     {
         // 1. Pending Actions (Shipped but not received, or New but not shipped)

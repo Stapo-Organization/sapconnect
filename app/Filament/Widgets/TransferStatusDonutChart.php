@@ -13,6 +13,11 @@ class TransferStatusDonutChart extends ChartWidget
     // Sort after the two stat rows
     protected static ?int $sort = 3;
 
+    public static function canView(): bool
+    {
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+    }
+
     protected function getData(): array
     {
         // Get the counts for each status
