@@ -62,8 +62,7 @@ class BranchManagerStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-arrow-down-tray')
                 ->color('warning')
                 ->url(route('filament.admin.resources.stock-transfers.index', [
-                    'tableFilters[internal_status][values][0]' => StockTransfer::STATUS_NEW,
-                    'tableFilters[internal_status][values][1]' => StockTransfer::STATUS_SHIPPED,
+                    'tableFilters[document_status][value]' => 'bost_Open',
                     'tableFilters[to_warehouse][value]' => $primaryCode,
                 ])),
 
@@ -72,7 +71,7 @@ class BranchManagerStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-arrow-up-tray')
                 ->color('gray')
                 ->url(route('filament.admin.resources.stock-transfers.index', [
-                    'tableFilters[internal_status][value]' => StockTransfer::STATUS_NEW,
+                    'tableFilters[document_status][value]' => 'bost_Open',
                     'tableFilters[from_warehouse][value]' => $primaryCode,
                 ])),
 
