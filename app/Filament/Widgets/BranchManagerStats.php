@@ -41,8 +41,8 @@ class BranchManagerStats extends BaseWidget
                 $query->whereIn('from_warehouse', $codes)
                       ->orWhereIn('to_warehouse', $codes);
             })
-            ->where('internal_status', '!=', StockTransfer::STATUS_COMPLETED)
-            ->where('created_at', '<', Carbon::now()->subDays(7))
+            ->whereIn('internal_status', [StockTransfer::STATUS_NEW, StockTransfer::STATUS_SHIPPED])
+            ->where('doc_date', '<', Carbon::now()->subDays(7))
             ->count();
 
         // Completed This Month
