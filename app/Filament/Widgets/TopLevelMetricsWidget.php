@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Product;
 use App\Models\StockTransfer;
 use App\Models\Warehouse;
+use App\Models\Brand;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -18,11 +19,14 @@ class TopLevelMetricsWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasRole('Branch Manager');
     }
 
     protected function getStats(): array
     {
+        $brandDate = \App\Models\Brand::max('updated_at');
+        $brandDesc = __('Brands imported from SAP') . ($brandDate ? ' - ' . \Carbon\Carbon::parse($brandDate)->format('Y-m-d H:i') : '');
+
         $productDate = \App\Models\Product::max('updated_at');
         $productDesc = __('Products imported from SAP') . ($productDate ? ' - ' . \Carbon\Carbon::parse($productDate)->format('Y-m-d H:i') : '');
 
@@ -33,6 +37,12 @@ class TopLevelMetricsWidget extends BaseWidget
         $transferDesc = __('All Time Requests') . ($transferDate ? ' - ' . \Carbon\Carbon::parse($transferDate)->format('Y-m-d H:i') : '');
 
         return [
+            Stat::make(__('Total Synced Brands'), Brand::count())
+                ->description($brandDesc)
+                ->descriptionIcon('heroicon-m-tag')
+                ->color('warning')
+                ->url(route('filament.admin.resources.brands.index')),
+
             Stat::make(__('Total Synced Products'), Product::count())
                 ->description($productDesc)
                 ->descriptionIcon('heroicon-m-cube')
