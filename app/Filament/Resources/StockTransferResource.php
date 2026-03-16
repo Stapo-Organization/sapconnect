@@ -141,7 +141,13 @@ class StockTransferResource extends Resource
                                                 Forms\Components\TextInput::make('item_description')
                                                     ->label(__('Description'))
                                                     ->disabled()
-                                                    ->columnSpan(7),
+                                                    ->columnSpan(5),
+
+                                                Forms\Components\TextInput::make('piece_barcode')
+                                                    ->label(__('Barcode'))
+                                                    ->formatStateUsing(fn ($record) => $record?->product?->piece_barcode ?? '-')
+                                                    ->disabled()
+                                                    ->columnSpan(2),
 
                                                 // Row 2: All Quantities & Status beautifully aligned
                                                 Forms\Components\TextInput::make('quantity')
