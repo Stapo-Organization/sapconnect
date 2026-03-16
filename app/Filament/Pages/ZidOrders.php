@@ -8,7 +8,7 @@ class ZidOrders extends Page
 {
     public static function canAccess(): bool
     {
-        return !auth()->user()->hasRole('Branch Manager');
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';

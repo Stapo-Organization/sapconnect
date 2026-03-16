@@ -16,7 +16,7 @@ class MobileAppSettings extends Page implements HasForms
 {
     public static function canAccess(): bool
     {
-        return !auth()->user()->hasRole('Branch Manager');
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
     }
 
     use InteractsWithForms;
