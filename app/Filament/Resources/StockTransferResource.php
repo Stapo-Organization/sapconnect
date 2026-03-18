@@ -208,6 +208,11 @@ class StockTransferResource extends Resource
                             ->deletable(false)
                             ->columnSpanFull(),
                     ]),
+                Forms\Components\Placeholder::make('barcode_listener')
+                    ->hiddenLabel()
+                    ->content(function () {
+                        return view('filament.resources.stock-transfer-resource.pages.barcode-listener');
+                    })
             ]);
     }
 
