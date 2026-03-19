@@ -40,5 +40,8 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Auth\Events\Login::class,
             \App\Listeners\UpdateLastLogin::class
         );
+
+        // Register SCM Observers
+        \App\Models\Shipment::observe(\App\Observers\ShipmentObserver::class);
     }
 }
