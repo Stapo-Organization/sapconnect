@@ -50,7 +50,7 @@ class SyncProducts extends Command
 
                 // Fetch Items with select fields, including ItemPrices
                 $response = $sap->get('Items', [
-                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices',
+                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5',
                     '$orderby' => 'ItemCode',
                     '$top' => $pageSize,
                     '$skip' => $skip
@@ -87,6 +87,12 @@ class SyncProducts extends Command
                         'update_date' => isset($item['UpdateDate']) ? date('Y-m-d', strtotime($item['UpdateDate'])) : null,
                         'source' => $envSource,
                         'prices' => $pricesData,
+                        'u_portal_sync' => $item['U_PortalSync'] ?? null,
+                        'u_proprt1' => $item['U_PROPRT1'] ?? null,
+                        'u_proprt2' => $item['U_PROPRT2'] ?? null,
+                        'u_proprt3' => $item['U_PROPRT3'] ?? null,
+                        'u_proprt4' => $item['U_PROPRT4'] ?? null,
+                        'u_proprt5' => $item['U_PROPRT5'] ?? null,
                     ];
 
                     \App\Models\Product::updateOrCreate(

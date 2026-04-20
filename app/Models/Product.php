@@ -21,6 +21,12 @@ class Product extends Model
         'update_date',
         'source',
         'prices',
+        'u_portal_sync',
+        'u_proprt1',
+        'u_proprt2',
+        'u_proprt3',
+        'u_proprt4',
+        'u_proprt5',
     ];
 
     protected $casts = [
