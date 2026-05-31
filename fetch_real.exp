@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php artisan tinker --execute='echo json_encode(\\App\\Models\\SuggestedStockTransfer::whereNotIn(\"source_warehouse\", [\"AGL001\", \"3PL001\", \"WAF001\"])->first()); echo \"\\n\";'"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

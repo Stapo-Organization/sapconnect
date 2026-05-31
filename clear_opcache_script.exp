@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app/public && echo '<?php opcache_reset(); echo \"OPCache Reset Done\"; ?>' > reset_opcache.php"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

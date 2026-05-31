@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+set app_dir "sapconnect_app/app/Jobs"
+set local_dir "app/Jobs"
+
+spawn scp -o StrictHostKeyChecking=no $local_dir/CalculateStockOpportunitiesJob.php $user_host:$app_dir/CalculateStockOpportunitiesJob.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Job uploaded." }
+}
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan queue:restart"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Queue restarted." }
+}

@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+# Upload updated StoreSalesWidget.php
+spawn scp -o StrictHostKeyChecking=no app/Filament/RetailWidgets/StoreSalesWidget.php $user_host:sapconnect_app/app/Filament/RetailWidgets/StoreSalesWidget.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "StoreSalesWidget.php uploaded." }
+}

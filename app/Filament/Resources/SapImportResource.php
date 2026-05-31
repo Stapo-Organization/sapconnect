@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SapImportResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\SapImport;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
 
 class SapImportResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
         return !auth()->user()->hasRole('Branch Manager');

@@ -12,12 +12,17 @@ class PurchaseOrderLine extends Model
 
     protected $fillable = [
         'purchase_order_id',
+        'sap_line_num',
+        'item_code',
         'product_id',
         'description',
+        'item_description',
         'quantity',
         'unit_price',
         'total_price',
-        'pallet_quantity'
+        'pallet_quantity',
+        'warehouse_code',
+        'uom',
     ];
 
     /**

@@ -12,6 +12,8 @@ class PurchaseOrder extends Model
     use HasFactory;
 
     protected $fillable = [
+        'sap_doc_entry',
+        'sap_doc_num',
         'supplier_id',
         'currency',
         'brand_id',
@@ -21,12 +23,18 @@ class PurchaseOrder extends Model
         'po_number',
         'po_value',
         'sync_status',
+        'doc_status',
         'est_departure',
-        'factory_name'
+        'doc_date',
+        'doc_due_date',
+        'factory_name',
+        'comments',
     ];
 
     protected $casts = [
         'est_departure' => 'date',
+        'doc_date' => 'date',
+        'doc_due_date' => 'date',
     ];
 
     /**
@@ -67,5 +75,28 @@ class PurchaseOrder extends Model
     public function shipments(): HasMany
     {
         return $this->hasMany(Shipment::class);
+    }
+
+    /**
+     * Get the payment alerts for the purchase order.
+     */
+    public function paymentAlerts(): HasMany
+    {
+        return $this->hasMany(PaymentAlert::class);
+    }
+
+    /**
+     * Get computed brands from lines if brand_id is null.
+     */
+    public function getComputedBrandsAttribute()
+    {
+        if ($this->brand_id && $this->brand) {
+            return [$this->brand->name];
+        }
+        return collect($this->lines)
+            ->map(fn($line) => $line->product?->brand?->name)
+            ->filter()
+            ->unique()
+            ->toArray();
     }
 }

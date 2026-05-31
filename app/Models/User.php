@@ -53,6 +53,11 @@ class User extends Authenticatable implements HasAvatar
 
     public function setMobileNumberAttribute($value)
     {
+        if (blank($value)) {
+            $this->attributes['mobile_number'] = null;
+            return;
+        }
+
         $digits = preg_replace('/\D/', '', $value);
 
         if (strlen($digits) === 12 && str_starts_with($digits, '966')) {

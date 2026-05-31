@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,9 +14,11 @@ use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     protected static ?string $model = User::class;
@@ -59,6 +62,9 @@ class UserResource extends Resource
                     ->label(__('Mobile Number'))
                     ->tel()
                     ->maxLength(20)
+                    ->nullable()
+                    ->default(null)
+                    ->dehydrateStateUsing(fn ($state) => blank($state) ? null : $state)
                     ->helperText(__('Format: 9665...')),
                 Forms\Components\TextInput::make('password')
                     ->label(__('Password'))

@@ -142,6 +142,11 @@ class EmailNotificationService
                         ->pluck('email')->toArray();
                     $emails = array_merge($emails, $adminUsers);
                     break;
+
+                case 'operator':
+                    $operatorUsers = User::role('Operator')->whereNotNull('email')->pluck('email')->toArray();
+                    $emails = array_merge($emails, $operatorUsers);
+                    break;
             }
         }
 

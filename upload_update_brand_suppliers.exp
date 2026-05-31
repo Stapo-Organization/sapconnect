@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+spawn scp -o PubkeyAuthentication=no -o StrictHostKeyChecking=no app/Console/Commands/UpdateBrandSuppliers.php $user_host:sapconnect_app/app/Console/Commands/UpdateBrandSuppliers.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Uploaded UpdateBrandSuppliers.php" }
+}
+
+spawn ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan sap:update-brand-suppliers"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts $expect_out(buffer) }
+}

@@ -22,6 +22,11 @@ class Brand extends Model
 
     public function getImageUrlAttribute()
     {
+        $firstProduct = $this->products()->first();
+        if ($firstProduct && strlen($firstProduct->item_code) >= 4) {
+            $prefix = substr($firstProduct->item_code, 0, 4);
+            return 'https://ppte.sa/imghd/brands/' . $prefix . '.png';
+        }
         return 'https://ppte.sa/imghd/brands/P' . $this->code . '.png';
     }
 
@@ -47,4 +52,19 @@ class Brand extends Model
         return 'brands_test';
     }
 
+    /**
+     * Get the products for the brand.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'items_group_code', 'code');
+    }
+
+    /**
+     * Get the suppliers for the brand.
+     */
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class)->withTimestamps();
+    }
 }

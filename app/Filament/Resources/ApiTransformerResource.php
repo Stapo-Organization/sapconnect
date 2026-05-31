@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ApiTransformerResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\ApiTransformer;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,9 +13,11 @@ use Filament\Tables\Table;
 
 class ApiTransformerResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     protected static ?string $model = ApiTransformer::class;

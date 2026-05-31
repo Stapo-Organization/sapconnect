@@ -76,7 +76,7 @@ class EditStockTransfer extends EditRecord
                 ->color('success')
                 ->icon('heroicon-m-check-badge')
                 ->visible(function (StockTransfer $record) {
-                    if ($record->internal_status !== StockTransfer::STATUS_SHIPPED) return false;
+                    if (!in_array($record->internal_status, [StockTransfer::STATUS_SHIPPED, StockTransfer::STATUS_PARTIALLY_RECEIVED])) return false;
                     $user = auth()->user();
                     $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
                     $codes = array_filter($codes);
@@ -86,32 +86,49 @@ class EditStockTransfer extends EditRecord
                     $livewire->save();
                     $record->refresh();
 
+                    $totalShipments = $record->shipments()->count();
+                    $receivedShipments = $record->shipments()->where('is_received', true)->count();
+                    
+                    if ($totalShipments > 0 && $receivedShipments < $totalShipments) {
+                        $newStatus = StockTransfer::STATUS_PARTIALLY_RECEIVED;
+                    } else {
+                        $newStatus = StockTransfer::STATUS_COMPLETED;
+                    }
+
+                    $oldStatus = $record->internal_status;
+
                     $record->update([
-                        'internal_status' => StockTransfer::STATUS_COMPLETED,
+                        'internal_status' => $newStatus,
                         'received_by' => auth()->id(),
-                        'received_at' => now(),
+                        'received_at' => now(), // Can be updated multiple times for partial
                     ]);
 
                     \App\Models\StockTransferLog::record(
                         $record->id, auth()->id(), \App\Models\StockTransferLog::ACTION_RECEIVE_CONFIRMED,
-                        StockTransfer::STATUS_SHIPPED, StockTransfer::STATUS_COMPLETED,
-                        ['total_received_qty' => $record->lines()->sum('actual_received_quantity')],
+                        $oldStatus, $newStatus,
+                        ['total_received_qty' => $record->lines()->sum('actual_received_quantity'), 'shipments_received' => "{$receivedShipments}/{$totalShipments}"],
                         request()->ip()
                     );
 
                     try {
+                        $statusText = $newStatus === StockTransfer::STATUS_PARTIALLY_RECEIVED ? 'تم استلام جزء من الشحنات' : 'تم استلام الشحنة بالكامل';
                         app(\App\Services\NotificationService::class)->notifyWarehouseUsers(
                             $record->from_warehouse,
-                            'تم استلام الشحنة',
-                            "تحويل المخزون #{$record->doc_num} تم استلامه في {$record->to_warehouse}.",
+                            $statusText,
+                            "تحويل المخزون #{$record->doc_num} - {$statusText} في {$record->to_warehouse}.",
                             ['transfer_id' => $record->id, 'doc_num' => $record->doc_num]
                         );
                     } catch (\Exception $e) {
                         \Illuminate\Support\Facades\Log::error("Failed to notify sender: " . $e->getMessage());
                     }
 
-                    Notification::make()->title('Transfer Received!')->success()->send();
-                    $livewire->redirect($this->getResource()::getUrl('index'));
+                    if ($newStatus === StockTransfer::STATUS_PARTIALLY_RECEIVED) {
+                        Notification::make()->title('Transfer Partially Received!')->warning()->send();
+                        $livewire->fillForm(); // To reload the ui
+                    } else {
+                        Notification::make()->title('Transfer Fully Received!')->success()->send();
+                        $livewire->redirect($this->getResource()::getUrl('index'));
+                    }
                 })
                 ->requiresConfirmation()
                 ->modalDescription('Save quantities and mark this transfer as Received?'),
@@ -126,7 +143,10 @@ class EditStockTransfer extends EditRecord
         
         \Illuminate\Support\Facades\Log::info("Global barcode scanned: {$barcode} for Transfer ID: {$record->id}");
         
-        $product = \App\Models\Product::where('piece_barcode', $barcode)->first();
+        $product = \App\Models\Product::select('item_code', 'item_name', 'piece_barcode')
+            ->where('piece_barcode', $barcode)
+            ->orWhere('item_code', $barcode)
+            ->first();
         if (!$product) {
             Notification::make()->title(__('Product Not Found'))->body(__('المنتج غير موجود أو لا يملك هذا الباركود: ') . $barcode)->danger()->send();
             return;

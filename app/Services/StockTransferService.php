@@ -76,7 +76,12 @@ class StockTransferService
 
                     if ($result['status'] === 'new') {
                         $newCount++;
-                        $newTransferIds[] = $result['transfer']->id;
+                        
+                        // Only add to notification array if the request was created today or later
+                        $creationDate = \Carbon\Carbon::parse($result['transfer']->creation_date);
+                        if ($creationDate->startOfDay()->gte(\Carbon\Carbon::today())) {
+                            $newTransferIds[] = $result['transfer']->id;
+                        }
                     } elseif ($result['status'] === 'updated') {
                         $updatedCount++;
                     } else {
@@ -114,6 +119,7 @@ class StockTransferService
         return DB::transaction(function () use ($row, $activeDb) {
             $docEntry = $row['DocEntry'];
             $sapUpdateDate = isset($row['UpdateDate']) ? Carbon::parse($row['UpdateDate']) : null;
+            $sapDocStatus = $row['DocumentStatus'] ?? null;
 
             $existing = StockTransfer::where('sap_database', $activeDb)
                 ->where('doc_entry', $docEntry)
@@ -124,8 +130,10 @@ class StockTransferService
                 return ['status' => 'new', 'transfer' => $transfer];
             } else {
                 $localUpdateDate = $existing->update_date;
+                $statusChanged = $sapDocStatus && $sapDocStatus !== $existing->document_status;
 
-                if (!$localUpdateDate || ($sapUpdateDate && $sapUpdateDate->gt($localUpdateDate))) {
+                // Update if: no local date, SAP date is newer or same day, OR document status changed in SAP
+                if (!$localUpdateDate || $statusChanged || ($sapUpdateDate && $sapUpdateDate->gte($localUpdateDate))) {
                     $transfer = $this->upsertTransfer($row, $activeDb, $existing);
                     return ['status' => 'updated', 'transfer' => $transfer];
                 }
@@ -152,8 +160,12 @@ class StockTransferService
         $linesData = $row['InventoryTransferRequestLines'] ?? $row['StockTransferLines'] ?? [];
         $totalReceived = 0;
         foreach ($linesData as $line) {
-            $q = $line['Quantity'] ?? 0;
-            $r = $line['RemainingOpenQuantity'] ?? 0;
+            $baseQty = $line['InventoryQuantity'] ?? $line['Quantity'] ?? 0;
+            $docQty = $line['Quantity'] ?? 0;
+            $ratio = $docQty > 0 ? ($baseQty / $docQty) : 1;
+
+            $q = $baseQty;
+            $r = ($line['RemainingOpenQuantity'] ?? 0) * $ratio;
             $totalReceived += max(0, $q - $r);
         }
 
@@ -192,8 +204,13 @@ class StockTransferService
 
         foreach ($lines as $lineData) {
             $itemCode = $lineData['ItemCode'];
-            $sapQty = $lineData['Quantity'] ?? 0;
-            $remainingQty = $lineData['RemainingOpenQuantity'] ?? 0;
+            
+            $baseQty = $lineData['InventoryQuantity'] ?? $lineData['Quantity'] ?? 0;
+            $docQty = $lineData['Quantity'] ?? 0;
+            $ratio = $docQty > 0 ? ($baseQty / $docQty) : 1;
+
+            $sapQty = $baseQty;
+            $remainingQty = ($lineData['RemainingOpenQuantity'] ?? 0) * $ratio;
             $calculatedReceived = max(0, $sapQty - $remainingQty);
 
             $match = $currentLines->first(function ($l) use ($itemCode, $matchedIds) {

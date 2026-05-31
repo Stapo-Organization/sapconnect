@@ -41,6 +41,7 @@ class DynamicNotificationMail extends Mailable
         }
 
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address', 'system@muntajat.sa'), 'نظام الاشعارات الآلي'),
             subject: $subject,
         );
     }

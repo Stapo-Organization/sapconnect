@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StockTransferResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\StockTransfer;
 use App\Models\StockTransferLine;
 use App\Services\StockTransferService;
@@ -17,6 +18,7 @@ use Filament\Notifications\Notification;
 
 class StockTransferResource extends Resource
 {
+    use ReadOnlyStakeholder;
     protected static ?string $model = StockTransfer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
@@ -52,7 +54,8 @@ class StockTransferResource extends Resource
         }
 
         $user = auth()->user();
-        if ($user && $user->warehouse_code) {
+        // Only apply warehouse filter for non-Super Admin users (e.g. Branch Managers)
+        if ($user && $user->warehouse_code && !$user->hasRole('Super Admin')) {
             $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
             if (!empty($codes)) {
                 $query->where(function ($q) use ($codes) {
@@ -109,6 +112,83 @@ class StockTransferResource extends Resource
                             ->disabled(),
                     ]),
 
+                Forms\Components\Section::make(__('الشحنات (Shipments)'))
+                    ->hidden(fn (?StockTransfer $record) => !$record)
+                    ->schema([
+                        Forms\Components\TextInput::make('expected_shipments_count')
+                            ->label(__('عدد الشحنات'))
+                            ->numeric()
+                            ->minValue(1)
+                            ->formatStateUsing(fn (?StockTransfer $record) => $record ? max(1, $record->shipments()->count()) : 1)
+                            ->dehydrated(false)
+                            ->live(onBlur: true)
+                            ->disabled(function ($livewire) {
+                                if (!isset($livewire->record)) return true;
+                                if ($livewire->record->internal_status !== \App\Models\StockTransfer::STATUS_NEW) return true;
+                                $user = auth()->user();
+                                $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
+                                $codes = array_filter($codes ?: []);
+                                if (empty($codes)) return false; // Admin
+                                return !in_array($livewire->record->from_warehouse, $codes);
+                            })
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, $state) {
+                                $count = (int) $state;
+                                $shipments = $get('shipments') ?? [];
+                                $currentCount = count($shipments);
+                                
+                                if ($count > $currentCount) {
+                                    for ($i = $currentCount; $i < $count; $i++) {
+                                        $shipments[(string) \Illuminate\Support\Str::uuid()] = [
+                                            'tracking_number' => null,
+                                            'is_received' => false,
+                                        ];
+                                    }
+                                    $set('shipments', $shipments);
+                                } elseif ($count < $currentCount) {
+                                    $shipments = array_slice($shipments, 0, $count, true);
+                                    $set('shipments', $shipments);
+                                }
+                            }),
+
+                        Forms\Components\Repeater::make('shipments')
+                            ->relationship()
+                            ->label('')
+                            ->schema([
+                                Forms\Components\Grid::make(3)->schema([
+                                    Forms\Components\TextInput::make('tracking_number')
+                                        ->label(__('رقم التتبع'))
+                                        ->columnSpan(2)
+                                        ->disabled(function ($livewire) {
+                                            if (!isset($livewire->record)) return true;
+                                            if ($livewire->record->internal_status !== \App\Models\StockTransfer::STATUS_NEW) return true;
+                                            $user = auth()->user();
+                                            $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
+                                            $codes = array_filter($codes ?: []);
+                                            if (empty($codes)) return false; // Admin
+                                            return !in_array($livewire->record->from_warehouse, $codes);
+                                        }),
+                                    Forms\Components\Toggle::make('is_received')
+                                        ->label(__('تم الاستلام'))
+                                        ->columnSpan(1)
+                                        ->inline(false)
+                                        ->disabled(function ($livewire) {
+                                            if (!isset($livewire->record)) return true;
+                                            $status = $livewire->record->internal_status;
+                                            if (!in_array($status, [\App\Models\StockTransfer::STATUS_SHIPPED, \App\Models\StockTransfer::STATUS_PARTIALLY_RECEIVED])) return true;
+                                            $user = auth()->user();
+                                            $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
+                                            $codes = array_filter($codes ?: []);
+                                            if (empty($codes)) return false; // Admin
+                                            return !in_array($livewire->record->to_warehouse, $codes);
+                                        }),
+                                ]),
+                            ])
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->columnSpanFull(),
+                    ]),
+
                 Forms\Components\Section::make(__('Items'))
                     ->schema([
                         Forms\Components\Repeater::make('lines')
@@ -119,6 +199,7 @@ class StockTransferResource extends Resource
                                         // Left Column: Image Area
                                         Forms\Components\Placeholder::make('product_image')
                                             ->hiddenLabel()
+                                            ->dehydrated(false)
                                             ->content(function ($record) {
                                                 if (!$record || !$record->item_code) return '';
                                                 $code = $record->item_code;
@@ -136,17 +217,28 @@ class StockTransferResource extends Resource
                                                 Forms\Components\TextInput::make('item_code')
                                                     ->label(__('Item Code'))
                                                     ->disabled()
+                                                    ->dehydrated(false)
                                                     ->columnSpan(3),
 
                                                 Forms\Components\TextInput::make('item_description')
                                                     ->label(__('Description'))
                                                     ->disabled()
+                                                    ->dehydrated(false)
                                                     ->columnSpan(5),
 
                                                 Forms\Components\TextInput::make('piece_barcode')
                                                     ->label(__('Barcode'))
-                                                    ->formatStateUsing(fn ($record) => $record?->product?->piece_barcode ?? '-')
+                                                    ->formatStateUsing(function ($record) {
+                                                        static $barcodeCache = null;
+                                                        if ($barcodeCache === null) {
+                                                            $barcodeCache = \App\Models\Product::whereNotNull('piece_barcode')
+                                                                ->pluck('piece_barcode', 'item_code')
+                                                                ->toArray();
+                                                        }
+                                                        return $barcodeCache[$record?->item_code] ?? '-';
+                                                    })
                                                     ->disabled()
+                                                    ->dehydrated(false)
                                                     ->columnSpan(2),
 
                                                 // Row 2: All Quantities & Status beautifully aligned
@@ -154,6 +246,7 @@ class StockTransferResource extends Resource
                                                     ->label(__('SAP Sent Qty'))
                                                     ->numeric()
                                                     ->disabled()
+                                                    ->dehydrated(false)
                                                     ->columnSpan(2),
 
                                                 Forms\Components\TextInput::make('sent_quantity')
@@ -178,6 +271,7 @@ class StockTransferResource extends Resource
                                                     ->label(__('SAP Received Qty'))
                                                     ->numeric()
                                                     ->disabled()
+                                                    ->dehydrated(false)
                                                     ->columnSpan(2),
 
                                                 Forms\Components\TextInput::make('actual_received_quantity')
@@ -200,6 +294,7 @@ class StockTransferResource extends Resource
                                                 Forms\Components\TextInput::make('line_status')
                                                     ->label(__('Line Status'))
                                                     ->disabled()
+                                                    ->dehydrated(false)
                                                     ->columnSpan(2),
                                             ]),
                                     ]),
@@ -238,10 +333,30 @@ class StockTransferResource extends Resource
                     ->colors([
                         'gray' => \App\Models\StockTransfer::STATUS_NEW,
                         'warning' => \App\Models\StockTransfer::STATUS_SHIPPED,
+                        'teal' => \App\Models\StockTransfer::STATUS_PARTIALLY_RECEIVED,
                         'info' => \App\Models\StockTransfer::STATUS_RECEIVED,
                         'success' => \App\Models\StockTransfer::STATUS_COMPLETED,
                     ]),
                 Tables\Columns\TextColumn::make('created_at')->label(__('Created At'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('shipments_progress')
+                    ->label(__('الشحنات المستلمة'))
+                    ->state(function (StockTransfer $record): string {
+                        $total = $record->shipments()->count();
+                        if ($total === 0) return '-';
+                        $received = $record->shipments()->where('is_received', true)->count();
+                        return "{$received} / {$total}";
+                    })
+                    ->badge()
+                    ->color(function (StockTransfer $record): string {
+                        $total = $record->shipments()->count();
+                        if ($total === 0) return 'gray';
+                        $received = $record->shipments()->where('is_received', true)->count();
+                        if ($received === $total) return 'success';
+                        if ($received > 0) return 'teal';
+                        return 'gray';
+                    }),
+
 
                 // SAP/Base Sent Quantity
                 Tables\Columns\TextColumn::make('sap_sent_quantity')
@@ -410,6 +525,7 @@ class StockTransferResource extends Resource
                 Tables\Actions\Action::make('import_from_sap')
                     ->label(__('Import from SAP'))
                     ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn () => !auth()->user()?->hasRole('Stakeholder'))
                     ->action(function () {
                         try {
                             $service = app(StockTransferService::class);
@@ -457,10 +573,14 @@ class StockTransferResource extends Resource
                     }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->label(__('View'))
+                    ->visible(fn () => auth()->user()?->hasRole('Stakeholder')),
                 Tables\Actions\EditAction::make()
                     ->label(__('Manage'))
                     ->visible(function (StockTransfer $record) {
                         $user = auth()->user();
+                        if ($user && $user->hasRole('Stakeholder')) return false;
                         if ($user && $user->warehouse_code) {
                             $codes = is_array($user->warehouse_code) ? $user->warehouse_code : json_decode($user->warehouse_code, true) ?? [$user->warehouse_code];
                             $codes = array_filter($codes);

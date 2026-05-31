@@ -1,0 +1,28 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set ip "sapapi.muntajat.sa"
+set user "sapapimuntajat"
+set password "h23N1KXMIL#\$94"
+
+spawn scp -o StrictHostKeyChecking=no update_user.php $user@$ip:/home/sapapimuntajat/sapconnect_app/
+expect "*assword:*"
+send "$password\r"
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip
+expect "*assword:*"
+send "$password\r"
+
+expect "*$*"
+send "cd sapconnect_app\r"
+expect "*$*"
+
+send "php artisan tinker update_user.php\r"
+expect "*$*"
+
+send "rm update_user.php\r"
+expect "*$*"
+
+send "exit\r"
+expect eof

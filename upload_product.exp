@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no app/Models/Product.php sapapimuntajat@62.138.14.178:sapconnect_app/app/Models/
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

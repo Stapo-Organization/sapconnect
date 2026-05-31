@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,6 +16,8 @@ use Filament\Infolists\Infolist;
 
 class ProductResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
         return !auth()->user()->hasRole('Branch Manager');
@@ -151,6 +154,11 @@ class ProductResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('sales_items_per_unit')
                     ->label(__('Sales Items Per Unit')),
+                Tables\Columns\TextColumn::make('u_portal_sync')
+                    ->label(__('Portal Sync'))
+                    ->searchable()
+                    ->sortable()
+                    ->badge(),
                 Tables\Columns\TextColumn::make('create_date')
                     ->label(__('Create Date'))
                     ->dateTime()
@@ -178,6 +186,9 @@ class ProductResource extends Resource
                     ->options([
                         'production' => __('Production'),
                     ]),
+                Tables\Filters\SelectFilter::make('u_portal_sync')
+                    ->label(__('Portal Sync'))
+                    ->options(fn () => \App\Models\Product::whereNotNull('u_portal_sync')->where('u_portal_sync', '!=', '')->distinct()->pluck('u_portal_sync', 'u_portal_sync')->toArray()),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

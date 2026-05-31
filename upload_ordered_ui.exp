@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+set app_dir "sapconnect_app"
+set local_dir "."
+
+spawn scp -o StrictHostKeyChecking=no $local_dir/app/Filament/RetailWidgets/StoreLevel/StoreSmartReplenishmentTable.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreSmartReplenishmentTable.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "1 uploaded." }
+}
+spawn scp -o StrictHostKeyChecking=no $local_dir/app/Filament/RetailWidgets/StoreLevel/StoreOverstockTable.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreOverstockTable.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "2 uploaded." }
+}
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan view:clear && php artisan cache:clear && php artisan route:clear"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Caches cleared." }
+}

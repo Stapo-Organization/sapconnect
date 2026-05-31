@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout 30
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+set token "7f9f14ba6a3c77dda2cb72413e3ef8738ef06d2cbfb9f68397e8b3b90073859a"
+
+# Step 1: Add WOO env vars
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && grep -q WOO_API_TOKEN .env && echo 'ALREADY EXISTS' || (echo '' >> .env && echo '# Zooboxi WooCommerce Integration' >> .env && echo 'WOO_API_TOKEN=$token' >> .env && echo 'WOO_STORE_URL=https://store.zooboxi.com' >> .env && echo 'WOO vars added to .env')"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof {}
+}
+
+# Step 2: Clear config cache
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan config:clear && echo '===CONFIG CLEARED==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof {}
+}
+
+# Step 3: Run migrations
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan migrate --force 2>&1 | tail -5 && echo '===MIGRATE DONE==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof {}
+}
+
+# Step 4: Verify
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && grep WOO_ .env && echo '===VERIFY DONE==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "All done!" }
+}

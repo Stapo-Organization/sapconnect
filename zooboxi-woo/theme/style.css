@@ -1,0 +1,519 @@
+/*
+Theme Name: Zooboxi Child
+Template: twentytwentyfive
+Description: Zooboxi Pet Store - Premium Design matching Zid
+Version: 3.0.0
+Text Domain: zooboxi-child
+*/
+
+/* ═══════════ CSS VARIABLES ═══════════ */
+:root {
+    --z-primary: #429d9c;
+    --z-primary-dark: #2d7a79;
+    --z-secondary: #d48644;
+    --z-header-bg: #e3f0e0;
+    --z-footer-bg: #e7f2e4;
+    --z-announcement-bg: #f7ddc7;
+    --z-body-bg: #fafbf7;
+    --z-card-bg: #ffffff;
+    --z-text: #2c3e2d;
+    --z-text-light: #6b7c6e;
+    --z-border: #e2e8e0;
+    --z-radius: 16px;
+    --z-radius-sm: 10px;
+    --z-shadow: 0 2px 12px rgba(44,62,45,0.06);
+    --z-shadow-hover: 0 8px 28px rgba(44,62,45,0.12);
+    --z-transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ═══════════ GLOBAL ═══════════ */
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'El Messiri', 'Tajawal', sans-serif !important;
+    background: var(--z-body-bg) !important;
+    color: var(--z-text);
+    direction: rtl;
+    line-height: 1.7;
+}
+
+a { color: var(--z-primary); transition: var(--z-transition); }
+a:hover { color: var(--z-primary-dark); }
+
+/* ═══════════ ANNOUNCEMENT BAR ═══════════ */
+.zooboxi-announcement-bar {
+    background: var(--z-announcement-bg);
+    overflow: hidden;
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5a3a1a;
+    position: relative;
+    z-index: 100;
+}
+
+.zooboxi-marquee {
+    width: 100%;
+    overflow: hidden;
+}
+
+.zooboxi-marquee__content {
+    display: flex;
+    gap: 80px;
+    white-space: nowrap;
+    animation: zbx-marquee 20s linear infinite;
+}
+
+.zooboxi-marquee__content span {
+    flex-shrink: 0;
+}
+
+@keyframes zbx-marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* ═══════════ HEADER ═══════════ */
+.site-header,
+header.site-header,
+#masthead {
+    background: var(--z-header-bg) !important;
+    border-bottom: 1px solid rgba(66,157,156,0.15);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.site-title a,
+.site-title {
+    color: var(--z-primary) !important;
+    font-weight: 700;
+    font-size: 28px;
+}
+
+/* ═══════════ BUTTONS ═══════════ */
+.button,
+.wp-block-button__link,
+button[type="submit"],
+.woocommerce .button,
+.woocommerce a.button,
+.woocommerce button.button,
+.woocommerce input.button,
+.woocommerce .added_to_cart,
+.woocommerce a.added_to_cart {
+    background: var(--z-primary) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: var(--z-radius-sm) !important;
+    padding: 12px 28px !important;
+    font-weight: 600 !important;
+    font-family: 'El Messiri', sans-serif !important;
+    transition: var(--z-transition) !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+.button:hover,
+.woocommerce .button:hover,
+.woocommerce a.button:hover,
+.woocommerce button.button:hover {
+    background: var(--z-primary-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66,157,156,0.3) !important;
+}
+
+.button.alt,
+.woocommerce .button.alt,
+.woocommerce a.button.alt {
+    background: var(--z-secondary) !important;
+}
+
+.button.alt:hover,
+.woocommerce .button.alt:hover {
+    background: #c0773b !important;
+}
+
+/* ═══════════ PRODUCT CARDS ═══════════ */
+.woocommerce ul.products li.product,
+ul.products li.product {
+    background: var(--z-card-bg);
+    border-radius: var(--z-radius) !important;
+    border: 1px solid var(--z-border);
+    overflow: hidden;
+    transition: var(--z-transition);
+    box-shadow: var(--z-shadow);
+    padding: 0 !important;
+    margin-bottom: 24px !important;
+}
+
+.woocommerce ul.products li.product:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--z-shadow-hover);
+    border-color: var(--z-primary);
+}
+
+/* Product Image */
+.woocommerce ul.products li.product a img,
+ul.products li.product a img,
+.woocommerce ul.products li.product .zooboxi-external-img {
+    border-radius: 0 !important;
+    aspect-ratio: 1 / 1;
+    object-fit: contain !important;
+    padding: 16px !important;
+    background: #fff;
+    width: 100% !important;
+    transition: var(--z-transition);
+}
+
+.woocommerce ul.products li.product:hover a img,
+.woocommerce ul.products li.product:hover .zooboxi-external-img {
+    transform: scale(1.05);
+}
+
+/* Product Title */
+.woocommerce ul.products li.product .woocommerce-loop-product__title,
+ul.products li.product .woocommerce-loop-product__title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--z-text) !important;
+    padding: 8px 16px 4px !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+    min-height: 42px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Product Price */
+.woocommerce ul.products li.product .price,
+ul.products li.product .price {
+    padding: 4px 16px 16px !important;
+    font-size: 16px !important;
+    color: var(--z-primary) !important;
+    font-weight: 700 !important;
+}
+
+.woocommerce ul.products li.product .price del {
+    color: #999 !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+}
+
+.woocommerce ul.products li.product .price ins {
+    color: #e74c3c !important;
+    text-decoration: none !important;
+}
+
+/* Add to Cart Button */
+.woocommerce ul.products li.product .button,
+.woocommerce ul.products li.product .added_to_cart {
+    border-radius: 0 0 var(--z-radius) var(--z-radius) !important;
+    width: 100% !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    text-align: center !important;
+    display: block !important;
+}
+
+/* ═══════════ SINGLE PRODUCT ═══════════ */
+.woocommerce div.product {
+    background: var(--z-card-bg);
+    border-radius: var(--z-radius);
+    padding: 30px;
+    box-shadow: var(--z-shadow);
+    margin-bottom: 40px;
+}
+
+.woocommerce div.product .product_title {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: var(--z-text) !important;
+    margin-bottom: 12px !important;
+}
+
+.woocommerce div.product p.price {
+    font-size: 24px !important;
+    color: var(--z-primary) !important;
+    font-weight: 700 !important;
+    margin-bottom: 16px !important;
+}
+
+/* Variation select */
+.woocommerce div.product .variations td select {
+    border-radius: var(--z-radius-sm) !important;
+    border: 2px solid var(--z-border) !important;
+    padding: 10px 16px !important;
+    font-family: 'El Messiri', sans-serif !important;
+    font-size: 15px !important;
+    transition: var(--z-transition);
+}
+
+.woocommerce div.product .variations td select:focus {
+    border-color: var(--z-primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(66,157,156,0.15) !important;
+}
+
+/* Description tabs */
+.woocommerce div.product .woocommerce-tabs ul.tabs li.active a {
+    color: var(--z-primary) !important;
+    border-bottom: 3px solid var(--z-primary) !important;
+}
+
+.woocommerce div.product .woocommerce-tabs .panel {
+    border-radius: var(--z-radius-sm);
+    padding: 20px;
+}
+
+/* Zooboxi single image */
+.zooboxi-single-image {
+    border-radius: var(--z-radius) !important;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: var(--z-shadow);
+}
+
+.zooboxi-single-image img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    max-height: 500px;
+    padding: 24px;
+    transition: var(--z-transition);
+}
+
+/* ═══════════ SIDEBAR / FILTERS ═══════════ */
+.widget {
+    background: var(--z-card-bg);
+    border-radius: var(--z-radius);
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+    box-shadow: var(--z-shadow);
+    border: 1px solid var(--z-border);
+}
+
+.widget-title,
+.widget .widget-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--z-primary) !important;
+    border-bottom: 2px solid var(--z-primary);
+    padding-bottom: 10px !important;
+    margin-bottom: 14px !important;
+}
+
+/* Category list */
+.woocommerce .widget_product_categories ul li a,
+.widget_product_categories ul li a {
+    color: var(--z-text) !important;
+    font-weight: 500;
+    padding: 6px 0 !important;
+    display: block;
+    transition: var(--z-transition);
+}
+
+.widget_product_categories ul li a:hover {
+    color: var(--z-primary) !important;
+    padding-right: 8px !important;
+}
+
+/* ═══════════ CART ═══════════ */
+.woocommerce-cart .woocommerce table.shop_table {
+    border-radius: var(--z-radius) !important;
+    overflow: hidden;
+    border: 1px solid var(--z-border) !important;
+}
+
+.woocommerce-cart .cart_totals {
+    background: var(--z-card-bg);
+    border-radius: var(--z-radius);
+    padding: 20px;
+    box-shadow: var(--z-shadow);
+}
+
+/* ═══════════ CHECKOUT ═══════════ */
+.woocommerce-checkout .woocommerce-checkout-review-order {
+    background: var(--z-card-bg);
+    border-radius: var(--z-radius);
+    padding: 24px;
+    box-shadow: var(--z-shadow);
+}
+
+.woocommerce form .form-row input.input-text,
+.woocommerce form .form-row textarea,
+.woocommerce form .form-row select {
+    border-radius: var(--z-radius-sm) !important;
+    border: 2px solid var(--z-border) !important;
+    padding: 12px 16px !important;
+    font-family: 'El Messiri', sans-serif !important;
+    transition: var(--z-transition);
+}
+
+.woocommerce form .form-row input.input-text:focus,
+.woocommerce form .form-row select:focus {
+    border-color: var(--z-primary) !important;
+    box-shadow: 0 0 0 3px rgba(66,157,156,0.15) !important;
+    outline: none !important;
+}
+
+/* ═══════════ FOOTER ═══════════ */
+.site-footer,
+footer.site-footer,
+#colophon {
+    background: var(--z-footer-bg) !important;
+    color: var(--z-text) !important;
+    border-top: 3px solid var(--z-primary);
+}
+
+.site-footer a {
+    color: var(--z-primary) !important;
+}
+
+/* ═══════════ BREADCRUMBS ═══════════ */
+.woocommerce .woocommerce-breadcrumb {
+    background: var(--z-card-bg);
+    padding: 12px 20px !important;
+    border-radius: var(--z-radius-sm);
+    margin-bottom: 20px !important;
+    font-size: 13px;
+    box-shadow: var(--z-shadow);
+}
+
+/* ═══════════ PAGINATION ═══════════ */
+.woocommerce nav.woocommerce-pagination ul li a,
+.woocommerce nav.woocommerce-pagination ul li span {
+    border-radius: var(--z-radius-sm) !important;
+    border: 1px solid var(--z-border) !important;
+    margin: 0 3px !important;
+    transition: var(--z-transition);
+}
+
+.woocommerce nav.woocommerce-pagination ul li span.current,
+.woocommerce nav.woocommerce-pagination ul li a:hover {
+    background: var(--z-primary) !important;
+    color: #fff !important;
+    border-color: var(--z-primary) !important;
+}
+
+/* ═══════════ SALE BADGE ═══════════ */
+.woocommerce span.onsale {
+    background: #e74c3c !important;
+    color: #fff !important;
+    border-radius: var(--z-radius-sm) !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    min-height: auto !important;
+    min-width: auto !important;
+    line-height: 1.4 !important;
+}
+
+/* ═══════════ QUANTITY INPUT ═══════════ */
+.woocommerce .quantity .qty {
+    border-radius: var(--z-radius-sm) !important;
+    border: 2px solid var(--z-border) !important;
+    width: 80px !important;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px !important;
+}
+
+/* ═══════════ RIYAL SVG ═══════════ */
+.riyal-svg {
+    display: inline-block;
+    vertical-align: -0.125em;
+    width: 14px;
+    height: 16px;
+    color: inherit;
+}
+
+/* ═══════════ SCROLLBAR ═══════════ */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--z-body-bg); }
+::-webkit-scrollbar-thumb {
+    background: var(--z-primary);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--z-primary-dark); }
+
+/* ═══════════ SELECTION ═══════════ */
+::selection {
+    background: rgba(66,157,156,0.2);
+    color: var(--z-text);
+}
+
+/* ═══════════ MOBILE ═══════════ */
+@media (max-width: 768px) {
+    .woocommerce ul.products li.product {
+        width: 48% !important;
+    }
+
+    .woocommerce ul.products li.product a img,
+    .woocommerce ul.products li.product .zooboxi-external-img {
+        padding: 10px !important;
+    }
+
+    .woocommerce ul.products li.product .woocommerce-loop-product__title {
+        font-size: 12px !important;
+        padding: 6px 10px 2px !important;
+    }
+
+    .woocommerce ul.products li.product .price {
+        padding: 2px 10px 10px !important;
+        font-size: 14px !important;
+    }
+
+    .woocommerce div.product {
+        padding: 16px;
+        border-radius: var(--z-radius-sm);
+    }
+
+    .zooboxi-announcement-bar {
+        font-size: 11px;
+        padding: 6px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .woocommerce ul.products li.product {
+        width: 100% !important;
+    }
+}
+
+/* ═══════════ ANIMATIONS ═══════════ */
+@keyframes zbx-fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.woocommerce ul.products li.product {
+    animation: zbx-fadeInUp 0.4s ease-out backwards;
+}
+
+.woocommerce ul.products li.product:nth-child(1) { animation-delay: 0.05s; }
+.woocommerce ul.products li.product:nth-child(2) { animation-delay: 0.1s; }
+.woocommerce ul.products li.product:nth-child(3) { animation-delay: 0.15s; }
+.woocommerce ul.products li.product:nth-child(4) { animation-delay: 0.2s; }
+.woocommerce ul.products li.product:nth-child(5) { animation-delay: 0.25s; }
+.woocommerce ul.products li.product:nth-child(6) { animation-delay: 0.3s; }
+.woocommerce ul.products li.product:nth-child(7) { animation-delay: 0.35s; }
+.woocommerce ul.products li.product:nth-child(8) { animation-delay: 0.4s; }
+
+/* ═══════════ LOADING SKELETON ═══════════ */
+@keyframes zbx-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.zooboxi-external-img[src=""] {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: zbx-shimmer 1.5s infinite;
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && cat result.txt"
+expect {
+    "password:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

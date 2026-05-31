@@ -44,13 +44,14 @@ class SyncProducts extends Command
             $count = 0;
             $pageSize = 100;
             $skip = 0;
+            $brandSupplierLinks = [];
 
             do {
                 $this->info("  Fetching Products page $page... (Skip: $skip)");
 
                 // Fetch Items with select fields, including ItemPrices
                 $response = $sap->get('Items', [
-                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5',
+                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5,Mainsupplier',
                     '$orderby' => 'ItemCode',
                     '$top' => $pageSize,
                     '$skip' => $skip
@@ -102,6 +103,12 @@ class SyncProducts extends Command
                         ],
                         $data
                     );
+                    
+                    $mainsupplier = $item['Mainsupplier'] ?? null;
+                    if ($mainsupplier && $data['items_group_code']) {
+                        $brandSupplierLinks[$mainsupplier][$data['items_group_code']] = true;
+                    }
+                    
                     $count++;
                 }
 
@@ -112,6 +119,29 @@ class SyncProducts extends Command
 
             $msg = "Products Sync Completed. Processed $count records from $sapDatabase.";
             $this->info($msg);
+
+            if (!empty($brandSupplierLinks)) {
+                $this->info("Updating Brand-Supplier links based on Item's Mainsupplier...");
+                $linked = 0;
+                foreach ($brandSupplierLinks as $cardCode => $brandCodes) {
+                    $supplier = \App\Models\Supplier::where('sap_code', $cardCode)->first();
+                    if (!$supplier) continue;
+                    
+                    $brandIds = [];
+                    foreach (array_keys($brandCodes) as $bCode) {
+                        $b = \App\Models\Brand::where('code', $bCode)->first();
+                        if ($b) {
+                            $brandIds[] = $b->id;
+                        }
+                    }
+                    
+                    if (!empty($brandIds)) {
+                        $supplier->brands()->syncWithoutDetaching($brandIds);
+                        $linked += count($brandIds);
+                    }
+                }
+                $this->info("Linked {$linked} brand-supplier pairs.");
+            }
 
             if ($automation) {
                 $automation->update(['last_run_status' => 'success']);

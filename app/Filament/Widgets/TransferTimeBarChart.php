@@ -10,6 +10,7 @@ use Carbon\Carbon;
 class TransferTimeBarChart extends ChartWidget
 {
     protected static ?string $heading = 'Average Delivery Time By Branch (Days)';
+    protected static bool $isDiscovered = false;
     protected static ?string $description = 'Time from Shipment to Actual Receipt';
 
     // Sort next to the Donut Chart

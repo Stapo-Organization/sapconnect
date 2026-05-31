@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WarehouseResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\Warehouse;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class WarehouseResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
         return !auth()->user()->hasRole('Branch Manager');

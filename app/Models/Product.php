@@ -27,15 +27,53 @@ class Product extends Model
         'u_proprt3',
         'u_proprt4',
         'u_proprt5',
+        'woo_sync',
+        'woo_product_id',
+        'woo_synced_at',
     ];
 
     protected $casts = [
         'prices' => 'array',
+        'woo_sync' => 'boolean',
+        'woo_synced_at' => 'datetime',
     ];
+
+    protected $appends = [
+        'image_url',
+    ];
+
+    public function getImageUrlAttribute()
+    {
+        return 'https://gal.holeno.com/imghd/' . $this->item_code . '.png';
+    }
 
 
     public function scopeProduction($query)
     {
         return $query->where('source', 'production');
+    }
+
+    /**
+     * Scope: products flagged for WooCommerce sync (Zooboxi store).
+     */
+    public function scopeWooSyncable($query)
+    {
+        return $query->where('woo_sync', true);
+    }
+
+    /**
+     * Get the brand that owns the product.
+     */
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'items_group_code', 'code');
+    }
+
+    /**
+     * Get stock levels across all warehouses.
+     */
+    public function warehouseStocks()
+    {
+        return $this->hasMany(WarehouseItemStock::class, 'item_code', 'item_code');
     }
 }

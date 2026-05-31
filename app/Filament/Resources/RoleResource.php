@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoleResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,9 +13,11 @@ use Spatie\Permission\Models\Role;
 
 class RoleResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     protected static ?string $model = Role::class;

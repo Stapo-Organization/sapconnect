@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php artisan tinker --execute='
+\$dates = \\App\\Models\\SapInvoice::selectRaw(\"DATE(doc_date) as date, COUNT(*) as count\")
+->groupBy(\"date\")
+->orderBy(\"date\")
+->pluck(\"count\", \"date\")->toArray();
+
+foreach (\$dates as \$d => \$c) { echo \"\$d: \$c\\n\"; }
+echo \"Total records: \" . array_sum(\$dates) . \"\\n\";
+'"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

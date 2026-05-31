@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && sed -i 's/APP_TIMEZONE=UTC/APP_TIMEZONE=Asia\\/Riyadh/g' .env && sed -i \"s/'timezone' => 'UTC'/'timezone' => 'Asia\\/Riyadh'/g\" config/app.php && php artisan config:clear"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Timezone updated." }
+}

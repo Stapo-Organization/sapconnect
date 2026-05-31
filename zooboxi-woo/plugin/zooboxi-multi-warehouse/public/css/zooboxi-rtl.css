@@ -1,0 +1,20 @@
+/* ==========================================================================
+   Zooboxi RTL Overrides
+   ========================================================================== */
+
+.zooboxi-select {
+    background-position: left 16px center;
+}
+
+.zooboxi-delivery-info__header {
+    direction: rtl;
+}
+
+.zooboxi-delivery-option {
+    direction: rtl;
+}
+
+.zooboxi-modal__content {
+    direction: rtl;
+    font-family: 'Tajawal', 'Cairo', sans-serif;
+}

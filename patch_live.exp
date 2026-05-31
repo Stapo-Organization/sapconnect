@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && sed -i 's/\$this->notifyNewTransfers(\$newTransferIds);/\/\/ \$this->notifyNewTransfers(\$newTransferIds); \/\/ DISABLED TEMPORARILY/g' app/Services/StockTransferService.php"
+expect {
+    "password:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

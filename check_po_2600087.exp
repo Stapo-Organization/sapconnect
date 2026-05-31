@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan tinker --execute='\$po = App\\Models\\PurchaseOrder::where(\"sap_doc_num\", \"2600087\")->with(\"lines.product.brand\")->first(); \$brands = \$po->lines->map(fn(\$l) => \$l->product?->brand?->name)->unique()->values(); dump([\"po_id\" => \$po->id, \"supplier_id\" => \$po->supplier_id, \"brand_id\" => \$po->brand_id, \"unique_brands\" => \$brands->toArray()]);'"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts $expect_out(buffer) }
+}

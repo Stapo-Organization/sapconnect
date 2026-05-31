@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set password "h23N1KXMIL#\$94"
+
+spawn scp -o StrictHostKeyChecking=no get_groups.php sapapimuntajat@62.138.14.178:~/sapconnect_app/
+expect {
+    "Password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php get_groups.php"
+expect {
+    "Password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

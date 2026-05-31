@@ -1,0 +1,41 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+proc upload_file {local_path remote_path} {
+    global password user_host
+    spawn scp -o StrictHostKeyChecking=no $local_path $user_host:sapconnect_app/$remote_path
+    expect {
+        "assword:" {
+            send "$password\r"
+            exp_continue
+        }
+        eof {
+            puts "$local_path uploaded."
+        }
+    }
+}
+
+# Create required directories if they don't exist
+spawn ssh -o StrictHostKeyChecking=no $user_host "mkdir -p sapconnect_app/app/Filament/Resources/CustomerResource/Pages"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Directories created if needed." }
+}
+
+upload_file database/migrations/2026_04_20_154700_create_customers_table.php database/migrations/2026_04_20_154700_create_customers_table.php
+upload_file app/Models/Customer.php app/Models/Customer.php
+upload_file app/Console/Commands/SyncCustomers.php app/Console/Commands/SyncCustomers.php
+upload_file app/Filament/Resources/CustomerResource.php app/Filament/Resources/CustomerResource.php
+upload_file app/Filament/Resources/CustomerResource/Pages/ListCustomers.php app/Filament/Resources/CustomerResource/Pages/ListCustomers.php
+upload_file app/Filament/Resources/CustomerResource/Pages/CreateCustomer.php app/Filament/Resources/CustomerResource/Pages/CreateCustomer.php
+upload_file app/Filament/Resources/CustomerResource/Pages/EditCustomer.php app/Filament/Resources/CustomerResource/Pages/EditCustomer.php
+
+# Run Migration and Sync Command
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan migrate && php artisan sap:sync-customers"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts $expect_out(buffer) }
+}

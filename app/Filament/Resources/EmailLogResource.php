@@ -14,7 +14,7 @@ class EmailLogResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     protected static ?string $model = EmailLog::class;

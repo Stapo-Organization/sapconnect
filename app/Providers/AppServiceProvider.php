@@ -43,5 +43,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Register SCM Observers
         \App\Models\Shipment::observe(\App\Observers\ShipmentObserver::class);
+
+        // Register custom Retail widgets for Livewire
+        \Livewire\Livewire::component('app.filament.retail-widgets.store-sales-widget', \App\Filament\RetailWidgets\StoreSalesWidget::class);
     }
 }

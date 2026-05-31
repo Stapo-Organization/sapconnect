@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout 30
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+spawn scp -o StrictHostKeyChecking=no /tmp/woo_model_fix.tar.gz $user_host:sapconnect_app/woo_model_fix.tar.gz
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof {}
+}
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && tar -xzf woo_model_fix.tar.gz && rm woo_model_fix.tar.gz && php artisan optimize:clear && echo '===MODEL DEPLOYED==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Done!" }
+}

@@ -36,6 +36,14 @@ class TopLevelMetricsWidget extends BaseWidget
         $transferDate = \App\Models\StockTransfer::max('updated_at');
         $transferDesc = __('All Time Requests') . ($transferDate ? ' - ' . \Carbon\Carbon::parse($transferDate)->format('Y-m-d H:i') : '');
 
+        $stockDate = \App\Models\WarehouseItemStock::max('updated_at');
+        $stockChangedToday = \App\Models\WarehouseItemStock::whereDate('updated_at', \Carbon\Carbon::today())->distinct('item_code')->count('item_code');
+        $stockDesc = __('Updated Today: ') . $stockChangedToday . ($stockDate ? '  (Last: ' . \Carbon\Carbon::parse($stockDate)->format('H:i') . ')' : '');
+
+        $invoiceDate = \App\Models\SapInvoice::max('updated_at');
+        $invoicesToday = \App\Models\SapInvoice::whereDate('updated_at', \Carbon\Carbon::today())->count();
+        $invoiceDesc = __('Fetched Today: ') . $invoicesToday . ($invoiceDate ? '  (Last: ' . \Carbon\Carbon::parse($invoiceDate)->format('H:i') . ')' : '');
+
         return [
             Stat::make(__('Total Synced Brands'), Brand::count())
                 ->description($brandDesc)
@@ -54,6 +62,18 @@ class TopLevelMetricsWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-building-storefront')
                 ->color('success')
                 ->url(route('filament.admin.resources.warehouses.index')),
+                
+            Stat::make(__('Synced Invoices (Activity)'), \App\Models\SapInvoice::count())
+                ->description($invoiceDesc)
+                ->descriptionIcon('heroicon-m-document-text')
+                ->color('info')
+                ->url(route('filament.admin.resources.sap-invoices.index')),
+                
+            Stat::make(__('Stock Updates (Activity)'), \App\Models\WarehouseItemStock::distinct('item_code')->count('item_code'))
+                ->description($stockDesc)
+                ->descriptionIcon('heroicon-m-arrow-path-rounded-square')
+                ->color('success')
+                ->url(route('filament.admin.resources.warehouse-item-stocks.index')),
                 
             Stat::make(__('Total Stock Transfers'), StockTransfer::count())
                 ->description($transferDesc)

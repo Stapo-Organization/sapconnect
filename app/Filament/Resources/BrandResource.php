@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BrandResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\Brand;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class BrandResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
         return !auth()->user()->hasRole('Branch Manager');
@@ -53,6 +56,13 @@ class BrandResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('suppliers')
+                    ->label('Suppliers')
+                    ->multiple()
+                    ->relationship('suppliers', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Select the suppliers that provide this brand'),
             ]);
     }
 
@@ -68,6 +78,15 @@ class BrandResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label(__('Name'))
                     ->searchable(),
+                Tables\Columns\TextColumn::make('suppliers.name')
+                    ->label(__('Suppliers'))
+                    ->badge()
+                    ->color('info')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('products_count')
+                    ->counts('products')
+                    ->label(__('Products'))
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('Created At'))
                     ->dateTime()
@@ -80,7 +99,12 @@ class BrandResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('suppliers')
+                    ->relationship('suppliers', 'name')
+                    ->label(__('Supplier'))
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

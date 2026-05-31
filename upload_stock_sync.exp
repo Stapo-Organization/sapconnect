@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no stock_sync.tar.gz sapapimuntajat@62.138.14.178:sapconnect_app/stock_sync.tar.gz
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && tar -xzf stock_sync.tar.gz && nohup php artisan tinker --execute='\\App\\Jobs\\FetchSapItemStockJob::dispatchSync(app(\\App\\Services\\SAP\\SapClient::class));' > fetch_stock.log 2>&1 &"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

@@ -1,0 +1,32 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+set app_dir "sapconnect_app"
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/Pages/StoreDashboard.php $user_host:$app_dir/app/Filament/Pages/StoreDashboard.php
+expect "assword:" { send "$password\r" }
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/RetailWidgets/StoreLevel/StoreExecutiveKPIWidget.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreExecutiveKPIWidget.php
+expect "assword:" { send "$password\r" }
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/RetailWidgets/StoreLevel/StoreDailyRevenueTimeline.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreDailyRevenueTimeline.php
+expect "assword:" { send "$password\r" }
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/RetailWidgets/StoreLevel/StoreProductBestsellersTable.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreProductBestsellersTable.php
+expect "assword:" { send "$password\r" }
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/RetailWidgets/StoreLevel/StoreReturnsTable.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreReturnsTable.php
+expect "assword:" { send "$password\r" }
+expect eof
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/RetailWidgets/StoreLevel/StoreSmartReplenishmentTable.php $user_host:$app_dir/app/Filament/RetailWidgets/StoreLevel/StoreSmartReplenishmentTable.php
+expect "assword:" { send "$password\r" }
+expect eof
+
+puts "Store Dashboard updates uploaded successfully."

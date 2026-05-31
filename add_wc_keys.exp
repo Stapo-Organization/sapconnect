@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout 30
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && echo 'WOO_CONSUMER_KEY=ck_5e24abd798822637aa37862d8277e208c1968aa1' >> .env && echo 'WOO_CONSUMER_SECRET=cs_ab08819c3b58b93fbdf133125493adfe093ed665' >> .env && php artisan config:clear && echo '===WC KEYS ADDED==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Done!" }
+}

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AlrajhiTransactionResource\Pages; 
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\AlrajhiTransaction;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -17,6 +18,8 @@ use Illuminate\Support\Str;
 
 class AlrajhiTransactionResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
         return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);

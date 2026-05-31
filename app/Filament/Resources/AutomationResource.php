@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AutomationResource\Pages;
 use App\Filament\Resources\AutomationResource\RelationManagers;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\Automation;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,9 +17,11 @@ use App\Models\AutomationLog; // Corrected Import
 
 class AutomationResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     protected static ?string $model = Automation::class;

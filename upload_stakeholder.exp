@@ -1,0 +1,82 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout 30
+
+set host "62.138.14.178"
+set user "sapapimuntajat"
+set pass {Sa294@Mj#G}
+set remote_base "sapconnect_app"
+
+# List of all files to upload
+set files {
+    "app/Filament/Traits/ReadOnlyStakeholder.php"
+    "database/seeders/StakeholderRoleSeeder.php"
+    "app/Filament/Resources/StockTransferResource.php"
+    "app/Filament/Resources/CustomerResource.php"
+    "app/Filament/Resources/SupplierResource.php"
+    "app/Filament/Resources/ShipmentResource.php"
+    "app/Filament/Resources/PurchaseOrderResource.php"
+    "app/Filament/Resources/SuggestedStockTransferResource.php"
+    "app/Filament/Resources/PaymentPolicyResource.php"
+    "app/Filament/Resources/ProductResource.php"
+    "app/Filament/Resources/WarehouseResource.php"
+    "app/Filament/Resources/SapImportResource.php"
+    "app/Filament/Resources/BrandResource.php"
+    "app/Filament/Resources/UserResource.php"
+    "app/Filament/Resources/RoleResource.php"
+    "app/Filament/Resources/PermissionResource.php"
+    "app/Filament/Resources/AutomationResource.php"
+    "app/Filament/Resources/ApiTransformerResource.php"
+    "app/Filament/Resources/EmailNotificationResource.php"
+    "app/Filament/Resources/AlrajhiTransactionResource.php"
+    "app/Filament/Resources/SmsCampaignResource.php"
+    "app/Filament/Resources/ZidStoreResource.php"
+    "app/Filament/Resources/SapInvoiceResource.php"
+    "app/Filament/Resources/SapCreditMemoResource.php"
+    "app/Filament/Pages/RetailDashboard.php"
+    "app/Filament/Pages/MobileAppSettings.php"
+}
+
+# First, create the Traits directory on remote if it doesn't exist
+puts "\n=== Creating remote directory for Traits ==="
+spawn ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no $user@$host "mkdir -p $remote_base/app/Filament/Traits"
+expect {
+    -re "assword:" {
+        send "$pass\r"
+        exp_continue
+    }
+    eof {}
+}
+wait
+
+# Upload each file
+foreach f $files {
+    puts "\n=== Uploading: $f ==="
+    spawn scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no $f $user@$host:$remote_base/$f
+    expect {
+        -re "assword:" {
+            send "$pass\r"
+            exp_continue
+        }
+        eof {
+            puts $expect_out(buffer)
+        }
+    }
+    wait
+}
+
+# Run seeder and clear caches
+puts "\n=== Running seeder and clearing caches ==="
+spawn ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no $user@$host "cd $remote_base && php artisan db:seed --class=StakeholderRoleSeeder --force && php artisan optimize:clear"
+expect {
+    -re "assword:" {
+        send "$pass\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+wait
+
+puts "\n=== DEPLOYMENT COMPLETE ==="

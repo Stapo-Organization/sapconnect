@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SmsCampaignResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\SmsCampaign;
 use App\Services\Sms\CampaignService;
 use Filament\Forms;
@@ -19,6 +20,8 @@ use Filament\Forms\Components\TextInput;
 
 class SmsCampaignResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
         return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);

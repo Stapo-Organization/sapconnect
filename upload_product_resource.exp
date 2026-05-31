@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+# Upload ProductResource.php
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/ProductResource.php $user_host:sapconnect_app/app/Filament/Resources/ProductResource.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "ProductResource.php uploaded" }
+}

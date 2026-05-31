@@ -41,6 +41,8 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(in: app_path('Filament/RetailWidgets'), for: 'App\\Filament\\RetailWidgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets/SupplyChain'), for: 'App\\Filament\\Widgets\\SupplyChain')
             ->widgets([
                 Widgets\AccountWidget::class,
                 \App\Filament\Widgets\DatabaseStatusWidget::class,
@@ -49,9 +51,14 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\StockTransferAnalyticsWidget::class,
                 \App\Filament\Widgets\AlrajhiAnalyticsWidget::class,
                 \App\Filament\Widgets\TransferStatusDonutChart::class,
-                \App\Filament\Widgets\TransferTimeBarChart::class,
+                \App\Filament\Widgets\MonthToDateRevenueChart::class,
                 \App\Filament\Widgets\PendingTransfersTable::class,
                 \App\Filament\Widgets\AutomationHealthLogTable::class,
+                // Supply Chain Widgets
+                \App\Filament\Widgets\SupplyChain\SupplyChainStatsWidget::class,
+                \App\Filament\Widgets\SupplyChain\ShipmentStatusChart::class,
+                \App\Filament\Widgets\SupplyChain\PaymentDueTimeline::class,
+                \App\Filament\Widgets\SupplyChain\SupplierPerformanceChart::class,
                 // Removed BranchManagerStats and LatestBranchTransfers as requested by new full admin dashboard
             ])
             ->navigationItems([
@@ -60,7 +67,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-book-open')
                     ->group('System')
                     ->sort(99)
-                    ->visible(fn(): bool => !auth()->user()->hasRole('Branch Manager')),
+                    ->visible(fn(): bool => !auth()->user()->hasAnyRole(['Branch Manager', 'Stakeholder'])),
             ])
             ->font('Cairo')
             ->renderHook(

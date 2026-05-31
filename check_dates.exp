@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && php artisan tinker --execute='echo \"MIN DATE: \".\\App\\Models\\SapInvoice::min(\"doc_date\").\"\\nMAX DATE: \".\\App\\Models\\SapInvoice::max(\"doc_date\");'"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

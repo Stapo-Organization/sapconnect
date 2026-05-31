@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+match_max 100000
+set password "h23N1KXMIL#\$94"
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && tail -n 20 storage/logs/laravel.log"
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

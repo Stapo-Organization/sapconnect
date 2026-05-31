@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout 60
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+# Upload tarball
+spawn scp -o StrictHostKeyChecking=no /tmp/woo_sync_deploy.tar.gz $user_host:sapconnect_app/woo_sync_deploy.tar.gz
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Upload done." }
+}
+
+# Extract and deploy
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && tar -xzf woo_sync_deploy.tar.gz && rm woo_sync_deploy.tar.gz && php artisan route:clear && php artisan config:clear && php artisan migrate --force 2>&1 | tail -20 && echo '===DEPLOY DONE==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Deploy complete!" }
+}

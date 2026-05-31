@@ -13,6 +13,7 @@ class Warehouse extends Model
     protected $fillable = [
         'warehouse_code',
         'warehouse_name',
+        'sales_employee_code',
         'source',
     ];
 

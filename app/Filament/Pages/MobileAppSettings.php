@@ -16,7 +16,7 @@ class MobileAppSettings extends Page implements HasForms
 {
     public static function canAccess(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     use InteractsWithForms;
@@ -58,13 +58,24 @@ class MobileAppSettings extends Page implements HasForms
             ->schema([
                 Toggle::make('maintenance_mode')
                     ->label(__('Maintenance Mode'))
-                    ->helperText(__('Enable to force the mobile app into maintenance mode.')),
+                    ->helperText(__('Enable to force the mobile app into maintenance mode.'))
+                    ->disabled(auth()->user()?->hasRole('Stakeholder')),
             ])
             ->statePath('data');
     }
 
     public function submit(): void
     {
+        // Block Stakeholders from saving
+        if (auth()->user()?->hasRole('Stakeholder')) {
+            Notification::make()
+                ->title(__('Access Denied'))
+                ->body(__('Stakeholders have read-only access.'))
+                ->danger()
+                ->send();
+            return;
+        }
+
         $data = $this->form->getState();
 
         foreach ($data as $key => $value) {

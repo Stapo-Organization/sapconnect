@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o IdentitiesOnly=yes sap_product_fields_update.tar.gz sapapimuntajat@62.138.14.178:sapconnect_app/sap_product_fields_update.tar.gz
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o IdentitiesOnly=yes sapapimuntajat@62.138.14.178 "cd sapconnect_app && tar -xzf sap_product_fields_update.tar.gz && php artisan migrate --force && php artisan optimize:clear"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o IdentitiesOnly=yes sapapimuntajat@62.138.14.178 "cd sapconnect_app && php artisan sap:sync-products --code=sync_products_PPTC_V5_PROD"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no grouped_widget_fix.tar.gz sapapimuntajat@62.138.14.178:sapconnect_app/grouped_widget_fix.tar.gz
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && tar -xzf grouped_widget_fix.tar.gz && php artisan view:clear && php artisan cache:clear"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178
+expect {
+    "password:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    ":~]$" {
+        send "pkill -f 'sap:sync-stock-transfers'\r"
+        send "cd sapconnect_app && php artisan queue:clear\r"
+        send "pkill -f 'queue:work'\r"
+        send "exit\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

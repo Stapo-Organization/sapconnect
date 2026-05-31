@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no smart_stock_patch9.tar.gz sapapimuntajat@62.138.14.178:sapconnect_app/smart_stock_patch9.tar.gz
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+spawn ssh -o StrictHostKeyChecking=no sapapimuntajat@62.138.14.178 "cd sapconnect_app && tar -xzf smart_stock_patch9.tar.gz"
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

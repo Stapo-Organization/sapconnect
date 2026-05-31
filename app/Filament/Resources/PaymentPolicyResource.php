@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentPolicyResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\PaymentPolicy;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,12 +14,15 @@ use Closure;
 
 class PaymentPolicyResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     protected static ?string $model = PaymentPolicy::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    protected static ?string $navigationGroup = 'Supply Chain';
-    protected static ?string $modelLabel = 'Payment Policy';
-    protected static ?string $pluralModelLabel = 'Payment Policies';
+
+    public static function getNavigationGroup(): ?string { return __('Supply Chain'); }
+    public static function getModelLabel(): string { return __('Payment Policy'); }
+    public static function getPluralModelLabel(): string { return __('Payment Policies'); }
 
     public static function form(Form $form): Form
     {
@@ -26,11 +30,13 @@ class PaymentPolicyResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Policy Details')
                     ->schema([
-                        Forms\Components\Select::make('supplier_id')
-                            ->relationship('supplier', 'name')
+                        Forms\Components\Select::make('suppliers')
+                            ->relationship('suppliers', 'name')
+                            ->multiple()
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->label('Linked Suppliers')
+                            ->helperText('Select one or more suppliers for this payment policy'),
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255)
@@ -84,9 +90,11 @@ class PaymentPolicyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('supplier.name')
+                Tables\Columns\TextColumn::make('suppliers.name')
+                    ->label('Suppliers')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('lines_count')
@@ -102,7 +110,10 @@ class PaymentPolicyResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('suppliers')
+                    ->relationship('suppliers', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/SuggestedStockTransferResource.php sapapimuntajat@62.138.14.178:sapconnect_app/app/Filament/Resources/SuggestedStockTransferResource.php
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}
+
+spawn scp -o StrictHostKeyChecking=no app/Filament/Resources/SuggestedStockTransferResource/Pages/ListSuggestedStockTransfers.php sapapimuntajat@62.138.14.178:sapconnect_app/app/Filament/Resources/SuggestedStockTransferResource/Pages/ListSuggestedStockTransfers.php
+expect {
+    "assword:" {
+        send "h23N1KXMIL#\$94\r"
+        exp_continue
+    }
+    eof {
+        puts $expect_out(buffer)
+    }
+}

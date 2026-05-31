@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+# Upload updated SyncCustomers.php
+spawn scp -o StrictHostKeyChecking=no app/Console/Commands/SyncCustomers.php $user_host:sapconnect_app/app/Console/Commands/SyncCustomers.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "SyncCustomers.php uploaded." }
+}
+
+# Run Sync Command
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php artisan sap:sync-customers"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts $expect_out(buffer) }
+}

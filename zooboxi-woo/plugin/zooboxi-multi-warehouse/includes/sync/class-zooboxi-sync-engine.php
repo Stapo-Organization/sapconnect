@@ -1,0 +1,362 @@
+<?php
+/**
+ * Sync Engine — pulls products, stock, and prices from sapconnect API
+ * and pushes orders from WooCommerce to sapconnect.
+ */
+class Zooboxi_Sync_Engine
+{
+    private string $api_base;
+    private string $api_token;
+    private const MAX_RETRIES = 3;
+
+    public function __construct()
+    {
+        $this->api_base  = rtrim(get_option('zooboxi_api_url', 'https://sapapi.muntajat.sa/api/woo'), '/');
+        $this->api_token = get_option('zooboxi_api_token', '');
+    }
+
+    /* ── Products ──────────────────────────────────── */
+
+    public function sync_products(): array
+    {
+        $logId = Zooboxi_Logger::start('products');
+        $page  = 1;
+        $synced = $failed = 0;
+
+        try {
+            do {
+                $response = $this->api_get("/products?page={$page}&per_page=50");
+                $products = $response['data'] ?? [];
+
+                foreach ($products as $product) {
+                    try {
+                        $this->upsert_product($product);
+                        $synced++;
+                    } catch (\Exception $e) {
+                        $failed++;
+                        error_log("Zooboxi Product Sync Error [{$product['item_code']}]: {$e->getMessage()}");
+                    }
+                }
+
+                $page++;
+            } while (count($products) >= 50);
+
+            Zooboxi_Logger::complete($logId, $synced, $failed);
+        } catch (\Exception $e) {
+            Zooboxi_Logger::fail($logId, $e->getMessage());
+        }
+
+        return ['synced' => $synced, 'failed' => $failed];
+    }
+
+    /* ── Stock ─────────────────────────────────────── */
+
+    public function sync_stock(): array
+    {
+        $logId = Zooboxi_Logger::start('stock');
+        $updated = 0;
+
+        try {
+            $response = $this->api_get('/stock');
+            $items = $response['data'] ?? [];
+
+            foreach ($items as $item) {
+                $productId = $this->find_product_by_item_code($item['item_code'] ?? '');
+                if (!$productId) continue;
+
+                $warehouseStocks = $item['warehouses'] ?? [];
+                Zooboxi_Stock_Manager::update_stock($productId, $warehouseStocks);
+                $updated++;
+            }
+
+            Zooboxi_Logger::complete($logId, $updated, 0, count($items));
+        } catch (\Exception $e) {
+            Zooboxi_Logger::fail($logId, $e->getMessage());
+        }
+
+        return ['updated' => $updated];
+    }
+
+    /* ── Prices ────────────────────────────────────── */
+
+    public function sync_prices(): array
+    {
+        $logId = Zooboxi_Logger::start('prices');
+        $updated = 0;
+
+        try {
+            $response = $this->api_get('/prices');
+            $items = $response['data'] ?? [];
+            $priceList = (int) get_option('zooboxi_default_price_list', 1);
+
+            foreach ($items as $item) {
+                $productId = $this->find_product_by_item_code($item['item_code'] ?? '');
+                if (!$productId) continue;
+
+                $prices = $item['prices'] ?? [];
+                $retail = $prices[$priceList] ?? $prices[1] ?? null;
+
+                if ($retail && isset($retail['price'])) {
+                    update_post_meta($productId, '_regular_price', $retail['price']);
+                    update_post_meta($productId, '_price', $retail['price']);
+                }
+
+                // Store all price lists for future use
+                update_post_meta($productId, '_zooboxi_price_lists', wp_json_encode($prices));
+                $updated++;
+            }
+
+            Zooboxi_Logger::complete($logId, $updated, 0, count($items));
+        } catch (\Exception $e) {
+            Zooboxi_Logger::fail($logId, $e->getMessage());
+        }
+
+        return ['updated' => $updated];
+    }
+
+    /* ── Warehouses ────────────────────────────────── */
+
+    public function sync_warehouses(): array
+    {
+        $logId = Zooboxi_Logger::start('warehouses');
+        $synced = 0;
+
+        try {
+            $response = $this->api_get('/warehouses');
+            $warehouses = $response['data'] ?? [];
+
+            foreach ($warehouses as $wh) {
+                Zooboxi_Warehouse_Manager::upsert($wh);
+                $synced++;
+            }
+
+            Zooboxi_Logger::complete($logId, $synced, 0, count($warehouses));
+        } catch (\Exception $e) {
+            Zooboxi_Logger::fail($logId, $e->getMessage());
+        }
+
+        return ['synced' => $synced];
+    }
+
+    /* ── Push Order to sapconnect ──────────────────── */
+
+    public function push_order(int $orderId): bool
+    {
+        $order = wc_get_order($orderId);
+        if (!$order) return false;
+
+        $logId = Zooboxi_Logger::start('orders', 'push');
+
+        try {
+            $payload = $this->build_order_payload($order);
+            $response = $this->api_post('/orders', $payload);
+
+            if (!empty($response['order_id'])) {
+                $order->update_meta_data('_zooboxi_synced', true);
+                $order->update_meta_data('_zooboxi_synced_at', current_time('mysql'));
+                $order->update_meta_data('_zooboxi_sap_order_id', $response['order_id']);
+                $order->save();
+                Zooboxi_Logger::complete($logId, 1);
+                return true;
+            }
+
+            Zooboxi_Logger::fail($logId, 'No order_id in response');
+            return false;
+        } catch (\Exception $e) {
+            Zooboxi_Logger::fail($logId, $e->getMessage());
+            // Schedule retry
+            wp_schedule_single_event(time() + 300, 'zooboxi_retry_order_push', [$orderId]);
+            return false;
+        }
+    }
+
+    /* ── Private Helpers ──────────────────────────── */
+
+    private function upsert_product(array $data): void
+    {
+        $itemCode = $data['item_code'] ?? '';
+        if (empty($itemCode)) throw new \RuntimeException('Missing item_code');
+
+        // Find product by _zooboxi_item_code meta (NOT by SKU - SKU uses barcode)
+        $existingId = $this->find_product_by_item_code($itemCode);
+
+        if ($existingId) {
+            // ─── EXISTING PRODUCT: Only update SAP-controlled fields ───
+            // NEVER touch: name, description, categories, images, attributes
+            $product = wc_get_product($existingId);
+            if (!$product) return;
+
+            // Update price only
+            $price = $data['prices'][1]['price'] ?? $data['prices']['1']['price'] ?? null;
+            if ($price !== null) {
+                $product->set_regular_price((string) $price);
+            }
+
+            // Ensure stock management
+            $product->set_manage_stock(true);
+            $product->set_stock_status('instock');
+            $product->save();
+
+            // Update SAP metadata (reference only — does not affect display)
+            update_post_meta($existingId, '_zooboxi_sap_name', $data['item_name'] ?? '');
+            update_post_meta($existingId, '_zooboxi_sap_foreign_name', $data['foreign_name'] ?? '');
+            update_post_meta($existingId, '_zooboxi_brand_code', $data['brand_code'] ?? '');
+            update_post_meta($existingId, '_zooboxi_uom', $data['uom'] ?? '');
+            update_post_meta($existingId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
+            update_post_meta($existingId, '_zooboxi_last_sync', current_time('mysql'));
+        } else {
+            // ─── NEW PRODUCT: Create with SAP data ───
+            $product = new \WC_Product_Simple();
+
+            $product->set_props([
+                'name'          => $data['item_name'] ?? $data['foreign_name'] ?? $itemCode,
+                'regular_price' => (string) ($data['prices'][1]['price'] ?? $data['prices']['1']['price'] ?? ''),
+                'manage_stock'  => true,
+                'stock_status'  => 'instock',
+                'catalog_visibility' => 'visible',
+            ]);
+
+            // Set barcode as SKU if available
+            if (!empty($data['barcode'])) {
+                try {
+                    $product->set_sku($data['barcode']);
+                } catch (\Exception $e) {
+                    // SKU already exists — skip
+                }
+            }
+
+            // Description
+            if (!empty($data['foreign_name'])) {
+                $product->set_short_description($data['foreign_name']);
+            }
+
+            // Image from holeno.com
+            $imageUrl = $data['image_url'] ?? '';
+            if ($imageUrl) {
+                $product->add_meta_data('_zooboxi_image_url', $imageUrl, true);
+            }
+
+            $productId = $product->save();
+
+            // Store SAP identifiers
+            update_post_meta($productId, '_zooboxi_item_code', $itemCode);
+            update_post_meta($productId, '_zooboxi_sap_name', $data['item_name'] ?? '');
+            update_post_meta($productId, '_zooboxi_sap_foreign_name', $data['foreign_name'] ?? '');
+            update_post_meta($productId, '_zooboxi_brand_code', $data['brand_code'] ?? '');
+            update_post_meta($productId, '_zooboxi_barcode', $data['barcode'] ?? '');
+            update_post_meta($productId, '_zooboxi_uom', $data['uom'] ?? '');
+            update_post_meta($productId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
+            update_post_meta($productId, '_zooboxi_last_sync', current_time('mysql'));
+
+            // Assign brand as category
+            if (!empty($data['brand_name'])) {
+                wp_set_object_terms($productId, $data['brand_name'], 'product_cat', true);
+            }
+        }
+    }
+
+    /**
+     * Find a WC product ID by its _zooboxi_item_code meta value.
+     */
+    private function find_product_by_item_code(string $itemCode): int
+    {
+        global $wpdb;
+        $id = $wpdb->get_var($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} 
+             WHERE meta_key = '_zooboxi_item_code' AND meta_value = %s 
+             LIMIT 1",
+            $itemCode
+        ));
+        return (int) $id;
+    }
+
+    private function build_order_payload(\WC_Order $order): array
+    {
+        $items = [];
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            $items[] = [
+                'item_code'   => $product ? $product->get_sku() : '',
+                'item_name'   => $item->get_name(),
+                'quantity'    => $item->get_quantity(),
+                'unit_price'  => (float) ($item->get_total() / max($item->get_quantity(), 1)),
+                'total_price' => (float) $item->get_total(),
+            ];
+        }
+
+        return [
+            'woo_order_id'     => $order->get_id(),
+            'woo_order_number' => $order->get_order_number(),
+            'delivery_type'    => $order->get_meta('_zooboxi_delivery_type') ?: 'shipping',
+            'warehouse_code'   => $order->get_meta('_zooboxi_warehouse') ?: '',
+            'customer' => [
+                'name'      => $order->get_formatted_billing_full_name(),
+                'phone'     => $order->get_billing_phone(),
+                'email'     => $order->get_billing_email(),
+                'latitude'  => (float) $order->get_meta('_zooboxi_lat'),
+                'longitude' => (float) $order->get_meta('_zooboxi_lng'),
+                'city'      => $order->get_shipping_city() ?: $order->get_billing_city(),
+                'address'   => $order->get_shipping_address_1() ?: $order->get_billing_address_1(),
+            ],
+            'items' => $items,
+            'payment' => [
+                'method' => $order->get_payment_method(),
+                'status' => $order->is_paid() ? 'paid' : 'pending',
+            ],
+            'totals' => [
+                'subtotal'     => (float) $order->get_subtotal(),
+                'delivery_fee' => (float) $order->get_shipping_total(),
+                'tax'          => (float) $order->get_total_tax(),
+                'total'        => (float) $order->get_total(),
+            ],
+        ];
+    }
+
+    private function api_get(string $endpoint): array
+    {
+        return $this->api_request('GET', $endpoint);
+    }
+
+    private function api_post(string $endpoint, array $data): array
+    {
+        return $this->api_request('POST', $endpoint, $data);
+    }
+
+    private function api_request(string $method, string $endpoint, array $body = []): array
+    {
+        $url = $this->api_base . $endpoint;
+        $args = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->api_token,
+                'Accept'        => 'application/json',
+                'Content-Type'  => 'application/json',
+            ],
+            'timeout' => 30,
+        ];
+
+        $attempts = 0;
+        while ($attempts < self::MAX_RETRIES) {
+            $response = ($method === 'POST')
+                ? wp_remote_post($url, array_merge($args, ['body' => wp_json_encode($body)]))
+                : wp_remote_get($url, $args);
+
+            if (!is_wp_error($response)) {
+                $code = wp_remote_retrieve_response_code($response);
+                $decoded = json_decode(wp_remote_retrieve_body($response), true);
+
+                if ($code >= 200 && $code < 300) {
+                    return $decoded ?: [];
+                }
+
+                throw new \RuntimeException("API {$method} {$endpoint} returned {$code}: " . ($decoded['message'] ?? ''));
+            }
+
+            $attempts++;
+            if ($attempts < self::MAX_RETRIES) {
+                sleep($attempts * 2);
+            }
+        }
+
+        throw new \RuntimeException("API {$method} {$endpoint} failed after " . self::MAX_RETRIES . " attempts: " . $response->get_error_message());
+    }
+}

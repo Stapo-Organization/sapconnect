@@ -16,6 +16,7 @@ class StockTransfer extends Model
     // Internal Statuses (workflow)
     const STATUS_NEW = 'New';
     const STATUS_SHIPPED = 'Shipped';
+    const STATUS_PARTIALLY_RECEIVED = 'Partially Received';
     const STATUS_RECEIVED = 'Received';
     const STATUS_COMPLETED = 'Completed';
 
@@ -42,6 +43,11 @@ class StockTransfer extends Model
     public function toWarehouse()
     {
         return $this->belongsTo(Warehouse::class, 'to_warehouse', 'warehouse_code');
+    }
+
+    public function shipments()
+    {
+        return $this->hasMany(StockTransferShipment::class, 'stock_transfer_id');
     }
 
     public function sender()

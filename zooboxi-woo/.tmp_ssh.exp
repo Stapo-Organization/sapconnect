@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o StrictHostKeyChecking=no storezooboxi@62.138.14.178 {echo CONNECTION_OK && whoami && pwd && php -v && mysql --version && df -h /home && ls -la ~/public_html/ 2>&1}
+expect {
+    "password:" {
+        send "^Vw_HCPI(Sq&y+v*\r"
+        exp_continue
+    }
+    eof
+}

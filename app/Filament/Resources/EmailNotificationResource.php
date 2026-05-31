@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EmailNotificationResource\Pages;
+use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\EmailNotification;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,9 +13,11 @@ use Filament\Tables\Table;
 
 class EmailNotificationResource extends Resource
 {
+    use ReadOnlyStakeholder;
+
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator']);
+        return !auth()->user()->hasAnyRole(['Branch Manager', 'Operator', 'Stakeholder']);
     }
 
     protected static ?string $model = EmailNotification::class;
@@ -68,6 +71,7 @@ class EmailNotificationResource extends Resource
                                 'sender_warehouse' => __('Sender Warehouse Administrators'),
                                 'receiver_warehouse' => __('Receiver Warehouse Administrators'),
                                 'system_admin' => __('System Administrators'),
+                                'operator' => __('Operators'),
                             ])
                             ->helperText(__('Select which user roles will dynamically receive this email based on the event context.')),
 

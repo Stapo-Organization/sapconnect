@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout -1
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+spawn ssh -o StrictHostKeyChecking=no $user_host "date && ls -l /etc/localtime && grep TIMEZONE sapconnect_app/.env || echo 'No APP_TIMEZONE in .env'"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts $expect_out(buffer) }
+}

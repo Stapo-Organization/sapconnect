@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+match_max 100000
+set timeout 60
+set password "h23N1KXMIL#\$94"
+set user_host "sapapimuntajat@62.138.14.178"
+
+# Upload seed script
+spawn scp -o StrictHostKeyChecking=no /Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/seed_woo.php $user_host:sapconnect_app/seed_woo.php
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof {}
+}
+
+# Run it
+spawn ssh -o StrictHostKeyChecking=no $user_host "cd sapconnect_app && php seed_woo.php && rm seed_woo.php && echo '===SEED COMPLETE==='"
+expect {
+    "assword:" { send "$password\r"; exp_continue }
+    eof { puts "Seeding done!" }
+}
