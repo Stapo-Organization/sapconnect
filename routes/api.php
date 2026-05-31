@@ -65,6 +65,13 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     });
 });
 
+// Store Public/Customer Routes
+Route::prefix('store')->group(function () {
+    Route::get('/brands', [\App\Http\Controllers\Api\StoreController::class, 'getBrands']);
+    Route::get('/products', [\App\Http\Controllers\Api\StoreController::class, 'getProducts']);
+    Route::get('/proxy-image', [\App\Http\Controllers\Api\StoreController::class, 'proxyImage']);
+});
+
 // SAP Integration Routes
 // Protected by Custom App Token and LogSapRequests middleware
 Route::middleware(['auth.app_token', 'set.sap.env', \App\Http\Middleware\LogSapRequests::class])->prefix('sap')->group(function () {
@@ -77,4 +84,59 @@ Route::middleware(['auth.app_token', 'set.sap.env', \App\Http\Middleware\LogSapR
 
     // Add specific custom controllers below if needed overriding the generic ones
     // Route::get('Inventory', [InventoryController::class, 'index']);
+});
+
+// ─── Zooboxi WooCommerce Integration ────────────────────────────
+// Protected by WooCommerce API Token
+Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
+    ->prefix('woo')
+    ->group(function () {
+
+    // Products
+    Route::get('/products', [\App\Http\Controllers\Api\WooSyncController::class, 'getProducts']);
+    Route::get('/products/{item_code}', [\App\Http\Controllers\Api\WooSyncController::class, 'getProduct']);
+
+    // Stock
+    Route::get('/stock', [\App\Http\Controllers\Api\WooSyncController::class, 'getStock']);
+    Route::get('/stock/{warehouse_code}', [\App\Http\Controllers\Api\WooSyncController::class, 'getWarehouseStock']);
+
+    // Prices
+    Route::get('/prices', [\App\Http\Controllers\Api\WooSyncController::class, 'getPrices']);
+
+    // Warehouses
+    Route::get('/warehouses', [\App\Http\Controllers\Api\WooSyncController::class, 'getWarehouses']);
+
+    // Delivery Options
+    Route::post('/delivery-options', [\App\Http\Controllers\Api\WooSyncController::class, 'getDeliveryOptions']);
+
+    // Orders
+    Route::post('/orders', [\App\Http\Controllers\Api\WooSyncController::class, 'receiveOrder']);
+    Route::put('/orders/{woo_order_id}/status', [\App\Http\Controllers\Api\WooSyncController::class, 'updateOrderStatus']);
+
+    // Sync Status
+    Route::get('/sync-status', [\App\Http\Controllers\Api\WooSyncController::class, 'getSyncStatus']);
+
+    // TEMPORARY: Diagnostic endpoint to check stock data
+    Route::get('/diagnostic/stock', function () {
+        $sapWarehouses = \App\Models\Warehouse::where('source', 'production')
+            ->get(['warehouse_code', 'warehouse_name']);
+        
+        $stockCounts = \App\Models\WarehouseItemStock::selectRaw('warehouse_code, COUNT(*) as cnt, SUM(in_stock) as total_stock')
+            ->groupBy('warehouse_code')
+            ->get();
+        
+        $zooboxiWarehouses = \App\Models\ZooboxiWarehouse::active()
+            ->get(['warehouse_code', 'display_name_ar', 'city']);
+        
+        $totalStockRecords = \App\Models\WarehouseItemStock::count();
+        $wooSyncProducts = \App\Models\Product::where('woo_sync', true)->count();
+        
+        return response()->json([
+            'sap_warehouses' => $sapWarehouses,
+            'stock_by_warehouse' => $stockCounts,
+            'zooboxi_warehouses' => $zooboxiWarehouses,
+            'total_stock_records' => $totalStockRecords,
+            'woo_sync_product_count' => $wooSyncProducts,
+        ]);
+    });
 });
