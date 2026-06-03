@@ -108,6 +108,10 @@ $homepage_id = wp_insert_post([
 
 <!-- wp:woocommerce/product-new {"columns":4,"rows":2} /-->
 
+<!-- wp:shortcode -->
+[zooboxi_brands_slider]
+<!-- /wp:shortcode -->
+
 <!-- wp:html -->
 <div class="zooboxi-features-section">
     <div class="zooboxi-feature">

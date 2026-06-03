@@ -41,6 +41,7 @@ spl_autoload_register(function ($class) {
         'includes/admin',
         'includes/frontend',
         'includes/api',
+        'includes/auth',
     ];
 
     foreach ($dirs as $dir) {

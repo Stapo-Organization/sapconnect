@@ -248,6 +248,10 @@ foreach ($products as $prod) {
             
             // Build attributes
             $attr = new WC_Product_Attribute();
+            $tax_id = wc_attribute_taxonomy_id_by_name($taxonomy);
+            if ($tax_id > 0) {
+                $attr->set_id($tax_id);
+            }
             $attr->set_name($taxonomy);
             $attr->set_options($vals);
             $attr->set_visible(true);
@@ -269,6 +273,10 @@ foreach ($products as $prod) {
             $sap = zbx_sap_code($first_img);
             $pid = $wc->save();
             
+            if ($pid > 0) {
+                wp_set_object_terms($pid, $vals, $taxonomy, false);
+            }
+            
             if ($sap) update_post_meta($pid, '_zooboxi_item_code', $sap);
             if (!empty($first_img)) {
                 update_post_meta($pid, '_zooboxi_image_url', $first_img);
@@ -287,6 +295,9 @@ foreach ($products as $prod) {
                 
                 if (empty($vval)) continue;
                 
+                $term = get_term_by('name', $vval, $taxonomy);
+                $vval_slug = ($term && !is_wp_error($term)) ? $term->slug : sanitize_title($vval);
+                
                 $var = new WC_Product_Variation();
                 $var->set_parent_id($pid);
                 if (!empty($vsku)) $var->set_sku($vsku);
@@ -296,7 +307,7 @@ foreach ($products as $prod) {
                 }
                 if ($vweight > 0) $var->set_weight($vweight / 1000);
                 $var->set_status('publish');
-                $var->set_attributes([$taxonomy => $vval]);
+                $var->set_attributes([$taxonomy => $vval_slug]);
                 
                 $vid = $var->save();
                 if ($vsap) update_post_meta($vid, '_zooboxi_item_code', $vsap);
@@ -416,6 +427,10 @@ function zbx_get_filters($row, $map) {
             if (!term_exists($v, $tax)) wp_insert_term($v, $tax);
         }
         $a = new WC_Product_Attribute();
+        $tax_id = wc_attribute_taxonomy_id_by_name($tax);
+        if ($tax_id > 0) {
+            $a->set_id($tax_id);
+        }
         $a->set_name($tax);
         $a->set_options($values);
         $a->set_visible(true);

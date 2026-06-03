@@ -1,0 +1,186 @@
+<!-- wp:html -->
+<div class="zooboxi-hero-banner-wrap" style="width: 100%; overflow: hidden; margin-bottom: 40px;">
+    <img src="/wp-content/uploads/zooboxi-assets/fb1cd0a0-555f-45da-a682-fd525f75699f.jpg" alt="Zooboxi Banner" style="width: 100%; height: auto; display: block;">
+</div>
+<!-- /wp:html -->
+
+<!-- wp:html -->
+<div class="zbx-animals-nav">
+    <a href="/product-category/قطط/" class="zbx-animal-card">
+        <div class="zbx-animal-card__img-wrap">
+            <img src="/wp-content/uploads/zooboxi-assets/97125602-5f94-42eb-96da-186b483e1289.webp" alt="قطط">
+        </div>
+        <span class="zbx-animal-card__name">قطط</span>
+    </a>
+    <a href="/product-category/كلاب/" class="zbx-animal-card">
+        <div class="zbx-animal-card__img-wrap">
+            <img src="/wp-content/uploads/zooboxi-assets/2f1e50b9-1fbf-4dcb-aa2b-14ebe0cec716.webp" alt="كلاب">
+        </div>
+        <span class="zbx-animal-card__name">كلاب</span>
+    </a>
+    <a href="/product-category/حيوانات-صغيرة/" class="zbx-animal-card">
+        <div class="zbx-animal-card__img-wrap">
+            <img src="/wp-content/uploads/zooboxi-assets/30a11991-15ae-4b19-9f1c-56d6994424a4.webp" alt="حيوانات صغيرة">
+        </div>
+        <span class="zbx-animal-card__name">حيوانات صغيرة</span>
+    </a>
+    <a href="/product-category/طيور/" class="zbx-animal-card">
+        <div class="zbx-animal-card__img-wrap">
+            <img src="/wp-content/uploads/zooboxi-assets/307a4def-f718-4d79-ba2e-925454fa8faa.webp" alt="طيور">
+        </div>
+        <span class="zbx-animal-card__name">طيور</span>
+    </a>
+</div>
+<style>
+.zbx-animals-nav {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 40px auto 48px;
+    padding: 0 20px;
+}
+
+.zbx-animal-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none !important;
+    color: var(--z-text) !important;
+    transition: all 0.3s ease;
+    width: 140px;
+}
+
+.zbx-animal-card__img-wrap {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background-color: #ffffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.zbx-animal-card__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.zbx-animal-card:hover .zbx-animal-card__img-wrap {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 10px 25px rgba(66, 157, 156, 0.15);
+}
+
+.zbx-animal-card:hover .zbx-animal-card__img-wrap img {
+    transform: scale(1.05);
+}
+
+.zbx-animal-card__name {
+    font-family: 'El Messiri', sans-serif !important;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .zbx-animals-nav {
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .zbx-animal-card {
+        width: 100px;
+    }
+    .zbx-animal-card__img-wrap {
+        width: 90px;
+        height: 90px;
+    }
+    .zbx-animal-card__name {
+        font-size: 14px;
+    }
+}
+</style>
+<!-- /wp:html -->
+
+<!-- wp:html -->
+<div class="zooboxi-hero-banner-wrap" style="width: 100%; overflow: hidden; margin-bottom: 40px;">
+    <img src="/wp-content/uploads/zooboxi-assets/c94146d0-31b7-405b-a0c9-33e7ce95506e.avif" alt="Zooboxi Promo Banner" style="width: 100%; height: auto; display: block;">
+</div>
+<!-- /wp:html -->
+
+<!-- wp:heading {"level":2,"textAlign":"center","style":{"spacing":{"margin":{"top":"0px","bottom":"24px"}}}} -->
+<h2 class="wp-block-heading has-text-align-center" style="margin-top:0px;margin-bottom:24px">⭐ أحدث المنتجات</h2>
+<!-- /wp:heading -->
+
+<!-- wp:woocommerce/product-new {"columns":4,"rows":2} /-->
+
+<!-- wp:html -->
+<div class="zbx-categories-grid">
+    <h2 class="zbx-section-title">🏷️ تصفح الأقسام</h2>
+    <div class="zbx-cats">
+        <a href="/product-category/قطط/طعام/" class="zbx-cat-pill">🍽️ طعام القطط</a>
+        <a href="/product-category/كلاب/طعام/" class="zbx-cat-pill">🥩 طعام الكلاب</a>
+        <a href="/product-category/مستلزمات-القطط/" class="zbx-cat-pill">🧸 مستلزمات القطط</a>
+        <a href="/product-category/مستلزمات-الكلاب/" class="zbx-cat-pill">🦴 مستلزمات الكلاب</a>
+        <a href="/product-category/قطط/الطعام-الرطب/" class="zbx-cat-pill">🥫 الطعام الرطب</a>
+        <a href="/product-category/المكافآت-والفيتامينات/" class="zbx-cat-pill">🍖 المكافآت والفيتامينات</a>
+        <a href="/product-category/العاب-وكاتنيب/" class="zbx-cat-pill">🎾 ألعاب وكاتنيب</a>
+        <a href="/product-category/طيور/طعام-ومكافات-الطيور/" class="zbx-cat-pill">🌾 طعام الطيور</a>
+        <a href="/product-category/وسادات-وبيوت-واقفاص/" class="zbx-cat-pill">🏠 بيوت وأقفاص</a>
+        <a href="/product-category/مشدات-وصدريات/" class="zbx-cat-pill">🎗️ مشدات وصدريات</a>
+        <a href="/product-category/اطواق/" class="zbx-cat-pill">📿 أطواق</a>
+        <a href="/product-category/اثاث-وخداشات/" class="zbx-cat-pill">🪵 أثاث وخداشات</a>
+    </div>
+</div>
+<style>
+.zbx-categories-grid{max-width:1200px;margin:48px auto;padding:0 20px}
+.zbx-section-title{text-align:center;font-size:28px;font-weight:700;color:#2c3e2d;margin:0 0 28px}
+.zbx-cats{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.zbx-cat-pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid #e2e8e0;border-radius:30px;padding:10px 22px;font-size:14px;font-weight:600;color:#2c3e2d;text-decoration:none;transition:all 0.3s}
+.zbx-cat-pill:hover{border-color:#429d9c;background:#eef7f7;color:#2d7a79;transform:translateY(-2px);box-shadow:0 4px 12px rgba(66,157,156,0.12)}
+</style>
+<!-- /wp:html -->
+
+<!-- wp:heading {"level":2,"textAlign":"center","style":{"spacing":{"margin":{"top":"48px","bottom":"24px"}}}} -->
+<h2 class="wp-block-heading has-text-align-center" style="margin-top:48px;margin-bottom:24px">🔥 الأكثر مبيعاً</h2>
+<!-- /wp:heading -->
+
+<!-- wp:woocommerce/product-best-sellers {"columns":4,"rows":1} /-->
+
+<!-- wp:html -->
+<div class="zbx-features-section">
+    <div class="zbx-feature">
+        <div class="zbx-feature__icon">🚀</div>
+        <h3>توصيل سريع</h3>
+        <p>توصيل خلال ساعتين من أقرب مستودع في مدينتك</p>
+    </div>
+    <div class="zbx-feature">
+        <div class="zbx-feature__icon">💯</div>
+        <h3>منتجات أصلية</h3>
+        <p>جميع منتجاتنا أصلية 100% ومستوردة مباشرة من المصنع</p>
+    </div>
+    <div class="zbx-feature">
+        <div class="zbx-feature__icon">🔄</div>
+        <h3>إرجاع سهل</h3>
+        <p>سياسة إرجاع مرنة خلال 14 يوم من تاريخ الشراء</p>
+    </div>
+    <div class="zbx-feature">
+        <div class="zbx-feature__icon">🏬</div>
+        <h3>استلام من الفرع</h3>
+        <p>استلم طلبك مجاناً من أقرب فرع لموقعك</p>
+    </div>
+</div>
+<style>
+.zbx-features-section{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:1200px;margin:48px auto;padding:0 20px}
+.zbx-feature{background:#fff;border:1px solid #e2e8e0;border-radius:20px;padding:36px 24px;text-align:center;transition:all 0.3s}
+.zbx-feature:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.06);border-color:#429d9c}
+.zbx-feature__icon{font-size:44px;margin-bottom:14px}
+.zbx-feature h3{font-size:18px;font-weight:700;margin:0 0 8px;color:#2c3e2d}
+.zbx-feature p{font-size:14px;color:#6b7c6e;line-height:1.6;margin:0}
+@media(max-width:768px){.zbx-features-section{grid-template-columns:repeat(2,1fr);gap:14px}.zbx-feature{padding:24px 16px}.zbx-feature__icon{font-size:32px}.zbx-feature h3{font-size:15px}}
+</style>
+<!-- /wp:html -->

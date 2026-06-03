@@ -2,3 +2,256 @@
 .zooboxi-admin-wrap { padding: 20px; }
 .zooboxi-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
 .zooboxi-card h3 { margin-top: 0; }
+
+/* ─── Stock Dashboard ───────────────────────────── */
+
+.zooboxi-stock-wrap {
+    max-width: 1400px;
+}
+
+.zooboxi-stock-wrap h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.zooboxi-stock-wrap h2 {
+    font-size: 18px;
+    margin: 30px 0 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #0d9488;
+}
+
+/* Stats Grid */
+.zooboxi-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.zooboxi-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.zooboxi-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.stat-total { border-top: 3px solid #0d9488; }
+.stat-products { border-top: 3px solid #3b82f6; }
+.stat-instock { border-top: 3px solid #10b981; }
+.stat-outstock { border-top: 3px solid #ef4444; }
+
+/* Warehouse Grid */
+.zooboxi-warehouse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.zooboxi-warehouse-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+    transition: transform 0.2s;
+}
+
+.zooboxi-warehouse-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.zooboxi-warehouse-card.type-retail {
+    border-right: 4px solid #0d9488;
+}
+
+.zooboxi-warehouse-card.type-shipping {
+    border-right: 4px solid #f59e0b;
+}
+
+.wh-header {
+    margin-bottom: 12px;
+}
+
+.wh-type-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+.type-retail .wh-type-badge {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.type-shipping .wh-type-badge {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.wh-header h3 {
+    margin: 4px 0 2px;
+    font-size: 15px;
+    color: #1f2937;
+}
+
+.wh-code {
+    font-size: 12px;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+.wh-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.wh-stat {
+    text-align: center;
+}
+
+.wh-stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0d9488;
+}
+
+.wh-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.wh-bar {
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.wh-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0d9488, #10b981);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Search Form */
+.zooboxi-search-form {
+    margin-bottom: 20px;
+}
+
+.search-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-row input[type="text"] {
+    min-width: 300px;
+}
+
+.search-row select {
+    min-width: 180px;
+}
+
+/* Stock Table */
+.zooboxi-stock-table {
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.zooboxi-stock-table thead th {
+    background: #f8fafc;
+    font-size: 12px;
+    padding: 10px 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.zooboxi-stock-table td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 8px 6px;
+}
+
+.zooboxi-stock-table td:nth-child(3) {
+    text-align: right;
+}
+
+td.has-stock {
+    background: #ecfdf5;
+    color: #065f46;
+    font-weight: 600;
+}
+
+td.no-stock {
+    color: #d1d5db;
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stock-badge.in {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.stock-badge.out {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Sync Info */
+.zooboxi-sync-info {
+    margin-top: 30px;
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.zooboxi-sync-info strong {
+    color: #1f2937;
+}

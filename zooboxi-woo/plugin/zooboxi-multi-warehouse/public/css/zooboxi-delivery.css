@@ -1,0 +1,349 @@
+/* ═══════════════════════════════════════════════════
+   Zooboxi Delivery System — Badges, Cards, Cart, Checkout
+   ═══════════════════════════════════════════════════ */
+
+/* ── Delivery Badge (Product Cards / Shop Loop) ─── */
+.zooboxi-delivery-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+}
+
+.zooboxi-delivery-badge--express {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.12), rgba(41, 128, 185, 0.08));
+    color: #2980b9;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.zooboxi-delivery-badge--express .zooboxi-badge-icon {
+    animation: zooboxi-pulse-icon 2s ease-in-out infinite;
+}
+
+.zooboxi-delivery-badge--standard {
+    background: rgba(45, 184, 123, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(45, 184, 123, 0.2);
+}
+
+.zooboxi-delivery-badge--shipping {
+    background: rgba(149, 165, 166, 0.1);
+    color: #7f8c8d;
+    border: 1px solid rgba(149, 165, 166, 0.2);
+}
+
+@keyframes zooboxi-pulse-icon {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+/* ── Delivery Info Box (Single Product Page) ────── */
+.zooboxi-delivery-info {
+    background: #fafbf7;
+    border: 1px solid #e2e8e0;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 25px;
+}
+
+.zooboxi-delivery-info__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e2e8e0;
+    padding-bottom: 12px;
+}
+
+.zooboxi-delivery-info__location {
+    font-weight: 600;
+    color: #2c3e2d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.zooboxi-delivery-info__change {
+    font-size: 13px;
+    color: #429d9c;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.zooboxi-delivery-info__change:hover {
+    color: #2d7a79;
+}
+
+.zooboxi-delivery-info__options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ── Delivery Option Row ─────────────────────────── */
+.zooboxi-delivery-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #e8ede6;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.zooboxi-delivery-option:hover {
+    border-color: #c5d5c2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.zooboxi-delivery-option--express {
+    border-color: rgba(52, 152, 219, 0.3);
+    background: linear-gradient(135deg, #fafeff, #f2f9ff);
+}
+
+.zooboxi-delivery-option--express-closed {
+    border-color: #e2e8e0;
+    opacity: 0.7;
+}
+
+.zooboxi-delivery-option__icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+}
+
+.zooboxi-delivery-option__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.zooboxi-delivery-option__title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c3e2d;
+    margin-bottom: 2px;
+}
+
+.zooboxi-delivery-option__meta {
+    font-size: 12px;
+    color: #6b7c6e;
+}
+
+.zooboxi-delivery-option__fee {
+    font-size: 12px;
+    color: #6b7c6e;
+    margin-top: 2px;
+}
+
+.zooboxi-delivery-option__fee .free {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.zooboxi-delivery-option__badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: rgba(52, 152, 219, 0.12);
+    color: #2980b9;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.zooboxi-delivery-option__badge--closed {
+    background: rgba(243, 156, 18, 0.12);
+    color: #e67e22;
+}
+
+/* ── Cart Item Badge (inline next to product name) ── */
+.zooboxi-cart-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+html[dir="rtl"] .zooboxi-cart-badge {
+    margin-right: 0;
+    margin-left: 8px;
+}
+
+.zooboxi-cart-badge--express {
+    background: rgba(52, 152, 219, 0.1);
+    color: #2980b9;
+}
+
+.zooboxi-cart-badge--standard {
+    background: rgba(45, 184, 123, 0.1);
+    color: #27ae60;
+}
+
+.zooboxi-cart-badge--shipping {
+    background: rgba(149, 165, 166, 0.1);
+    color: #7f8c8d;
+}
+
+/* ── Cart Delivery Summary Banner ────────────────── */
+.zooboxi-cart-delivery-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 1px solid;
+    transition: all 0.3s ease;
+}
+
+.zooboxi-cart-delivery-summary--express {
+    background: linear-gradient(135deg, #f0faf5, #e8f8f0);
+    border-color: rgba(45, 184, 123, 0.3);
+}
+
+.zooboxi-cart-delivery-summary--mixed {
+    background: linear-gradient(135deg, #fef9ee, #fdf5e0);
+    border-color: rgba(243, 156, 18, 0.3);
+}
+
+.zooboxi-cart-delivery-summary--standard {
+    background: rgba(45, 184, 123, 0.06);
+    border-color: rgba(45, 184, 123, 0.2);
+}
+
+.zooboxi-cart-delivery-summary--shipping {
+    background: rgba(149, 165, 166, 0.06);
+    border-color: rgba(149, 165, 166, 0.2);
+}
+
+.zooboxi-cart-delivery-summary__icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+.zooboxi-cart-delivery-summary__content {
+    flex: 1;
+}
+
+.zooboxi-cart-delivery-summary__text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e2d;
+    line-height: 1.5;
+}
+
+.zooboxi-cart-delivery-summary__breakdown {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.zooboxi-cart-delivery-count {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.zooboxi-cart-delivery-count--express {
+    background: rgba(52, 152, 219, 0.1);
+    color: #2980b9;
+}
+
+.zooboxi-cart-delivery-count--standard {
+    background: rgba(45, 184, 123, 0.1);
+    color: #27ae60;
+}
+
+.zooboxi-cart-delivery-count--shipping {
+    background: rgba(149, 165, 166, 0.1);
+    color: #7f8c8d;
+}
+
+/* ── Checkout Delivery Summary ───────────────────── */
+.zooboxi-checkout-delivery {
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border: 1px solid;
+}
+
+.zooboxi-checkout-delivery--express {
+    background: linear-gradient(135deg, #f0faf5, #e8f8f0);
+    border-color: rgba(45, 184, 123, 0.3);
+}
+
+.zooboxi-checkout-delivery--standard {
+    background: rgba(45, 184, 123, 0.06);
+    border-color: rgba(45, 184, 123, 0.2);
+}
+
+.zooboxi-checkout-delivery--shipping {
+    background: rgba(149, 165, 166, 0.06);
+    border-color: rgba(149, 165, 166, 0.2);
+}
+
+.zooboxi-checkout-delivery__type {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2c3e2d;
+}
+
+.zooboxi-checkout-delivery__summary {
+    font-size: 13px;
+    color: #6b7c6e;
+    margin-top: 4px;
+}
+
+/* ── Mobile Responsive ───────────────────────────── */
+@media (max-width: 768px) {
+    .zooboxi-delivery-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .zooboxi-delivery-option {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .zooboxi-delivery-option__icon {
+        font-size: 18px;
+        width: 28px;
+    }
+
+    .zooboxi-delivery-option__title {
+        font-size: 13px;
+    }
+
+    .zooboxi-cart-delivery-summary {
+        padding: 12px;
+    }
+
+    .zooboxi-cart-delivery-summary__text {
+        font-size: 13px;
+    }
+
+    .zooboxi-cart-delivery-summary__breakdown {
+        gap: 6px;
+    }
+}

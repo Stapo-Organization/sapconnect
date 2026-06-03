@@ -1,0 +1,4790 @@
+[
+  {
+    "ar_name": "المعايير الصحية",
+    "en_name": "Health Criteria",
+    "ar_path": "المعايير الصحية",
+    "en_path": "Health Criteria",
+    "ar_parent": "",
+    "en_parent": "",
+    "depth": 0
+  },
+  {
+    "ar_name": "العلامات التجارية",
+    "en_name": "Brands",
+    "ar_path": "العلامات التجارية",
+    "en_path": "Brands",
+    "ar_parent": "",
+    "en_parent": "",
+    "depth": 0
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "قطط",
+    "en_path": "Cat",
+    "ar_parent": "",
+    "en_parent": "",
+    "depth": 0
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "كلاب",
+    "en_path": "Dog",
+    "ar_parent": "",
+    "en_parent": "",
+    "depth": 0
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "حيوانات صغيرة",
+    "en_path": "Small Animals",
+    "ar_parent": "",
+    "en_parent": "",
+    "depth": 0
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "طيور",
+    "en_path": "Birds",
+    "ar_parent": "",
+    "en_parent": "",
+    "depth": 0
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "المعايير الصحية > قطط",
+    "en_path": "Health Criteria > Cat",
+    "ar_parent": "المعايير الصحية",
+    "en_parent": "Health Criteria",
+    "depth": 1
+  },
+  {
+    "ar_name": "أكانا",
+    "en_name": "Acana",
+    "ar_path": "العلامات التجارية > أكانا",
+    "en_path": "Brands > Acana",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "طعام",
+    "en_name": "Food",
+    "ar_path": "قطط > طعام",
+    "en_path": "Cat > Food",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "المعايير الصحية > كلاب",
+    "en_path": "Health Criteria > Dog",
+    "ar_parent": "المعايير الصحية",
+    "en_parent": "Health Criteria",
+    "depth": 1
+  },
+  {
+    "ar_name": "الطعام",
+    "en_name": "Food",
+    "ar_path": "كلاب > الطعام",
+    "en_path": "Dog > Food",
+    "ar_parent": "كلاب",
+    "en_parent": "Dog",
+    "depth": 1
+  },
+  {
+    "ar_name": "صحة الكلاب",
+    "en_name": "Health",
+    "ar_path": "كلاب > صحة الكلاب",
+    "en_path": "Dog > Health",
+    "ar_parent": "كلاب",
+    "en_parent": "Dog",
+    "depth": 1
+  },
+  {
+    "ar_name": "ابلاوز",
+    "en_name": "Applaws",
+    "ar_path": "العلامات التجارية > ابلاوز",
+    "en_path": "Brands > Applaws",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بكجات متعددة وموفّرة",
+    "en_name": "Multi-Packs & Savers",
+    "ar_path": "قطط > بكجات متعددة وموفّرة",
+    "en_path": "Cat > Multi-Packs & Savers",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "المكافآت والفيتامينات",
+    "en_name": "Treats & Vitamins",
+    "ar_path": "قطط > المكافآت والفيتامينات",
+    "en_path": "Cat > Treats & Vitamins",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "آريا",
+    "en_name": "Arya",
+    "ar_path": "العلامات التجارية > آريا",
+    "en_path": "Brands > Arya",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "التنظيف والتدريب",
+    "en_name": "Cleaning & Training",
+    "ar_path": "قطط > التنظيف والتدريب",
+    "en_path": "Cat > Cleaning & Training",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "بيست إنسايد",
+    "en_name": "BEAST INSIDE",
+    "ar_path": "العلامات التجارية > بيست إنسايد",
+    "en_path": "Brands > BEAST INSIDE",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "مستلزمات القطط",
+    "en_name": "Supplies",
+    "ar_path": "قطط > مستلزمات القطط",
+    "en_path": "Cat > Supplies",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "بابين سيجنتشر",
+    "en_name": "Babin Signature",
+    "ar_path": "العلامات التجارية > بابين سيجنتشر",
+    "en_path": "Brands > Babin Signature",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "صحة القطط",
+    "en_name": "Health",
+    "ar_path": "قطط > صحة القطط",
+    "en_path": "Cat > Health",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "باغز أون بورد",
+    "en_name": "Bags on Board",
+    "ar_path": "العلامات التجارية > باغز أون بورد",
+    "en_path": "Brands > Bags on Board",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "مستلزمات الرمل",
+    "en_name": "Litter Supplies",
+    "ar_path": "قطط > مستلزمات الرمل",
+    "en_path": "Cat > Litter Supplies",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "بافارو",
+    "en_name": "Bavaro",
+    "ar_path": "العلامات التجارية > بافارو",
+    "en_path": "Brands > Bavaro",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بيفار",
+    "en_name": "Beaphar",
+    "ar_path": "العلامات التجارية > بيفار",
+    "en_path": "Brands > Beaphar",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "التنظيف والتدريب",
+    "en_name": "Cleaning & Training",
+    "ar_path": "كلاب > التنظيف والتدريب",
+    "en_path": "Dog > Cleaning & Training",
+    "ar_parent": "كلاب",
+    "en_parent": "Dog",
+    "depth": 1
+  },
+  {
+    "ar_name": "مستلزمات الكلاب",
+    "en_name": "Supplies",
+    "ar_path": "كلاب > مستلزمات الكلاب",
+    "en_path": "Dog > Supplies",
+    "ar_parent": "كلاب",
+    "en_parent": "Dog",
+    "depth": 1
+  },
+  {
+    "ar_name": "المكافات والفيتامينات",
+    "en_name": "Treats & Vitamins",
+    "ar_path": "كلاب > المكافات والفيتامينات",
+    "en_path": "Dog > Treats & Vitamins",
+    "ar_parent": "كلاب",
+    "en_parent": "Dog",
+    "depth": 1
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة",
+    "en_path": "Health Criteria > Small Animals",
+    "ar_parent": "المعايير الصحية",
+    "en_parent": "Health Criteria",
+    "depth": 1
+  },
+  {
+    "ar_name": "مستلزمات الارانب والهماستر",
+    "en_name": "Rabbit & Hamster Supplies",
+    "ar_path": "حيوانات صغيرة > مستلزمات الارانب والهماستر",
+    "en_path": "Small Animals > Rabbit & Hamster Supplies",
+    "ar_parent": "حيوانات صغيرة",
+    "en_parent": "Small Animals",
+    "depth": 1
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "المعايير الصحية > طيور",
+    "en_path": "Health Criteria > Birds",
+    "ar_parent": "المعايير الصحية",
+    "en_parent": "Health Criteria",
+    "depth": 1
+  },
+  {
+    "ar_name": "مستلزمات الطيور",
+    "en_name": "Bird Supplies",
+    "ar_path": "طيور > مستلزمات الطيور",
+    "en_path": "Birds > Bird Supplies",
+    "ar_parent": "طيور",
+    "en_parent": "Birds",
+    "depth": 1
+  },
+  {
+    "ar_name": "طعام ومكافات القوارض",
+    "en_name": "Rodent Food & Treats",
+    "ar_path": "حيوانات صغيرة > طعام ومكافات القوارض",
+    "en_path": "Small Animals > Rodent Food & Treats",
+    "ar_parent": "حيوانات صغيرة",
+    "en_parent": "Small Animals",
+    "depth": 1
+  },
+  {
+    "ar_name": "بايو بيت أكتيف",
+    "en_name": "Bio PetActive",
+    "ar_path": "العلامات التجارية > بايو بيت أكتيف",
+    "en_path": "Brands > Bio PetActive",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بايوساند",
+    "en_name": "BioSand",
+    "ar_path": "العلامات التجارية > بايوساند",
+    "en_path": "Brands > BioSand",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "رمل القطط",
+    "en_name": "Litter",
+    "ar_path": "قطط > رمل القطط",
+    "en_path": "Cat > Litter",
+    "ar_parent": "قطط",
+    "en_parent": "Cat",
+    "depth": 1
+  },
+  {
+    "ar_name": "بوتشرز",
+    "en_name": "Butcher's",
+    "ar_path": "العلامات التجارية > بوتشرز",
+    "en_path": "Brands > Butcher's",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "نافورة القط",
+    "en_name": "CAT FOUNTAIN",
+    "ar_path": "العلامات التجارية > نافورة القط",
+    "en_path": "Brands > CAT FOUNTAIN",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كاتيديا",
+    "en_name": "CATIDEA",
+    "ar_path": "العلامات التجارية > كاتيديا",
+    "en_path": "Brands > CATIDEA",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سيدي",
+    "en_name": "CEDE",
+    "ar_path": "العلامات التجارية > سيدي",
+    "en_path": "Brands > CEDE",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "طعام ومكافات الطيور",
+    "en_name": "Bird Food & Treats",
+    "ar_path": "طيور > طعام ومكافات الطيور",
+    "en_path": "Birds > Bird Food & Treats",
+    "ar_parent": "طيور",
+    "en_parent": "Birds",
+    "depth": 1
+  },
+  {
+    "ar_name": "تشاو",
+    "en_name": "CIAO",
+    "ar_path": "العلامات التجارية > تشاو",
+    "en_path": "Brands > CIAO",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كات إتش تو أو أند دوج إتش تو أو",
+    "en_name": "Cat H2O & Dog H2O",
+    "ar_path": "العلامات التجارية > كات إتش تو أو أند دوج إتش تو أو",
+    "en_path": "Brands > Cat H2O & Dog H2O",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كات إتش تو أو",
+    "en_name": "Cat H2O",
+    "ar_path": "العلامات التجارية > كات إتش تو أو",
+    "en_path": "Brands > Cat H2O",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "تشورو",
+    "en_name": "Churu",
+    "ar_path": "العلامات التجارية > تشورو",
+    "en_path": "Brands > Churu",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كوكو",
+    "en_name": "Coockoo",
+    "ar_path": "العلامات التجارية > كوكو",
+    "en_path": "Brands > Coockoo",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كوزميك كاتنيب",
+    "en_name": "Cosmic Catnip",
+    "ar_path": "العلامات التجارية > كوزميك كاتنيب",
+    "en_path": "Brands > Cosmic Catnip",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "دوج إتش تو أو",
+    "en_name": "Dog H2O",
+    "ar_path": "العلامات التجارية > دوج إتش تو أو",
+    "en_path": "Brands > Dog H2O",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "دكتور كلاودرز",
+    "en_name": "Dr. Clauder's",
+    "ar_path": "العلامات التجارية > دكتور كلاودرز",
+    "en_path": "Brands > Dr. Clauder's",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "إيرثز جوديز",
+    "en_name": "Earth's Goodies",
+    "ar_path": "العلامات التجارية > إيرثز جوديز",
+    "en_path": "Brands > Earth's Goodies",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "إسبري",
+    "en_name": "Espree",
+    "ar_path": "العلامات التجارية > إسبري",
+    "en_path": "Brands > Espree",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فيلين جو",
+    "en_name": "Felyn Go",
+    "ar_path": "العلامات التجارية > فيلين جو",
+    "en_path": "Brands > Felyn Go",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فورزا10",
+    "en_name": "Forza10",
+    "ar_path": "العلامات التجارية > فورزا10",
+    "en_path": "Brands > Forza10",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فروت-ابلز",
+    "en_name": "Fruitables",
+    "ar_path": "العلامات التجارية > فروت-ابلز",
+    "en_path": "Brands > Fruitables",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جاردن بايتس",
+    "en_name": "GardenBites",
+    "ar_path": "العلامات التجارية > جاردن بايتس",
+    "en_path": "Brands > GardenBites",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جو! كات! جو!",
+    "en_name": "Go!Cat!Go!",
+    "ar_path": "العلامات التجارية > جو! كات! جو!",
+    "en_path": "Brands > Go!Cat!Go!",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "اي لوف هابي كاتس",
+    "en_name": "I Love Happy Cats",
+    "ar_path": "العلامات التجارية > اي لوف هابي كاتس",
+    "en_path": "Brands > I Love Happy Cats",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "إينابا",
+    "en_name": "Inaba",
+    "ar_path": "العلامات التجارية > إينابا",
+    "en_path": "Brands > Inaba",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "انستينكت",
+    "en_name": "Instinct",
+    "ar_path": "العلامات التجارية > انستينكت",
+    "en_path": "Brands > Instinct",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جوسيرا",
+    "en_name": "Josera",
+    "ar_path": "العلامات التجارية > جوسيرا",
+    "en_path": "Brands > Josera",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جوسي كات",
+    "en_name": "JosiCat",
+    "ar_path": "العلامات التجارية > جوسي كات",
+    "en_path": "Brands > JosiCat",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جوسي دوج",
+    "en_name": "JosiDog",
+    "ar_path": "العلامات التجارية > جوسي دوج",
+    "en_path": "Brands > JosiDog",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كت كات",
+    "en_name": "Kit Cat",
+    "ar_path": "العلامات التجارية > كت كات",
+    "en_path": "Brands > Kit Cat",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ليندو كات",
+    "en_name": "LindoCat",
+    "ar_path": "العلامات التجارية > ليندو كات",
+    "en_path": "Brands > LindoCat",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "مارك آند تشابل",
+    "en_name": "Mark & Chappell",
+    "ar_path": "العلامات التجارية > مارك آند تشابل",
+    "en_path": "Brands > Mark & Chappell",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ماي فاميلي",
+    "en_name": "My Family",
+    "ar_path": "العلامات التجارية > ماي فاميلي",
+    "en_path": "Brands > My Family",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ماي فاميل",
+    "en_name": "MyFamily",
+    "ar_path": "العلامات التجارية > ماي فاميل",
+    "en_path": "Brands > MyFamily",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "إم بي بي",
+    "en_name": "MPB",
+    "ar_path": "العلامات التجارية > إم بي بي",
+    "en_path": "Brands > MPB",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "إم بي إس",
+    "en_name": "MPS",
+    "ar_path": "العلامات التجارية > إم بي إس",
+    "en_path": "Brands > MPS",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ميكروسين إيه إتش",
+    "en_name": "MicrocynAH",
+    "ar_path": "العلامات التجارية > ميكروسين إيه إتش",
+    "en_path": "Brands > MicrocynAH",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ناتشورال كود",
+    "en_name": "Natural Code",
+    "ar_path": "العلامات التجارية > ناتشورال كود",
+    "en_path": "Brands > Natural Code",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "نيوتري-فيت",
+    "en_name": "Nutri-Vet",
+    "ar_path": "العلامات التجارية > نيوتري-فيت",
+    "en_path": "Brands > Nutri-Vet",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "أورجن",
+    "en_name": "Orijen",
+    "ar_path": "العلامات التجارية > أورجن",
+    "en_path": "Brands > Orijen",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "أور بتس",
+    "en_name": "OurPets",
+    "ar_path": "العلامات التجارية > أور بتس",
+    "en_path": "Brands > OurPets",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بي إل بي",
+    "en_name": "PLP",
+    "ar_path": "العلامات التجارية > بي إل بي",
+    "en_path": "Brands > PLP",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بت فانز",
+    "en_name": "Pet Fans",
+    "ar_path": "العلامات التجارية > بت فانز",
+    "en_path": "Brands > Pet Fans",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بلاي آند سكويك",
+    "en_name": "Play-N-Squeak",
+    "ar_path": "العلامات التجارية > بلاي آند سكويك",
+    "en_path": "Brands > Play-N-Squeak",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بريستيج",
+    "en_name": "Prestige",
+    "ar_path": "العلامات التجارية > بريستيج",
+    "en_path": "Brands > Prestige",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "برنس",
+    "en_name": "Prince",
+    "ar_path": "العلامات التجارية > برنس",
+    "en_path": "Brands > Prince",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "برنسيس",
+    "en_name": "Princess",
+    "ar_path": "العلامات التجارية > برنسيس",
+    "en_path": "Brands > Princess",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ريمدي + ريكوفري",
+    "en_name": "Remedy + Recovery",
+    "ar_path": "العلامات التجارية > ريمدي + ريكوفري",
+    "en_path": "Brands > Remedy + Recovery",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "إس بي",
+    "en_name": "SP",
+    "ar_path": "العلامات التجارية > إس بي",
+    "en_path": "Brands > SP",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سيمبل سولوشن",
+    "en_name": "Simple Solution",
+    "ar_path": "العلامات التجارية > سيمبل سولوشن",
+    "en_path": "Brands > Simple Solution",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سانال",
+    "en_name": "Sanal",
+    "ar_path": "العلامات التجارية > سانال",
+    "en_path": "Brands > Sanal",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سينيور جاتو",
+    "en_name": "Signor Gatto",
+    "ar_path": "العلامات التجارية > سينيور جاتو",
+    "en_path": "Brands > Signor Gatto",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سوليد جولد",
+    "en_name": "Solid Gold",
+    "ar_path": "العلامات التجارية > سوليد جولد",
+    "en_path": "Brands > Solid Gold",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فيتس بست",
+    "en_name": "Vets Best",
+    "ar_path": "العلامات التجارية > فيتس بست",
+    "en_path": "Brands > Vets Best",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فرسيل لاغا",
+    "en_name": "Versele-Laga",
+    "ar_path": "العلامات التجارية > فرسيل لاغا",
+    "en_path": "Brands > Versele-Laga",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ويتي مولن",
+    "en_name": "Witte Molen",
+    "ar_path": "العلامات التجارية > ويتي مولن",
+    "en_path": "Brands > Witte Molen",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ويلنس كور",
+    "en_name": "Wellness Core",
+    "ar_path": "العلامات التجارية > ويلنس كور",
+    "en_path": "Brands > Wellness Core",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ويمزيز",
+    "en_name": "Whimzees",
+    "ar_path": "العلامات التجارية > ويمزيز",
+    "en_path": "Brands > Whimzees",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ياو أب",
+    "en_name": "YowUp",
+    "ar_path": "العلامات التجارية > ياو أب",
+    "en_path": "Brands > YowUp",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "زيستي باوز",
+    "en_name": "Zesty Paws",
+    "ar_path": "العلامات التجارية > زيستي باوز",
+    "en_path": "Brands > Zesty Paws",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "زولكس",
+    "en_name": "Zolux",
+    "ar_path": "العلامات التجارية > زولكس",
+    "en_path": "Brands > Zolux",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "زوبريم",
+    "en_name": "Zupreem",
+    "ar_path": "العلامات التجارية > زوبريم",
+    "en_path": "Brands > Zupreem",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ابسولوت هوليستيك",
+    "en_name": "Absolute Holistic",
+    "ar_path": "العلامات التجارية > ابسولوت هوليستيك",
+    "en_path": "Brands > Absolute Holistic",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ألفي داينر",
+    "en_name": "Alfie's Diner",
+    "ar_path": "العلامات التجارية > ألفي داينر",
+    "en_path": "Brands > Alfie's Diner",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "التيمات",
+    "en_name": "Altimate Pet",
+    "ar_path": "العلامات التجارية > التيمات",
+    "en_path": "Brands > Altimate Pet",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "أبلاوز",
+    "en_name": "Applaws",
+    "ar_path": "العلامات التجارية > أبلاوز",
+    "en_path": "Brands > Applaws",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بايو ساند",
+    "en_name": "BioSand",
+    "ar_path": "العلامات التجارية > بايو ساند",
+    "en_path": "Brands > BioSand",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بادي",
+    "en_name": "Buddy Rinse",
+    "ar_path": "العلامات التجارية > بادي",
+    "en_path": "Brands > Buddy Rinse",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "Default Brand  AR",
+    "en_name": "Default Brand",
+    "ar_path": "العلامات التجارية > Default Brand  AR",
+    "en_path": "Brands > Default Brand",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كات اتش 2 او",
+    "en_name": "Cat H2O",
+    "ar_path": "العلامات التجارية > كات اتش 2 او",
+    "en_path": "Brands > Cat H2O",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ديكو",
+    "en_name": "DECO",
+    "ar_path": "العلامات التجارية > ديكو",
+    "en_path": "Brands > DECO",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بيسك",
+    "en_name": "BASIC",
+    "ar_path": "العلامات التجارية > بيسك",
+    "en_path": "Brands > BASIC",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كات ايديا",
+    "en_name": "CATIDEA",
+    "ar_path": "العلامات التجارية > كات ايديا",
+    "en_path": "Brands > CATIDEA",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سي دي",
+    "en_name": "CEDE",
+    "ar_path": "العلامات التجارية > سي دي",
+    "en_path": "Brands > CEDE",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ويلنس",
+    "en_name": "Wellness",
+    "ar_path": "العلامات التجارية > ويلنس",
+    "en_path": "Brands > Wellness",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كرازي دوج",
+    "en_name": "Crazy Dog",
+    "ar_path": "العلامات التجارية > كرازي دوج",
+    "en_path": "Brands > Crazy Dog",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "د.كلاودرز",
+    "en_name": "Dr.Clauders",
+    "ar_path": "العلامات التجارية > د.كلاودرز",
+    "en_path": "Brands > Dr.Clauders",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ايرث قوديز",
+    "en_name": "Earth's Goodies",
+    "ar_path": "العلامات التجارية > ايرث قوديز",
+    "en_path": "Brands > Earth's Goodies",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "انشانتد هوم بت",
+    "en_name": "EHP",
+    "ar_path": "العلامات التجارية > انشانتد هوم بت",
+    "en_path": "Brands > EHP",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فيلاين قو",
+    "en_name": "Felyn Go",
+    "ar_path": "العلامات التجارية > فيلاين قو",
+    "en_path": "Brands > Felyn Go",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "كانين قو",
+    "en_name": "Canine Go",
+    "ar_path": "العلامات التجارية > كانين قو",
+    "en_path": "Brands > Canine Go",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فيدا",
+    "en_name": "Fida",
+    "ar_path": "العلامات التجارية > فيدا",
+    "en_path": "Brands > Fida",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فوب",
+    "en_name": "Fop",
+    "ar_path": "العلامات التجارية > فوب",
+    "en_path": "Brands > Fop",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جي إي أو",
+    "en_name": "GEO",
+    "ar_path": "العلامات التجارية > جي إي أو",
+    "en_path": "Brands > GEO",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "غو دوغ",
+    "en_name": "GoDog",
+    "ar_path": "العلامات التجارية > غو دوغ",
+    "en_path": "Brands > GoDog",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "هير دوغي",
+    "en_name": "Hear Doggy",
+    "ar_path": "العلامات التجارية > هير دوغي",
+    "en_path": "Brands > Hear Doggy",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "اينابا",
+    "en_name": "INABA",
+    "ar_path": "العلامات التجارية > اينابا",
+    "en_path": "Brands > INABA",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "جوسي دوغ",
+    "en_name": "JosiDog",
+    "ar_path": "العلامات التجارية > جوسي دوغ",
+    "en_path": "Brands > JosiDog",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "مارك اند شابل",
+    "en_name": "Mark & Chappell",
+    "ar_path": "العلامات التجارية > مارك اند شابل",
+    "en_path": "Brands > Mark & Chappell",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "عام",
+    "en_name": "Generic",
+    "ar_path": "العلامات التجارية > عام",
+    "en_path": "Brands > Generic",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ام بي بيرغامو",
+    "en_name": "MPB",
+    "ar_path": "العلامات التجارية > ام بي بيرغامو",
+    "en_path": "Brands > MPB",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "منتجات الحيوان",
+    "en_name": "Pet Products",
+    "ar_path": "العلامات التجارية > منتجات الحيوان",
+    "en_path": "Brands > Pet Products",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "بريفيو بيت",
+    "en_name": "Prevue Pet",
+    "ar_path": "العلامات التجارية > بريفيو بيت",
+    "en_path": "Brands > Prevue Pet",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "ريميدي",
+    "en_name": "Remedy + Recovery",
+    "ar_path": "العلامات التجارية > ريميدي",
+    "en_path": "Brands > Remedy + Recovery",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سنال",
+    "en_name": "Sanal",
+    "ar_path": "العلامات التجارية > سنال",
+    "en_path": "Brands > Sanal",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "شيربا",
+    "en_name": "Sherpa",
+    "ar_path": "العلامات التجارية > شيربا",
+    "en_path": "Brands > Sherpa",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سمبل سلوشن",
+    "en_name": "Simple Solution",
+    "ar_path": "العلامات التجارية > سمبل سلوشن",
+    "en_path": "Brands > Simple Solution",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سمارتي كات",
+    "en_name": "SmartyKat",
+    "ar_path": "العلامات التجارية > سمارتي كات",
+    "en_path": "Brands > SmartyKat",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "سوليـد جولد",
+    "en_name": "Solid Gold",
+    "ar_path": "العلامات التجارية > سوليـد جولد",
+    "en_path": "Brands > Solid Gold",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "فيرسل لاقا",
+    "en_name": "Versele Laga",
+    "ar_path": "العلامات التجارية > فيرسل لاقا",
+    "en_path": "Brands > Versele Laga",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "وايلدا سايبيركا",
+    "en_name": "Wilda Siberica",
+    "ar_path": "العلامات التجارية > وايلدا سايبيركا",
+    "en_path": "Brands > Wilda Siberica",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "وايلدلي ناتشرال",
+    "en_name": "Wildly Natural",
+    "ar_path": "العلامات التجارية > وايلدلي ناتشرال",
+    "en_path": "Brands > Wildly Natural",
+    "ar_parent": "العلامات التجارية",
+    "en_parent": "Brands",
+    "depth": 1
+  },
+  {
+    "ar_name": "الانتقائية في الأكل",
+    "en_name": "Picky Eating",
+    "ar_path": "المعايير الصحية > قطط > الانتقائية في الأكل",
+    "en_path": "Health Criteria > Cat > Picky Eating",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة البراز",
+    "en_name": "Feces Smell",
+    "ar_path": "المعايير الصحية > قطط > رائحة البراز",
+    "en_path": "Health Criteria > Cat > Feces Smell",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "تساقط الشعر",
+    "en_name": "Shedding",
+    "ar_path": "المعايير الصحية > قطط > تساقط الشعر",
+    "en_path": "Health Criteria > Cat > Shedding",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > أكانا > قطط",
+    "en_path": "Brands > Acana > Cat",
+    "ar_parent": "العلامات التجارية > أكانا",
+    "en_parent": "Brands > Acana",
+    "depth": 2
+  },
+  {
+    "ar_name": "الطعام الجاف",
+    "en_name": "Dry Food",
+    "ar_path": "قطط > طعام > الطعام الجاف",
+    "en_path": "Cat > Food > Dry Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "الانتقائية في الأكل",
+    "en_name": "Picky Eating",
+    "ar_path": "المعايير الصحية > كلاب > الانتقائية في الأكل",
+    "en_path": "Health Criteria > Dog > Picky Eating",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "تساقط الشعر",
+    "en_name": "Shedding",
+    "ar_path": "المعايير الصحية > كلاب > تساقط الشعر",
+    "en_path": "Health Criteria > Dog > Shedding",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة البراز",
+    "en_name": "Feces Smell",
+    "ar_path": "المعايير الصحية > كلاب > رائحة البراز",
+    "en_path": "Health Criteria > Dog > Feces Smell",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > أكانا > كلاب",
+    "en_path": "Brands > Acana > Dog",
+    "ar_parent": "العلامات التجارية > أكانا",
+    "en_parent": "Brands > Acana",
+    "depth": 2
+  },
+  {
+    "ar_name": "الطعام الجاف",
+    "en_name": "Dry Food",
+    "ar_path": "كلاب > الطعام > الطعام الجاف",
+    "en_path": "Dog > Food > Dry Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل المفاصل",
+    "en_name": "Joint Problems",
+    "ar_path": "المعايير الصحية > كلاب > مشاكل المفاصل",
+    "en_path": "Health Criteria > Dog > Joint Problems",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام الكلاب البوبي",
+    "en_name": "Puppy Food",
+    "ar_path": "كلاب > الطعام > طعام الكلاب البوبي",
+    "en_path": "Dog > Food > Puppy Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام الكلاب المسنة",
+    "en_name": "Senior Dog Food",
+    "ar_path": "كلاب > الطعام > طعام الكلاب المسنة",
+    "en_path": "Dog > Food > Senior Dog Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "كرات الشعر",
+    "en_name": "Hairballs",
+    "ar_path": "المعايير الصحية > قطط > كرات الشعر",
+    "en_path": "Health Criteria > Cat > Hairballs",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام القطط البالغة",
+    "en_name": "Adult Cat Food",
+    "ar_path": "قطط > طعام > طعام القطط البالغة",
+    "en_path": "Cat > Food > Adult Cat Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "السمنة",
+    "en_name": "Obesity",
+    "ar_path": "المعايير الصحية > كلاب > السمنة",
+    "en_path": "Health Criteria > Dog > Obesity",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام التحكم في الوزن",
+    "en_name": "Weight Control Food",
+    "ar_path": "كلاب > الطعام > طعام التحكم في الوزن",
+    "en_path": "Dog > Food > Weight Control Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "انخفاض الطاقة/القدرة على التحمل",
+    "en_name": "Low Energy/Stamina",
+    "ar_path": "المعايير الصحية > كلاب > انخفاض الطاقة/القدرة على التحمل",
+    "en_path": "Health Criteria > Dog > Low Energy/Stamina",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "ضعف/ضمور العضلات",
+    "en_name": "Muscle Weakness/Atrophy",
+    "ar_path": "المعايير الصحية > كلاب > ضعف/ضمور العضلات",
+    "en_path": "Health Criteria > Dog > Muscle Weakness/Atrophy",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "طاقة عالية",
+    "en_name": "High Energy",
+    "ar_path": "كلاب > صحة الكلاب > طاقة عالية",
+    "en_path": "Dog > Health > High Energy",
+    "ar_parent": "كلاب > صحة الكلاب",
+    "en_parent": "Dog > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ابلاوز > قطط",
+    "en_path": "Brands > Applaws > Cat",
+    "ar_parent": "العلامات التجارية > ابلاوز",
+    "en_parent": "Brands > Applaws",
+    "depth": 2
+  },
+  {
+    "ar_name": "الطعام الرطب",
+    "en_name": "Wet Food",
+    "ar_path": "قطط > طعام > الطعام الرطب",
+    "en_path": "Cat > Food > Wet Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "السمنة",
+    "en_name": "Obesity",
+    "ar_path": "المعايير الصحية > قطط > السمنة",
+    "en_path": "Health Criteria > Cat > Obesity",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحساسية",
+    "en_name": "Allergies",
+    "ar_path": "المعايير الصحية > قطط > الحساسية",
+    "en_path": "Health Criteria > Cat > Allergies",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت كريمية",
+    "en_name": "Creamy Treats",
+    "ar_path": "قطط > المكافآت والفيتامينات > مكافآت كريمية",
+    "en_path": "Cat > Treats & Vitamins > Creamy Treats",
+    "ar_parent": "قطط > المكافآت والفيتامينات",
+    "en_parent": "Cat > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت وسناك",
+    "en_name": "Treats & Snacks",
+    "ar_path": "قطط > المكافآت والفيتامينات > مكافآت وسناك",
+    "en_path": "Cat > Treats & Vitamins > Treats & Snacks",
+    "ar_parent": "قطط > المكافآت والفيتامينات",
+    "en_parent": "Cat > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحليب والسوائل",
+    "en_name": "Milk & Liquids",
+    "ar_path": "قطط > طعام > الحليب والسوائل",
+    "en_path": "Cat > Food > Milk & Liquids",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ابلاوز > كلاب",
+    "en_path": "Brands > Applaws > Dog",
+    "ar_parent": "العلامات التجارية > ابلاوز",
+    "en_parent": "Brands > Applaws",
+    "depth": 2
+  },
+  {
+    "ar_name": "الطعام الرطب",
+    "en_name": "Wet Food",
+    "ar_path": "كلاب > الطعام > الطعام الرطب",
+    "en_path": "Dog > Food > Wet Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحساسية/الحكة",
+    "en_name": "Allergies/Itching",
+    "ar_path": "المعايير الصحية > كلاب > الحساسية/الحكة",
+    "en_path": "Health Criteria > Dog > Allergies/Itching",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام القطط الصغيرة",
+    "en_name": "Kitten Food",
+    "ar_path": "قطط > طعام > طعام القطط الصغيرة",
+    "en_path": "Cat > Food > Kitten Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام القطط المسنة",
+    "en_name": "Senior Cat Food",
+    "ar_path": "قطط > طعام > طعام القطط المسنة",
+    "en_path": "Cat > Food > Senior Cat Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحساسية البيئية/الكيميائية",
+    "en_name": "Eco/Chemical Sensitivity",
+    "ar_path": "المعايير الصحية > قطط > الحساسية البيئية/الكيميائية",
+    "en_path": "Health Criteria > Cat > Eco/Chemical Sensitivity",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > آريا > قطط",
+    "en_path": "Brands > Arya > Cat",
+    "ar_parent": "العلامات التجارية > آريا",
+    "en_parent": "Brands > Arya",
+    "depth": 2
+  },
+  {
+    "ar_name": "الاستحمام والتنظيف الجاف",
+    "en_name": "Bathing & Dry Cleaning",
+    "ar_path": "قطط > التنظيف والتدريب > الاستحمام والتنظيف الجاف",
+    "en_path": "Cat > Cleaning & Training > Bathing & Dry Cleaning",
+    "ar_parent": "قطط > التنظيف والتدريب",
+    "en_parent": "Cat > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "اتساخ/رائحة الفراء",
+    "en_name": "Coat Dirt/Odor",
+    "ar_path": "المعايير الصحية > قطط > اتساخ/رائحة الفراء",
+    "en_path": "Health Criteria > Cat > Coat Dirt/Odor",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحساسية/حساسية الجلد",
+    "en_name": "Allergies/Skin Sensitivity",
+    "ar_path": "المعايير الصحية > قطط > الحساسية/حساسية الجلد",
+    "en_path": "Health Criteria > Cat > Allergies/Skin Sensitivity",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "التهابات الأذن/تراكم الشمع",
+    "en_name": "Ear Infections/Wax Buildup",
+    "ar_path": "المعايير الصحية > قطط > التهابات الأذن/تراكم الشمع",
+    "en_path": "Health Criteria > Cat > Ear Infections/Wax Buildup",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بيست إنسايد > قطط",
+    "en_path": "Brands > BEAST INSIDE > Cat",
+    "ar_parent": "العلامات التجارية > بيست إنسايد",
+    "en_parent": "Brands > BEAST INSIDE",
+    "depth": 2
+  },
+  {
+    "ar_name": "صناديق وشنط التنقل",
+    "en_name": "Carriers & Travel Bags",
+    "ar_path": "قطط > مستلزمات القطط > صناديق وشنط التنقل",
+    "en_path": "Cat > Supplies > Carriers & Travel Bags",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بابين سيجنتشر > قطط",
+    "en_path": "Brands > Babin Signature > Cat",
+    "ar_parent": "العلامات التجارية > بابين سيجنتشر",
+    "en_parent": "Brands > Babin Signature",
+    "depth": 2
+  },
+  {
+    "ar_name": "حالات معقمة ومخصية",
+    "en_name": "Neutered & Spayed Cases",
+    "ar_path": "قطط > صحة القطط > حالات معقمة ومخصية",
+    "en_path": "Cat > Health > Neutered & Spayed Cases",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بابين سيجنتشر > كلاب",
+    "en_path": "Brands > Babin Signature > Dog",
+    "ar_parent": "العلامات التجارية > بابين سيجنتشر",
+    "en_parent": "Brands > Babin Signature",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام الكلاب البالغة",
+    "en_name": "Adult Dog Food",
+    "ar_path": "كلاب > الطعام > طعام الكلاب البالغة",
+    "en_path": "Dog > Food > Adult Dog Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "حالات معقمة ومخصية",
+    "en_name": "Neutered & Spayed Cases",
+    "ar_path": "كلاب > صحة الكلاب > حالات معقمة ومخصية",
+    "en_path": "Dog > Health > Neutered & Spayed Cases",
+    "ar_parent": "كلاب > صحة الكلاب",
+    "en_parent": "Dog > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > باغز أون بورد > قطط",
+    "en_path": "Brands > Bags on Board > Cat",
+    "ar_parent": "العلامات التجارية > باغز أون بورد",
+    "en_parent": "Brands > Bags on Board",
+    "depth": 2
+  },
+  {
+    "ar_name": "مستلزمات صندوق الرمل",
+    "en_name": "Litter Box Accessories",
+    "ar_path": "قطط > مستلزمات الرمل > مستلزمات صندوق الرمل",
+    "en_path": "Cat > Litter Supplies > Litter Box Accessories",
+    "ar_parent": "قطط > مستلزمات الرمل",
+    "en_parent": "Cat > Litter Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل إعداد صندوق الفضلات",
+    "en_name": "Litter Box Setup Issues",
+    "ar_path": "المعايير الصحية > قطط > مشاكل إعداد صندوق الفضلات",
+    "en_path": "Health Criteria > Cat > Litter Box Setup Issues",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "بقع الأسطح/فوضى الحيوانات الأليفة",
+    "en_name": "Surface Stains/Pet Messes",
+    "ar_path": "المعايير الصحية > قطط > بقع الأسطح/فوضى الحيوانات الأليفة",
+    "en_path": "Health Criteria > Cat > Surface Stains/Pet Messes",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة الليتر (رمل الفضلات)",
+    "en_name": "Litter Odor",
+    "ar_path": "المعايير الصحية > قطط > رائحة الليتر (رمل الفضلات)",
+    "en_path": "Health Criteria > Cat > Litter Odor",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بافارو > كلاب",
+    "en_path": "Brands > Bavaro > Dog",
+    "ar_parent": "العلامات التجارية > بافارو",
+    "en_parent": "Brands > Bavaro",
+    "depth": 2
+  },
+  {
+    "ar_name": "تشابك/تلبد الفراء",
+    "en_name": "Coat Matting/Tangles",
+    "ar_path": "المعايير الصحية > قطط > تشابك/تلبد الفراء",
+    "en_path": "Health Criteria > Cat > Coat Matting/Tangles",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بيفار > قطط",
+    "en_path": "Brands > Beaphar > Cat",
+    "ar_parent": "العلامات التجارية > بيفار",
+    "en_parent": "Brands > Beaphar",
+    "depth": 2
+  },
+  {
+    "ar_name": "شامبو وبلسم",
+    "en_name": "Shampoo & Conditioner",
+    "ar_path": "قطط > التنظيف والتدريب > شامبو وبلسم",
+    "en_path": "Cat > Cleaning & Training > Shampoo & Conditioner",
+    "ar_parent": "قطط > التنظيف والتدريب",
+    "en_parent": "Cat > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "العناية بالعين والاذن والاسنان",
+    "en_name": "Eye & Ear & Dental Care",
+    "ar_path": "قطط > التنظيف والتدريب > العناية بالعين والاذن والاسنان",
+    "en_path": "Cat > Cleaning & Training > Eye & Ear & Dental Care",
+    "ar_parent": "قطط > التنظيف والتدريب",
+    "en_parent": "Cat > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "إفرازات العين/تصبغات الدموع",
+    "en_name": "Eye Discharge/Tear Staining",
+    "ar_path": "المعايير الصحية > قطط > إفرازات العين/تصبغات الدموع",
+    "en_path": "Health Criteria > Cat > Eye Discharge/Tear Staining",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "تشابك/تلبد الفراء",
+    "en_name": "Coat Matting/Tangles",
+    "ar_path": "المعايير الصحية > كلاب > تشابك/تلبد الفراء",
+    "en_path": "Health Criteria > Dog > Coat Matting/Tangles",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بيفار > كلاب",
+    "en_path": "Brands > Beaphar > Dog",
+    "ar_parent": "العلامات التجارية > بيفار",
+    "en_parent": "Brands > Beaphar",
+    "depth": 2
+  },
+  {
+    "ar_name": "شامبو وبلسم",
+    "en_name": "Shampoo & Conditioner",
+    "ar_path": "كلاب > التنظيف والتدريب > شامبو وبلسم",
+    "en_path": "Dog > Cleaning & Training > Shampoo & Conditioner",
+    "ar_parent": "كلاب > التنظيف والتدريب",
+    "en_parent": "Dog > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "اطواق",
+    "en_name": "Collars",
+    "ar_path": "قطط > مستلزمات القطط > اطواق",
+    "en_path": "Cat > Supplies > Collars",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "التدريب وتحسين السلوك",
+    "en_name": "Training & Behavior Improvement",
+    "ar_path": "قطط > التنظيف والتدريب > التدريب وتحسين السلوك",
+    "en_path": "Cat > Cleaning & Training > Training & Behavior Improvement",
+    "ar_parent": "قطط > التنظيف والتدريب",
+    "en_parent": "Cat > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "اطواق",
+    "en_name": "Collars",
+    "ar_path": "كلاب > مستلزمات الكلاب > اطواق",
+    "en_path": "Dog > Supplies > Collars",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "التدريب وتحسين السلوك",
+    "en_name": "Training & Behavior Improvement",
+    "ar_path": "كلاب > التنظيف والتدريب > التدريب وتحسين السلوك",
+    "en_path": "Dog > Cleaning & Training > Training & Behavior Improvement",
+    "ar_parent": "كلاب > التنظيف والتدريب",
+    "en_parent": "Dog > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "عدم الراحة/القلق",
+    "en_name": "Resting Discomfort/Anxiety",
+    "ar_path": "المعايير الصحية > قطط > عدم الراحة/القلق",
+    "en_path": "Health Criteria > Cat > Resting Discomfort/Anxiety",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "تجنب صندوق الفضلات",
+    "en_name": "Litter Box Avoidance",
+    "ar_path": "المعايير الصحية > قطط > تجنب صندوق الفضلات",
+    "en_path": "Health Criteria > Cat > Litter Box Avoidance",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الخدش",
+    "en_name": "Scratching",
+    "ar_path": "المعايير الصحية > قطط > الخدش",
+    "en_path": "Health Criteria > Cat > Scratching",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة الفم الكريهة/صحة الأسنان",
+    "en_name": "Bad Breath/Dental Health",
+    "ar_path": "المعايير الصحية > كلاب > رائحة الفم الكريهة/صحة الأسنان",
+    "en_path": "Health Criteria > Dog > Bad Breath/Dental Health",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "العناية بالفم والأسنان",
+    "en_name": "Oral & Dental Care",
+    "ar_path": "كلاب > صحة الكلاب > العناية بالفم والأسنان",
+    "en_path": "Dog > Health > Oral & Dental Care",
+    "ar_parent": "كلاب > صحة الكلاب",
+    "en_parent": "Dog > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "فيتامينات ومكملات غذائية",
+    "en_name": "Vitamins & Supplements",
+    "ar_path": "قطط > المكافآت والفيتامينات > فيتامينات ومكملات غذائية",
+    "en_path": "Cat > Treats & Vitamins > Vitamins & Supplements",
+    "ar_parent": "قطط > المكافآت والفيتامينات",
+    "en_parent": "Cat > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "فيتامينات ومكملات غذائية",
+    "en_name": "Vitamins & Supplements",
+    "ar_path": "كلاب > المكافات والفيتامينات > فيتامينات ومكملات غذائية",
+    "en_path": "Dog > Treats & Vitamins > Vitamins & Supplements",
+    "ar_parent": "كلاب > المكافات والفيتامينات",
+    "en_parent": "Dog > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "خطر الهروب/السلامة الخارجية",
+    "en_name": "Escape Risk/Outdoor Safety",
+    "ar_path": "المعايير الصحية > قطط > خطر الهروب/السلامة الخارجية",
+    "en_path": "Health Criteria > Cat > Escape Risk/Outdoor Safety",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قلق القفص/الاحتجاز",
+    "en_name": "Crate/Confinement Anxiety",
+    "ar_path": "المعايير الصحية > كلاب > قلق القفص/الاحتجاز",
+    "en_path": "Health Criteria > Dog > Crate/Confinement Anxiety",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "التبرز داخل المنزل",
+    "en_name": "House Soiling",
+    "ar_path": "المعايير الصحية > كلاب > التبرز داخل المنزل",
+    "en_path": "Health Criteria > Dog > House Soiling",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "النباح المفرط",
+    "en_name": "Excessive Barking",
+    "ar_path": "المعايير الصحية > كلاب > النباح المفرط",
+    "en_path": "Health Criteria > Dog > Excessive Barking",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "المضغ المدمر",
+    "en_name": "Destructive Chewing",
+    "ar_path": "المعايير الصحية > كلاب > المضغ المدمر",
+    "en_path": "Health Criteria > Dog > Destructive Chewing",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "إجهاد السفر",
+    "en_name": "Travel Stress",
+    "ar_path": "المعايير الصحية > كلاب > إجهاد السفر",
+    "en_path": "Health Criteria > Dog > Travel Stress",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "إجهاد السفر",
+    "en_name": "Travel Stress",
+    "ar_path": "المعايير الصحية > قطط > إجهاد السفر",
+    "en_path": "Health Criteria > Cat > Travel Stress",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "العاب وكاتنيب",
+    "en_name": "Toys & Catnip",
+    "ar_path": "قطط > مستلزمات القطط > العاب وكاتنيب",
+    "en_path": "Cat > Supplies > Toys & Catnip",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت كريمية",
+    "en_name": "Creamy Treats",
+    "ar_path": "كلاب > المكافات والفيتامينات > مكافآت كريمية",
+    "en_path": "Dog > Treats & Vitamins > Creamy Treats",
+    "ar_parent": "كلاب > المكافات والفيتامينات",
+    "en_parent": "Dog > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "العناية بصحة الجلد والفرو",
+    "en_name": "Skin & Coat Health Care",
+    "ar_path": "قطط > صحة القطط > العناية بصحة الجلد والفرو",
+    "en_path": "Cat > Health > Skin & Coat Health Care",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "لمعان وصحة الفرو والجلد",
+    "en_name": "Coat & Skin Health & Shine",
+    "ar_path": "كلاب > صحة الكلاب > لمعان وصحة الفرو والجلد",
+    "en_path": "Dog > Health > Coat & Skin Health & Shine",
+    "ar_parent": "كلاب > صحة الكلاب",
+    "en_parent": "Dog > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "مزيلات البقع والروائح والشعر",
+    "en_name": "Stain & Odor & Hair Removers",
+    "ar_path": "قطط > التنظيف والتدريب > مزيلات البقع والروائح والشعر",
+    "en_path": "Cat > Cleaning & Training > Stain & Odor & Hair Removers",
+    "ar_parent": "قطط > التنظيف والتدريب",
+    "en_parent": "Cat > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة الفم الكريهة",
+    "en_name": "Bad Breath",
+    "ar_path": "المعايير الصحية > كلاب > رائحة الفم الكريهة",
+    "en_path": "Health Criteria > Dog > Bad Breath",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت العناية بالأسنان",
+    "en_name": "Dental Care Treats",
+    "ar_path": "كلاب > المكافات والفيتامينات > مكافآت العناية بالأسنان",
+    "en_path": "Dog > Treats & Vitamins > Dental Care Treats",
+    "ar_parent": "كلاب > المكافات والفيتامينات",
+    "en_parent": "Dog > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت العناية بالأسنان",
+    "en_name": "Dental Care Treats",
+    "ar_path": "قطط > المكافآت والفيتامينات > مكافآت العناية بالأسنان",
+    "en_path": "Cat > Treats & Vitamins > Dental Care Treats",
+    "ar_parent": "قطط > المكافآت والفيتامينات",
+    "en_parent": "Cat > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "تراكم/رائحة الأمونيا",
+    "en_name": "Ammonia Buildup/Odor",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > تراكم/رائحة الأمونيا",
+    "en_path": "Health Criteria > Small Animals > Ammonia Buildup/Odor",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل الجهاز التنفسي",
+    "en_name": "Respiratory Issues",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > مشاكل الجهاز التنفسي",
+    "en_path": "Health Criteria > Small Animals > Respiratory Issues",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "تعفن القدم (التهاب الجلد القيحي)",
+    "en_name": "Bumblefoot (Pododermatitis)",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > تعفن القدم (التهاب الجلد القيحي)",
+    "en_path": "Health Criteria > Small Animals > Bumblefoot (Pododermatitis)",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل الجلد والفراء",
+    "en_name": "Skin & Coat Problems",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > مشاكل الجلد والفراء",
+    "en_path": "Health Criteria > Small Animals > Skin & Coat Problems",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > بيفار > حيوانات صغيرة",
+    "en_path": "Brands > Beaphar > Small Animals",
+    "ar_parent": "العلامات التجارية > بيفار",
+    "en_parent": "Brands > Beaphar",
+    "depth": 2
+  },
+  {
+    "ar_name": "ادوات الطعام والتنظيف",
+    "en_name": "Feeding & Cleaning Tools",
+    "ar_path": "حيوانات صغيرة > مستلزمات الارانب والهماستر > ادوات الطعام والتنظيف",
+    "en_path": "Small Animals > Rabbit & Hamster Supplies > Feeding & Cleaning Tools",
+    "ar_parent": "حيوانات صغيرة > مستلزمات الارانب والهماستر",
+    "en_parent": "Small Animals > Rabbit & Hamster Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحساسية من غبار الليتر",
+    "en_name": "Litter Dust Sensitivity",
+    "ar_path": "المعايير الصحية > قطط > الحساسية من غبار الليتر",
+    "en_path": "Health Criteria > Cat > Litter Dust Sensitivity",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "العناية بالفم والأسنان",
+    "en_name": "Oral & Dental Care",
+    "ar_path": "قطط > صحة القطط > العناية بالفم والأسنان",
+    "en_path": "Cat > Health > Oral & Dental Care",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "نقص فيتامين أ",
+    "en_name": "Vitamin A Deficiency",
+    "ar_path": "المعايير الصحية > طيور > نقص فيتامين أ",
+    "en_path": "Health Criteria > Birds > Vitamin A Deficiency",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "إجهاد القلش (تغيير الريش)",
+    "en_name": "Molting Stress",
+    "ar_path": "المعايير الصحية > طيور > إجهاد القلش (تغيير الريش)",
+    "en_path": "Health Criteria > Birds > Molting Stress",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > بيفار > طيور",
+    "en_path": "Brands > Beaphar > Birds",
+    "ar_parent": "العلامات التجارية > بيفار",
+    "en_parent": "Brands > Beaphar",
+    "depth": 2
+  },
+  {
+    "ar_name": "العلاجات وتحسين السلوك",
+    "en_name": "Treatments & Behavior Improvement",
+    "ar_path": "طيور > مستلزمات الطيور > العلاجات وتحسين السلوك",
+    "en_path": "Birds > Bird Supplies > Treatments & Behavior Improvement",
+    "ar_parent": "طيور > مستلزمات الطيور",
+    "en_parent": "Birds > Bird Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "الجفاف",
+    "en_name": "Dehydration",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > الجفاف",
+    "en_path": "Health Criteria > Small Animals > Dehydration",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "السحب أثناء المشي بالمقود",
+    "en_name": "Pulling on Leash",
+    "ar_path": "المعايير الصحية > كلاب > السحب أثناء المشي بالمقود",
+    "en_path": "Health Criteria > Dog > Pulling on Leash",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "إجهاد الرقبة/إصابات الطوق",
+    "en_name": "Neck Strain/Collar Injuries",
+    "ar_path": "المعايير الصحية > كلاب > إجهاد الرقبة/إصابات الطوق",
+    "en_path": "Health Criteria > Dog > Neck Strain/Collar Injuries",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشدات وصدريات",
+    "en_name": "Harnesses & Vests",
+    "ar_path": "كلاب > مستلزمات الكلاب > مشدات وصدريات",
+    "en_path": "Dog > Supplies > Harnesses & Vests",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "فيتامينات",
+    "en_name": "Vitamins",
+    "ar_path": "حيوانات صغيرة > طعام ومكافات القوارض > فيتامينات",
+    "en_path": "Small Animals > Rodent Food & Treats > Vitamins",
+    "ar_parent": "حيوانات صغيرة > طعام ومكافات القوارض",
+    "en_parent": "Small Animals > Rodent Food & Treats",
+    "depth": 2
+  },
+  {
+    "ar_name": "حالة ريش سيئة",
+    "en_name": "Poor Feather Condition",
+    "ar_path": "المعايير الصحية > طيور > حالة ريش سيئة",
+    "en_path": "Health Criteria > Birds > Poor Feather Condition",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "العناية بالجهاز البولي",
+    "en_name": "Urinary Care",
+    "ar_path": "قطط > صحة القطط > العناية بالجهاز البولي",
+    "en_path": "Cat > Health > Urinary Care",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "علاج كرات الشعر",
+    "en_name": "Hairball Treatment",
+    "ar_path": "قطط > صحة القطط > علاج كرات الشعر",
+    "en_path": "Cat > Health > Hairball Treatment",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "الهضم (معدة حساسة)",
+    "en_name": "Digestion (Sensitive Stomach)",
+    "ar_path": "المعايير الصحية > قطط > الهضم (معدة حساسة)",
+    "en_path": "Health Criteria > Cat > Digestion (Sensitive Stomach)",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "سوء التغذية/رداءة جودة الريش",
+    "en_name": "Malnutrition/Poor Feather Quality",
+    "ar_path": "المعايير الصحية > طيور > سوء التغذية/رداءة جودة الريش",
+    "en_path": "Health Criteria > Birds > Malnutrition/Poor Feather Quality",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "معطرات ومقلل الروائح الكريهة",
+    "en_name": "Deodorizers & Odor Control",
+    "ar_path": "قطط > مستلزمات الرمل > معطرات ومقلل الروائح الكريهة",
+    "en_path": "Cat > Litter Supplies > Deodorizers & Odor Control",
+    "ar_parent": "قطط > مستلزمات الرمل",
+    "en_parent": "Cat > Litter Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "إدمان البذور/سوء التغذية",
+    "en_name": "Seed Addiction/Poor Diet",
+    "ar_path": "المعايير الصحية > طيور > إدمان البذور/سوء التغذية",
+    "en_path": "Health Criteria > Birds > Seed Addiction/Poor Diet",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "نشاط ليلي مفرط (زوميز)",
+    "en_name": "Night Zoomies",
+    "ar_path": "المعايير الصحية > قطط > نشاط ليلي مفرط (زوميز)",
+    "en_path": "Health Criteria > Cat > Night Zoomies",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الاستحمام والتنظيف الجاف",
+    "en_name": "Bathing & Dry Cleaning",
+    "ar_path": "كلاب > التنظيف والتدريب > الاستحمام والتنظيف الجاف",
+    "en_path": "Dog > Cleaning & Training > Bathing & Dry Cleaning",
+    "ar_parent": "كلاب > التنظيف والتدريب",
+    "en_parent": "Dog > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة الفم الكريهة/صحة الأسنان",
+    "en_name": "Bad Breath/Dental Health",
+    "ar_path": "المعايير الصحية > قطط > رائحة الفم الكريهة/صحة الأسنان",
+    "en_path": "Health Criteria > Cat > Bad Breath/Dental Health",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "التهابات الجهاز التنفسي",
+    "en_name": "Respiratory Infections",
+    "ar_path": "المعايير الصحية > طيور > التهابات الجهاز التنفسي",
+    "en_path": "Health Criteria > Birds > Respiratory Infections",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "جفاف/حكة الجلد",
+    "en_name": "Dry/Itchy Skin",
+    "ar_path": "المعايير الصحية > طيور > جفاف/حكة الجلد",
+    "en_path": "Health Criteria > Birds > Dry/Itchy Skin",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > بايو بيت أكتيف > طيور",
+    "en_path": "Brands > Bio PetActive > Birds",
+    "ar_parent": "العلامات التجارية > بايو بيت أكتيف",
+    "en_parent": "Brands > Bio PetActive",
+    "depth": 2
+  },
+  {
+    "ar_name": "أمراض الكبد (التنكس الدهني الكبدي)",
+    "en_name": "Liver Disease (Hepatic Lipidosis)",
+    "ar_path": "المعايير الصحية > طيور > أمراض الكبد (التنكس الدهني الكبدي)",
+    "en_path": "Health Criteria > Birds > Liver Disease (Hepatic Lipidosis)",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بايو بيت أكتيف > قطط",
+    "en_path": "Brands > Bio PetActive > Cat",
+    "ar_parent": "العلامات التجارية > بايو بيت أكتيف",
+    "en_parent": "Brands > Bio PetActive",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بايو بيت أكتيف > كلاب",
+    "en_path": "Brands > Bio PetActive > Dog",
+    "ar_parent": "العلامات التجارية > بايو بيت أكتيف",
+    "en_parent": "Brands > Bio PetActive",
+    "depth": 2
+  },
+  {
+    "ar_name": "إصابات القدم/التهاب المفاصل",
+    "en_name": "Foot Injuries/Arthritis",
+    "ar_path": "المعايير الصحية > طيور > إصابات القدم/التهاب المفاصل",
+    "en_path": "Health Criteria > Birds > Foot Injuries/Arthritis",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "نقص الكالسيوم/أمراض العظام الأيضية",
+    "en_name": "Calcium Deficiency/Metabolic Bone Disease",
+    "ar_path": "المعايير الصحية > طيور > نقص الكالسيوم/أمراض العظام الأيضية",
+    "en_path": "Health Criteria > Birds > Calcium Deficiency/Metabolic Bone Disease",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "انحشار البيض",
+    "en_name": "Egg Binding",
+    "ar_path": "المعايير الصحية > طيور > انحشار البيض",
+    "en_path": "Health Criteria > Birds > Egg Binding",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "أكل البراز",
+    "en_name": "Coprophagia",
+    "ar_path": "المعايير الصحية > كلاب > أكل البراز",
+    "en_path": "Health Criteria > Dog > Coprophagia",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "دعم المناعة (صحة الجهاز التنفسي والعيون)",
+    "en_name": "Immune Support (Respiratory & Eye Health)",
+    "ar_path": "المعايير الصحية > قطط > دعم المناعة (صحة الجهاز التنفسي والعيون)",
+    "en_path": "Health Criteria > Cat > Immune Support (Respiratory & Eye Health)",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الإسهال/فضلات غير طبيعية",
+    "en_name": "Diarrhea/Abnormal Droppings",
+    "ar_path": "المعايير الصحية > طيور > الإسهال/فضلات غير طبيعية",
+    "en_path": "Health Criteria > Birds > Diarrhea/Abnormal Droppings",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل الجهاز الهضمي",
+    "en_name": "Digestive Problems",
+    "ar_path": "المعايير الصحية > طيور > مشاكل الجهاز الهضمي",
+    "en_path": "Health Criteria > Birds > Digestive Problems",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل الحويصلة (تحجر/حموضة الحويصلة)",
+    "en_name": "Crop Issues (Slow Crop/Sour Crop)",
+    "ar_path": "المعايير الصحية > طيور > مشاكل الحويصلة (تحجر/حموضة الحويصلة)",
+    "en_path": "Health Criteria > Birds > Crop Issues (Slow Crop/Sour Crop)",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "تشوه/تضرر المنقار",
+    "en_name": "Beak Malformation/Damage",
+    "ar_path": "المعايير الصحية > طيور > تشوه/تضرر المنقار",
+    "en_path": "Health Criteria > Birds > Beak Malformation/Damage",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "دعم الحمل والرضاعة",
+    "en_name": "Pregnancy & Lactation Support",
+    "ar_path": "المعايير الصحية > قطط > دعم الحمل والرضاعة",
+    "en_path": "Health Criteria > Cat > Pregnancy & Lactation Support",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "ادوات الطعام",
+    "en_name": "Feeding Tools",
+    "ar_path": "قطط > مستلزمات القطط > ادوات الطعام",
+    "en_path": "Cat > Supplies > Feeding Tools",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "صحة الجهاز الهضمي",
+    "en_name": "Digestive System Health",
+    "ar_path": "قطط > صحة القطط > صحة الجهاز الهضمي",
+    "en_path": "Cat > Health > Digestive System Health",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بايوساند > قطط",
+    "en_path": "Brands > BioSand > Cat",
+    "ar_parent": "العلامات التجارية > بايوساند",
+    "en_parent": "Brands > BioSand",
+    "depth": 2
+  },
+  {
+    "ar_name": "قابل للتكتل",
+    "en_name": "Clumping",
+    "ar_path": "قطط > رمل القطط > قابل للتكتل",
+    "en_path": "Cat > Litter > Clumping",
+    "ar_parent": "قطط > رمل القطط",
+    "en_parent": "Cat > Litter",
+    "depth": 2
+  },
+  {
+    "ar_name": "التحكم في رائحة الفضلات",
+    "en_name": "Litter Odor Control",
+    "ar_path": "المعايير الصحية > قطط > التحكم في رائحة الفضلات",
+    "en_path": "Health Criteria > Cat > Litter Odor Control",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "معطر",
+    "en_name": "Scented",
+    "ar_path": "قطط > رمل القطط > معطر",
+    "en_path": "Cat > Litter > Scented",
+    "ar_parent": "قطط > رمل القطط",
+    "en_parent": "Cat > Litter",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بوتشرز > قطط",
+    "en_path": "Brands > Butcher's > Cat",
+    "ar_parent": "العلامات التجارية > بوتشرز",
+    "en_parent": "Brands > Butcher's",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بوتشرز > كلاب",
+    "en_path": "Brands > Butcher's > Dog",
+    "ar_parent": "العلامات التجارية > بوتشرز",
+    "en_parent": "Brands > Butcher's",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل المسالك البولية",
+    "en_name": "Urinary Issues",
+    "ar_path": "المعايير الصحية > قطط > مشاكل المسالك البولية",
+    "en_path": "Health Criteria > Cat > Urinary Issues",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > نافورة القط > قطط",
+    "en_path": "Brands > CAT FOUNTAIN > Cat",
+    "ar_parent": "العلامات التجارية > نافورة القط",
+    "en_parent": "Brands > CAT FOUNTAIN",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كاتيديا > قطط",
+    "en_path": "Brands > CATIDEA > Cat",
+    "ar_parent": "العلامات التجارية > كاتيديا",
+    "en_parent": "Brands > CATIDEA",
+    "depth": 2
+  },
+  {
+    "ar_name": "صناديق الرمل",
+    "en_name": "Litter Boxes",
+    "ar_path": "قطط > مستلزمات الرمل > صناديق الرمل",
+    "en_path": "Cat > Litter Supplies > Litter Boxes",
+    "ar_parent": "قطط > مستلزمات الرمل",
+    "en_parent": "Cat > Litter Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "فرش وامشاط ومقصات",
+    "en_name": "Brushes & Combs & Scissors",
+    "ar_path": "قطط > التنظيف والتدريب > فرش وامشاط ومقصات",
+    "en_path": "Cat > Cleaning & Training > Brushes & Combs & Scissors",
+    "ar_parent": "قطط > التنظيف والتدريب",
+    "en_parent": "Cat > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > كاتيديا > كلاب",
+    "en_path": "Brands > CATIDEA > Dog",
+    "ar_parent": "العلامات التجارية > كاتيديا",
+    "en_parent": "Brands > CATIDEA",
+    "depth": 2
+  },
+  {
+    "ar_name": "الأكل السريع/حراسة الطعام",
+    "en_name": "Fast Eating/Food Guarding",
+    "ar_path": "المعايير الصحية > قطط > الأكل السريع/حراسة الطعام",
+    "en_path": "Health Criteria > Cat > Fast Eating/Food Guarding",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "اضطراب الجهاز الهضمي",
+    "en_name": "Digestive Upset",
+    "ar_path": "المعايير الصحية > قطط > اضطراب الجهاز الهضمي",
+    "en_path": "Health Criteria > Cat > Digestive Upset",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "زيادة الوزن بعد التعقيم/الإخصاء",
+    "en_name": "Post-Neuter/Spay Weight Gain",
+    "ar_path": "المعايير الصحية > قطط > زيادة الوزن بعد التعقيم/الإخصاء",
+    "en_path": "Health Criteria > Cat > Post-Neuter/Spay Weight Gain",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "وسادات وبيوت واقفاص",
+    "en_name": "Cushions & Houses & Cages",
+    "ar_path": "قطط > مستلزمات القطط > وسادات وبيوت واقفاص",
+    "en_path": "Cat > Supplies > Cushions & Houses & Cages",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > سيدي > طيور",
+    "en_path": "Brands > CEDE > Birds",
+    "ar_parent": "العلامات التجارية > سيدي",
+    "en_parent": "Brands > CEDE",
+    "depth": 2
+  },
+  {
+    "ar_name": "الطعام",
+    "en_name": "Food",
+    "ar_path": "طيور > طعام ومكافات الطيور > الطعام",
+    "en_path": "Birds > Bird Food & Treats > Food",
+    "ar_parent": "طيور > طعام ومكافات الطيور",
+    "en_parent": "Birds > Bird Food & Treats",
+    "depth": 2
+  },
+  {
+    "ar_name": "التكاثر/انحشار البيض",
+    "en_name": "Breeding/Egg Binding",
+    "ar_path": "المعايير الصحية > طيور > التكاثر/انحشار البيض",
+    "en_path": "Health Criteria > Birds > Breeding/Egg Binding",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "السمنة",
+    "en_name": "Obesity",
+    "ar_path": "المعايير الصحية > طيور > السمنة",
+    "en_path": "Health Criteria > Birds > Obesity",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "سوء التغذية/تأخر النمو (التربية اليدوية)",
+    "en_name": "Malnutrition/Stunted Growth (Hand Rearing)",
+    "ar_path": "المعايير الصحية > طيور > سوء التغذية/تأخر النمو (التربية اليدوية)",
+    "en_path": "Health Criteria > Birds > Malnutrition/Stunted Growth (Hand Rearing)",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > تشاو > قطط",
+    "en_path": "Brands > CIAO > Cat",
+    "ar_parent": "العلامات التجارية > تشاو",
+    "en_parent": "Brands > CIAO",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت بسكوت وكرانشي",
+    "en_name": "Biscuit & Crunchy Treats",
+    "ar_path": "قطط > المكافآت والفيتامينات > مكافآت بسكوت وكرانشي",
+    "en_path": "Cat > Treats & Vitamins > Biscuit & Crunchy Treats",
+    "ar_parent": "قطط > المكافآت والفيتامينات",
+    "en_parent": "Cat > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كات إتش تو أو أند دوج إتش تو أو > قطط",
+    "en_path": "Brands > Cat H2O & Dog H2O > Cat",
+    "ar_parent": "العلامات التجارية > كات إتش تو أو أند دوج إتش تو أو",
+    "en_parent": "Brands > Cat H2O & Dog H2O",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كات إتش تو أو > قطط",
+    "en_path": "Brands > Cat H2O > Cat",
+    "ar_parent": "العلامات التجارية > كات إتش تو أو",
+    "en_parent": "Brands > Cat H2O",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > تشورو > قطط",
+    "en_path": "Brands > Churu > Cat",
+    "ar_parent": "العلامات التجارية > تشورو",
+    "en_parent": "Brands > Churu",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كوكو > قطط",
+    "en_path": "Brands > Coockoo > Cat",
+    "ar_parent": "العلامات التجارية > كوكو",
+    "en_parent": "Brands > Coockoo",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > كوكو > كلاب",
+    "en_path": "Brands > Coockoo > Dog",
+    "ar_parent": "العلامات التجارية > كوكو",
+    "en_parent": "Brands > Coockoo",
+    "depth": 2
+  },
+  {
+    "ar_name": "العاب وعضاضات",
+    "en_name": "Toys & Chew Toys",
+    "ar_path": "كلاب > مستلزمات الكلاب > العاب وعضاضات",
+    "en_path": "Dog > Supplies > Toys & Chew Toys",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "السمنة/إدارة الوزن",
+    "en_name": "Obesity/Weight Management",
+    "ar_path": "المعايير الصحية > كلاب > السمنة/إدارة الوزن",
+    "en_path": "Health Criteria > Dog > Obesity/Weight Management",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كوزميك كاتنيب > قطط",
+    "en_path": "Brands > Cosmic Catnip > Cat",
+    "ar_parent": "العلامات التجارية > كوزميك كاتنيب",
+    "en_parent": "Brands > Cosmic Catnip",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > دوج إتش تو أو > كلاب",
+    "en_path": "Brands > Dog H2O > Dog",
+    "ar_parent": "العلامات التجارية > دوج إتش تو أو",
+    "en_parent": "Brands > Dog H2O",
+    "depth": 2
+  },
+  {
+    "ar_name": "ادوات الطعام",
+    "en_name": "Feeding Tools",
+    "ar_path": "كلاب > مستلزمات الكلاب > ادوات الطعام",
+    "en_path": "Dog > Supplies > Feeding Tools",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > دكتور كلاودرز > قطط",
+    "en_path": "Brands > Dr. Clauder's > Cat",
+    "ar_parent": "العلامات التجارية > دكتور كلاودرز",
+    "en_parent": "Brands > Dr. Clauder's",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > دكتور كلاودرز > كلاب",
+    "en_path": "Brands > Dr. Clauder's > Dog",
+    "ar_parent": "العلامات التجارية > دكتور كلاودرز",
+    "en_parent": "Brands > Dr. Clauder's",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافات وسناك",
+    "en_name": "Treats & Snacks",
+    "ar_path": "كلاب > المكافات والفيتامينات > مكافات وسناك",
+    "en_path": "Dog > Treats & Vitamins > Treats & Snacks",
+    "ar_parent": "كلاب > المكافات والفيتامينات",
+    "en_parent": "Dog > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام للحساسية الهضمية",
+    "en_name": "Digestive Sensitivity Food",
+    "ar_path": "قطط > طعام > طعام للحساسية الهضمية",
+    "en_path": "Cat > Food > Digestive Sensitivity Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام للحساسية الهضمية",
+    "en_name": "Digestive Sensitivity Food",
+    "ar_path": "كلاب > الطعام > طعام للحساسية الهضمية",
+    "en_path": "Dog > Food > Digestive Sensitivity Food",
+    "ar_parent": "كلاب > الطعام",
+    "en_parent": "Dog > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > إيرثز جوديز > قطط",
+    "en_path": "Brands > Earth's Goodies > Cat",
+    "ar_parent": "العلامات التجارية > إيرثز جوديز",
+    "en_parent": "Brands > Earth's Goodies",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > إيرثز جوديز > كلاب",
+    "en_path": "Brands > Earth's Goodies > Dog",
+    "ar_parent": "العلامات التجارية > إيرثز جوديز",
+    "en_parent": "Brands > Earth's Goodies",
+    "depth": 2
+  },
+  {
+    "ar_name": "الهضم/رائحة البراز",
+    "en_name": "Digestion/Feces Smell",
+    "ar_path": "المعايير الصحية > كلاب > الهضم/رائحة البراز",
+    "en_path": "Health Criteria > Dog > Digestion/Feces Smell",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > إسبري > كلاب",
+    "en_path": "Brands > Espree > Dog",
+    "ar_parent": "العلامات التجارية > إسبري",
+    "en_parent": "Brands > Espree",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > إسبري > قطط",
+    "en_path": "Brands > Espree > Cat",
+    "ar_parent": "العلامات التجارية > إسبري",
+    "en_parent": "Brands > Espree",
+    "depth": 2
+  },
+  {
+    "ar_name": "العناية بالعين والاذن والاسنان",
+    "en_name": "Eye & Ear & Dental Care",
+    "ar_path": "كلاب > التنظيف والتدريب > العناية بالعين والاذن والاسنان",
+    "en_path": "Dog > Cleaning & Training > Eye & Ear & Dental Care",
+    "ar_parent": "كلاب > التنظيف والتدريب",
+    "en_parent": "Dog > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "مزيلات البقع والروائح والشعر",
+    "en_name": "Stain & Odor & Hair Removers",
+    "ar_path": "كلاب > التنظيف والتدريب > مزيلات البقع والروائح والشعر",
+    "en_path": "Dog > Cleaning & Training > Stain & Odor & Hair Removers",
+    "ar_parent": "كلاب > التنظيف والتدريب",
+    "en_parent": "Dog > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > إسبري > حيوانات صغيرة",
+    "en_path": "Brands > Espree > Small Animals",
+    "ar_parent": "العلامات التجارية > إسبري",
+    "en_parent": "Brands > Espree",
+    "depth": 2
+  },
+  {
+    "ar_name": "إفرازات العين/تصبغات الدموع",
+    "en_name": "Eye Discharge/Tear Staining",
+    "ar_path": "المعايير الصحية > كلاب > إفرازات العين/تصبغات الدموع",
+    "en_path": "Health Criteria > Dog > Eye Discharge/Tear Staining",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فيلين جو > قطط",
+    "en_path": "Brands > Felyn Go > Cat",
+    "ar_parent": "العلامات التجارية > فيلين جو",
+    "en_parent": "Brands > Felyn Go",
+    "depth": 2
+  },
+  {
+    "ar_name": "غير معطر",
+    "en_name": "Unscented",
+    "ar_path": "قطط > رمل القطط > غير معطر",
+    "en_path": "Cat > Litter > Unscented",
+    "ar_parent": "قطط > رمل القطط",
+    "en_parent": "Cat > Litter",
+    "depth": 2
+  },
+  {
+    "ar_name": "الترطيب (صحة المسالك البولية)",
+    "en_name": "Hydration (Urinary Health)",
+    "ar_path": "المعايير الصحية > قطط > الترطيب (صحة المسالك البولية)",
+    "en_path": "Health Criteria > Cat > Hydration (Urinary Health)",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "تحديد الهوية/السلامة",
+    "en_name": "Identification/Safety",
+    "ar_path": "المعايير الصحية > كلاب > تحديد الهوية/السلامة",
+    "en_path": "Health Criteria > Dog > Identification/Safety",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فيلين جو > كلاب",
+    "en_path": "Brands > Felyn Go > Dog",
+    "ar_parent": "العلامات التجارية > فيلين جو",
+    "en_parent": "Brands > Felyn Go",
+    "depth": 2
+  },
+  {
+    "ar_name": "صناديق التنقل",
+    "en_name": "Carriers",
+    "ar_path": "كلاب > مستلزمات الكلاب > صناديق التنقل",
+    "en_path": "Dog > Supplies > Carriers",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت طرية وقابلة للمضغ",
+    "en_name": "Soft & Chewy Treats",
+    "ar_path": "قطط > المكافآت والفيتامينات > مكافآت طرية وقابلة للمضغ",
+    "en_path": "Cat > Treats & Vitamins > Soft & Chewy Treats",
+    "ar_parent": "قطط > المكافآت والفيتامينات",
+    "en_parent": "Cat > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فورزا10 > قطط",
+    "en_path": "Brands > Forza10 > Cat",
+    "ar_parent": "العلامات التجارية > فورزا10",
+    "en_parent": "Brands > Forza10",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فورزا10 > كلاب",
+    "en_path": "Brands > Forza10 > Dog",
+    "ar_parent": "العلامات التجارية > فورزا10",
+    "en_parent": "Brands > Forza10",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فروت-ابلز > كلاب",
+    "en_path": "Brands > Fruitables > Dog",
+    "ar_parent": "العلامات التجارية > فروت-ابلز",
+    "en_parent": "Brands > Fruitables",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت بسكوت وكرانشي",
+    "en_name": "Biscuit & Crunchy Treats",
+    "ar_path": "كلاب > المكافات والفيتامينات > مكافآت بسكوت وكرانشي",
+    "en_path": "Dog > Treats & Vitamins > Biscuit & Crunchy Treats",
+    "ar_parent": "كلاب > المكافات والفيتامينات",
+    "en_parent": "Dog > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فروت-ابلز > قطط",
+    "en_path": "Brands > Fruitables > Cat",
+    "ar_parent": "العلامات التجارية > فروت-ابلز",
+    "en_parent": "Brands > Fruitables",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافآت طرية وقابلة للمضغ",
+    "en_name": "Soft & Chewy Treats",
+    "ar_path": "كلاب > المكافات والفيتامينات > مكافآت طرية وقابلة للمضغ",
+    "en_path": "Dog > Treats & Vitamins > Soft & Chewy Treats",
+    "ar_parent": "كلاب > المكافات والفيتامينات",
+    "en_parent": "Dog > Treats & Vitamins",
+    "depth": 2
+  },
+  {
+    "ar_name": "طعام التحكم في الوزن",
+    "en_name": "Weight Control Food",
+    "ar_path": "قطط > طعام > طعام التحكم في الوزن",
+    "en_path": "Cat > Food > Weight Control Food",
+    "ar_parent": "قطط > طعام",
+    "en_parent": "Cat > Food",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > جاردن بايتس > كلاب",
+    "en_path": "Brands > GardenBites > Dog",
+    "ar_parent": "العلامات التجارية > جاردن بايتس",
+    "en_parent": "Brands > GardenBites",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > جو! كات! جو! > قطط",
+    "en_path": "Brands > Go!Cat!Go! > Cat",
+    "ar_parent": "العلامات التجارية > جو! كات! جو!",
+    "en_parent": "Brands > Go!Cat!Go!",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > اي لوف هابي كاتس > قطط",
+    "en_path": "Brands > I Love Happy Cats > Cat",
+    "ar_parent": "العلامات التجارية > اي لوف هابي كاتس",
+    "en_parent": "Brands > I Love Happy Cats",
+    "depth": 2
+  },
+  {
+    "ar_name": "اثاث وخداشات",
+    "en_name": "Furniture & Scratchers",
+    "ar_path": "قطط > مستلزمات القطط > اثاث وخداشات",
+    "en_path": "Cat > Supplies > Furniture & Scratchers",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "عدم الراحة أثناء الراحة",
+    "en_name": "Resting Discomfort",
+    "ar_path": "المعايير الصحية > قطط > عدم الراحة أثناء الراحة",
+    "en_path": "Health Criteria > Cat > Resting Discomfort",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > إينابا > قطط",
+    "en_path": "Brands > Inaba > Cat",
+    "ar_parent": "العلامات التجارية > إينابا",
+    "en_parent": "Brands > Inaba",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > إينابا > كلاب",
+    "en_path": "Brands > Inaba > Dog",
+    "ar_parent": "العلامات التجارية > إينابا",
+    "en_parent": "Brands > Inaba",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > انستينكت > قطط",
+    "en_path": "Brands > Instinct > Cat",
+    "ar_parent": "العلامات التجارية > انستينكت",
+    "en_parent": "Brands > Instinct",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > جوسيرا > قطط",
+    "en_path": "Brands > Josera > Cat",
+    "ar_parent": "العلامات التجارية > جوسيرا",
+    "en_parent": "Brands > Josera",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > جوسيرا > كلاب",
+    "en_path": "Brands > Josera > Dog",
+    "ar_parent": "العلامات التجارية > جوسيرا",
+    "en_parent": "Brands > Josera",
+    "depth": 2
+  },
+  {
+    "ar_name": "مضاد حساسية",
+    "en_name": "Anti-Allergy",
+    "ar_path": "كلاب > صحة الكلاب > مضاد حساسية",
+    "en_path": "Dog > Health > Anti-Allergy",
+    "ar_parent": "كلاب > صحة الكلاب",
+    "en_parent": "Dog > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > جوسي كات > قطط",
+    "en_path": "Brands > JosiCat > Cat",
+    "ar_parent": "العلامات التجارية > جوسي كات",
+    "en_parent": "Brands > JosiCat",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > جوسي دوج > كلاب",
+    "en_path": "Brands > JosiDog > Dog",
+    "ar_parent": "العلامات التجارية > جوسي دوج",
+    "en_parent": "Brands > JosiDog",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كت كات > قطط",
+    "en_path": "Brands > Kit Cat > Cat",
+    "ar_parent": "العلامات التجارية > كت كات",
+    "en_parent": "Brands > Kit Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "طبيعي",
+    "en_name": "Natural",
+    "ar_path": "قطط > رمل القطط > طبيعي",
+    "en_path": "Cat > Litter > Natural",
+    "ar_parent": "قطط > رمل القطط",
+    "en_parent": "Cat > Litter",
+    "depth": 2
+  },
+  {
+    "ar_name": "فترة الحمل والرضاعة",
+    "en_name": "Pregnancy & Nursing Period",
+    "ar_path": "قطط > صحة القطط > فترة الحمل والرضاعة",
+    "en_path": "Cat > Health > Pregnancy & Nursing Period",
+    "ar_parent": "قطط > صحة القطط",
+    "en_parent": "Cat > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ليندو كات > قطط",
+    "en_path": "Brands > LindoCat > Cat",
+    "ar_parent": "العلامات التجارية > ليندو كات",
+    "en_parent": "Brands > LindoCat",
+    "depth": 2
+  },
+  {
+    "ar_name": "خالي من الغبار",
+    "en_name": "Dust-Free",
+    "ar_path": "قطط > رمل القطط > خالي من الغبار",
+    "en_path": "Cat > Litter > Dust-Free",
+    "ar_parent": "قطط > رمل القطط",
+    "en_parent": "Cat > Litter",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > مارك آند تشابل > كلاب",
+    "en_path": "Brands > Mark & Chappell > Dog",
+    "ar_parent": "العلامات التجارية > مارك آند تشابل",
+    "en_parent": "Brands > Mark & Chappell",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > مارك آند تشابل > قطط",
+    "en_path": "Brands > Mark & Chappell > Cat",
+    "ar_parent": "العلامات التجارية > مارك آند تشابل",
+    "en_parent": "Brands > Mark & Chappell",
+    "depth": 2
+  },
+  {
+    "ar_name": "رائحة الفم الكريهة",
+    "en_name": "Bad Breath",
+    "ar_path": "المعايير الصحية > قطط > رائحة الفم الكريهة",
+    "en_path": "Health Criteria > Cat > Bad Breath",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ماي فاميلي > كلاب",
+    "en_path": "Brands > My Family > Dog",
+    "ar_parent": "العلامات التجارية > ماي فاميلي",
+    "en_parent": "Brands > My Family",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل السلامة والمعدات",
+    "en_name": "Safety & Equipment Problems",
+    "ar_path": "المعايير الصحية > كلاب > مشاكل السلامة والمعدات",
+    "en_path": "Health Criteria > Dog > Safety & Equipment Problems",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "قلادات قابلة للحفر",
+    "en_name": "Engravable Tags",
+    "ar_path": "كلاب > مستلزمات الكلاب > قلادات قابلة للحفر",
+    "en_path": "Dog > Supplies > Engravable Tags",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "تحديد الهوية/خطر فقدان الحيوان الأليف",
+    "en_name": "Identification/Lost Pet Risk",
+    "ar_path": "المعايير الصحية > قطط > تحديد الهوية/خطر فقدان الحيوان الأليف",
+    "en_path": "Health Criteria > Cat > Identification/Lost Pet Risk",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ماي فاميلي > قطط",
+    "en_path": "Brands > My Family > Cat",
+    "ar_parent": "العلامات التجارية > ماي فاميلي",
+    "en_parent": "Brands > My Family",
+    "depth": 2
+  },
+  {
+    "ar_name": "قلادات قابلة للحفر",
+    "en_name": "Engravable Tags",
+    "ar_path": "قطط > مستلزمات القطط > قلادات قابلة للحفر",
+    "en_path": "Cat > Supplies > Engravable Tags",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشدات وصدريات",
+    "en_name": "Harnesses & Vests",
+    "ar_path": "قطط > مستلزمات القطط > مشدات وصدريات",
+    "en_path": "Cat > Supplies > Harnesses & Vests",
+    "ar_parent": "قطط > مستلزمات القطط",
+    "en_parent": "Cat > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > ماي فاميلي > طيور",
+    "en_path": "Brands > My Family > Birds",
+    "ar_parent": "العلامات التجارية > ماي فاميلي",
+    "en_parent": "Brands > My Family",
+    "depth": 2
+  },
+  {
+    "ar_name": "قلادات قابلة للحفر",
+    "en_name": "Engravable Tags",
+    "ar_path": "طيور > مستلزمات الطيور > قلادات قابلة للحفر",
+    "en_path": "Birds > Bird Supplies > Engravable Tags",
+    "ar_parent": "طيور > مستلزمات الطيور",
+    "en_parent": "Birds > Bird Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ماي فاميل > قطط",
+    "en_path": "Brands > MyFamily > Cat",
+    "ar_parent": "العلامات التجارية > ماي فاميل",
+    "en_parent": "Brands > MyFamily",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > إم بي بي > قطط",
+    "en_path": "Brands > MPB > Cat",
+    "ar_parent": "العلامات التجارية > إم بي بي",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > إم بي بي > حيوانات صغيرة",
+    "en_path": "Brands > MPB > Small Animals",
+    "ar_parent": "العلامات التجارية > إم بي بي",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "العث/الطفيليات الخارجية",
+    "en_name": "Mites/External Parasites",
+    "ar_path": "المعايير الصحية > طيور > العث/الطفيليات الخارجية",
+    "en_path": "Health Criteria > Birds > Mites/External Parasites",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "نظافة القفص/النمو البكتيري",
+    "en_name": "Cage Cleanliness/Bacterial Growth",
+    "ar_path": "المعايير الصحية > طيور > نظافة القفص/النمو البكتيري",
+    "en_path": "Health Criteria > Birds > Cage Cleanliness/Bacterial Growth",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > إم بي بي > طيور",
+    "en_path": "Brands > MPB > Birds",
+    "ar_parent": "العلامات التجارية > إم بي بي",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "اقفاص وبيوت",
+    "en_name": "Cages & Houses",
+    "ar_path": "طيور > مستلزمات الطيور > اقفاص وبيوت",
+    "en_path": "Birds > Bird Supplies > Cages & Houses",
+    "ar_parent": "طيور > مستلزمات الطيور",
+    "en_parent": "Birds > Bird Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "خطر الهروب",
+    "en_name": "Escape Risk",
+    "ar_path": "المعايير الصحية > قطط > خطر الهروب",
+    "en_path": "Health Criteria > Cat > Escape Risk",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "ادوات الطعام والتنظيف",
+    "en_name": "Feeding & Cleaning Tools",
+    "ar_path": "طيور > مستلزمات الطيور > ادوات الطعام والتنظيف",
+    "en_path": "Birds > Bird Supplies > Feeding & Cleaning Tools",
+    "ar_parent": "طيور > مستلزمات الطيور",
+    "en_parent": "Birds > Bird Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "العدوانية الإقليمية (حماية المنطقة)",
+    "en_name": "Territorial Aggression",
+    "ar_path": "المعايير الصحية > طيور > العدوانية الإقليمية (حماية المنطقة)",
+    "en_path": "Health Criteria > Birds > Territorial Aggression",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "فساد الطعام",
+    "en_name": "Food Spoilage",
+    "ar_path": "المعايير الصحية > طيور > فساد الطعام",
+    "en_path": "Health Criteria > Birds > Food Spoilage",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "ضيق القفص/عدم كفاية المساحة",
+    "en_name": "Cage Size/Space Inadequacy",
+    "ar_path": "المعايير الصحية > طيور > ضيق القفص/عدم كفاية المساحة",
+    "en_path": "Health Criteria > Birds > Cage Size/Space Inadequacy",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "التعرض للمواد السامة",
+    "en_name": "Toxic Material Exposure",
+    "ar_path": "المعايير الصحية > طيور > التعرض للمواد السامة",
+    "en_path": "Health Criteria > Birds > Toxic Material Exposure",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "تلوث المياه",
+    "en_name": "Water Contamination",
+    "ar_path": "المعايير الصحية > طيور > تلوث المياه",
+    "en_path": "Health Criteria > Birds > Water Contamination",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "اغصان",
+    "en_name": "Branches & Perches",
+    "ar_path": "طيور > مستلزمات الطيور > اغصان",
+    "en_path": "Birds > Bird Supplies > Branches & Perches",
+    "ar_parent": "طيور > مستلزمات الطيور",
+    "en_parent": "Birds > Bird Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > إم بي بي > كلاب",
+    "en_path": "Brands > MPB > Dog",
+    "ar_parent": "العلامات التجارية > إم بي بي",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل النظافة والصيانة",
+    "en_name": "Hygiene & Maintenance Problems",
+    "ar_path": "المعايير الصحية > طيور > مشاكل النظافة والصيانة",
+    "en_path": "Health Criteria > Birds > Hygiene & Maintenance Problems",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > إم بي إس > قطط",
+    "en_path": "Brands > MPS > Cat",
+    "ar_parent": "العلامات التجارية > إم بي إس",
+    "en_parent": "Brands > MPS",
+    "depth": 2
+  },
+  {
+    "ar_name": "رفض أكل القش (التبن)",
+    "en_name": "Hay Refusal",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > رفض أكل القش (التبن)",
+    "en_path": "Health Criteria > Small Animals > Hay Refusal",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > إم بي إس > حيوانات صغيرة",
+    "en_path": "Brands > MPS > Small Animals",
+    "ar_parent": "العلامات التجارية > إم بي إس",
+    "en_parent": "Brands > MPS",
+    "depth": 2
+  },
+  {
+    "ar_name": "اقفاص وبيوت",
+    "en_name": "Cages & Houses",
+    "ar_path": "حيوانات صغيرة > مستلزمات الارانب والهماستر > اقفاص وبيوت",
+    "en_path": "Small Animals > Rabbit & Hamster Supplies > Cages & Houses",
+    "ar_parent": "حيوانات صغيرة > مستلزمات الارانب والهماستر",
+    "en_parent": "Small Animals > Rabbit & Hamster Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مساحة غير كافية",
+    "en_name": "Inadequate Space",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > مساحة غير كافية",
+    "en_path": "Health Criteria > Small Animals > Inadequate Space",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "محاولات الهروب",
+    "en_name": "Escape Attempts",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > محاولات الهروب",
+    "en_path": "Health Criteria > Small Animals > Escape Attempts",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > إم بي إس > كلاب",
+    "en_path": "Brands > MPS > Dog",
+    "ar_parent": "العلامات التجارية > إم بي إس",
+    "en_parent": "Brands > MPS",
+    "depth": 2
+  },
+  {
+    "ar_name": "وسادات وبيوت واقفاص",
+    "en_name": "Cushions & Houses & Cages",
+    "ar_path": "كلاب > مستلزمات الكلاب > وسادات وبيوت واقفاص",
+    "en_path": "Dog > Supplies > Cushions & Houses & Cages",
+    "ar_parent": "كلاب > مستلزمات الكلاب",
+    "en_parent": "Dog > Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > إم بي إس > طيور",
+    "en_path": "Brands > MPS > Birds",
+    "ar_parent": "العلامات التجارية > إم بي إس",
+    "en_parent": "Brands > MPS",
+    "depth": 2
+  },
+  {
+    "ar_name": "إصابات الجناح/الإصبع بسبب القفص",
+    "en_name": "Wing/Toe Injuries from Cage",
+    "ar_path": "المعايير الصحية > طيور > إصابات الجناح/الإصبع بسبب القفص",
+    "en_path": "Health Criteria > Birds > Wing/Toe Injuries from Cage",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "السلامة/المعدات",
+    "en_name": "Safety/Equipment",
+    "ar_path": "المعايير الصحية > كلاب > السلامة/المعدات",
+    "en_path": "Health Criteria > Dog > Safety/Equipment",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "الملل/نقص التحفيز",
+    "en_name": "Boredom/Lack of Stimulation",
+    "ar_path": "المعايير الصحية > طيور > الملل/نقص التحفيز",
+    "en_path": "Health Criteria > Birds > Boredom/Lack of Stimulation",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "السمنة/إدارة الوزن",
+    "en_name": "Obesity/Weight Management",
+    "ar_path": "المعايير الصحية > قطط > السمنة/إدارة الوزن",
+    "en_path": "Health Criteria > Cat > Obesity/Weight Management",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الملل/نقص التحفيز",
+    "en_name": "Boredom/Lack of Stimulation",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > الملل/نقص التحفيز",
+    "en_path": "Health Criteria > Small Animals > Boredom/Lack of Stimulation",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "فرط نمو الأسنان",
+    "en_name": "Dental Overgrowth",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > فرط نمو الأسنان",
+    "en_path": "Health Criteria > Small Animals > Dental Overgrowth",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "تقليل رائحة البراز",
+    "en_name": "Stool Odor Reduction",
+    "ar_path": "كلاب > صحة الكلاب > تقليل رائحة البراز",
+    "en_path": "Dog > Health > Stool Odor Reduction",
+    "ar_parent": "كلاب > صحة الكلاب",
+    "en_parent": "Dog > Health",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ميكروسين إيه إتش > قطط",
+    "en_path": "Brands > MicrocynAH > Cat",
+    "ar_parent": "العلامات التجارية > ميكروسين إيه إتش",
+    "en_parent": "Brands > MicrocynAH",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ناتشورال كود > قطط",
+    "en_path": "Brands > Natural Code > Cat",
+    "ar_parent": "العلامات التجارية > ناتشورال كود",
+    "en_parent": "Brands > Natural Code",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ناتشورال كود > كلاب",
+    "en_path": "Brands > Natural Code > Dog",
+    "ar_parent": "العلامات التجارية > ناتشورال كود",
+    "en_parent": "Brands > Natural Code",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > نيوتري-فيت > كلاب",
+    "en_path": "Brands > Nutri-Vet > Dog",
+    "ar_parent": "العلامات التجارية > نيوتري-فيت",
+    "en_parent": "Brands > Nutri-Vet",
+    "depth": 2
+  },
+  {
+    "ar_name": "التهابات/رائحة الأذن",
+    "en_name": "Ear Infections/Odor",
+    "ar_path": "المعايير الصحية > كلاب > التهابات/رائحة الأذن",
+    "en_path": "Health Criteria > Dog > Ear Infections/Odor",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > نيوتري-فيت > قطط",
+    "en_path": "Brands > Nutri-Vet > Cat",
+    "ar_parent": "العلامات التجارية > نيوتري-فيت",
+    "en_parent": "Brands > Nutri-Vet",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > أورجن > كلاب",
+    "en_path": "Brands > Orijen > Dog",
+    "ar_parent": "العلامات التجارية > أورجن",
+    "en_parent": "Brands > Orijen",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > أورجن > قطط",
+    "en_path": "Brands > Orijen > Cat",
+    "ar_parent": "العلامات التجارية > أورجن",
+    "en_parent": "Brands > Orijen",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > أور بتس > قطط",
+    "en_path": "Brands > OurPets > Cat",
+    "ar_parent": "العلامات التجارية > أور بتس",
+    "en_parent": "Brands > OurPets",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > بي إل بي > طيور",
+    "en_path": "Brands > PLP > Birds",
+    "ar_parent": "العلامات التجارية > بي إل بي",
+    "en_parent": "Brands > PLP",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بت فانز > قطط",
+    "en_path": "Brands > Pet Fans > Cat",
+    "ar_parent": "العلامات التجارية > بت فانز",
+    "en_parent": "Brands > Pet Fans",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بلاي آند سكويك > قطط",
+    "en_path": "Brands > Play-N-Squeak > Cat",
+    "ar_parent": "العلامات التجارية > بلاي آند سكويك",
+    "en_parent": "Brands > Play-N-Squeak",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > بريستيج > طيور",
+    "en_path": "Brands > Prestige > Birds",
+    "ar_parent": "العلامات التجارية > بريستيج",
+    "en_parent": "Brands > Prestige",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > برنس > كلاب",
+    "en_path": "Brands > Prince > Dog",
+    "ar_parent": "العلامات التجارية > برنس",
+    "en_parent": "Brands > Prince",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > برنسيس > قطط",
+    "en_path": "Brands > Princess > Cat",
+    "ar_parent": "العلامات التجارية > برنسيس",
+    "en_parent": "Brands > Princess",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ريمدي + ريكوفري > قطط",
+    "en_path": "Brands > Remedy + Recovery > Cat",
+    "ar_parent": "العلامات التجارية > ريمدي + ريكوفري",
+    "en_parent": "Brands > Remedy + Recovery",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > إس بي > قطط",
+    "en_path": "Brands > SP > Cat",
+    "ar_parent": "العلامات التجارية > إس بي",
+    "en_parent": "Brands > SP",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > سيمبل سولوشن > كلاب",
+    "en_path": "Brands > Simple Solution > Dog",
+    "ar_parent": "العلامات التجارية > سيمبل سولوشن",
+    "en_parent": "Brands > Simple Solution",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > سيمبل سولوشن > قطط",
+    "en_path": "Brands > Simple Solution > Cat",
+    "ar_parent": "العلامات التجارية > سيمبل سولوشن",
+    "en_parent": "Brands > Simple Solution",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > سانال > كلاب",
+    "en_path": "Brands > Sanal > Dog",
+    "ar_parent": "العلامات التجارية > سانال",
+    "en_parent": "Brands > Sanal",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > سانال > قطط",
+    "en_path": "Brands > Sanal > Cat",
+    "ar_parent": "العلامات التجارية > سانال",
+    "en_parent": "Brands > Sanal",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > سينيور جاتو > قطط",
+    "en_path": "Brands > Signor Gatto > Cat",
+    "ar_parent": "العلامات التجارية > سينيور جاتو",
+    "en_parent": "Brands > Signor Gatto",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > سيمبل سولوشن > حيوانات صغيرة",
+    "en_path": "Brands > Simple Solution > Small Animals",
+    "ar_parent": "العلامات التجارية > سيمبل سولوشن",
+    "en_parent": "Brands > Simple Solution",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > سوليد جولد > كلاب",
+    "en_path": "Brands > Solid Gold > Dog",
+    "ar_parent": "العلامات التجارية > سوليد جولد",
+    "en_parent": "Brands > Solid Gold",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > سوليد جولد > قطط",
+    "en_path": "Brands > Solid Gold > Cat",
+    "ar_parent": "العلامات التجارية > سوليد جولد",
+    "en_parent": "Brands > Solid Gold",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فيتس بست > قطط",
+    "en_path": "Brands > Vets Best > Cat",
+    "ar_parent": "العلامات التجارية > فيتس بست",
+    "en_parent": "Brands > Vets Best",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فيتس بست > كلاب",
+    "en_path": "Brands > Vets Best > Dog",
+    "ar_parent": "العلامات التجارية > فيتس بست",
+    "en_parent": "Brands > Vets Best",
+    "depth": 2
+  },
+  {
+    "ar_name": "الأكل الانتقائي",
+    "en_name": "Selective Feeding",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > الأكل الانتقائي",
+    "en_path": "Health Criteria > Small Animals > Selective Feeding",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "السمنة",
+    "en_name": "Obesity",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > السمنة",
+    "en_path": "Health Criteria > Small Animals > Obesity",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "إسهال/براز لين",
+    "en_name": "Diarrhea/Soft Stools",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > إسهال/براز لين",
+    "en_path": "Health Criteria > Small Animals > Diarrhea/Soft Stools",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > فرسيل لاغا > حيوانات صغيرة",
+    "en_path": "Brands > Versele-Laga > Small Animals",
+    "ar_parent": "العلامات التجارية > فرسيل لاغا",
+    "en_parent": "Brands > Versele-Laga",
+    "depth": 2
+  },
+  {
+    "ar_name": "الطعام",
+    "en_name": "Food",
+    "ar_path": "حيوانات صغيرة > طعام ومكافات القوارض > الطعام",
+    "en_path": "Small Animals > Rodent Food & Treats > Food",
+    "ar_parent": "حيوانات صغيرة > طعام ومكافات القوارض",
+    "en_parent": "Small Animals > Rodent Food & Treats",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فرسيل لاغا > قطط",
+    "en_path": "Brands > Versele-Laga > Cat",
+    "ar_parent": "العلامات التجارية > فرسيل لاغا",
+    "en_parent": "Brands > Versele-Laga",
+    "depth": 2
+  },
+  {
+    "ar_name": "نقص فيتامين سي (الأسقربوط)",
+    "en_name": "Vitamin C Deficiency (Scurvy)",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > نقص فيتامين سي (الأسقربوط)",
+    "en_path": "Health Criteria > Small Animals > Vitamin C Deficiency (Scurvy)",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "الخوف/النفور",
+    "en_name": "Fear/Skittishness",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > الخوف/النفور",
+    "en_path": "Health Criteria > Small Animals > Fear/Skittishness",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "ركود الجهاز الهضمي",
+    "en_name": "GI Stasis",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > ركود الجهاز الهضمي",
+    "en_path": "Health Criteria > Small Animals > GI Stasis",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "مكافات",
+    "en_name": "Treats",
+    "ar_path": "حيوانات صغيرة > طعام ومكافات القوارض > مكافات",
+    "en_path": "Small Animals > Rodent Food & Treats > Treats",
+    "ar_parent": "حيوانات صغيرة > طعام ومكافات القوارض",
+    "en_parent": "Small Animals > Rodent Food & Treats",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل بولية",
+    "en_name": "Urinary Problems",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > مشاكل بولية",
+    "en_path": "Health Criteria > Small Animals > Urinary Problems",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > فرسيل لاغا > طيور",
+    "en_path": "Brands > Versele-Laga > Birds",
+    "ar_parent": "العلامات التجارية > فرسيل لاغا",
+    "en_parent": "Brands > Versele-Laga",
+    "depth": 2
+  },
+  {
+    "ar_name": "نشارة الخشب",
+    "en_name": "Wood Shavings",
+    "ar_path": "حيوانات صغيرة > مستلزمات الارانب والهماستر > نشارة الخشب",
+    "en_path": "Small Animals > Rabbit & Hamster Supplies > Wood Shavings",
+    "ar_parent": "حيوانات صغيرة > مستلزمات الارانب والهماستر",
+    "en_parent": "Small Animals > Rabbit & Hamster Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مرض تمدد المعدة الغدية",
+    "en_name": "Proventricular Dilatation Disease (PDD)",
+    "ar_path": "المعايير الصحية > طيور > مرض تمدد المعدة الغدية",
+    "en_path": "Health Criteria > Birds > Proventricular Dilatation Disease (PDD)",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل هضمية/إسهال",
+    "en_name": "Digestive Problems/Diarrhea",
+    "ar_path": "المعايير الصحية > طيور > مشاكل هضمية/إسهال",
+    "en_path": "Health Criteria > Birds > Digestive Problems/Diarrhea",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "نتف الريش/تشويه الذات",
+    "en_name": "Feather Plucking/Self-Mutilation",
+    "ar_path": "المعايير الصحية > طيور > نتف الريش/تشويه الذات",
+    "en_path": "Health Criteria > Birds > Feather Plucking/Self-Mutilation",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "خلل في الترابط مع البشر",
+    "en_name": "Human Bonding Dysfunction",
+    "ar_path": "المعايير الصحية > طيور > خلل في الترابط مع البشر",
+    "en_path": "Health Criteria > Birds > Human Bonding Dysfunction",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "الخوف/القلق",
+    "en_name": "Fear/Anxiety",
+    "ar_path": "المعايير الصحية > طيور > الخوف/القلق",
+    "en_path": "Health Criteria > Birds > Fear/Anxiety",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل الشهية (فترة النقاهة)",
+    "en_name": "Appetite Issues (Convalescence)",
+    "ar_path": "المعايير الصحية > طيور > مشاكل الشهية (فترة النقاهة)",
+    "en_path": "Health Criteria > Birds > Appetite Issues (Convalescence)",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "طول المنقار الزائد",
+    "en_name": "Overgrown Beak",
+    "ar_path": "المعايير الصحية > طيور > طول المنقار الزائد",
+    "en_path": "Health Criteria > Birds > Overgrown Beak",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "الحساسية/الحكة (حساسية الجلد)",
+    "en_name": "Allergies/Itching (Skin Sensitivity)",
+    "ar_path": "المعايير الصحية > كلاب > الحساسية/الحكة (حساسية الجلد)",
+    "en_path": "Health Criteria > Dog > Allergies/Itching (Skin Sensitivity)",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > ويتي مولن > حيوانات صغيرة",
+    "en_path": "Brands > Witte Molen > Small Animals",
+    "ar_parent": "العلامات التجارية > ويتي مولن",
+    "en_parent": "Brands > Witte Molen",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > ويتي مولن > طيور",
+    "en_path": "Brands > Witte Molen > Birds",
+    "ar_parent": "العلامات التجارية > ويتي مولن",
+    "en_parent": "Brands > Witte Molen",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ويلنس كور > كلاب",
+    "en_path": "Brands > Wellness Core > Dog",
+    "ar_parent": "العلامات التجارية > ويلنس كور",
+    "en_parent": "Brands > Wellness Core",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ويلنس كور > قطط",
+    "en_path": "Brands > Wellness Core > Cat",
+    "ar_parent": "العلامات التجارية > ويلنس كور",
+    "en_parent": "Brands > Wellness Core",
+    "depth": 2
+  },
+  {
+    "ar_name": "التحكم في كرات الشعر",
+    "en_name": "Hairball Control",
+    "ar_path": "المعايير الصحية > قطط > التحكم في كرات الشعر",
+    "en_path": "Health Criteria > Cat > Hairball Control",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الترطيب",
+    "en_name": "Hydration",
+    "ar_path": "المعايير الصحية > قطط > الترطيب",
+    "en_path": "Health Criteria > Cat > Hydration",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "الترطيب (الصحة العامة)",
+    "en_name": "Hydration (General Health)",
+    "ar_path": "المعايير الصحية > قطط > الترطيب (الصحة العامة)",
+    "en_path": "Health Criteria > Cat > Hydration (General Health)",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ويمزيز > كلاب",
+    "en_path": "Brands > Whimzees > Dog",
+    "ar_parent": "العلامات التجارية > ويمزيز",
+    "en_parent": "Brands > Whimzees",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ياو أب > قطط",
+    "en_path": "Brands > YowUp > Cat",
+    "ar_parent": "العلامات التجارية > ياو أب",
+    "en_parent": "Brands > YowUp",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ياو أب > كلاب",
+    "en_path": "Brands > YowUp > Dog",
+    "ar_parent": "العلامات التجارية > ياو أب",
+    "en_parent": "Brands > YowUp",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > زيستي باوز > كلاب",
+    "en_path": "Brands > Zesty Paws > Dog",
+    "ar_parent": "العلامات التجارية > زيستي باوز",
+    "en_parent": "Brands > Zesty Paws",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > زيستي باوز > قطط",
+    "en_path": "Brands > Zesty Paws > Cat",
+    "ar_parent": "العلامات التجارية > زيستي باوز",
+    "en_parent": "Brands > Zesty Paws",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > زولكس > حيوانات صغيرة",
+    "en_path": "Brands > Zolux > Small Animals",
+    "ar_parent": "العلامات التجارية > زولكس",
+    "en_parent": "Brands > Zolux",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > زولكس > قطط",
+    "en_path": "Brands > Zolux > Cat",
+    "ar_parent": "العلامات التجارية > زولكس",
+    "en_parent": "Brands > Zolux",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > زولكس > طيور",
+    "en_path": "Brands > Zolux > Birds",
+    "ar_parent": "العلامات التجارية > زولكس",
+    "en_parent": "Brands > Zolux",
+    "depth": 2
+  },
+  {
+    "ar_name": "العاب",
+    "en_name": "Toys",
+    "ar_path": "طيور > مستلزمات الطيور > العاب",
+    "en_path": "Birds > Bird Supplies > Toys",
+    "ar_parent": "طيور > مستلزمات الطيور",
+    "en_parent": "Birds > Bird Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > زولكس > كلاب",
+    "en_path": "Brands > Zolux > Dog",
+    "ar_parent": "العلامات التجارية > زولكس",
+    "en_parent": "Brands > Zolux",
+    "depth": 2
+  },
+  {
+    "ar_name": "فرش وامشاط ومقصات",
+    "en_name": "Brushes & Combs & Scissors",
+    "ar_path": "كلاب > التنظيف والتدريب > فرش وامشاط ومقصات",
+    "en_path": "Dog > Cleaning & Training > Brushes & Combs & Scissors",
+    "ar_parent": "كلاب > التنظيف والتدريب",
+    "en_parent": "Dog > Cleaning & Training",
+    "depth": 2
+  },
+  {
+    "ar_name": "العدوانية داخل القفص",
+    "en_name": "Cage Aggression",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > العدوانية داخل القفص",
+    "en_path": "Health Criteria > Small Animals > Cage Aggression",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "عجلات والعاب",
+    "en_name": "Wheels & Toys",
+    "ar_path": "حيوانات صغيرة > مستلزمات الارانب والهماستر > عجلات والعاب",
+    "en_path": "Small Animals > Rabbit & Hamster Supplies > Wheels & Toys",
+    "ar_parent": "حيوانات صغيرة > مستلزمات الارانب والهماستر",
+    "en_parent": "Small Animals > Rabbit & Hamster Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشاكل السلامة والتعامل",
+    "en_name": "Safety & Handling Problems",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > مشاكل السلامة والتعامل",
+    "en_path": "Health Criteria > Small Animals > Safety & Handling Problems",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "الهروب من الحزام/الإصابة",
+    "en_name": "Harness Escape/Injury",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > الهروب من الحزام/الإصابة",
+    "en_path": "Health Criteria > Small Animals > Harness Escape/Injury",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "تحديد الهوية/الفقدان",
+    "en_name": "Identification/Loss",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > تحديد الهوية/الفقدان",
+    "en_path": "Health Criteria > Small Animals > Identification/Loss",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "مشدرات وصدريات",
+    "en_name": "Harnesses & Vests",
+    "ar_path": "حيوانات صغيرة > مستلزمات الارانب والهماستر > مشدرات وصدريات",
+    "en_path": "Small Animals > Rabbit & Hamster Supplies > Harnesses & Vests",
+    "ar_parent": "حيوانات صغيرة > مستلزمات الارانب والهماستر",
+    "en_parent": "Small Animals > Rabbit & Hamster Supplies",
+    "depth": 2
+  },
+  {
+    "ar_name": "تعفن القدم (التهاب الجلد القيحي)",
+    "en_name": "Bumblefoot (Pododermatitis)",
+    "ar_path": "المعايير الصحية > طيور > تعفن القدم (التهاب الجلد القيحي)",
+    "en_path": "Health Criteria > Birds > Bumblefoot (Pododermatitis)",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "قرح الضغط الناتجة عن المجثم",
+    "en_name": "Perch-Related Pressure Sores",
+    "ar_path": "المعايير الصحية > طيور > قرح الضغط الناتجة عن المجثم",
+    "en_path": "Health Criteria > Birds > Perch-Related Pressure Sores",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "إصابات المناولة",
+    "en_name": "Handling Injuries",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > إصابات المناولة",
+    "en_path": "Health Criteria > Small Animals > Handling Injuries",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "فراش مبلل/متسخ",
+    "en_name": "Wet/Soiled Bedding",
+    "ar_path": "المعايير الصحية > حيوانات صغيرة > فراش مبلل/متسخ",
+    "en_path": "Health Criteria > Small Animals > Wet/Soiled Bedding",
+    "ar_parent": "المعايير الصحية > حيوانات صغيرة",
+    "en_parent": "Health Criteria > Small Animals",
+    "depth": 2
+  },
+  {
+    "ar_name": "الأكل السريع/خطر الانتفاخ",
+    "en_name": "Fast Eating/Bloat Risk",
+    "ar_path": "المعايير الصحية > كلاب > الأكل السريع/خطر الانتفاخ",
+    "en_path": "Health Criteria > Dog > Fast Eating/Bloat Risk",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "زيادة الوزن بعد التعقيم/الإخصاء",
+    "en_name": "Post-Neuter/Spay Weight Gain",
+    "ar_path": "المعايير الصحية > كلاب > زيادة الوزن بعد التعقيم/الإخصاء",
+    "en_path": "Health Criteria > Dog > Post-Neuter/Spay Weight Gain",
+    "ar_parent": "المعايير الصحية > كلاب",
+    "en_parent": "Health Criteria > Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "الخدش/حماية الأثاث",
+    "en_name": "Scratching/Furniture Protection",
+    "ar_path": "المعايير الصحية > قطط > الخدش/حماية الأثاث",
+    "en_path": "Health Criteria > Cat > Scratching/Furniture Protection",
+    "ar_parent": "المعايير الصحية > قطط",
+    "en_parent": "Health Criteria > Cat",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > زوبريم > طيور",
+    "en_path": "Brands > Zupreem > Birds",
+    "ar_parent": "العلامات التجارية > زوبريم",
+    "en_parent": "Brands > Zupreem",
+    "depth": 2
+  },
+  {
+    "ar_name": "العض/العدوانية",
+    "en_name": "Biting/Aggression",
+    "ar_path": "المعايير الصحية > طيور > العض/العدوانية",
+    "en_path": "Health Criteria > Birds > Biting/Aggression",
+    "ar_parent": "المعايير الصحية > طيور",
+    "en_parent": "Health Criteria > Birds",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > زوبريم > حيوانات صغيرة",
+    "en_path": "Brands > Zupreem > Small Animals",
+    "ar_parent": "العلامات التجارية > زوبريم",
+    "en_parent": "Brands > Zupreem",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ابسولوت هوليستيك > كلاب",
+    "en_path": "Brands > Absolute Holistic > Dog",
+    "ar_parent": "العلامات التجارية > ابسولوت هوليستيك",
+    "en_parent": "Brands > Absolute Holistic",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ابسولوت هوليستيك > قطط",
+    "en_path": "Brands > Absolute Holistic > Cat",
+    "ar_parent": "العلامات التجارية > ابسولوت هوليستيك",
+    "en_parent": "Brands > Absolute Holistic",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ألفي داينر > كلاب",
+    "en_path": "Brands > Alfie's Diner > Dog",
+    "ar_parent": "العلامات التجارية > ألفي داينر",
+    "en_parent": "Brands > Alfie's Diner",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > التيمات > كلاب",
+    "en_path": "Brands > Altimate Pet > Dog",
+    "ar_parent": "العلامات التجارية > التيمات",
+    "en_parent": "Brands > Altimate Pet",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > أبلاوز > قطط",
+    "en_path": "Brands > Applaws > Cat",
+    "ar_parent": "العلامات التجارية > أبلاوز",
+    "en_parent": "Brands > Applaws",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > أبلاوز > كلاب",
+    "en_path": "Brands > Applaws > Dog",
+    "ar_parent": "العلامات التجارية > أبلاوز",
+    "en_parent": "Brands > Applaws",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بايو ساند > قطط",
+    "en_path": "Brands > BioSand > Cat",
+    "ar_parent": "العلامات التجارية > بايو ساند",
+    "en_parent": "Brands > BioSand",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بادي > كلاب",
+    "en_path": "Brands > Buddy Rinse > Dog",
+    "ar_parent": "العلامات التجارية > بادي",
+    "en_parent": "Brands > Buddy Rinse",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بادي > قطط",
+    "en_path": "Brands > Buddy Biscuits > Cat",
+    "ar_parent": "العلامات التجارية > بادي",
+    "en_parent": "Brands > Buddy Biscuits",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > Default Brand  AR > قطط",
+    "en_path": "Brands > Default Brand > Cat",
+    "ar_parent": "العلامات التجارية > Default Brand  AR",
+    "en_parent": "Brands > Default Brand",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كات اتش 2 او > قطط",
+    "en_path": "Brands > Cat H2O > Cat",
+    "ar_parent": "العلامات التجارية > كات اتش 2 او",
+    "en_parent": "Brands > Cat H2O",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > ديكو > طيور",
+    "en_path": "Brands > DECO > Birds",
+    "ar_parent": "العلامات التجارية > ديكو",
+    "en_parent": "Brands > DECO",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > ديكو > حيوانات صغيرة",
+    "en_path": "Brands > DECO > Small Animals",
+    "ar_parent": "العلامات التجارية > ديكو",
+    "en_parent": "Brands > DECO",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > بيسك > طيور",
+    "en_path": "Brands > BASIC > Birds",
+    "ar_parent": "العلامات التجارية > بيسك",
+    "en_parent": "Brands > BASIC",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كات ايديا > قطط",
+    "en_path": "Brands > CATIDEA > Cat",
+    "ar_parent": "العلامات التجارية > كات ايديا",
+    "en_parent": "Brands > CATIDEA",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > سي دي > طيور",
+    "en_path": "Brands > CEDE > Birds",
+    "ar_parent": "العلامات التجارية > سي دي",
+    "en_parent": "Brands > CEDE",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ويلنس > كلاب",
+    "en_path": "Brands > Wellness > Dog",
+    "ar_parent": "العلامات التجارية > ويلنس",
+    "en_parent": "Brands > Wellness",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > كرازي دوج > كلاب",
+    "en_path": "Brands > Crazy Dog > Dog",
+    "ar_parent": "العلامات التجارية > كرازي دوج",
+    "en_parent": "Brands > Crazy Dog",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > د.كلاودرز > كلاب",
+    "en_path": "Brands > Dr.Clauders > Dog",
+    "ar_parent": "العلامات التجارية > د.كلاودرز",
+    "en_parent": "Brands > Dr.Clauders",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ايرث قوديز > كلاب",
+    "en_path": "Brands > Earth's Goodies > Dog",
+    "ar_parent": "العلامات التجارية > ايرث قوديز",
+    "en_parent": "Brands > Earth's Goodies",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > انشانتد هوم بت > كلاب",
+    "en_path": "Brands > EHP > Dog",
+    "ar_parent": "العلامات التجارية > انشانتد هوم بت",
+    "en_parent": "Brands > EHP",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > انشانتد هوم بت > قطط",
+    "en_path": "Brands > EHP > Cat",
+    "ar_parent": "العلامات التجارية > انشانتد هوم بت",
+    "en_parent": "Brands > EHP",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فيلاين قو > قطط",
+    "en_path": "Brands > Felyn Go > Cat",
+    "ar_parent": "العلامات التجارية > فيلاين قو",
+    "en_parent": "Brands > Felyn Go",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فيلاين قو > كلاب",
+    "en_path": "Brands > Feline Go > Dog",
+    "ar_parent": "العلامات التجارية > فيلاين قو",
+    "en_parent": "Brands > Feline Go",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > كانين قو > كلاب",
+    "en_path": "Brands > Canine Go > Dog",
+    "ar_parent": "العلامات التجارية > كانين قو",
+    "en_parent": "Brands > Canine Go",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > كانين قو > قطط",
+    "en_path": "Brands > Canine Go > Cat",
+    "ar_parent": "العلامات التجارية > كانين قو",
+    "en_parent": "Brands > Canine Go",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فيدا > كلاب",
+    "en_path": "Brands > Fida > Dog",
+    "ar_parent": "العلامات التجارية > فيدا",
+    "en_parent": "Brands > Fida",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > فوب > كلاب",
+    "en_path": "Brands > Fop > Dog",
+    "ar_parent": "العلامات التجارية > فوب",
+    "en_parent": "Brands > Fop",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فوب > قطط",
+    "en_path": "Brands > Fop > Cat",
+    "ar_parent": "العلامات التجارية > فوب",
+    "en_parent": "Brands > Fop",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > جي إي أو > قطط",
+    "en_path": "Brands > GEO > Cat",
+    "ar_parent": "العلامات التجارية > جي إي أو",
+    "en_parent": "Brands > GEO",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > غو دوغ > كلاب",
+    "en_path": "Brands > GoDog > Dog",
+    "ar_parent": "العلامات التجارية > غو دوغ",
+    "en_parent": "Brands > GoDog",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > هير دوغي > كلاب",
+    "en_path": "Brands > Hear Doggy > Dog",
+    "ar_parent": "العلامات التجارية > هير دوغي",
+    "en_parent": "Brands > Hear Doggy",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > اينابا > قطط",
+    "en_path": "Brands > INABA > Cat",
+    "ar_parent": "العلامات التجارية > اينابا",
+    "en_parent": "Brands > INABA",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > جوسي دوغ > كلاب",
+    "en_path": "Brands > JosiDog > Dog",
+    "ar_parent": "العلامات التجارية > جوسي دوغ",
+    "en_parent": "Brands > JosiDog",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > مارك اند شابل > قطط",
+    "en_path": "Brands > Mark & Chappell > Cat",
+    "ar_parent": "العلامات التجارية > مارك اند شابل",
+    "en_parent": "Brands > Mark & Chappell",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > مارك اند شابل > كلاب",
+    "en_path": "Brands > Mark & Chappell > Dog",
+    "ar_parent": "العلامات التجارية > مارك اند شابل",
+    "en_parent": "Brands > Mark & Chappell",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > عام > قطط",
+    "en_path": "Brands > Generic > Cat",
+    "ar_parent": "العلامات التجارية > عام",
+    "en_parent": "Brands > Generic",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > ام بي بيرغامو > كلاب",
+    "en_path": "Brands > MPB > Dog",
+    "ar_parent": "العلامات التجارية > ام بي بيرغامو",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ام بي بيرغامو > قطط",
+    "en_path": "Brands > MPB > Cat",
+    "ar_parent": "العلامات التجارية > ام بي بيرغامو",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > ام بي بيرغامو > حيوانات صغيرة",
+    "en_path": "Brands > MPB > Small Animals",
+    "ar_parent": "العلامات التجارية > ام بي بيرغامو",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > ام بي بيرغامو > طيور",
+    "en_path": "Brands > MPB > Birds",
+    "ar_parent": "العلامات التجارية > ام بي بيرغامو",
+    "en_parent": "Brands > MPB",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > Default Brand  AR > طيور",
+    "en_path": "Brands > Default Brand > Birds",
+    "ar_parent": "العلامات التجارية > Default Brand  AR",
+    "en_parent": "Brands > Default Brand",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > منتجات الحيوان > قطط",
+    "en_path": "Brands > Pet Products > Cat",
+    "ar_parent": "العلامات التجارية > منتجات الحيوان",
+    "en_parent": "Brands > Pet Products",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > منتجات الحيوان > كلاب",
+    "en_path": "Brands > PPTCO > Dog",
+    "ar_parent": "العلامات التجارية > منتجات الحيوان",
+    "en_parent": "Brands > PPTCO",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > بريفيو بيت > قطط",
+    "en_path": "Brands > Prevue Pet > Cat",
+    "ar_parent": "العلامات التجارية > بريفيو بيت",
+    "en_parent": "Brands > Prevue Pet",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > بريفيو بيت > كلاب",
+    "en_path": "Brands > Prevue Pet > Dog",
+    "ar_parent": "العلامات التجارية > بريفيو بيت",
+    "en_parent": "Brands > Prevue Pet",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > بريفيو بيت > طيور",
+    "en_path": "Brands > Prevue Pet > Birds",
+    "ar_parent": "العلامات التجارية > بريفيو بيت",
+    "en_parent": "Brands > Prevue Pet",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > ريميدي > قطط",
+    "en_path": "Brands > Remedy + Recovery > Cat",
+    "ar_parent": "العلامات التجارية > ريميدي",
+    "en_parent": "Brands > Remedy + Recovery",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > سنال > كلاب",
+    "en_path": "Brands > Sanal > Dog",
+    "ar_parent": "العلامات التجارية > سنال",
+    "en_parent": "Brands > Sanal",
+    "depth": 2
+  },
+  {
+    "ar_name": "حيوانات صغيرة",
+    "en_name": "Small Animals",
+    "ar_path": "العلامات التجارية > سنال > حيوانات صغيرة",
+    "en_path": "Brands > Sanal > Small Animals",
+    "ar_parent": "العلامات التجارية > سنال",
+    "en_parent": "Brands > Sanal",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > سنال > قطط",
+    "en_path": "Brands > Sanal > Cat",
+    "ar_parent": "العلامات التجارية > سنال",
+    "en_parent": "Brands > Sanal",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > شيربا > قطط",
+    "en_path": "Brands > Sherpa > Cat",
+    "ar_parent": "العلامات التجارية > شيربا",
+    "en_parent": "Brands > Sherpa",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > شيربا > كلاب",
+    "en_path": "Brands > Sherpa > Dog",
+    "ar_parent": "العلامات التجارية > شيربا",
+    "en_parent": "Brands > Sherpa",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > سمبل سلوشن > كلاب",
+    "en_path": "Brands > Simple Solution > Dog",
+    "ar_parent": "العلامات التجارية > سمبل سلوشن",
+    "en_parent": "Brands > Simple Solution",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > سمارتي كات > قطط",
+    "en_path": "Brands > SmartyKat > Cat",
+    "ar_parent": "العلامات التجارية > سمارتي كات",
+    "en_parent": "Brands > SmartyKat",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > سوليـد جولد > كلاب",
+    "en_path": "Brands > Solid Gold > Dog",
+    "ar_parent": "العلامات التجارية > سوليـد جولد",
+    "en_parent": "Brands > Solid Gold",
+    "depth": 2
+  },
+  {
+    "ar_name": "طيور",
+    "en_name": "Birds",
+    "ar_path": "العلامات التجارية > فيرسل لاقا > طيور",
+    "en_path": "Brands > Versele Laga > Birds",
+    "ar_parent": "العلامات التجارية > فيرسل لاقا",
+    "en_parent": "Brands > Versele Laga",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > فيرسل لاقا > قطط",
+    "en_path": "Brands > Versele Laga > Cat",
+    "ar_parent": "العلامات التجارية > فيرسل لاقا",
+    "en_parent": "Brands > Versele Laga",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > وايلدا سايبيركا > قطط",
+    "en_path": "Brands > Wilda Siberica > Cat",
+    "ar_parent": "العلامات التجارية > وايلدا سايبيركا",
+    "en_parent": "Brands > Wilda Siberica",
+    "depth": 2
+  },
+  {
+    "ar_name": "كلاب",
+    "en_name": "Dog",
+    "ar_path": "العلامات التجارية > وايلدلي ناتشرال > كلاب",
+    "en_path": "Brands > Wildly Natural > Dog",
+    "ar_parent": "العلامات التجارية > وايلدلي ناتشرال",
+    "en_parent": "Brands > Wildly Natural",
+    "depth": 2
+  },
+  {
+    "ar_name": "قطط",
+    "en_name": "Cat",
+    "ar_path": "العلامات التجارية > وايلدلي ناتشرال > قطط",
+    "en_path": "Brands > Wildly Natural > Cat",
+    "ar_parent": "العلامات التجارية > وايلدلي ناتشرال",
+    "en_parent": "Brands > Wildly Natural",
+    "depth": 2
+  }
+]

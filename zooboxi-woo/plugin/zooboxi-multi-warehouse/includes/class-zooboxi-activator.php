@@ -9,6 +9,7 @@ class Zooboxi_Activator
         self::create_tables();
         self::schedule_cron();
         self::set_default_options();
+        Zooboxi_OTP_Auth::create_table();
         update_option('zooboxi_version', ZOOBOXI_VERSION);
         flush_rewrite_rules();
     }
@@ -29,6 +30,10 @@ class Zooboxi_Activator
             latitude DECIMAL(10,8),
             longitude DECIMAL(11,8),
             express_radius_km DECIMAL(5,2) DEFAULT 10,
+            is_express_enabled TINYINT(1) DEFAULT 0,
+            express_zone_polygon JSON NULL,
+            express_working_hours JSON NULL,
+            warehouse_type VARCHAR(20) DEFAULT 'showroom',
             is_central TINYINT(1) DEFAULT 0,
             is_main_hub TINYINT(1) DEFAULT 0,
             is_pickup_enabled TINYINT(1) DEFAULT 1,

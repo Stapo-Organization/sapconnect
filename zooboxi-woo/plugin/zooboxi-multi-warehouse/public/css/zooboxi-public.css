@@ -169,3 +169,84 @@
     gap: 8px;
     font-size: 15px;
 }
+
+/* ── Recently Viewed Products ──────────────────── */
+.zooboxi-recently-viewed {
+    margin: 40px 0;
+    padding: 24px 0;
+    border-top: 1px solid #e2e8e0;
+}
+.zooboxi-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #1a1a1a;
+}
+.zooboxi-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+}
+.zooboxi-product-card {
+    background: #fff;
+    border: 1px solid #e8ede6;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.zooboxi-product-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+.zooboxi-product-card__image {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #f8f9f7;
+}
+.zooboxi-product-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.zooboxi-product-card:hover .zooboxi-product-card__image img {
+    transform: scale(1.05);
+}
+.zooboxi-product-card__info {
+    padding: 10px 12px;
+}
+.zooboxi-product-card__title {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e2d;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.zooboxi-product-card__title:hover {
+    color: #0d9488;
+}
+.zooboxi-product-card__price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #065f46;
+}
+.zooboxi-product-card__price del {
+    color: #9ca3af;
+    font-weight: 400;
+    font-size: 11px;
+    margin-left: 4px;
+}
+@media (max-width: 480px) {
+    .zooboxi-product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}

@@ -24,8 +24,14 @@ class Zooboxi_Standard_Shipping extends WC_Shipping_Method
         if (!$session) return;
 
         $city = $session->get('zooboxi_customer_city', '');
+
+        // Fallback 1: check cookie
+        if (empty($city) && !empty($_COOKIE['zooboxi_city'])) {
+            $city = sanitize_text_field($_COOKIE['zooboxi_city']);
+        }
+
+        // Fallback 2: reverse from nearest warehouse
         if (empty($city)) {
-            // Try to get city from nearest warehouse
             $lat = (float) $session->get('zooboxi_customer_lat');
             $lng = (float) $session->get('zooboxi_customer_lng');
             if ($lat && $lng) {

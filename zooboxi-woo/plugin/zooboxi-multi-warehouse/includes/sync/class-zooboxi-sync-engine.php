@@ -181,15 +181,52 @@ class Zooboxi_Sync_Engine
         $existingId = $this->find_product_by_item_code($itemCode);
 
         if ($existingId) {
-            // ─── EXISTING PRODUCT: Only update SAP-controlled fields ───
-            // NEVER touch: name, description, categories, images, attributes
+            // ─── EXISTING PRODUCT: Update with ZID rich data ───
             $product = wc_get_product($existingId);
             if (!$product) return;
 
-            // Update price only
+            // Update price
             $price = $data['prices'][1]['price'] ?? $data['prices']['1']['price'] ?? null;
             if ($price !== null) {
                 $product->set_regular_price((string) $price);
+            }
+
+            // Update name from ZID (prefer Arabic)
+            $nameAr = $data['name_ar'] ?? '';
+            $nameEn = $data['name_en'] ?? '';
+            if (!empty($nameAr)) {
+                $product->set_name($nameAr);
+            }
+
+            // Update descriptions from ZID
+            $descAr = $data['description_ar'] ?? '';
+            $descEn = $data['description_en'] ?? '';
+            if (!empty($descAr)) {
+                $product->set_description($descAr);
+            } elseif (!empty($descEn)) {
+                $product->set_description($descEn);
+            }
+
+            $shortDescAr = $data['short_description_ar'] ?? '';
+            $shortDescEn = $data['short_description_en'] ?? '';
+            if (!empty($shortDescAr)) {
+                $product->set_short_description($shortDescAr);
+            } elseif (!empty($shortDescEn)) {
+                $product->set_short_description($shortDescEn);
+            }
+
+            // Update weight
+            if (!empty($data['weight'])) {
+                $product->set_weight((string) $data['weight']);
+            }
+
+            // Update SKU (barcode) if available and not set
+            if (!empty($data['barcode'])) {
+                try {
+                    $product->set_sku($data['barcode']);
+                } catch (\Exception $e) {
+                    // SKU already exists — skip
+                }
             }
 
             // Ensure stock management
@@ -197,19 +234,62 @@ class Zooboxi_Sync_Engine
             $product->set_stock_status('instock');
             $product->save();
 
-            // Update SAP metadata (reference only — does not affect display)
+            // Update SAP metadata
             update_post_meta($existingId, '_zooboxi_sap_name', $data['item_name'] ?? '');
             update_post_meta($existingId, '_zooboxi_sap_foreign_name', $data['foreign_name'] ?? '');
             update_post_meta($existingId, '_zooboxi_brand_code', $data['brand_code'] ?? '');
+            update_post_meta($existingId, '_zooboxi_barcode', $data['barcode'] ?? '');
             update_post_meta($existingId, '_zooboxi_uom', $data['uom'] ?? '');
             update_post_meta($existingId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
             update_post_meta($existingId, '_zooboxi_last_sync', current_time('mysql'));
+
+            // Store ZID keywords for SEO
+            if (!empty($data['keywords'])) {
+                update_post_meta($existingId, '_zooboxi_keywords', $data['keywords']);
+            }
+
+            // Update categories from ZID
+            $catAr = $data['categories_ar'] ?? '';
+            if (!empty($catAr)) {
+                $catParts = array_filter(array_map('trim', explode(',', $catAr)));
+                if (!empty($catParts)) {
+                    $termIds = [];
+                    foreach ($catParts as $catPath) {
+                        // Handle nested categories like "قطط > طعام جاف"
+                        $segments = array_filter(array_map('trim', explode('>', $catPath)));
+                        $parentId = 0;
+                        foreach ($segments as $seg) {
+                            $term = term_exists($seg, 'product_cat', $parentId ?: null);
+                            if (!$term) {
+                                $term = wp_insert_term($seg, 'product_cat', $parentId ? ['parent' => $parentId] : []);
+                            }
+                            if (!is_wp_error($term)) {
+                                $parentId = is_array($term) ? (int) $term['term_id'] : (int) $term;
+                                $termIds[] = $parentId;
+                            }
+                        }
+                    }
+                    if (!empty($termIds)) {
+                        wp_set_object_terms($existingId, $termIds, 'product_cat');
+                    }
+                }
+            }
+
+            // Assign brand as category too
+            if (!empty($data['brand_name'])) {
+                wp_set_object_terms($existingId, $data['brand_name'], 'product_cat', true);
+            }
+
         } else {
-            // ─── NEW PRODUCT: Create with SAP data ───
+            // ─── NEW PRODUCT: Create with ZID + SAP data ───
             $product = new \WC_Product_Simple();
 
+            $nameAr = $data['name_ar'] ?? '';
+            $nameEn = $data['name_en'] ?? '';
+            $name = !empty($nameAr) ? $nameAr : (!empty($nameEn) ? $nameEn : ($data['item_name'] ?? $itemCode));
+
             $product->set_props([
-                'name'          => $data['item_name'] ?? $data['foreign_name'] ?? $itemCode,
+                'name'          => $name,
                 'regular_price' => (string) ($data['prices'][1]['price'] ?? $data['prices']['1']['price'] ?? ''),
                 'manage_stock'  => true,
                 'stock_status'  => 'instock',
@@ -225,9 +305,26 @@ class Zooboxi_Sync_Engine
                 }
             }
 
-            // Description
-            if (!empty($data['foreign_name'])) {
-                $product->set_short_description($data['foreign_name']);
+            // Description from ZID
+            $descAr = $data['description_ar'] ?? '';
+            $descEn = $data['description_en'] ?? '';
+            if (!empty($descAr)) {
+                $product->set_description($descAr);
+            } elseif (!empty($descEn)) {
+                $product->set_description($descEn);
+            }
+
+            $shortDescAr = $data['short_description_ar'] ?? '';
+            $shortDescEn = $data['short_description_en'] ?? '';
+            if (!empty($shortDescAr)) {
+                $product->set_short_description($shortDescAr);
+            } elseif (!empty($shortDescEn) || !empty($data['foreign_name'])) {
+                $product->set_short_description($shortDescEn ?: $data['foreign_name']);
+            }
+
+            // Weight
+            if (!empty($data['weight'])) {
+                $product->set_weight((string) $data['weight']);
             }
 
             // Image from holeno.com
@@ -248,7 +345,29 @@ class Zooboxi_Sync_Engine
             update_post_meta($productId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
             update_post_meta($productId, '_zooboxi_last_sync', current_time('mysql'));
 
-            // Assign brand as category
+            // Keywords
+            if (!empty($data['keywords'])) {
+                update_post_meta($productId, '_zooboxi_keywords', $data['keywords']);
+            }
+
+            // Assign categories from ZID
+            $catAr = $data['categories_ar'] ?? '';
+            if (!empty($catAr)) {
+                $catParts = array_filter(array_map('trim', explode(',', $catAr)));
+                foreach ($catParts as $catPath) {
+                    $segments = array_filter(array_map('trim', explode('>', $catPath)));
+                    $parentId = 0;
+                    foreach ($segments as $seg) {
+                        $term = term_exists($seg, 'product_cat', $parentId ?: null);
+                        if (!$term) {
+                            $term = wp_insert_term($seg, 'product_cat', $parentId ? ['parent' => $parentId] : []);
+                        }
+                        if (!is_wp_error($term)) {
+                            $parentId = is_array($term) ? (int) $term['term_id'] : (int) $term;
+                        }
+                    }
+                }
+            }
             if (!empty($data['brand_name'])) {
                 wp_set_object_terms($productId, $data['brand_name'], 'product_cat', true);
             }

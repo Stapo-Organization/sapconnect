@@ -10,7 +10,7 @@
 
     // Show modal on page load if no cookie
     $(document).ready(function () {
-        if (!getCookie('zooboxi_lat')) {
+        if (!getCookie('zooboxi_lat') && !getCookie('zooboxi_city')) {
             setTimeout(() => modal.fadeIn(300), 1000);
         }
     });
