@@ -3,6 +3,9 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
+import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/stock_transfer_repository.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/models/stock_transfer.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/presentation/pages/barcode_scanner_page.dart';
@@ -148,8 +151,8 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(_transfer != null ? 'تحويل #${_transfer!.docNum}' : 'تفاصيل التحويل'),
+        appBar: MuntajatAppBar(
+          title: _transfer != null ? 'تحويل #${_transfer!.docNum}' : 'تفاصيل التحويل',
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -190,39 +193,32 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (t.canSend) ...[
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _openScannerForSend,
-                  icon: const Icon(Icons.qr_code_scanner_rounded),
-                  label: const Text('📸 سكان لتأكيد الإرسال'),
-                ),
+              AppButton(
+                label: 'سكان لتأكيد الإرسال',
+                onPressed: _openScannerForSend,
+                icon: Icons.qr_code_scanner_rounded,
+                variant: AppButtonVariant.outline,
               ),
               const SizedBox(height: AppSpacing.sm),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _confirmSend,
-                  child: const Text('تأكيد الإرسال'),
-                ),
+              AppButton(
+                label: 'تأكيد الإرسال',
+                onPressed: _confirmSend,
+                icon: Icons.local_shipping_rounded,
               ),
             ],
             if (t.canReceive) ...[
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _openScannerForReceive,
-                  icon: const Icon(Icons.qr_code_scanner_rounded),
-                  label: const Text('📸 سكان لتأكيد الاستلام'),
-                ),
+              AppButton(
+                label: 'سكان لتأكيد الاستلام',
+                onPressed: _openScannerForReceive,
+                icon: Icons.qr_code_scanner_rounded,
+                variant: AppButtonVariant.outline,
               ),
               const SizedBox(height: AppSpacing.sm),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _confirmReceive,
-                  child: const Text('تأكيد الاستلام'),
-                ),
+              AppButton(
+                label: 'تأكيد الاستلام',
+                onPressed: _confirmReceive,
+                icon: Icons.inventory_2_rounded,
+                color: AppColors.success,
               ),
             ],
           ],
@@ -242,8 +238,9 @@ class _InfoSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: AppRadius.borderLg,
+        borderRadius: AppRadius.borderXl,
         border: Border.all(color: AppColors.borderLight),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         children: [
