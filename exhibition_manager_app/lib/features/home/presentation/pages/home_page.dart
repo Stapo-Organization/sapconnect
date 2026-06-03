@@ -7,10 +7,16 @@ import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/network/api_endpoints.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'package:exhibition_manager_app/shared/widgets/status_bar_wrapper.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
+import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
+import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
+import 'package:exhibition_manager_app/features/inventory_counting/presentation/pages/cycle_count_detail_page.dart';
+import 'package:exhibition_manager_app/features/gamification/data/gamification_repository.dart';
+import 'package:exhibition_manager_app/features/gamification/data/models/gamification_models.dart';
 
 /// Home Dashboard Page — Shows real stats and navigable cards (Bilingual & Premium Redesign)
 class HomePage extends StatefulWidget {
@@ -24,11 +30,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final CountingRepository _countingRepo = CountingRepository();
+  final GamificationRepository _gamRepo = GamificationRepository();
+
   int _pendingSend = 0;
   int _pendingReceive = 0;
   int _inProgressCounting = 0;
   bool _isLoading = true;
   bool _hasError = false;
+
+  List<CountingSession> _tasks = [];
+  GamificationProfile? _gam;
 
   @override
   void initState() {
@@ -57,6 +69,24 @@ class _HomePageState extends State<HomePage> {
         _hasError = true;
       });
     }
+    _loadExtras();
+  }
+
+  Future<void> _loadExtras() async {
+    final sched = await _countingRepo.getSchedule();
+    final gam = await _gamRepo.getMe();
+    if (!mounted) return;
+    setState(() {
+      _gam = gam.data;
+      final tasks = <CountingSession>[];
+      if (sched.success && sched.data != null) {
+        for (final key in ['overdue', 'upcoming']) {
+          final list = (sched.data![key] as List?) ?? [];
+          tasks.addAll(list.map((e) => CountingSession.fromJson(Map<String, dynamic>.from(e as Map))));
+        }
+      }
+      _tasks = tasks;
+    });
   }
 
   @override
@@ -194,6 +224,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
 
+                // ─── Gamification strip ─────────────────────────
+                if (_gam != null)
+                  SliverToBoxAdapter(child: _buildGamStrip(context)),
+
+                // ─── Your Tasks ─────────────────────────────────
+                if (_tasks.isNotEmpty)
+                  SliverToBoxAdapter(child: _buildTasks(context)),
+
                 // ─── Quick Actions Section ──────────────────────
                 SliverPadding(
                   padding: const EdgeInsets.all(AppSpacing.xl),
@@ -293,6 +331,152 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  // ─── Gamification strip (tap → Achievements tab) ────────────
+  Widget _buildGamStrip(BuildContext context) {
+    final g = _gam!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+      child: AppCard(
+        onTap: () => widget.onNavigateToTab?.call(3),
+        padding: const EdgeInsets.all(AppSpacing.base),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(gradient: AppColors.goldGradient, shape: BoxShape.circle),
+              child: Text('${g.level}',
+                  style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${g.pointsTotal} ${context.tr('points')}',
+                      style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text(g.levelLabel,
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            if (g.streak.current > 0) ...[
+              const Icon(Icons.local_fire_department_rounded, color: AppColors.warning, size: 20),
+              const SizedBox(width: 2),
+              Text('${g.streak.current}',
+                  style: AppTypography.labelLarge.copyWith(
+                      color: AppColors.warning, fontWeight: FontWeight.bold)),
+              const SizedBox(width: AppSpacing.md),
+            ],
+            Icon(AppLocalizations.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                color: AppColors.textTertiary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Your Tasks (due/overdue cycle counts) ──────────────────
+  Widget _buildTasks(BuildContext context) {
+    final isArabic = AppLocalizations.isArabic;
+    final tasks = _tasks.take(3).toList();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(context.tr('your_tasks'),
+                  style: AppTypography.titleMedium.copyWith(
+                      color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(999)),
+                child: Text('${_tasks.length}',
+                    style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          for (final t in tasks) _taskCard(context, t, isArabic),
+        ],
+      ),
+    );
+  }
+
+  Widget _taskCard(BuildContext context, CountingSession t, bool isArabic) {
+    final overdue = _isOverdue(t.scheduledDate);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppCard(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => CycleCountDetailPage(sessionId: t.id)),
+        ).then((_) => _loadExtras()),
+        padding: const EdgeInsets.all(AppSpacing.base),
+        borderColor: overdue ? AppColors.error.withValues(alpha: 0.25) : null,
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: (overdue ? AppColors.error : AppColors.primary).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.autorenew_rounded,
+                  color: overdue ? AppColors.error : AppColors.primary, size: 22),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(t.warehouseName ?? t.warehouseCode,
+                      style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      StatusBadge(
+                        label: overdue ? context.tr('overdue_label') : context.tr('due_label'),
+                        color: overdue ? AppColors.error : AppColors.success,
+                        icon: overdue ? Icons.warning_amber_rounded : Icons.event_available_rounded,
+                      ),
+                      const SizedBox(width: 6),
+                      Text('${t.totalTargetItems} ${context.tr('items')}',
+                          style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            AppButton(
+              label: context.tr('start_now'),
+              expand: false,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CycleCountDetailPage(sessionId: t.id)),
+              ).then((_) => _loadExtras()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _isOverdue(String? date) {
+    if (date == null) return false;
+    final d = DateTime.tryParse(date);
+    if (d == null) return false;
+    final today = DateTime.now();
+    return d.isBefore(DateTime(today.year, today.month, today.day));
   }
 }
 

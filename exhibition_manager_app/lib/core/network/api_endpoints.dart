@@ -39,6 +39,12 @@ class ApiEndpoints {
   static String productByBarcode(String barcode) => '$baseUrl/products/barcode/$barcode';
 
   // ─── Warehouses ────────────────────────────────────────────
+  // ─── Gamification ──────────────────────────────────────────
+  static const String gamificationMe = '$baseUrl/gamification/me';
+  static const String gamificationBadges = '$baseUrl/gamification/badges';
+  static String gamificationLeaderboard(String type, String period) =>
+      '$baseUrl/gamification/leaderboard?type=$type&period=$period';
+
   static const String warehouses = '$baseUrl/warehouses';
 
   // ─── Dashboard Stats ──────────────────────────────────────

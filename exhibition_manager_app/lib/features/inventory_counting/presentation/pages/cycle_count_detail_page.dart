@@ -13,6 +13,7 @@ import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/cycle_target.dart';
+import 'package:exhibition_manager_app/features/gamification/presentation/widgets/celebration_overlay.dart';
 import 'barcode_scanner_page.dart';
 
 /// Guided cycle-count experience: a checklist of target items with live
@@ -98,6 +99,10 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
     final res = await _repo.completeSession(widget.sessionId);
     if (!mounted) return;
     if (res.success) {
+      if (res.gamification != null) {
+        await showCelebration(context, res.gamification!);
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('count_completed')), backgroundColor: AppColors.success),
       );

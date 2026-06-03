@@ -10,6 +10,7 @@ import 'package:exhibition_manager_app/features/inventory_counting/data/counting
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
 import 'barcode_scanner_page.dart';
 import 'variance_report_page.dart';
+import 'package:exhibition_manager_app/features/gamification/presentation/widgets/celebration_overlay.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
@@ -83,9 +84,14 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
       final result = await _repo.completeSession(widget.sessionId);
       if (mounted) {
         if (result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('✅ تم إكمال الجرد بنجاح')),
-          );
+          if (result.gamification != null) {
+            await showCelebration(context, result.gamification!);
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('✅ تم إكمال الجرد بنجاح')),
+            );
+          }
         }
         _loadSession();
       }

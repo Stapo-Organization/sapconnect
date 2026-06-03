@@ -113,17 +113,20 @@ class CountingRepository {
     return (success: result.isSuccess, error: result.errorMessage);
   }
 
-  /// Complete counting session — returns variance summary
-  Future<({bool success, Map<String, dynamic>? varianceSummary, String? error})> completeSession(int id) async {
+  /// Complete counting session — returns variance summary + gamification result
+  Future<({bool success, Map<String, dynamic>? varianceSummary, Map<String, dynamic>? gamification, String? error})> completeSession(int id) async {
     final result = await _api.post(ApiEndpoints.countingComplete(id));
     if (result.isSuccess) {
       return (
         success: true,
         varianceSummary: result.data['variance_summary'] as Map<String, dynamic>?,
+        gamification: result.data['gamification'] is Map
+            ? Map<String, dynamic>.from(result.data['gamification'] as Map)
+            : null,
         error: null,
       );
     }
-    return (success: false, varianceSummary: null, error: result.errorMessage);
+    return (success: false, varianceSummary: null, gamification: null, error: result.errorMessage);
   }
 
   /// Cancel counting session
