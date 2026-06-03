@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
@@ -32,8 +33,8 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
   List<CountingSession> _filteredSessions = [];
   bool _isLoading = true;
   bool _hasError = false;
-  String? _selectedStatus;
-  String? _typeFilter; // null = all, 'cycle', 'full'
+  String? _selectedStatus; // null = all statuses
+  String _typeFilter = 'cycle'; // 'cycle' (دوري) or 'full' (سنوي) — no "all"
   final TextEditingController _searchController = TextEditingController();
 
   /// Map of warehouse_code → warehouse_name (fetched from API)
@@ -82,7 +83,7 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
     final q = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredSessions = _sessions.where((s) {
-        if (_typeFilter != null && s.countingType != _typeFilter) return false;
+        if (s.countingType != _typeFilter) return false;
         if (q.isEmpty) return true;
         final whName = (s.warehouseName ?? s.warehouseCode).toLowerCase();
         return whName.contains(q) || s.id.toString().contains(q);
@@ -164,6 +165,33 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
     }
   }
 
+  static String _statusFilterLabel(BuildContext context, String status) {
+    switch (status) {
+      case 'in_progress':
+        return context.tr('counting_in_progress');
+      case 'completed':
+        return context.tr('status_completed');
+      case 'cancelled':
+        return context.tr('status_cancelled');
+      default:
+        return context.tr('all');
+    }
+  }
+
+  Future<void> _openStatusFilter() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => _StatusFilterSheet(current: _selectedStatus),
+    );
+    if (result == null) return; // dismissed without choosing
+    setState(() => _selectedStatus = result == 'all' ? null : result);
+    _loadSessions();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
@@ -174,111 +202,103 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
         appBar: MuntajatAppBar(
           title: context.tr('stock_counting'),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _createNewSession,
-          icon: const Icon(Icons.add_rounded),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          label: Text(
-            context.tr('new_count_btn'),
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
+        // Cycle counts are system-generated — only annual (full) counts are
+        // created manually, so the "New Count" button shows on the سنوي tab only.
+        floatingActionButton: _typeFilter == 'full'
+            ? FloatingActionButton.extended(
+                onPressed: _createNewSession,
+                icon: const Icon(Icons.add_rounded),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                label: Text(
+                  context.tr('new_count_btn'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              )
+            : null,
         body: Column(
           children: [
-            // ─── Search Bar ─────────────────────────────────
-            Container(
-              color: AppColors.surface,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.sm),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-                decoration: InputDecoration(
-                  hintText: context.tr('search_counting'),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppColors.textTertiary),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: AppColors.background,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.sm),
-                  border: OutlineInputBorder(
-                    borderRadius: AppRadius.borderFull,
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-
-            // ─── Type Segments (Cycle / Full) ───────────────
+            // ─── Search + Filter button ─────────────────────
             Container(
               color: AppColors.surface,
               padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.xs),
-              child: AppSegmentedControl(
-                items: [
-                  SegmentItem(context.tr('all')),
-                  SegmentItem(context.tr('cycle_count'), icon: Icons.autorenew_rounded),
-                  SegmentItem(context.tr('full_count'), icon: Icons.fact_check_outlined),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                      decoration: InputDecoration(
+                        hintText: context.tr('search_counting'),
+                        prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, color: AppColors.textTertiary),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: AppColors.background,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.sm),
+                        border: OutlineInputBorder(
+                          borderRadius: AppRadius.borderFull,
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _FilterButton(
+                    active: _selectedStatus != null,
+                    onTap: _openStatusFilter,
+                  ),
                 ],
-                selectedIndex: _typeFilter == null ? 0 : (_typeFilter == 'cycle' ? 1 : 2),
+              ),
+            ),
+
+            // ─── Type Segments (دوري / سنوي) ────────────────
+            Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.xs, AppSpacing.base, AppSpacing.sm),
+              child: AppSegmentedControl(
+                activeColor: AppDomain.counting.accent,
+                items: [
+                  SegmentItem(context.tr('cycle_count'), icon: Icons.autorenew_rounded),
+                  SegmentItem(context.tr('full_count'), icon: Icons.event_available_outlined),
+                ],
+                selectedIndex: _typeFilter == 'cycle' ? 0 : 1,
                 onChanged: (i) {
-                  setState(() => _typeFilter = i == 0 ? null : (i == 1 ? 'cycle' : 'full'));
+                  setState(() => _typeFilter = i == 0 ? 'cycle' : 'full');
                   _applyFilters();
                 },
               ),
             ),
 
-            // ─── Filter Section ─────────────────────────────
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.md),
-              child: Row(
-                children: [
-                  _FilterChip(
-                    label: context.tr('all'),
-                    selected: _selectedStatus == null,
-                    onTap: () {
+            // Active status filter — a removable summary chip.
+            if (_selectedStatus != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, 0),
+                  child: InputChip(
+                    label: Text(_statusFilterLabel(context, _selectedStatus!)),
+                    onDeleted: () {
                       setState(() => _selectedStatus = null);
                       _loadSessions();
                     },
+                    backgroundColor: AppColors.primaryContainer,
+                    labelStyle: AppTypography.labelSmall.copyWith(color: AppColors.primaryDark, fontWeight: FontWeight.w700),
+                    deleteIconColor: AppColors.primaryDark,
+                    visualDensity: VisualDensity.compact,
                   ),
-                  _FilterChip(
-                    label: context.tr('counting_in_progress'),
-                    selected: _selectedStatus == 'in_progress',
-                    color: AppColors.warning,
-                    onTap: () {
-                      setState(() => _selectedStatus = 'in_progress');
-                      _loadSessions();
-                    },
-                  ),
-                  _FilterChip(
-                    label: context.tr('status_completed'),
-                    selected: _selectedStatus == 'completed',
-                    color: AppColors.success,
-                    onTap: () {
-                      setState(() => _selectedStatus = 'completed');
-                      _loadSessions();
-                    },
-                  ),
-                  _FilterChip(
-                    label: context.tr('status_cancelled'),
-                    selected: _selectedStatus == 'cancelled',
-                    color: AppColors.error,
-                    onTap: () {
-                      setState(() => _selectedStatus = 'cancelled');
-                      _loadSessions();
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
+
+            const SizedBox(height: AppSpacing.sm),
 
             // ─── List Section ───────────────────────────────
             Expanded(
@@ -319,56 +339,116 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
   }
 }
 
-// ─── Filter Chip ──────────────────────────────────────────
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color? color;
+// ─── Filter Button (opens status sheet) ───────────────────
+class _FilterButton extends StatelessWidget {
+  final bool active;
   final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    this.color,
-    required this.onTap,
-  });
+  const _FilterButton({required this.active, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final chipColor = color ?? AppColors.primary;
-    return Padding(
-      padding: const EdgeInsets.only(left: AppSpacing.sm, right: AppSpacing.xs),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.base,
-            vertical: AppSpacing.sm - 2,
-          ),
-          decoration: BoxDecoration(
-            color: selected ? chipColor : AppColors.surface,
-            borderRadius: AppRadius.borderFull,
-            border: Border.all(
-              color: selected ? chipColor : AppColors.border,
-              width: 1,
-            ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: chipColor.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.background,
+          borderRadius: AppRadius.borderFull,
+          border: Border.all(color: active ? AppColors.primary : AppColors.borderLight),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(Icons.tune_rounded,
+                size: 22, color: active ? Colors.white : AppColors.textSecondary),
+            if (active)
+              Positioned(
+                top: 9,
+                right: 9,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 1.2),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Status Filter Bottom Sheet ───────────────────────────
+class _StatusFilterSheet extends StatelessWidget {
+  final String? current;
+  const _StatusFilterSheet({this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic = AppLocalizations.isArabic;
+    final options = <({String value, String label, Color color, IconData icon})>[
+      (value: 'all', label: context.tr('all'), color: AppColors.textSecondary, icon: Icons.layers_outlined),
+      (value: 'in_progress', label: context.tr('counting_in_progress'), color: AppColors.warning, icon: Icons.timelapse_rounded),
+      (value: 'completed', label: context.tr('status_completed'), color: AppColors.success, icon: Icons.check_circle_outline_rounded),
+      (value: 'cancelled', label: context.tr('status_cancelled'), color: AppColors.error, icon: Icons.cancel_outlined),
+    ];
+    final currentValue = current ?? 'all';
+
+    return Directionality(
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.md, AppSpacing.base, AppSpacing.base),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.border, borderRadius: AppRadius.borderFull),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.base),
+              Text(context.tr('status_filter_title'),
+                  style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: AppSpacing.sm),
+              ...options.map((o) {
+                final selected = o.value == currentValue;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: Material(
+                    color: selected ? o.color.withValues(alpha: 0.10) : Colors.transparent,
+                    borderRadius: AppRadius.borderMd,
+                    child: InkWell(
+                      borderRadius: AppRadius.borderMd,
+                      onTap: () => Navigator.pop(context, o.value),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+                        child: Row(
+                          children: [
+                            Icon(o.icon, size: 20, color: o.color),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Text(o.label,
+                                  style: AppTypography.bodyMedium.copyWith(
+                                      fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                                      color: selected ? o.color : AppColors.textPrimary)),
+                            ),
+                            if (selected) Icon(Icons.check_rounded, size: 20, color: o.color),
+                          ],
+                        ),
+                      ),
                     ),
-                  ]
-                : [],
-          ),
-          child: Text(
-            label,
-            style: AppTypography.labelMedium.copyWith(
-              color: selected ? Colors.white : AppColors.textSecondary,
-              fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-            ),
+                  ),
+                );
+              }),
+            ],
           ),
         ),
       ),

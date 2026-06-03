@@ -47,7 +47,8 @@ class AppLocalizations {
 
       // Cycle Counting (guided)
       'cycle_count': 'جرد دوري',
-      'full_count': 'جرد عادي',
+      'full_count': 'جرد سنوي',
+      'status_filter_title': 'تصفية حسب الحالة',
       'items_to_count': 'الأصناف المطلوب جردها',
       'counted': 'تم العدّ',
       'pending_count': 'بانتظار',
@@ -61,6 +62,50 @@ class AppLocalizations {
       'class_label': 'الفئة',
       'overdue_label': 'متأخر',
       'due_label': 'مستحق',
+
+      // Cycle detail — tabs & records
+      'cycle_targets_tab': 'المطلوب جرده',
+      'cycle_records_tab': 'سجلاتي',
+      'counted_records': 'السجلات المُدخلة',
+      'no_records_yet': 'لم تُسجّل أي عملية عدّ بعد',
+      'no_records_yet_hint': 'امسح الأصناف لتسجيل عمليات العدّ',
+      'entry_n': 'تسجيل {n}',
+      'counted_products_n': 'المنتجات المجرودة ({n})',
+      'edit_quantity': 'تعديل الكمية',
+      'delete_record': 'حذف السجل',
+      'delete_record_confirm': 'هل تريد حذف هذا السجل من الجرد؟',
+      'update': 'تحديث',
+      'delete': 'حذف',
+      // Off-list scanner gating (cycle)
+      'off_list_title': 'صنف خارج قائمة الجرد',
+      'product_off_cycle_list': 'هذا المنتج خارج قائمة الجرد الدوري',
+      'off_list_cannot_count': 'لا يمكن عدّ صنف خارج القائمة',
+      'off_list_scans_n': '{n} مسح خارج القائمة',
+      'counted_label': 'مجرود',
+
+      // Quality Control
+      'quality_tasks': 'مهام الجودة',
+      'quality_section_subtitle': 'مهام مستحقة اليوم',
+      'no_quality_tasks': 'لا توجد مهام جودة 🎉',
+      'view_all': 'عرض الكل',
+      'status_pending': 'قيد التنفيذ',
+      'status_submitted': 'مكتملة',
+      'proof_acknowledge': 'تأكيد',
+      'proof_photo': 'صور',
+      'proof_checklist': 'قائمة',
+      'mark_done': 'تم الإنجاز',
+      'submit_task': 'إرسال',
+      'task_submitted': 'تم إكمال المهمة 🎉',
+      'add_photo': 'إضافة صورة',
+      'take_photo': 'التقاط صورة',
+      'choose_from_gallery': 'من المعرض',
+      'photos_progress': '{x} / {min} صور',
+      'comment_optional': 'تعليق (اختياري)',
+      'comment_required_label': 'تعليق (مطلوب)',
+      'complete_all_items': 'أكمل جميع البنود للإرسال',
+      'photo_required_badge': 'صورة مطلوبة',
+      'acknowledge_hint': 'اضغط للتأكيد عند إنجاز المهمة',
+      'overdue_badge': 'متأخرة',
 
       // Gamification detail
       'points': 'نقطة',
@@ -110,6 +155,21 @@ class AppLocalizations {
       'to': 'إلى',
       'items': 'صنف',
       'sent': 'مرسل',
+      // Transfers — tabs, filter & detail
+      'tab_send': 'إرسال',
+      'tab_receive': 'استلام',
+      'transfers_send_empty': 'لا توجد تحويلات للإرسال',
+      'transfers_receive_empty': 'لا توجد تحويلات للاستلام',
+      'required_qty': 'المطلوب',
+      'sent_qty': 'المرسل',
+      'received_qty': 'المستلم',
+      'items_count_label': 'الأصناف',
+      'total_quantity': 'إجمالي الكمية',
+      'transfer_date': 'التاريخ',
+      'scan_to_confirm_send': 'مسح لتأكيد الإرسال',
+      'scan_to_confirm_receive': 'مسح لتأكيد الاستلام',
+      'confirm_send': 'تأكيد الإرسال',
+      'confirm_receive': 'تأكيد الاستلام',
       'search': 'بحث',
       'search_transfers': 'البحث في التحويلات...',
       'search_counting': 'البحث في سجلات الجرد...',
@@ -181,7 +241,8 @@ class AppLocalizations {
 
       // Cycle Counting (guided)
       'cycle_count': 'Cycle Count',
-      'full_count': 'Full Count',
+      'full_count': 'Annual Count',
+      'status_filter_title': 'Filter by status',
       'items_to_count': 'Items to Count',
       'counted': 'Counted',
       'pending_count': 'Pending',
@@ -195,6 +256,50 @@ class AppLocalizations {
       'class_label': 'Class',
       'overdue_label': 'Overdue',
       'due_label': 'Due',
+
+      // Cycle detail — tabs & records
+      'cycle_targets_tab': 'Targets',
+      'cycle_records_tab': 'My Records',
+      'counted_records': 'Entered Records',
+      'no_records_yet': 'No records entered yet',
+      'no_records_yet_hint': 'Scan items to log your counts',
+      'entry_n': 'Entry {n}',
+      'counted_products_n': 'Counted Products ({n})',
+      'edit_quantity': 'Edit Quantity',
+      'delete_record': 'Delete Record',
+      'delete_record_confirm': 'Delete this record from the count?',
+      'update': 'Update',
+      'delete': 'Delete',
+      // Off-list scanner gating (cycle)
+      'off_list_title': 'Off-list item',
+      'product_off_cycle_list': 'This product is not in the cycle-count list',
+      'off_list_cannot_count': "Off-list items can't be counted",
+      'off_list_scans_n': '{n} off-list scan(s)',
+      'counted_label': 'counted',
+
+      // Quality Control
+      'quality_tasks': 'Quality Tasks',
+      'quality_section_subtitle': 'Due today',
+      'no_quality_tasks': 'No quality tasks 🎉',
+      'view_all': 'View all',
+      'status_pending': 'Pending',
+      'status_submitted': 'Done',
+      'proof_acknowledge': 'Confirm',
+      'proof_photo': 'Photos',
+      'proof_checklist': 'Checklist',
+      'mark_done': 'Mark Done',
+      'submit_task': 'Submit',
+      'task_submitted': 'Task completed 🎉',
+      'add_photo': 'Add photo',
+      'take_photo': 'Take photo',
+      'choose_from_gallery': 'From gallery',
+      'photos_progress': '{x} / {min} photos',
+      'comment_optional': 'Comment (optional)',
+      'comment_required_label': 'Comment (required)',
+      'complete_all_items': 'Complete all items to submit',
+      'photo_required_badge': 'Photo required',
+      'acknowledge_hint': 'Tap to confirm when the task is done',
+      'overdue_badge': 'Overdue',
 
       // Gamification detail
       'points': 'points',
@@ -244,6 +349,21 @@ class AppLocalizations {
       'to': 'To',
       'items': 'Items',
       'sent': 'Sent',
+      // Transfers — tabs, filter & detail
+      'tab_send': 'Send',
+      'tab_receive': 'Receive',
+      'transfers_send_empty': 'No transfers to send',
+      'transfers_receive_empty': 'No transfers to receive',
+      'required_qty': 'Required',
+      'sent_qty': 'Sent',
+      'received_qty': 'Received',
+      'items_count_label': 'Items',
+      'total_quantity': 'Total Qty',
+      'transfer_date': 'Date',
+      'scan_to_confirm_send': 'Scan to confirm send',
+      'scan_to_confirm_receive': 'Scan to confirm receive',
+      'confirm_send': 'Confirm Send',
+      'confirm_receive': 'Confirm Receive',
       'search': 'Search',
       'search_transfers': 'Search transfers...',
       'search_counting': 'Search counting sessions...',
@@ -310,7 +430,30 @@ class AppLocalizations {
   }
 }
 
+/// Inherited locale boundary placed **above the Navigator** (in `MaterialApp.builder`).
+///
+/// Reading a string with [BuildContext.tr] registers a dependency on this
+/// widget, so when the language changes every screen that shows text — including
+/// already-pushed routes — rebuilds and re-translates. Without it, only the
+/// global `Directionality` flipped (layout mirrored) while strings stayed stale.
+class LocaleScope extends InheritedWidget {
+  final Locale locale;
+  const LocaleScope({super.key, required this.locale, required super.child});
+
+  static Locale of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<LocaleScope>();
+    return scope?.locale ?? AppLocalizations.localeNotifier.value;
+  }
+
+  @override
+  bool updateShouldNotify(LocaleScope oldWidget) => oldWidget.locale != locale;
+}
+
 /// Helper context extension for quick translations
 extension LocalizationExtension on BuildContext {
-  String tr(String key) => AppLocalizations.translate(key);
+  String tr(String key) {
+    // Subscribe to locale changes so this widget rebuilds on language switch.
+    LocaleScope.of(this);
+    return AppLocalizations.translate(key);
+  }
 }

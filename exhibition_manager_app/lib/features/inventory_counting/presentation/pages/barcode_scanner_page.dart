@@ -24,11 +24,22 @@ class BarcodeScannerPage extends StatefulWidget {
   final ScanMode mode;
   final List<Map<String, dynamic>>? expectedItems;
 
+  /// Cycle-count gating: when true, items scanned that are NOT in the target
+  /// list are blocked (a warning sheet is shown instead of the add sheet).
+  /// Only used for inventory-counting cycle sessions.
+  final bool isCycle;
+
+  /// Fast client-side fallback set of target item codes (the server flag
+  /// `in_target_list` is authoritative; this avoids a round-trip miss).
+  final Set<String>? cycleTargetCodes;
+
   const BarcodeScannerPage({
     super.key,
     this.countingSessionId,
     this.mode = ScanMode.inventoryCounting,
     this.expectedItems,
+    this.isCycle = false,
+    this.cycleTargetCodes,
   });
 
   @override
@@ -46,6 +57,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   ScannedProduct? _lastScanned;
   String? _errorMessage;
   Map<String, dynamic>? _notInTransferProduct;
+  ScannedProduct? _offListProduct; // cycle: scanned item not in target list
   final TextEditingController _quantityController = TextEditingController();
   bool _flashOn = false;
 
@@ -79,11 +91,31 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
       if (mounted) {
         if (result.success && result.product != null) {
+          final p = result.product!;
+
+          // Cycle gating: block items that are not in the target list.
+          // Server flag `in_target_list` is authoritative; fall back to the
+          // client-side target set if the flag is absent.
+          if (widget.isCycle) {
+            final inTarget = p.inTargetList ??
+                (widget.cycleTargetCodes?.contains(p.itemCode) ?? true);
+            if (!inTarget) {
+              HapticFeedback.heavyImpact();
+              setState(() {
+                _offListProduct = p;
+                _lastScanned = null;
+                _errorMessage = null;
+              });
+              return;
+            }
+          }
+
           HapticFeedback.lightImpact();
           setState(() {
-            _lastScanned = result.product;
+            _offListProduct = null;
+            _lastScanned = p;
             _quantityController.text =
-                result.product!.existingLine?.countedQuantity.toInt().toString() ?? '1';
+                p.existingLine?.countedQuantity.toInt().toString() ?? '1';
           });
         } else {
           HapticFeedback.heavyImpact();
@@ -159,15 +191,34 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final qty = double.tryParse(_quantityController.text) ?? 0;
     if (qty <= 0) return;
 
+    final product = _lastScanned!;
+
     if (widget.mode == ScanMode.inventoryCounting && widget.countingSessionId != null) {
-      await _repo.addLine(
+      final res = await _repo.addLine(
         widget.countingSessionId!,
-        _lastScanned!.itemCode,
+        product.itemCode,
         qty,
       );
+      if (!mounted) return;
+      // Surface server rejections (e.g. off-list cycle item → 422) instead of
+      // silently pretending the add succeeded.
+      if (!res.success) {
+        HapticFeedback.heavyImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.error,
+            content: Text(res.error ?? context.tr('off_list_cannot_count')),
+          ),
+        );
+        setState(() {
+          _lastScanned = null;
+          _isProcessing = false;
+        });
+        return;
+      }
     } else {
       // Stock transfer mode — store locally
-      _scannedItems[_lastScanned!.itemCode] = qty;
+      _scannedItems[product.itemCode] = qty;
     }
 
     if (mounted) {
@@ -176,7 +227,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         SnackBar(
           content: Text(
             context.tr('product_saved')
-              .replaceAll('{name}', _lastScanned!.getLocalizedName(AppLocalizations.isArabic))
+              .replaceAll('{name}', product.getLocalizedName(AppLocalizations.isArabic))
               .replaceAll('{qty}', '${qty.toInt()}'),
           ),
           duration: const Duration(seconds: 1),
@@ -383,6 +434,82 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                 ),
               ),
 
+            // ─── Off-list Warning (cycle) ────────────────
+            if (_offListProduct != null)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                left: 0,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    top: AppSpacing.lg,
+                    left: AppSpacing.xl,
+                    right: AppSpacing.xl,
+                    bottom: MediaQuery.of(context).padding.bottom + AppSpacing.base,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.border,
+                          borderRadius: AppRadius.borderFull,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.base),
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.block_rounded, color: AppColors.error, size: 36),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        context.tr('product_off_cycle_list'),
+                        style: AppTypography.titleMedium.copyWith(color: AppColors.error),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        _offListProduct!.getLocalizedName(AppLocalizations.isArabic),
+                        style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'SAP: ${_offListProduct!.itemCode}',
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _offListProduct = null;
+                              _isProcessing = false;
+                            });
+                          },
+                          icon: const Icon(Icons.skip_next_rounded),
+                          label: Text(context.tr('skip_and_scan_next')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // ─── Product Bottom Sheet ────────────────────
             if (_lastScanned != null)
               Positioned(
@@ -559,7 +686,7 @@ class _ProductSheet extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  errorWidget: (_, __, ___) => Container(
+                  errorWidget: (_, _, _) => Container(
                     width: 72, height: 72,
                     decoration: BoxDecoration(
                       color: AppColors.surfaceVariant,

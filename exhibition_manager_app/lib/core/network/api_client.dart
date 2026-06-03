@@ -97,6 +97,33 @@ class ApiClient {
     }
   }
 
+  /// Multipart POST (file upload). Only sets Authorization + Accept — the
+  /// MultipartRequest sets its own `multipart/form-data; boundary=…` header.
+  Future<ApiResult> postMultipart(
+    String url, {
+    Map<String, String>? fields,
+    required List<String> filePaths,
+    String fileField = 'photos[]',
+  }) async {
+    try {
+      final uri = Uri.parse(url);
+      debugPrint('🌐 POST(multipart) $uri (${filePaths.length} file(s))');
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Accept'] = 'application/json';
+      if (_token != null) request.headers['Authorization'] = 'Bearer $_token';
+      if (fields != null) request.fields.addAll(fields);
+      for (final path in filePaths) {
+        request.files.add(await http.MultipartFile.fromPath(fileField, path));
+      }
+      final streamed = await _client.send(request);
+      final response = await http.Response.fromStream(streamed);
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('❌ POST(multipart) Error: $e');
+      return ApiResult.error('خطأ في رفع الملف: $e');
+    }
+  }
+
   /// Handle HTTP response
   ApiResult _handleResponse(http.Response response) {
     debugPrint('📥 Status: ${response.statusCode}');

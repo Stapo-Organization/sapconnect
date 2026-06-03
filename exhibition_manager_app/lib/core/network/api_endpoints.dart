@@ -49,4 +49,12 @@ class ApiEndpoints {
 
   // ─── Dashboard Stats ──────────────────────────────────────
   static const String dashboardStats = '$baseUrl/dashboard-stats';
+
+  // ─── Quality Control ───────────────────────────────────────
+  static const String qualityTasks = '$baseUrl/quality-tasks';
+  static const String qualityTasksSummary = '$baseUrl/quality-tasks/summary';
+  static String qualityTask(int id) => '$baseUrl/quality-tasks/$id';
+  static String qualityTaskPhotos(int id) => '$baseUrl/quality-tasks/$id/photos';
+  static String qualityTaskPhoto(int id, int photoId) => '$baseUrl/quality-tasks/$id/photos/$photoId';
+  static String qualityTaskSubmit(int id) => '$baseUrl/quality-tasks/$id/submit';
 }

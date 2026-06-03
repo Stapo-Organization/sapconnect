@@ -23,6 +23,7 @@ class StatChip extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, size: 14, color: c),
           const SizedBox(width: 6),

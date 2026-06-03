@@ -19,6 +19,12 @@ IconData badgeIcon(String name) {
       return Icons.whatshot_rounded;
     case 'workspace_premium':
       return Icons.workspace_premium_rounded;
+    case 'verified':
+      return Icons.verified_rounded;
+    case 'verified_user':
+      return Icons.verified_user_rounded;
+    case 'cleaning_services':
+      return Icons.cleaning_services_rounded;
     default:
       return Icons.emoji_events_rounded;
   }

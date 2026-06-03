@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
@@ -8,6 +9,7 @@ import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/storage/secure_storage.dart';
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/core/localization/language_switch_overlay.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'package:exhibition_manager_app/features/auth/presentation/pages/login_page.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
@@ -132,7 +134,7 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.language_rounded, color: AppColors.primary, size: 22),
+                      Icon(Icons.language_rounded, color: AppDomain.profile.accent, size: 22),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         context.tr('language'),
@@ -150,19 +152,17 @@ class ProfilePage extends StatelessWidget {
                       // Arabic Toggle
                       Expanded(
                         child: GestureDetector(
-                          onTap: () async {
-                            if (!isArabic) {
-                              await AppLocalizations.toggleLanguage();
-                            }
+                          onTap: () {
+                            if (!isArabic) animatedLanguageSwitch(context);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
                             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
                             decoration: BoxDecoration(
-                              color: isArabic ? AppColors.primary : AppColors.background,
+                              color: isArabic ? AppDomain.profile.accent : AppColors.background,
                               borderRadius: AppRadius.borderMd,
                               border: Border.all(
-                                color: isArabic ? AppColors.primary : AppColors.borderLight,
+                                color: isArabic ? AppDomain.profile.accent : AppColors.borderLight,
                               ),
                             ),
                             child: Center(
@@ -181,19 +181,17 @@ class ProfilePage extends StatelessWidget {
                       // English Toggle
                       Expanded(
                         child: GestureDetector(
-                          onTap: () async {
-                            if (isArabic) {
-                              await AppLocalizations.toggleLanguage();
-                            }
+                          onTap: () {
+                            if (isArabic) animatedLanguageSwitch(context);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
                             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
                             decoration: BoxDecoration(
-                              color: !isArabic ? AppColors.primary : AppColors.background,
+                              color: !isArabic ? AppDomain.profile.accent : AppColors.background,
                               borderRadius: AppRadius.borderMd,
                               border: Border.all(
-                                color: !isArabic ? AppColors.primary : AppColors.borderLight,
+                                color: !isArabic ? AppDomain.profile.accent : AppColors.borderLight,
                               ),
                             ),
                             child: Center(
@@ -305,7 +303,7 @@ class _InfoTile extends StatelessWidget {
               color: AppColors.background,
               borderRadius: AppRadius.borderSm,
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: Icon(icon, color: AppDomain.profile.accent, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

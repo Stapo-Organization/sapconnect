@@ -50,6 +50,7 @@ class AppTheme {
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textOnPrimary,
+          leadingDistribution: TextLeadingDistribution.even,
         ),
         iconTheme: IconThemeData(color: AppColors.textOnPrimary),
       ),
@@ -68,6 +69,7 @@ class AppTheme {
             fontFamily: AppTypography.fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            leadingDistribution: TextLeadingDistribution.even,
           ),
         ),
       ),
@@ -84,6 +86,7 @@ class AppTheme {
             fontFamily: AppTypography.fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            leadingDistribution: TextLeadingDistribution.even,
           ),
         ),
       ),
@@ -95,16 +98,20 @@ class AppTheme {
             fontFamily: AppTypography.fontFamily,
             fontSize: 14,
             fontWeight: FontWeight.w600,
+            leadingDistribution: TextLeadingDistribution.even,
           ),
         ),
       ),
 
       // ─── FAB ───────────────────────────────────────────────
+      // Stadium (pill) shape — all FABs in the app are `.extended`; a global
+      // CircleBorder would clip the extended pill to a circle and push the
+      // label outside the colored shape.
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textOnPrimary,
         elevation: 4,
-        shape: CircleBorder(),
+        shape: StadiumBorder(),
       ),
 
       // ─── Input ─────────────────────────────────────────────
@@ -164,6 +171,7 @@ class AppTheme {
             fontSize: 11.5,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             color: selected ? AppColors.primary : AppColors.textTertiary,
+            leadingDistribution: TextLeadingDistribution.even,
           );
         }),
       ),

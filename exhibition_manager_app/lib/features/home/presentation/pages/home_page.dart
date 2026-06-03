@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
@@ -17,6 +18,11 @@ import 'package:exhibition_manager_app/features/inventory_counting/data/models/c
 import 'package:exhibition_manager_app/features/inventory_counting/presentation/pages/cycle_count_detail_page.dart';
 import 'package:exhibition_manager_app/features/gamification/data/gamification_repository.dart';
 import 'package:exhibition_manager_app/features/gamification/data/models/gamification_models.dart';
+import 'package:exhibition_manager_app/features/quality_control/data/quality_control_repository.dart';
+import 'package:exhibition_manager_app/features/quality_control/data/models/quality_task_models.dart';
+import 'package:exhibition_manager_app/features/quality_control/presentation/widgets/quality_task_card.dart';
+import 'package:exhibition_manager_app/features/quality_control/presentation/pages/quality_tasks_page.dart';
+import 'package:exhibition_manager_app/features/quality_control/presentation/pages/quality_task_detail_page.dart';
 
 /// Home Dashboard Page — Shows real stats and navigable cards (Bilingual & Premium Redesign)
 class HomePage extends StatefulWidget {
@@ -32,6 +38,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final CountingRepository _countingRepo = CountingRepository();
   final GamificationRepository _gamRepo = GamificationRepository();
+  final QualityControlRepository _qcRepo = QualityControlRepository();
 
   int _pendingSend = 0;
   int _pendingReceive = 0;
@@ -41,6 +48,8 @@ class _HomePageState extends State<HomePage> {
 
   List<CountingSession> _tasks = [];
   GamificationProfile? _gam;
+  int _qcDue = 0;
+  List<QualityTaskInstance> _qcTasks = [];
 
   @override
   void initState() {
@@ -75,6 +84,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadExtras() async {
     final sched = await _countingRepo.getSchedule();
     final gam = await _gamRepo.getMe();
+    final qc = await _qcRepo.getSummary();
     if (!mounted) return;
     setState(() {
       _gam = gam.data;
@@ -86,6 +96,8 @@ class _HomePageState extends State<HomePage> {
         }
       }
       _tasks = tasks;
+      _qcDue = qc.dueCount;
+      _qcTasks = qc.due;
     });
   }
 
@@ -228,6 +240,10 @@ class _HomePageState extends State<HomePage> {
                 if (_gam != null)
                   SliverToBoxAdapter(child: _buildGamStrip(context)),
 
+                // ─── Quality Tasks ──────────────────────────────
+                if (_qcDue > 0)
+                  SliverToBoxAdapter(child: _buildQualitySection(context)),
+
                 // ─── Your Tasks ─────────────────────────────────
                 if (_tasks.isNotEmpty)
                   SliverToBoxAdapter(child: _buildTasks(context)),
@@ -253,8 +269,8 @@ class _HomePageState extends State<HomePage> {
                               child: _QuickActionCard(
                                 icon: Icons.swap_horiz_rounded,
                                 label: context.tr('stock_transfers'),
-                                color: AppColors.primary,
-                                bgColor: AppColors.primary.withValues(alpha: 0.08),
+                                color: AppDomain.transfers.accent,
+                                bgColor: AppDomain.transfers.soft,
                                 onTap: () => widget.onNavigateToTab?.call(1),
                               ),
                             ),
@@ -263,9 +279,23 @@ class _HomePageState extends State<HomePage> {
                               child: _QuickActionCard(
                                 icon: Icons.qr_code_scanner_rounded,
                                 label: context.tr('start_new_count'),
-                                color: AppColors.success,
-                                bgColor: AppColors.success.withValues(alpha: 0.08),
+                                color: AppDomain.counting.accent,
+                                bgColor: AppDomain.counting.soft,
                                 onTap: () => widget.onNavigateToTab?.call(2),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: _QuickActionCard(
+                                icon: Icons.verified_rounded,
+                                label: context.tr('quality_tasks'),
+                                color: AppDomain.quality.accent,
+                                bgColor: AppDomain.quality.soft,
+                                badge: _qcDue > 0 ? _qcDue : null,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const QualityTasksPage()),
+                                ).then((_) => _loadExtras()),
                               ),
                             ),
                           ],
@@ -299,7 +329,7 @@ class _HomePageState extends State<HomePage> {
                             icon: Icons.local_shipping_outlined,
                             title: context.tr('transfers_pending_send'),
                             value: _isLoading ? '...' : '$_pendingSend',
-                            color: AppColors.warning,
+                            color: AppDomain.transfers.accent,
                             onTap: () => widget.onNavigateToTab?.call(1),
                           ).animate().fadeIn(delay: 80.ms, duration: 350.ms).slideX(begin: 0.06, end: 0),
                           const SizedBox(height: AppSpacing.md),
@@ -307,7 +337,7 @@ class _HomePageState extends State<HomePage> {
                             icon: Icons.inventory_outlined,
                             title: context.tr('transfers_pending_receive'),
                             value: _isLoading ? '...' : '$_pendingReceive',
-                            color: AppColors.primary,
+                            color: AppDomain.transfers.accentDark,
                             onTap: () => widget.onNavigateToTab?.call(1),
                           ).animate().fadeIn(delay: 160.ms, duration: 350.ms).slideX(begin: 0.06, end: 0),
                           const SizedBox(height: AppSpacing.md),
@@ -315,7 +345,7 @@ class _HomePageState extends State<HomePage> {
                             icon: Icons.assignment_outlined,
                             title: context.tr('active_counting_sessions'),
                             value: _isLoading ? '...' : '$_inProgressCounting',
-                            color: AppColors.success,
+                            color: AppDomain.counting.accent,
                             onTap: () => widget.onNavigateToTab?.call(2),
                           ).animate().fadeIn(delay: 240.ms, duration: 350.ms).slideX(begin: 0.06, end: 0),
                         ],
@@ -379,6 +409,54 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ─── Quality Tasks (due today) ──────────────────────────────
+  Widget _buildQualitySection(BuildContext context) {
+    final tasks = _qcTasks.take(3).toList();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_rounded, color: AppDomain.quality.accent, size: 20),
+              const SizedBox(width: 6),
+              Text(context.tr('quality_tasks'),
+                  style: AppTypography.titleMedium.copyWith(
+                      color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                decoration: BoxDecoration(color: AppDomain.quality.accent, borderRadius: BorderRadius.circular(999)),
+                child: Text('$_qcDue',
+                    style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const QualityTasksPage()),
+                ).then((_) => _loadExtras()),
+                child: Text(context.tr('view_all'),
+                    style: AppTypography.labelMedium.copyWith(
+                        color: AppDomain.quality.accentDark, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          for (final t in tasks)
+            QualityTaskCard(
+              task: t,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => QualityTaskDetailPage(instanceId: t.id)),
+              ).then((_) => _loadExtras()),
+            ),
+        ],
+      ),
+    );
+  }
+
   // ─── Your Tasks (due/overdue cycle counts) ──────────────────
   Widget _buildTasks(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
@@ -396,7 +474,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(width: AppSpacing.sm),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(999)),
+                decoration: BoxDecoration(color: AppDomain.counting.accent, borderRadius: BorderRadius.circular(999)),
                 child: Text('${_tasks.length}',
                     style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
@@ -427,11 +505,11 @@ class _HomePageState extends State<HomePage> {
               height: 42,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: (overdue ? AppColors.error : AppColors.primary).withValues(alpha: 0.10),
+                color: (overdue ? AppColors.error : AppDomain.counting.accent).withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(Icons.autorenew_rounded,
-                  color: overdue ? AppColors.error : AppColors.primary, size: 22),
+                  color: overdue ? AppColors.error : AppDomain.counting.accent, size: 22),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -487,6 +565,7 @@ class _QuickActionCard extends StatelessWidget {
   final Color color;
   final Color bgColor;
   final VoidCallback onTap;
+  final int? badge;
 
   const _QuickActionCard({
     required this.icon,
@@ -494,18 +573,16 @@ class _QuickActionCard extends StatelessWidget {
     required this.color,
     required this.bgColor,
     required this.onTap,
+    this.badge,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: AppRadius.borderLg,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.borderLg,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xl),
+    return Pressable(
+      onTap: onTap,
+      borderRadius: AppRadius.borderXl,
+      child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: AppRadius.borderXl,
@@ -514,19 +591,44 @@ class _QuickActionCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: AppRadius.borderMd,
-                ),
-                child: Icon(icon, color: color, size: 30),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: AppRadius.borderMd,
+                    ),
+                    child: Icon(icon, color: color, size: 28),
+                  ),
+                  if (badge != null)
+                    Positioned(
+                      top: -6,
+                      right: -6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        constraints: const BoxConstraints(minWidth: 18),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: AppColors.surface, width: 1.5),
+                        ),
+                        child: Text('$badge',
+                            style: AppTypography.labelSmall.copyWith(
+                                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.base),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: AppTypography.labelLarge.copyWith(
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelMedium.copyWith(
                   color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   height: 1.2,
@@ -535,7 +637,6 @@ class _QuickActionCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }
@@ -559,13 +660,10 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
-    return Material(
-      color: AppColors.surface,
-      borderRadius: AppRadius.borderLg,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.borderLg,
-        child: Container(
+    return Pressable(
+      onTap: onTap,
+      borderRadius: AppRadius.borderXl,
+      child: Container(
           padding: const EdgeInsets.all(AppSpacing.base),
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -618,7 +716,6 @@ class _StatCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

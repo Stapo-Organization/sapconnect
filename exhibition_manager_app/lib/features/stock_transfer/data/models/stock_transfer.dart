@@ -21,6 +21,9 @@ class StockTransfer {
   final String? receiverNotes;
   final bool canSend;
   final bool canReceive;
+  final bool isOutgoing;
+  final bool isIncoming;
+  final int linesCount;
   final List<String> images;
   final List<StockTransferLine> lines;
 
@@ -46,6 +49,9 @@ class StockTransfer {
     this.receiverNotes,
     required this.canSend,
     required this.canReceive,
+    this.isOutgoing = false,
+    this.isIncoming = false,
+    this.linesCount = 0,
     required this.images,
     required this.lines,
   });
@@ -73,6 +79,9 @@ class StockTransfer {
       receiverNotes: json['receiver_notes'],
       canSend: json['can_send'] ?? false,
       canReceive: json['can_receive'] ?? false,
+      isOutgoing: json['is_outgoing'] ?? false,
+      isIncoming: json['is_incoming'] ?? false,
+      linesCount: json['lines_count'] ?? (json['lines'] as List?)?.length ?? 0,
       images: (json['images'] as List?)?.map((e) => e.toString()).toList() ?? [],
       lines: (json['lines'] as List?)
               ?.map((e) => StockTransferLine.fromJson(e))

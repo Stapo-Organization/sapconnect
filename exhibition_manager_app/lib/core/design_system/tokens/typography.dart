@@ -3,10 +3,19 @@ import 'package:flutter/material.dart';
 /// Muntajat Exhibition Manager — Design Tokens: Typography
 ///
 /// Uses Cairo font for Arabic-first UI with fallback to system fonts.
+///
+/// All styles use [TextLeadingDistribution.even] so the extra line-height
+/// (`height` multiplier) is split evenly above and below the glyph. This keeps
+/// single-line labels visually centered inside fixed-height pills/tabs/buttons
+/// (otherwise Cairo glyphs float toward the top of their line box) without
+/// changing line-height totals or paragraph wrapping.
 class AppTypography {
   AppTypography._();
 
   static const String fontFamily = 'Cairo';
+
+  static const TextLeadingDistribution _evenLeading =
+      TextLeadingDistribution.even;
 
   // ─── Display (hero numbers, points, big stats) ─────────────
   static const TextStyle displayLarge = TextStyle(
@@ -15,6 +24,7 @@ class AppTypography {
     fontWeight: FontWeight.w800,
     height: 1.1,
     letterSpacing: -1,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle displayMedium = TextStyle(
@@ -23,6 +33,7 @@ class AppTypography {
     fontWeight: FontWeight.w800,
     height: 1.15,
     letterSpacing: -0.5,
+    leadingDistribution: _evenLeading,
   );
 
   // ─── Headline ──────────────────────────────────────────────
@@ -32,6 +43,7 @@ class AppTypography {
     fontWeight: FontWeight.w700,
     height: 1.3,
     letterSpacing: -0.5,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle headlineMedium = TextStyle(
@@ -39,6 +51,7 @@ class AppTypography {
     fontSize: 24,
     fontWeight: FontWeight.w600,
     height: 1.3,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle headlineSmall = TextStyle(
@@ -46,6 +59,7 @@ class AppTypography {
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.3,
+    leadingDistribution: _evenLeading,
   );
 
   // ─── Title ─────────────────────────────────────────────────
@@ -54,6 +68,7 @@ class AppTypography {
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.4,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle titleMedium = TextStyle(
@@ -61,6 +76,7 @@ class AppTypography {
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.4,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle titleSmall = TextStyle(
@@ -68,6 +84,7 @@ class AppTypography {
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.4,
+    leadingDistribution: _evenLeading,
   );
 
   // ─── Body ──────────────────────────────────────────────────
@@ -76,6 +93,7 @@ class AppTypography {
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle bodyMedium = TextStyle(
@@ -83,6 +101,7 @@ class AppTypography {
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.5,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle bodySmall = TextStyle(
@@ -90,6 +109,7 @@ class AppTypography {
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.5,
+    leadingDistribution: _evenLeading,
   );
 
   // ─── Label ─────────────────────────────────────────────────
@@ -98,6 +118,7 @@ class AppTypography {
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.4,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle labelMedium = TextStyle(
@@ -105,6 +126,7 @@ class AppTypography {
     fontSize: 12,
     fontWeight: FontWeight.w600,
     height: 1.4,
+    leadingDistribution: _evenLeading,
   );
 
   static const TextStyle labelSmall = TextStyle(
@@ -112,5 +134,6 @@ class AppTypography {
     fontSize: 11,
     fontWeight: FontWeight.w500,
     height: 1.4,
+    leadingDistribution: _evenLeading,
   );
 }

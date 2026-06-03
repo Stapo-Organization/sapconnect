@@ -5,7 +5,9 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>التطبيق يحتاج الكاميرا لمسح الباركود أثناء الجرد وتأكيد التحويلات</string>
+	<string>التطبيق يحتاج الكاميرا لمسح الباركود وتصوير أدلة مهام الجودة</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>التطبيق يحتاج الوصول للصور لرفع أدلة مهام الجودة</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

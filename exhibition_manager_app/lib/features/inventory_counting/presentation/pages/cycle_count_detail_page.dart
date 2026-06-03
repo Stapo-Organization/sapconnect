@@ -13,6 +13,8 @@ import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/cycle_target.dart';
+import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
+import 'package:exhibition_manager_app/features/inventory_counting/presentation/widgets/counting_line_card.dart';
 import 'package:exhibition_manager_app/features/gamification/presentation/widgets/celebration_overlay.dart';
 import 'barcode_scanner_page.dart';
 
@@ -29,10 +31,12 @@ class CycleCountDetailPage extends StatefulWidget {
 
 class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
   final CountingRepository _repo = CountingRepository();
-  CycleTargetsResponse? _data;
+  CycleTargetsResponse? _data;     // checklist + progress + ABC
+  CountingSession? _session;       // editable entered records (lines)
   bool _loading = true;
   bool _hasError = false;
   String? _filter; // null = all, else 'A'/'B'/'C'
+  int _tab = 0;    // 0 = Targets checklist, 1 = My Records
 
   @override
   void initState() {
@@ -46,27 +50,97 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
       _loading = true;
       _hasError = false;
     });
-    final res = await _repo.getCycleTargets(widget.sessionId);
+    // Load the checklist (targets/progress) and the entered records (lines)
+    // together — one reload keeps the ring, ABC counts and records consistent.
+    final results = await Future.wait([
+      _repo.getCycleTargets(widget.sessionId),
+      _repo.getSession(widget.sessionId),
+    ]);
+    final targets = results[0] as ({bool success, CycleTargetsResponse? data, String? error});
+    final session = results[1] as ({bool success, CountingSession? session, String? error});
     if (mounted) {
       setState(() {
-        _data = res.data;
+        _data = targets.data;
+        _session = session.session;
         _loading = false;
-        _hasError = !res.success;
+        _hasError = !targets.success || _data == null;
       });
     }
   }
 
   Future<void> _openScanner() async {
+    final codes = _data?.items.map((i) => i.itemCode).toSet();
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BarcodeScannerPage(
           countingSessionId: widget.sessionId,
           mode: ScanMode.inventoryCounting,
+          isCycle: true,
+          cycleTargetCodes: codes,
         ),
       ),
     );
     _load();
+  }
+
+  Future<void> _editQuantity(CountingLine line) async {
+    final isArabic = AppLocalizations.isArabic;
+    final controller = TextEditingController(text: line.countedQuantity.toInt().toString());
+    final newQty = await showDialog<double>(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          title: Text(line.getLocalizedName(isArabic)),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            textAlign: TextAlign.center,
+            style: AppTypography.titleLarge,
+            decoration: InputDecoration(labelText: context.tr('quantity')),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.tr('cancel'))),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, double.tryParse(controller.text)),
+              child: Text(context.tr('update')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (newQty != null && newQty > 0) {
+      await _repo.updateLine(widget.sessionId, line.id, newQty);
+      await _load(); // refresh ring/by-class/records together
+    }
+  }
+
+  Future<void> _deleteLine(CountingLine line) async {
+    final isArabic = AppLocalizations.isArabic;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          title: Text(context.tr('delete_record')),
+          content: Text(context.tr('delete_record_confirm')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.tr('cancel'))),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+              child: Text(context.tr('delete')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirm == true) {
+      await _repo.deleteLine(widget.sessionId, line.id);
+      await _load(); // deleting the last record for an item un-ticks its target
+    }
   }
 
   Future<void> _complete() async {
@@ -145,8 +219,12 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
                     child: CustomScrollView(
                       slivers: [
                         SliverToBoxAdapter(child: _buildHero()),
-                        SliverToBoxAdapter(child: _buildAbcFilter()),
-                        _buildList(),
+                        SliverToBoxAdapter(child: _buildTabBar()),
+                        if (_tab == 0) ...[
+                          SliverToBoxAdapter(child: _buildAbcFilter()),
+                          _buildList(),
+                        ] else
+                          _buildRecordsList(),
                         const SliverToBoxAdapter(child: SizedBox(height: 100)),
                       ],
                     ),
@@ -171,52 +249,186 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
     final d = _data!;
     final p = d.progress;
     final overdue = _isOverdue(d.scheduledDate);
+    final classes = ['A', 'B', 'C'].where((c) => (p.byClass[c]?.total ?? 0) > 0).toList();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.sm),
       child: AppCard(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProgressRing(percent: p.percent, size: 104, stroke: 11),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (d.planName != null)
-                    Text(d.planName!,
-                        style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
-                        maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 6),
-                  Row(
+            Row(
+              children: [
+                ProgressRing(percent: p.percent, size: 96, stroke: 10),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${p.countedTargets}',
-                          style: AppTypography.displayMedium.copyWith(color: AppColors.primary)),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(' / ${p.totalTargets}',
-                            style: AppTypography.titleMedium.copyWith(color: AppColors.textTertiary)),
+                      if (d.planName != null)
+                        Text(d.planName!,
+                            style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
+                            maxLines: 2, overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text('${p.countedTargets}',
+                              style: AppTypography.displayMedium.copyWith(color: AppColors.primary)),
+                          Text(' / ${p.totalTargets}',
+                              style: AppTypography.titleMedium.copyWith(color: AppColors.textTertiary)),
+                          const SizedBox(width: 6),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 3),
+                            child: Text(context.tr('counted_label'),
+                                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (d.scheduledDate != null)
+                        StatusBadge(
+                          label: '${overdue ? context.tr('overdue_label') : context.tr('due_label')} • ${_formatDate(d.scheduledDate)}',
+                          color: overdue ? AppColors.error : AppColors.primary,
+                          icon: overdue ? Icons.warning_amber_rounded : Icons.event_rounded,
+                        ),
                     ],
                   ),
-                  Text('${p.remaining} ${context.tr('remaining_items')}',
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
-                  const SizedBox(height: AppSpacing.sm),
-                  if (d.scheduledDate != null)
-                    StatusBadge(
-                      label: overdue
-                          ? context.tr('overdue_label')
-                          : '${context.tr('due_label')} • ${d.scheduledDate}',
-                      color: overdue ? AppColors.error : AppColors.primary,
-                      icon: overdue ? Icons.warning_amber_rounded : Icons.event_rounded,
-                    ),
+                ),
+              ],
+            ),
+            if (classes.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.base),
+              const Divider(height: 1),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  for (int i = 0; i < classes.length; i++) ...[
+                    if (i > 0) const SizedBox(width: AppSpacing.md),
+                    Expanded(child: _classMiniBar(classes[i], p.byClass[classes[i]]!)),
+                  ],
                 ],
               ),
-            ),
+            ],
+            if (p.offListScans > 0) ...[
+              const SizedBox(height: AppSpacing.md),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: StatusBadge(
+                  label: context.tr('off_list_scans_n').replaceAll('{n}', '${p.offListScans}'),
+                  color: AppColors.warning,
+                  icon: Icons.report_gmailerrorred_rounded,
+                ),
+              ),
+            ],
           ],
         ),
       ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, end: 0),
+    );
+  }
+
+  Color _classColor(String cls) {
+    switch (cls) {
+      case 'A':
+        return AppColors.error;
+      case 'B':
+        return AppColors.warning;
+      default:
+        return AppColors.textTertiary;
+    }
+  }
+
+  Widget _classMiniBar(String cls, ClassProgress cp) {
+    final color = _classColor(cls);
+    final pct = cp.total > 0 ? (cp.counted / cp.total).clamp(0.0, 1.0) : 0.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: AppRadius.borderXs,
+              ),
+              child: Text(cls,
+                  style: AppTypography.labelSmall.copyWith(
+                      color: color, fontWeight: FontWeight.w800, fontSize: 10)),
+            ),
+            const Spacer(),
+            Text('${cp.counted}/${cp.total}',
+                style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+          ],
+        ),
+        const SizedBox(height: 5),
+        ClipRRect(
+          borderRadius: AppRadius.borderFull,
+          child: LinearProgressIndicator(
+            value: pct,
+            minHeight: 6,
+            backgroundColor: color.withValues(alpha: 0.12),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Tabs: Targets | My Records ─────────────────────────────
+  Widget _buildTabBar() {
+    final total = _data!.progress.totalTargets;
+    final records = _session?.lines.length ?? 0;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.xs, AppSpacing.base, AppSpacing.sm),
+      child: AppSegmentedControl(
+        items: [
+          SegmentItem(context.tr('cycle_targets_tab'), icon: Icons.checklist_rounded, badge: total),
+          SegmentItem(context.tr('cycle_records_tab'), icon: Icons.receipt_long_rounded, badge: records),
+        ],
+        selectedIndex: _tab,
+        onChanged: (i) => setState(() => _tab = i),
+      ),
+    );
+  }
+
+  // ─── My Records (entered lines, editable) ───────────────────
+  Widget _buildRecordsList() {
+    final lines = _session?.lines ?? [];
+    if (lines.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.xxl),
+          child: EmptyState(
+            icon: Icons.qr_code_scanner_rounded,
+            title: context.tr('no_records_yet'),
+            subtitle: context.tr('no_records_yet_hint'),
+          ),
+        ),
+      );
+    }
+    final canEdit = _data?.status == 'in_progress';
+    final records = withEntryNumbers(lines);
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+      sliver: SliverList.builder(
+        itemCount: records.length,
+        itemBuilder: (context, i) {
+          final r = records[i];
+          return CountingLineCard(
+            line: r.line,
+            entryNumber: r.entry,
+            canEdit: canEdit,
+            onEdit: () => _editQuantity(r.line),
+            onDelete: () => _deleteLine(r.line),
+          );
+        },
+      ),
     );
   }
 
@@ -274,7 +486,10 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
     final d = _data;
     if (d == null || d.status != 'in_progress') return null;
     final p = d.progress;
-    final canComplete = p.countedTargets > 0;
+    // Enable once any record exists (backend requires ≥1 line). Gating on
+    // countedTargets alone could leave the button stuck when only off-list
+    // legacy records are present.
+    final canComplete = (_session?.lines.isNotEmpty ?? false) || p.countedTargets > 0;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.base),
@@ -294,6 +509,17 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
     if (d == null) return false;
     final today = DateTime.now();
     return d.isBefore(DateTime(today.year, today.month, today.day));
+  }
+
+  /// Format an ISO date/datetime to a clean `yyyy-MM-dd` (the API may return a
+  /// full timestamp; never show the raw ISO string to the user).
+  String _formatDate(String? date) {
+    if (date == null) return '';
+    final d = DateTime.tryParse(date);
+    if (d == null) return date;
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '${d.year}-$m-$day';
   }
 }
 

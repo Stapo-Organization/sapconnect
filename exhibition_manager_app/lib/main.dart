@@ -37,9 +37,15 @@ class MuntajatExhibitionApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           locale: currentLocale,
           builder: (context, child) {
-            return Directionality(
-              textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-              child: child!,
+            // LocaleScope sits above the Navigator so every route (even ones
+            // already pushed) that reads text via context.tr rebuilds when the
+            // language changes — not just the global text direction.
+            return LocaleScope(
+              locale: currentLocale,
+              child: Directionality(
+                textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                child: child!,
+              ),
             );
           },
           home: const SplashPage(),

@@ -42,6 +42,10 @@ class AppSegmentedControl extends StatelessWidget {
             border: Border.all(color: AppColors.borderLight),
           ),
           child: Stack(
+            // Center non-positioned children vertically. Without this the Stack
+            // defaults to topStart and pins the label Row to the top of the
+            // 38px box — which is the "raised tab text" the labels suffered from.
+            alignment: Alignment.center,
             children: [
               AnimatedAlign(
                 duration: const Duration(milliseconds: 220),
@@ -81,6 +85,7 @@ class AppSegmentedControl extends StatelessWidget {
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           if (item.icon != null) ...[
                             Icon(item.icon,

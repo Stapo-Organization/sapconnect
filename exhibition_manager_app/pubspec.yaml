@@ -21,6 +21,9 @@ dependencies:
   # Barcode Scanner
   mobile_scanner: ^7.0.0
 
+  # Camera / photo capture (Quality Control evidence)
+  image_picker: ^1.1.2
+
   # UI Components
   cached_network_image: ^3.4.0
   shimmer: ^3.0.0

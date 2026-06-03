@@ -80,7 +80,7 @@ class CountingSession {
       case 'cycle':
         return 'جرد دوري';
       default:
-        return 'جرد كامل';
+        return 'جرد سنوي';
     }
   }
 
@@ -186,6 +186,13 @@ class ScannedProduct {
   final String imageUrl;
   final CountingLine? existingLine;
 
+  /// Cycle-count gating: whether this item is part of the session's target
+  /// list. `null` for full counts (which accept any product).
+  final bool? inTargetList;
+
+  /// ABC class of the target item (cycle only, else null).
+  final String? abcClass;
+
   ScannedProduct({
     required this.itemCode,
     required this.itemName,
@@ -194,6 +201,8 @@ class ScannedProduct {
     this.pieceBarcode,
     required this.imageUrl,
     this.existingLine,
+    this.inTargetList,
+    this.abcClass,
   });
 
   factory ScannedProduct.fromJson(Map<String, dynamic> json) {
@@ -214,6 +223,8 @@ class ScannedProduct {
               countedQuantity: (existing['counted_quantity'] ?? 0).toDouble(),
             )
           : null,
+      inTargetList: json['in_target_list'] as bool?,
+      abcClass: json['abc_class'] as String?,
     );
   }
 

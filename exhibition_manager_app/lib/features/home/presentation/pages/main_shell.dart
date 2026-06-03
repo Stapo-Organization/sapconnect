@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'home_page.dart';
@@ -18,18 +21,29 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
 
+  late final AnimationController _transition;
   late final List<Widget> _pages;
 
+  /// Switch tab with a short fade + rise so navigation feels intentional
+  /// instead of a hard cut. IndexedStack keeps every tab's state alive.
   void _navigateToTab(int index) {
+    if (index == _currentIndex) return;
+    HapticFeedback.selectionClick();
     setState(() => _currentIndex = index);
+    _transition.forward(from: 0);
   }
 
   @override
   void initState() {
     super.initState();
+    _transition = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: 1, // first frame (home) is fully visible — no launch flash
+    );
     _pages = [
       HomePage(user: widget.user, onNavigateToTab: _navigateToTab),
       const TransfersListPage(),
@@ -40,14 +54,42 @@ class _MainShellState extends State<MainShell> {
   }
 
   @override
+  void dispose() {
+    _transition.dispose();
+    super.dispose();
+  }
+
+  static const List<AppDomain> _tabDomains = [
+    AppDomain.home,
+    AppDomain.transfers,
+    AppDomain.counting,
+    AppDomain.achievements,
+    AppDomain.profile,
+  ];
+
+  @override
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
+    final domain = _tabDomains[_currentIndex];
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _pages,
+        body: AnimatedBuilder(
+          animation: _transition,
+          builder: (context, child) {
+            final t = Curves.easeOutCubic.transform(_transition.value);
+            return Opacity(
+              opacity: t,
+              child: Transform.translate(
+                offset: Offset(0, (1 - t) * 14),
+                child: child,
+              ),
+            );
+          },
+          child: IndexedStack(
+            index: _currentIndex,
+            children: _pages,
+          ),
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
@@ -62,9 +104,32 @@ class _MainShellState extends State<MainShell> {
           ),
           child: SafeArea(
             top: false,
-            child: NavigationBar(
+            // Tint the active destination with its domain accent so moving
+            // between tabs carries a subtle, animated sense of place.
+            child: NavigationBarTheme(
+              data: NavigationBarThemeData(
+                indicatorColor: domain.soft,
+                iconTheme: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return IconThemeData(
+                    size: 24,
+                    color: selected ? domain.accent : AppColors.textTertiary,
+                  );
+                }),
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return TextStyle(
+                    fontFamily: AppTypography.fontFamily,
+                    fontSize: 11.5,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? domain.accent : AppColors.textTertiary,
+                    leadingDistribution: TextLeadingDistribution.even,
+                  );
+                }),
+              ),
+              child: NavigationBar(
               selectedIndex: _currentIndex,
-              onDestinationSelected: (i) => setState(() => _currentIndex = i),
+              onDestinationSelected: _navigateToTab,
               destinations: [
                 NavigationDestination(
                   icon: const Icon(Icons.dashboard_outlined),
@@ -92,6 +157,7 @@ class _MainShellState extends State<MainShell> {
                   label: context.tr('nav_profile'),
                 ),
               ],
+              ),
             ),
           ),
         ),

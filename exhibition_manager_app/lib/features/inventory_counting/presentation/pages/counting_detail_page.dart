@@ -8,11 +8,10 @@ import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
+import 'package:exhibition_manager_app/features/inventory_counting/presentation/widgets/counting_line_card.dart';
 import 'barcode_scanner_page.dart';
 import 'variance_report_page.dart';
 import 'package:exhibition_manager_app/features/gamification/presentation/widgets/celebration_overlay.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 /// Counting Detail Page — View and manage a single counting session
@@ -270,37 +269,26 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
 
                         // ─── Lines ───────────────────────
                         Text(
-                          'المنتجات المجرودة (${_session!.lines.length})',
+                          context.tr('counted_products_n').replaceAll('{n}', '${_session!.lines.length}'),
                           style: AppTypography.titleMedium,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         if (_session!.lines.isEmpty)
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.xxl),
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Icon(Icons.qr_code_scanner, size: 48, color: AppColors.textTertiary),
-                                  const SizedBox(height: AppSpacing.md),
-                                  Text(
-                                    'لم يتم سكان أي منتج بعد',
-                                    style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    'اضغط على "سكان باركود" للبدء',
-                                    style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
-                                  ),
-                                ],
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.xl),
+                            child: EmptyState(
+                              icon: Icons.qr_code_scanner_rounded,
+                              title: context.tr('no_records_yet'),
+                              subtitle: context.tr('no_records_yet_hint'),
                             ),
                           )
                         else
-                          ..._session!.lines.map((line) => _LineCard(
-                                line: line,
+                          ...withEntryNumbers(_session!.lines).map((r) => CountingLineCard(
+                                line: r.line,
+                                entryNumber: r.entry,
                                 canEdit: _session!.isInProgress,
-                                onEdit: () => _editQuantity(line),
-                                onDelete: () => _deleteLine(line),
+                                onEdit: () => _editQuantity(r.line),
+                                onDelete: () => _deleteLine(r.line),
                               )),
 
                         const SizedBox(height: AppSpacing.huge),
@@ -396,96 +384,6 @@ class _InfoRow extends StatelessWidget {
         children: [
           Text(label, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
           Flexible(child: Text(value, style: AppTypography.labelLarge.copyWith(color: AppColors.textPrimary), textAlign: TextAlign.end)),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Line Card ────────────────────────────────────────────
-class _LineCard extends StatelessWidget {
-  final CountingLine line;
-  final bool canEdit;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _LineCard({
-    required this.line,
-    required this.canEdit,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.borderMd,
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Row(
-        children: [
-          // Product image
-          ClipRRect(
-            borderRadius: AppRadius.borderSm,
-            child: CachedNetworkImage(
-              imageUrl: line.imageUrl ?? '',
-              width: 48, height: 48, fit: BoxFit.cover,
-              placeholder: (context, url) => Shimmer.fromColors(
-                baseColor: AppColors.surfaceVariant,
-                highlightColor: AppColors.surface,
-                child: Container(
-                  width: 48, height: 48,
-                  color: Colors.white,
-                ),
-              ),
-              errorWidget: (_, __, ___) => Container(
-                width: 48, height: 48,
-                color: AppColors.surfaceVariant,
-                child: const Icon(Icons.image_not_supported, size: 24, color: AppColors.textTertiary),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(line.getLocalizedName(AppLocalizations.isArabic),
-                    style: AppTypography.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text('${line.pieceBarcode ?? ""} • ${line.itemCode}',
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
-              ],
-            ),
-          ),
-          // Quantity badge
-          GestureDetector(
-            onTap: canEdit ? onEdit : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: AppRadius.borderSm,
-              ),
-              child: Text(
-                '${line.countedQuantity.toInt()}',
-                style: AppTypography.titleMedium.copyWith(color: AppColors.primary),
-              ),
-            ),
-          ),
-          if (canEdit) ...[
-            const SizedBox(width: AppSpacing.xs),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
-              onPressed: onDelete,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32),
-            ),
-          ],
         ],
       ),
     );
