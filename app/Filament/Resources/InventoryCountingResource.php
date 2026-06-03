@@ -99,10 +99,11 @@ class InventoryCountingResource extends Resource
                     Forms\Components\Select::make('status')
                         ->label(__('Status'))
                         ->options([
-                            'draft' => __('Draft'),
+                            'in_progress' => __('In Progress'),
+                            'cancelled' => __('Cancelled'),
                             'completed' => __('Completed'),
                         ])
-                        ->default('draft')
+                        ->default('in_progress')
                         ->disabled(),
 
                     Forms\Components\Textarea::make('notes')
@@ -132,15 +133,76 @@ class InventoryCountingResource extends Resource
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('Status'))
                     ->colors([
-                        'warning' => 'draft',
+                        'warning' => 'in_progress',
+                        'danger' => 'cancelled',
                         'success' => 'completed',
                     ])
-                    ->formatStateUsing(fn (string $state) => $state === 'draft' ? __('Draft') : __('Completed')),
+                    ->formatStateUsing(fn (string $state) => match ($state) {
+                        'in_progress' => __('In Progress'),
+                        'cancelled' => __('Cancelled'),
+                        'completed' => __('Completed'),
+                        default => $state,
+                    }),
 
-                Tables\Columns\TextColumn::make('lines_count')
-                    ->counts('lines')
-                    ->label(__('Items Count'))
-                    ->sortable(),
+                Tables\Columns\BadgeColumn::make('counting_type')
+                    ->label(__('Type'))
+                    ->colors([
+                        'primary' => 'full',
+                        'info' => 'cycle',
+                    ])
+                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                        'cycle' => __('Cycle Count'),
+                        default => __('Full Count'),
+                    }),
+
+                Tables\Columns\TextColumn::make('priority')
+                    ->label(__('Priority'))
+                    ->badge()
+                    ->color(fn (?string $state) => match ($state) {
+                        'high' => 'danger',
+                        'low' => 'gray',
+                        default => 'warning',
+                    })
+                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                        'high' => __('High'),
+                        'low' => __('Low'),
+                        default => __('Medium'),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('progress')
+                    ->label(__('Progress'))
+                    ->html()
+                    ->state(function ($record) {
+                        $isCycle = $record->counting_type === 'cycle';
+                        $targetCodes = collect($record->target_items ?? [])->pluck('item_code')->filter();
+                        $total = $targetCodes->count();
+
+                        if (! $isCycle || $total === 0) {
+                            // Full counts (or cycle with no target): plain item count.
+                            $count = $record->lines()->count();
+                            return '<span style="font-weight:600;color:#475569">' . number_format($count) . ' ' . __('items') . '</span>';
+                        }
+
+                        $counted = $record->lines()
+                            ->whereIn('item_code', $targetCodes)
+                            ->distinct()
+                            ->count('item_code');
+                        $pct = $total > 0 ? (int) round($counted / $total * 100) : 0;
+                        $hex = $pct >= 100 ? '#22c55e' : ($pct >= 50 ? '#f59e0b' : '#ef4444');
+
+                        return <<<HTML
+                            <div style="min-width:120px">
+                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:3px">
+                                    <span style="font-weight:600;color:#475569">{$counted}/{$total}</span>
+                                    <span style="font-weight:700;color:{$hex}">{$pct}%</span>
+                                </div>
+                                <div style="background:rgba(148,163,184,.25);border-radius:9999px;height:6px;overflow:hidden">
+                                    <div style="width:{$pct}%;height:6px;background:{$hex};border-radius:9999px"></div>
+                                </div>
+                            </div>
+                            HTML;
+                    }),
 
                 Tables\Columns\TextColumn::make('user.name')
                     ->label(__('Counted By'))
@@ -162,12 +224,19 @@ class InventoryCountingResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label(__('Status'))
                     ->options([
-                        'draft' => __('Draft'),
+                        'in_progress' => __('In Progress'),
+                        'cancelled' => __('Cancelled'),
                         'completed' => __('Completed'),
                     ]),
                 Tables\Filters\SelectFilter::make('warehouse_code')
                     ->label(__('Warehouse'))
                     ->options(fn () => \App\Models\Warehouse::production()->pluck('warehouse_name', 'warehouse_code')),
+                Tables\Filters\SelectFilter::make('counting_type')
+                    ->label(__('Type'))
+                    ->options([
+                        'full' => __('Full Count'),
+                        'cycle' => __('Cycle Count'),
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -181,13 +250,36 @@ class InventoryCountingResource extends Resource
                     ->visible(fn ($record) => $record->isDraft() && auth()->user()->hasAnyRole(['Super Admin', 'Branch Manager']))
                     ->action(function ($record) {
                         $record->markAsCompleted();
+                        // Calculate variances
+                        $service = new \App\Services\Counting\VarianceCalculationService();
+                        $summary = $service->calculateForSession($record);
                         \Filament\Notifications\Notification::make()
                             ->title(__('Inventory count completed'))
+                            ->body("Match: {$summary['match']} | Over: {$summary['over']} | Short: {$summary['short']}")
                             ->success()
                             ->send();
                     }),
+                Tables\Actions\Action::make('variance_report')
+                    ->label(__('Variance Report'))
+                    ->icon('heroicon-o-chart-bar')
+                    ->color('info')
+                    ->visible(fn ($record) => $record->isCompleted())
+                    ->url(fn ($record) => static::getUrl('view', ['record' => $record])),
+                Tables\Actions\Action::make('cancel')
+                    ->label(__('Cancel Counting'))
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->isInProgress() && auth()->user()->hasAnyRole(['Super Admin', 'Branch Manager']))
+                    ->action(function ($record) {
+                        $record->markAsCancelled();
+                        \Filament\Notifications\Notification::make()
+                            ->title(__('Inventory count cancelled'))
+                            ->danger()
+                            ->send();
+                    }),
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn ($record) => $record->isDraft() && auth()->user()->hasAnyRole(['Super Admin', 'Branch Manager'])),
+                    ->visible(fn ($record) => $record->isInProgress() && auth()->user()->hasAnyRole(['Super Admin', 'Branch Manager'])),
             ]);
     }
 
