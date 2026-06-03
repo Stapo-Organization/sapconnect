@@ -29,6 +29,7 @@ class ApiEndpoints {
 
   // ─── Cycle Counting ────────────────────────────────────────
   static const String countingSchedule = '$baseUrl/inventory-countings/schedule';
+  static String countingTargets(int id) => '$baseUrl/inventory-countings/$id/targets';
   static String countingVarianceReport(int id) => '$baseUrl/inventory-countings/$id/variance-report';
   static String countingInvestigate(int id, int lineId) => '$baseUrl/inventory-countings/$id/lines/$lineId/investigate';
   static String countingAbcSummary(String warehouseCode) => '$baseUrl/inventory-countings/abc-summary/$warehouseCode';

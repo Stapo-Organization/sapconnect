@@ -3,6 +3,9 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
+import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
 import 'barcode_scanner_page.dart';
@@ -191,8 +194,9 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(_session != null ? 'جرد #${_session!.id}' : 'تفاصيل الجرد'),
+        backgroundColor: AppColors.background,
+        appBar: MuntajatAppBar(
+          title: _session != null ? 'جرد #${_session!.id}' : 'تفاصيل الجرد',
           actions: [
             if (_session != null && _session!.isInProgress)
               PopupMenuButton<String>(
@@ -230,38 +234,31 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
 
                         // ─── Variance Report Button (completed only) ─────
                         if (_session!.isCompleted)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: AppSpacing.base),
-                            child: ElevatedButton.icon(
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.base),
+                            child: AppButton(
+                              label: 'عرض تقرير الفروقات',
+                              icon: Icons.analytics_outlined,
+                              variant: AppButtonVariant.tonal,
                               onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => VarianceReportPage(sessionId: _session!.id),
                                 ),
                               ),
-                              icon: const Icon(Icons.analytics_outlined, size: 22),
-                              label: const Text('📊 عرض تقرير الفروقات'),
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(double.infinity, 52),
-                                backgroundColor: const Color(0xFF1E3A5F),
-                                foregroundColor: Colors.tealAccent,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
                             ),
                           ),
 
                         // ─── Scan Button ─────────────────
                         if (_session!.isInProgress)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: AppSpacing.base),
-                            child: ElevatedButton.icon(
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.base),
+                            child: AppButton(
+                              label: 'سكان باركود',
+                              icon: Icons.qr_code_scanner_rounded,
+                              color: AppColors.accent,
+                              gradient: AppColors.goldGradient,
                               onPressed: _openScanner,
-                              icon: const Icon(Icons.qr_code_scanner_rounded, size: 24),
-                              label: const Text('📸 سكان باركود'),
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(double.infinity, 56),
-                                backgroundColor: AppColors.accent,
-                              ),
                             ),
                           ),
 
@@ -308,10 +305,11 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
             ? SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.base),
-                  child: ElevatedButton(
+                  child: AppButton(
+                    label: 'إكمال الجرد',
+                    icon: Icons.check_circle_rounded,
+                    color: AppColors.success,
                     onPressed: _session!.lines.isNotEmpty ? _completeCounting : null,
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                    child: const Text('✅ إكمال الجرد'),
                   ),
                 ),
               )
@@ -341,22 +339,15 @@ class _SessionHeader extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: AppRadius.borderLg,
+        borderRadius: AppRadius.borderXl,
         border: Border.all(color: AppColors.borderLight),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                decoration: BoxDecoration(
-                  color: _statusColor.withValues(alpha: 0.1),
-                  borderRadius: AppRadius.borderFull,
-                ),
-                child: Text(session.statusLabel,
-                    style: AppTypography.labelMedium.copyWith(color: _statusColor)),
-              ),
+              StatusBadge(label: session.statusLabel, color: _statusColor),
               if (session.isCycleCount) ...[
                 const SizedBox(width: 8),
                 Container(

@@ -3,12 +3,15 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/network/api_endpoints.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
 import 'counting_detail_page.dart';
+import 'cycle_count_detail_page.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
@@ -30,6 +33,7 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
   bool _isLoading = true;
   bool _hasError = false;
   String? _selectedStatus;
+  String? _typeFilter; // null = all, 'cycle', 'full'
   final TextEditingController _searchController = TextEditingController();
 
   /// Map of warehouse_code → warehouse_name (fetched from API)
@@ -70,16 +74,18 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
   }
 
   void _onSearchChanged(String query) {
-    final q = query.trim().toLowerCase();
-    if (q.isEmpty) {
-      setState(() => _filteredSessions = List.from(_sessions));
-      return;
-    }
+    _applyFilters();
+  }
+
+  /// Apply the type (cycle/full) + search filters over the loaded sessions.
+  void _applyFilters() {
+    final q = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredSessions = _sessions.where((s) {
+        if (_typeFilter != null && s.countingType != _typeFilter) return false;
+        if (q.isEmpty) return true;
         final whName = (s.warehouseName ?? s.warehouseCode).toLowerCase();
-        final id = s.id.toString();
-        return whName.contains(q) || id.contains(q);
+        return whName.contains(q) || s.id.toString().contains(q);
       }).toList();
     });
   }
@@ -94,10 +100,10 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
     if (mounted) {
       setState(() {
         _sessions = result.sessions;
-        _filteredSessions = List.from(result.sessions);
         _isLoading = false;
         _hasError = !result.success;
       });
+      _applyFilters();
     }
   }
 
@@ -211,6 +217,24 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
               ),
             ),
 
+            // ─── Type Segments (Cycle / Full) ───────────────
+            Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.xs),
+              child: AppSegmentedControl(
+                items: [
+                  SegmentItem(context.tr('all')),
+                  SegmentItem(context.tr('cycle_count'), icon: Icons.autorenew_rounded),
+                  SegmentItem(context.tr('full_count'), icon: Icons.fact_check_outlined),
+                ],
+                selectedIndex: _typeFilter == null ? 0 : (_typeFilter == 'cycle' ? 1 : 2),
+                onChanged: (i) {
+                  setState(() => _typeFilter = i == 0 ? null : (i == 1 ? 'cycle' : 'full'));
+                  _applyFilters();
+                },
+              ),
+            ),
+
             // ─── Filter Section ─────────────────────────────
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -263,41 +287,16 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
                   : _hasError
                       ? ErrorStateWidget(onRetry: _loadSessions)
                       : _filteredSessions.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(AppSpacing.xl),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.05),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.inventory_2_outlined,
-                                      size: 64,
-                                      color: AppColors.primary.withValues(alpha: 0.4),
-                                    ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.base),
-                                  Text(
-                                    _searchController.text.isEmpty
-                                        ? context.tr('no_sessions')
-                                        : context.tr('no_results'),
-                                    style: AppTypography.titleMedium.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  if (_searchController.text.isEmpty) ...[
-                                    const SizedBox(height: AppSpacing.xs),
-                                    Text(
-                                      context.tr('click_to_start'),
-                                      style: AppTypography.bodyMedium.copyWith(color: AppColors.textTertiary),
-                                    ),
-                                  ],
-                                ],
-                              ),
+                          ? EmptyState(
+                              icon: _typeFilter == 'cycle'
+                                  ? Icons.autorenew_rounded
+                                  : Icons.inventory_2_outlined,
+                              title: _searchController.text.isEmpty
+                                  ? context.tr('no_sessions')
+                                  : context.tr('no_results'),
+                              subtitle: _typeFilter == 'cycle'
+                                  ? context.tr('cycle_auto_generated')
+                                  : (_searchController.text.isEmpty ? context.tr('click_to_start') : null),
                             )
                           : RefreshIndicator(
                               onRefresh: _loadSessions,
@@ -409,7 +408,9 @@ class _SessionCard extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => CountingDetailPage(sessionId: session.id),
+          builder: (_) => session.isCycleCount
+              ? CycleCountDetailPage(sessionId: session.id)
+              : CountingDetailPage(sessionId: session.id),
         ),
       ).then((_) => onRefresh()),
       child: Container(
@@ -417,15 +418,9 @@ class _SessionCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.base),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: AppRadius.borderLg,
+          borderRadius: AppRadius.borderXl,
           border: Border.all(color: AppColors.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryDark.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: AppShadows.card,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,6 +446,14 @@ class _SessionCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (session.isCycleCount) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  StatusBadge(
+                    label: context.tr('cycle_count'),
+                    color: AppColors.primary,
+                    icon: Icons.autorenew_rounded,
+                  ),
+                ],
                 const Spacer(),
                 Text(
                   '#${session.id}',
@@ -512,7 +515,9 @@ class _SessionCard extends StatelessWidget {
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => CountingDetailPage(sessionId: session.id),
+                      builder: (_) => session.isCycleCount
+              ? CycleCountDetailPage(sessionId: session.id)
+              : CountingDetailPage(sessionId: session.id),
                     ),
                   ).then((_) => onRefresh()),
                   icon: const Icon(Icons.play_arrow_rounded, size: 20),

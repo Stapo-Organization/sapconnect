@@ -45,6 +45,23 @@ class AppLocalizations {
       'achievements_soon_title': 'إنجازاتك قادمة قريباً',
       'achievements_soon_subtitle': 'أكمل مهام الجرد لتجمع النقاط والأوسمة',
 
+      // Cycle Counting (guided)
+      'cycle_count': 'جرد دوري',
+      'full_count': 'جرد عادي',
+      'items_to_count': 'الأصناف المطلوب جردها',
+      'counted': 'تم العدّ',
+      'pending_count': 'بانتظار',
+      'remaining_items': 'متبقّي',
+      'scan_to_count': 'مسح باركود',
+      'complete_count': 'إكمال الجرد',
+      'scan_at_least_one': 'امسح صنفاً واحداً على الأقل للإكمال',
+      'count_completed': 'تم إكمال الجرد بنجاح 🎉',
+      'cycle_auto_generated': 'تُنشأ مهام الجرد الدوري تلقائياً كل أسبوع',
+      'no_targets': 'لا توجد أصناف مستهدفة في هذه المهمة',
+      'class_label': 'الفئة',
+      'overdue_label': 'متأخر',
+      'due_label': 'مستحق',
+
       // Home
       'welcome': 'مرحباً 👋',
       'quick_actions': 'الإجراءات السريعة',
@@ -136,6 +153,23 @@ class AppLocalizations {
       'achievements_subtitle': 'Your points, badges & rank',
       'achievements_soon_title': 'Your rewards are coming soon',
       'achievements_soon_subtitle': 'Complete counting tasks to earn points and badges',
+
+      // Cycle Counting (guided)
+      'cycle_count': 'Cycle Count',
+      'full_count': 'Full Count',
+      'items_to_count': 'Items to Count',
+      'counted': 'Counted',
+      'pending_count': 'Pending',
+      'remaining_items': 'remaining',
+      'scan_to_count': 'Scan',
+      'complete_count': 'Complete Count',
+      'scan_at_least_one': 'Scan at least one item to complete',
+      'count_completed': 'Count completed 🎉',
+      'cycle_auto_generated': 'Cycle tasks are generated automatically each week',
+      'no_targets': 'No target items in this task',
+      'class_label': 'Class',
+      'overdue_label': 'Overdue',
+      'due_label': 'Due',
 
       // Home
       'welcome': 'Welcome 👋',

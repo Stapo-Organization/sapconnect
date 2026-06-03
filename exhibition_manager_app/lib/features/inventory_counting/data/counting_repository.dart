@@ -1,6 +1,7 @@
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/network/api_endpoints.dart';
 import 'models/counting_session.dart';
+import 'models/cycle_target.dart';
 
 /// Inventory Counting repository
 class CountingRepository {
@@ -186,6 +187,19 @@ class CountingRepository {
     final result = await _api.get(ApiEndpoints.countingCycleProgress(warehouseCode));
     if (result.isSuccess) {
       return (success: true, data: result.data as Map<String, dynamic>?, error: null);
+    }
+    return (success: false, data: null, error: result.errorMessage);
+  }
+
+  /// Get the target items + progress for a cycle session (guided experience)
+  Future<({bool success, CycleTargetsResponse? data, String? error})> getCycleTargets(int sessionId) async {
+    final result = await _api.get(ApiEndpoints.countingTargets(sessionId));
+    if (result.isSuccess && result.data is Map) {
+      return (
+        success: true,
+        data: CycleTargetsResponse.fromJson(Map<String, dynamic>.from(result.data as Map)),
+        error: null,
+      );
     }
     return (success: false, data: null, error: result.errorMessage);
   }
