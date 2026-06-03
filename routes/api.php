@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
 
     // FCM Token
     Route::put('/profile/fcm-token', [\App\Http\Controllers\Api\ProfileController::class, 'updateFcmToken']);
+    Route::delete('/profile/fcm-token', [\App\Http\Controllers\Api\ProfileController::class, 'deleteFcmToken']);
 
     // Warehouses
     Route::get('/warehouses', function () {
