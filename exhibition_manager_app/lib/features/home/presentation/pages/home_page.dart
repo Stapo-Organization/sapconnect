@@ -23,6 +23,11 @@ import 'package:exhibition_manager_app/features/quality_control/data/models/qual
 import 'package:exhibition_manager_app/features/quality_control/presentation/widgets/quality_task_card.dart';
 import 'package:exhibition_manager_app/features/quality_control/presentation/pages/quality_tasks_page.dart';
 import 'package:exhibition_manager_app/features/quality_control/presentation/pages/quality_task_detail_page.dart';
+import 'package:exhibition_manager_app/features/zooboxi_orders/data/zooboxi_orders_repository.dart';
+import 'package:exhibition_manager_app/features/zooboxi_orders/data/models/zooboxi_order.dart';
+import 'package:exhibition_manager_app/features/zooboxi_orders/presentation/widgets/zooboxi_order_card.dart';
+import 'package:exhibition_manager_app/features/zooboxi_orders/presentation/pages/zooboxi_orders_page.dart';
+import 'package:exhibition_manager_app/features/zooboxi_orders/presentation/pages/zooboxi_order_detail_page.dart';
 
 /// Home Dashboard Page — Shows real stats and navigable cards (Bilingual & Premium Redesign)
 class HomePage extends StatefulWidget {
@@ -39,6 +44,7 @@ class _HomePageState extends State<HomePage> {
   final CountingRepository _countingRepo = CountingRepository();
   final GamificationRepository _gamRepo = GamificationRepository();
   final QualityControlRepository _qcRepo = QualityControlRepository();
+  final ZooboxiOrdersRepository _zbRepo = ZooboxiOrdersRepository();
 
   int _pendingSend = 0;
   int _pendingReceive = 0;
@@ -50,6 +56,8 @@ class _HomePageState extends State<HomePage> {
   GamificationProfile? _gam;
   int _qcDue = 0;
   List<QualityTaskInstance> _qcTasks = [];
+  int _zbCount = 0;
+  List<ZooboxiOrder> _zbOrders = [];
 
   @override
   void initState() {
@@ -85,6 +93,7 @@ class _HomePageState extends State<HomePage> {
     final sched = await _countingRepo.getSchedule();
     final gam = await _gamRepo.getMe();
     final qc = await _qcRepo.getSummary();
+    final zb = await _zbRepo.getSummary();
     if (!mounted) return;
     setState(() {
       _gam = gam.data;
@@ -98,6 +107,8 @@ class _HomePageState extends State<HomePage> {
       _tasks = tasks;
       _qcDue = qc.dueCount;
       _qcTasks = qc.due;
+      _zbCount = zb.urgentCount;
+      _zbOrders = zb.orders;
     });
   }
 
@@ -239,6 +250,10 @@ class _HomePageState extends State<HomePage> {
                 // ─── Gamification strip ─────────────────────────
                 if (_gam != null)
                   SliverToBoxAdapter(child: _buildGamStrip(context)),
+
+                // ─── Zooboxi Urgent Orders ──────────────────────
+                if (_zbCount > 0)
+                  SliverToBoxAdapter(child: _buildZooboxiSection(context)),
 
                 // ─── Quality Tasks ──────────────────────────────
                 if (_qcDue > 0)
@@ -405,6 +420,54 @@ class _HomePageState extends State<HomePage> {
                 color: AppColors.textTertiary),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── Zooboxi Urgent Orders (express, awaiting prep) ─────────
+  Widget _buildZooboxiSection(BuildContext context) {
+    final orders = _zbOrders.take(3).toList();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bolt_rounded, color: AppDomain.zooboxi.accent, size: 20),
+              const SizedBox(width: 6),
+              Text(context.tr('zooboxi_urgent_orders'),
+                  style: AppTypography.titleMedium.copyWith(
+                      color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                decoration: BoxDecoration(color: AppDomain.zooboxi.accent, borderRadius: BorderRadius.circular(999)),
+                child: Text('$_zbCount',
+                    style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ZooboxiOrdersPage()),
+                ).then((_) => _loadExtras()),
+                child: Text(context.tr('view_all'),
+                    style: AppTypography.labelMedium.copyWith(
+                        color: AppDomain.zooboxi.accentDark, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          for (final o in orders)
+            ZooboxiOrderCard(
+              order: o,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ZooboxiOrderDetailPage(orderId: o.id)),
+              ).then((_) => _loadExtras()),
+            ),
+        ],
       ),
     );
   }

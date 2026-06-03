@@ -57,4 +57,11 @@ class ApiEndpoints {
   static String qualityTaskPhotos(int id) => '$baseUrl/quality-tasks/$id/photos';
   static String qualityTaskPhoto(int id, int photoId) => '$baseUrl/quality-tasks/$id/photos/$photoId';
   static String qualityTaskSubmit(int id) => '$baseUrl/quality-tasks/$id/submit';
+
+  // ─── Zooboxi Express Orders ────────────────────────────────
+  static const String zooboxiOrders = '$baseUrl/zooboxi-orders';
+  static const String zooboxiOrdersSummary = '$baseUrl/zooboxi-orders/summary';
+  static String zooboxiOrder(int id) => '$baseUrl/zooboxi-orders/$id';
+  static String zooboxiOrderStart(int id) => '$baseUrl/zooboxi-orders/$id/start';
+  static String zooboxiOrderPrepare(int id) => '$baseUrl/zooboxi-orders/$id/prepare';
 }

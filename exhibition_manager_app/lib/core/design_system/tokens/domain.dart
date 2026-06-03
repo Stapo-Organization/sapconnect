@@ -8,9 +8,10 @@ import 'colors.dart';
 /// each area of the app has a clear sense of place instead of one flat blue.
 ///
 /// The five bottom-nav domains resolve to five distinct hues (blue, teal,
-/// emerald, gold, indigo); Quality (amber) only appears on its own pushed page
-/// and the Home launcher card, so no two adjacent surfaces ever clash.
-enum AppDomain { home, transfers, counting, quality, achievements, profile }
+/// emerald, gold, indigo); Quality (amber) and Zooboxi (urgency crimson) only
+/// appear on their own pushed pages and the Home launcher cards, so no two
+/// adjacent surfaces ever clash.
+enum AppDomain { home, transfers, counting, quality, achievements, profile, zooboxi }
 
 extension AppDomainPalette on AppDomain {
   /// Primary accent — fills, active states, icon glyphs on soft chips.
@@ -28,6 +29,8 @@ extension AppDomainPalette on AppDomain {
         return AppColors.accentDark; // gold — points
       case AppDomain.profile:
         return const Color(0xFF6D5DD3); // indigo-violet — account
+      case AppDomain.zooboxi:
+        return const Color(0xFFE11D48); // crimson — urgency / express orders
     }
   }
 
@@ -46,6 +49,8 @@ extension AppDomainPalette on AppDomain {
         return AppColors.accentDark;
       case AppDomain.profile:
         return const Color(0xFF564BB0);
+      case AppDomain.zooboxi:
+        return const Color(0xFFBE123C); // deep crimson
     }
   }
 

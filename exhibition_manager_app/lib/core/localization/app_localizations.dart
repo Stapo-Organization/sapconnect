@@ -107,6 +107,24 @@ class AppLocalizations {
       'acknowledge_hint': 'اضغط للتأكيد عند إنجاز المهمة',
       'overdue_badge': 'متأخرة',
 
+      // Zooboxi Express Orders
+      'zooboxi_urgent_orders': 'طلبات zooboxi العاجلة',
+      'zooboxi_section_subtitle': 'طلبات سريعة بانتظار التجهيز',
+      'no_urgent_orders': 'لا توجد طلبات عاجلة 🎉',
+      'orders_new': 'جديدة',
+      'status_preparing': 'قيد التجهيز',
+      'order_no': 'طلب',
+      'order_items': 'الأصناف',
+      'express_delivery': 'توصيل سريع',
+      'qty_short': 'الكمية',
+      'currency': 'ر.س',
+      'minutes_ago': 'منذ {x} د',
+      'hours_ago': 'منذ {x} س',
+      'start_preparing': 'بدء التجهيز',
+      'mark_prepared': 'تم التجهيز',
+      'order_prepared_done': 'تم تجهيز الطلب ✓',
+      'order_prepared_no_sync': 'تم التجهيز ✓ — تعذّر تحديث المتجر، ستتم المزامنة لاحقاً',
+
       // Gamification detail
       'points': 'نقطة',
       'level': 'المستوى',
@@ -300,6 +318,24 @@ class AppLocalizations {
       'photo_required_badge': 'Photo required',
       'acknowledge_hint': 'Tap to confirm when the task is done',
       'overdue_badge': 'Overdue',
+
+      // Zooboxi Express Orders
+      'zooboxi_urgent_orders': 'Zooboxi Urgent Orders',
+      'zooboxi_section_subtitle': 'Express orders awaiting preparation',
+      'no_urgent_orders': 'No urgent orders 🎉',
+      'orders_new': 'New',
+      'status_preparing': 'Preparing',
+      'order_no': 'Order',
+      'order_items': 'Items',
+      'express_delivery': 'Express',
+      'qty_short': 'Qty',
+      'currency': 'SAR',
+      'minutes_ago': '{x} min ago',
+      'hours_ago': '{x} h ago',
+      'start_preparing': 'Start Preparing',
+      'mark_prepared': 'Mark Prepared',
+      'order_prepared_done': 'Order prepared ✓',
+      'order_prepared_no_sync': 'Prepared ✓ — store update failed, will sync later',
 
       // Gamification detail
       'points': 'points',
