@@ -36,6 +36,7 @@ class Zooboxi_Plugin
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-stock-manager.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-delivery-engine.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-location-detector.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-order-statuses.php';
 
         // Sync
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/sync/class-zooboxi-logger.php';
@@ -78,6 +79,10 @@ class Zooboxi_Plugin
 
         // WooCommerce order hooks
         add_action('woocommerce_checkout_order_processed', [$this, 'on_order_created'], 10, 3);
+
+        // Custom order status "جاهز للتسليم" (set by the Exhibition Manager app
+        // via sapconnect → WC REST once a branch finishes preparing an order).
+        (new Zooboxi_Order_Statuses())->register_hooks();
 
         // AJAX (location detection for guests + logged in)
         add_action('wp_ajax_zooboxi_detect_warehouse', [Zooboxi_Location_Detector::class, 'ajax_detect']);

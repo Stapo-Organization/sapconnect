@@ -3,7 +3,7 @@
  * Plugin Name: Zooboxi Multi-Warehouse
  * Plugin URI:  https://store.zooboxi.com
  * Description: نظام المستودعات المتعددة والتوصيل الذكي لمتجر Zooboxi
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      Muntajat / PPTCO
  * Author URI:  https://muntajat.sa
  * License:     Proprietary
