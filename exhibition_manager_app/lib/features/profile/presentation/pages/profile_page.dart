@@ -3,6 +3,8 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/storage/secure_storage.dart';
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
@@ -75,22 +77,9 @@ class ProfilePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF3A71B3), // Royal Blue
-                    Color(0xFF1E4880), // Deep Navy
-                  ],
-                ),
-                borderRadius: AppRadius.borderXxl,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF1E4880).withValues(alpha: 0.1),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                gradient: AppColors.heroGradient,
+                borderRadius: AppRadius.borderXxxl,
+                boxShadow: AppShadows.glow(AppColors.primaryDark, alpha: 0.28),
               ),
               child: Column(
                 children: [
@@ -276,19 +265,12 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: AppSpacing.xxl),
 
             // ─── Logout Button ───────────────────────────
-            OutlinedButton.icon(
+            AppButton(
+              label: context.tr('logout'),
               onPressed: () => _logout(context),
-              icon: const Icon(Icons.logout_rounded, size: 20),
-              label: Text(
-                context.tr('logout'),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error, width: 1.5),
-                shape: RoundedRectangleBorder(borderRadius: AppRadius.borderMd),
-                minimumSize: const Size(double.infinity, 52),
-              ),
+              icon: Icons.logout_rounded,
+              variant: AppButtonVariant.outline,
+              color: AppColors.error,
             ),
           ],
         ),
@@ -311,8 +293,9 @@ class _InfoTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: AppRadius.borderMd,
+        borderRadius: AppRadius.borderLg,
         border: Border.all(color: AppColors.borderLight),
+        boxShadow: AppShadows.sm,
       ),
       child: Row(
         children: [

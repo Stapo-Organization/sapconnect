@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_logo.dart';
 import 'package:exhibition_manager_app/features/auth/data/auth_repository.dart';
@@ -88,15 +91,9 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: AppRadius.borderXxl,
+                    borderRadius: AppRadius.borderXxxl,
                     border: Border.all(color: AppColors.borderLight),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryDark.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+                    boxShadow: AppShadows.card,
                   ),
                   child: Form(
                     key: _formKey,
@@ -201,38 +198,17 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: AppSpacing.xl),
 
                         // Login button
-                        ElevatedButton(
+                        AppButton(
+                          label: context.tr('login'),
                           onPressed: _isLoading ? null : _login,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.textOnPrimary,
-                            minimumSize: const Size(double.infinity, 54),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: AppRadius.borderMd,
-                            ),
-                            elevation: 0,
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : Text(
-                                  context.tr('login'),
-                                  style: AppTypography.titleMedium.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                          loading: _isLoading,
+                          icon: Icons.login_rounded,
+                          gradient: AppColors.heroGradient,
                         ),
                       ],
                     ),
                   ),
-                ),
+                ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.06, end: 0, curve: Curves.easeOut),
                 const SizedBox(height: AppSpacing.xl),
               ],
             ),
