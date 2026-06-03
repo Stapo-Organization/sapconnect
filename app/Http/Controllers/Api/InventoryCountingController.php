@@ -283,12 +283,22 @@ class InventoryCountingController extends Controller
         $varianceService = new VarianceCalculationService();
         $varianceSummary = $varianceService->calculateForSession($counting);
 
+        // Gamification: award points/badges/streak (never blocks completion).
+        $gamification = null;
+        try {
+            $gamification = (new \App\Services\Gamification\ScoringService())
+                ->award($counting, $varianceSummary, $user);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gamification scoring failed: ' . $e->getMessage());
+        }
+
         $counting->load(['user', 'lines']);
 
         return response()->json([
             'message' => 'تم إكمال الجرد بنجاح',
             'data' => new InventoryCountingApiResource($counting),
             'variance_summary' => $varianceSummary,
+            'gamification' => $gamification,
         ]);
     }
 

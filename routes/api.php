@@ -83,6 +83,11 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::get('/inventory-countings/abc-summary/{warehouseCode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'abcSummary']);
     Route::get('/inventory-countings/cycle-progress/{warehouseCode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'cycleProgress']);
 
+    // ─── Gamification ────────────────────────────────────────────
+    Route::get('/gamification/me', [\App\Http\Controllers\Api\GamificationController::class, 'me']);
+    Route::get('/gamification/badges', [\App\Http\Controllers\Api\GamificationController::class, 'badges']);
+    Route::get('/gamification/leaderboard', [\App\Http\Controllers\Api\GamificationController::class, 'leaderboard']);
+
     // ─── Dashboard Stats (Exhibition Manager) ────────────────────
     Route::get('/dashboard-stats', function (Request $request) {
         $user = $request->user();
