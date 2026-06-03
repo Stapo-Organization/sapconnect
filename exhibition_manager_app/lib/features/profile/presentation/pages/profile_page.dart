@@ -1,0 +1,353 @@
+import 'package:flutter/material.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/storage/secure_storage.dart';
+import 'package:exhibition_manager_app/core/network/api_client.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/models/user.dart';
+import 'package:exhibition_manager_app/features/auth/presentation/pages/login_page.dart';
+import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
+
+/// Profile Page — User info, Language Switcher, and Logout (Bilingual & Premium Redesign)
+class ProfilePage extends StatelessWidget {
+  final User user;
+
+  const ProfilePage({super.key, required this.user});
+
+  Future<void> _logout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: AppLocalizations.isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          title: Text(context.tr('logout'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(context.tr('logout_confirm')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                context.tr('cancel'),
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
+              ),
+              child: Text(context.tr('logout')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirm == true) {
+      ApiClient().clearToken();
+      await SecureStorage.clearAll();
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic = AppLocalizations.isArabic;
+    return Directionality(
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: MuntajatAppBar(
+          title: context.tr('nav_profile'),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          children: [
+            // ─── Avatar & User Card (Premium Gradient Backing) ────
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF3A71B3), // Royal Blue
+                    Color(0xFF1E4880), // Deep Navy
+                  ],
+                ),
+                borderRadius: AppRadius.borderXxl,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1E4880).withValues(alpha: 0.1),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 44,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundColor: AppColors.accent, // Gold highlight
+                      child: Text(
+                        user.name.isNotEmpty ? user.name[0] : '?',
+                        style: AppTypography.headlineLarge.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.base),
+                  Text(
+                    user.name,
+                    style: AppTypography.headlineSmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    user.email,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.xxl),
+
+            // ─── Language Switcher Card (Interactive Segmented) ──
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.base),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.borderLg,
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.language_rounded, color: AppColors.primary, size: 22),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        context.tr('language'),
+                        style: AppTypography.labelLarge.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  // Custom Segmented Toggle Buttons
+                  Row(
+                    children: [
+                      // Arabic Toggle
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            if (!isArabic) {
+                              await AppLocalizations.toggleLanguage();
+                            }
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
+                            decoration: BoxDecoration(
+                              color: isArabic ? AppColors.primary : AppColors.background,
+                              borderRadius: AppRadius.borderMd,
+                              border: Border.all(
+                                color: isArabic ? AppColors.primary : AppColors.borderLight,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                context.tr('arabic'),
+                                style: AppTypography.labelMedium.copyWith(
+                                  color: isArabic ? Colors.white : AppColors.textSecondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      // English Toggle
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            if (isArabic) {
+                              await AppLocalizations.toggleLanguage();
+                            }
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
+                            decoration: BoxDecoration(
+                              color: !isArabic ? AppColors.primary : AppColors.background,
+                              borderRadius: AppRadius.borderMd,
+                              border: Border.all(
+                                color: !isArabic ? AppColors.primary : AppColors.borderLight,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                context.tr('english'),
+                                style: AppTypography.labelMedium.copyWith(
+                                  color: !isArabic ? Colors.white : AppColors.textSecondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.base),
+
+            // ─── Info tiles ──────────────────────────────
+            if (user.mobileNumber != null)
+              _InfoTile(
+                icon: Icons.phone_outlined,
+                title: context.tr('phone'),
+                value: user.mobileNumber!,
+              ),
+            _InfoTile(
+              icon: Icons.warehouse_outlined,
+              title: context.tr('warehouses'),
+              value: user.warehouseCodes.isNotEmpty ? user.warehouseCodes.join(' • ') : '—',
+            ),
+            _InfoTile(
+              icon: Icons.shield_outlined,
+              title: context.tr('roles'),
+              value: user.roles.isNotEmpty ? user.roles.join(' • ') : '—',
+            ),
+
+            const SizedBox(height: AppSpacing.xxl),
+
+            // ─── System Info Footer ──────────────────────────
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.base),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: AppRadius.borderLg,
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    context.tr('system_title'),
+                    style: AppTypography.labelMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${context.tr('version')} 1.0.0',
+                    style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.xxl),
+
+            // ─── Logout Button ───────────────────────────
+            OutlinedButton.icon(
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout_rounded, size: 20),
+              label: Text(
+                context.tr('logout'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: const BorderSide(color: AppColors.error, width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.borderMd),
+                minimumSize: const Size(double.infinity, 52),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _InfoTile({required this.icon, required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.base),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderMd,
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.xs + 2),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: AppRadius.borderSm,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textTertiary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
