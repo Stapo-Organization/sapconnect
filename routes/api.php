@@ -63,6 +63,58 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
             'settings' => \App\Models\MobileAppSetting::all()->pluck('value', 'key'),
         ]);
     });
+
+    // ─── Inventory Counting (Exhibition Manager) ───────────────
+    Route::get('/inventory-countings', [\App\Http\Controllers\Api\InventoryCountingController::class, 'index']);
+    Route::get('/inventory-countings/schedule', [\App\Http\Controllers\Api\InventoryCountingController::class, 'schedule']);
+    Route::post('/inventory-countings', [\App\Http\Controllers\Api\InventoryCountingController::class, 'store']);
+    Route::get('/inventory-countings/{id}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'show']);
+    Route::post('/inventory-countings/{id}/scan', [\App\Http\Controllers\Api\InventoryCountingController::class, 'scan']);
+    Route::post('/inventory-countings/{id}/lines', [\App\Http\Controllers\Api\InventoryCountingController::class, 'addLine']);
+    Route::put('/inventory-countings/{id}/lines/{lineId}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'updateLine']);
+    Route::delete('/inventory-countings/{id}/lines/{lineId}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'deleteLine']);
+    Route::post('/inventory-countings/{id}/complete', [\App\Http\Controllers\Api\InventoryCountingController::class, 'complete']);
+    Route::post('/inventory-countings/{id}/cancel', [\App\Http\Controllers\Api\InventoryCountingController::class, 'cancel']);
+
+    // ─── Cycle Counting (Targets, Variance & Scheduling) ─────────
+    Route::get('/inventory-countings/{id}/targets', [\App\Http\Controllers\Api\InventoryCountingController::class, 'targets']);
+    Route::get('/inventory-countings/{id}/variance-report', [\App\Http\Controllers\Api\InventoryCountingController::class, 'varianceReport']);
+    Route::post('/inventory-countings/{id}/lines/{lineId}/investigate', [\App\Http\Controllers\Api\InventoryCountingController::class, 'investigate']);
+    Route::get('/inventory-countings/abc-summary/{warehouseCode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'abcSummary']);
+    Route::get('/inventory-countings/cycle-progress/{warehouseCode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'cycleProgress']);
+
+    // ─── Dashboard Stats (Exhibition Manager) ────────────────────
+    Route::get('/dashboard-stats', function (Request $request) {
+        $user = $request->user();
+        $warehouseCodes = is_array($user->warehouse_code) ? $user->warehouse_code : (json_decode($user->warehouse_code, true) ?? []);
+
+        // Transfers pending send (New status, user's from_warehouse)
+        $pendingSend = \App\Models\StockTransfer::where('internal_status', 'New')
+            ->whereIn('from_warehouse', $warehouseCodes)
+            ->count();
+
+        // Transfers pending receive (Shipped status, user's to_warehouse)
+        $pendingReceive = \App\Models\StockTransfer::where('internal_status', 'Shipped')
+            ->whereIn('to_warehouse', $warehouseCodes)
+            ->count();
+
+        // In-progress counting sessions (by this user or in their warehouses)
+        $inProgressCounting = \App\Models\InventoryCounting::where('status', 'in_progress')
+            ->where(function ($q) use ($user, $warehouseCodes) {
+                $q->where('counted_by', $user->name)
+                  ->orWhereIn('warehouse_code', $warehouseCodes);
+            })
+            ->count();
+
+        return response()->json([
+            'pending_send' => $pendingSend,
+            'pending_receive' => $pendingReceive,
+            'in_progress_counting' => $inProgressCounting,
+        ]);
+    });
+
+    // Product lookup by barcode (for scanner)
+    Route::get('/products/barcode/{barcode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'lookupBarcode']);
 });
 
 // Store Public/Customer Routes
