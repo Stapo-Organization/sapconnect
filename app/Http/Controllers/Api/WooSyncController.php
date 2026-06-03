@@ -35,12 +35,12 @@ class WooSyncController extends Controller
     /**
      * GET /api/woo/products
      *
-     * Returns products flagged for WooCommerce sync (woo_sync = true).
+     * Returns products active in Zooboxi store (zooboxi_active = true).
      * Supports pagination and filtering by updated_since.
      */
     public function getProducts(Request $request): JsonResponse
     {
-        $query = Product::wooSyncable()
+        $query = Product::zooboxiActive()
             ->production()
             ->with('brand');
 
@@ -222,25 +222,25 @@ class WooSyncController extends Controller
     {
         $request->validate([
             'woo_order_id' => 'required|integer|unique:zooboxi_orders,woo_order_id',
-            'woo_order_number' => 'sometimes|string|max:50',
+            'woo_order_number' => 'sometimes|nullable|string|max:50',
             'delivery_type' => 'required|in:express,same_day,shipping,pickup',
-            'warehouse_code' => 'sometimes|string',
+            'warehouse_code' => 'sometimes|nullable|string',
             'customer' => 'required|array',
-            'customer.name' => 'sometimes|string',
-            'customer.phone' => 'sometimes|string',
-            'customer.email' => 'sometimes|email',
-            'customer.latitude' => 'sometimes|numeric',
-            'customer.longitude' => 'sometimes|numeric',
-            'customer.city' => 'sometimes|string',
-            'customer.address' => 'sometimes|string',
+            'customer.name' => 'sometimes|nullable|string',
+            'customer.phone' => 'sometimes|nullable|string',
+            'customer.email' => 'sometimes|nullable|email',
+            'customer.latitude' => 'sometimes|nullable|numeric',
+            'customer.longitude' => 'sometimes|nullable|numeric',
+            'customer.city' => 'sometimes|nullable|string',
+            'customer.address' => 'sometimes|nullable|string',
             'items' => 'required|array|min:1',
             'items.*.item_code' => 'required|string',
-            'items.*.item_name' => 'sometimes|string',
+            'items.*.item_name' => 'sometimes|nullable|string',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.total_price' => 'required|numeric|min:0',
             'payment' => 'sometimes|array',
-            'payment.method' => 'sometimes|string',
+            'payment.method' => 'sometimes|nullable|string',
             'payment.status' => 'sometimes|in:pending,paid,refunded,failed',
             'totals' => 'sometimes|array',
         ]);
@@ -435,6 +435,19 @@ class WooSyncController extends Controller
             'sales_items_per_unit' => $p->sales_items_per_unit,
             'prices' => $p->prices ?? [],
             'image_url' => $p->image_url,
+            // ZID rich data
+            'name_ar' => $p->zb_name_ar,
+            'name_en' => $p->zb_name_en,
+            'description_ar' => $p->zb_description_ar,
+            'description_en' => $p->zb_description_en,
+            'short_description_ar' => $p->zb_short_description_ar,
+            'short_description_en' => $p->zb_short_description_en,
+            'categories_ar' => $p->zb_categories_ar,
+            'categories_en' => $p->zb_categories_en,
+            'keywords' => $p->zb_keywords,
+            'images' => $p->zb_images ?? [],
+            'weight' => $p->zb_weight,
+            'weight_unit' => $p->zb_weight_unit,
             'properties' => array_filter([
                 'u_proprt1' => $p->u_proprt1,
                 'u_proprt2' => $p->u_proprt2,

@@ -30,12 +30,33 @@ class Product extends Model
         'woo_sync',
         'woo_product_id',
         'woo_synced_at',
+        // Zooboxi (ZID) fields
+        'zooboxi_active',
+        'zb_name_ar',
+        'zb_name_en',
+        'zb_description_ar',
+        'zb_description_en',
+        'zb_short_description_ar',
+        'zb_short_description_en',
+        'zb_categories_ar',
+        'zb_categories_en',
+        'zb_keywords',
+        'zb_seo_title_ar',
+        'zb_seo_description_ar',
+        'zb_seo_title_en',
+        'zb_seo_description_en',
+        'zb_images',
+        'zb_weight',
+        'zb_weight_unit',
     ];
 
     protected $casts = [
         'prices' => 'array',
         'woo_sync' => 'boolean',
         'woo_synced_at' => 'datetime',
+        'zooboxi_active' => 'boolean',
+        'zb_images' => 'array',
+        'zb_weight' => 'decimal:3',
     ];
 
     protected $appends = [
@@ -47,6 +68,25 @@ class Product extends Model
         return 'https://gal.holeno.com/imghd/' . $this->item_code . '.png';
     }
 
+    /**
+     * Display name: prefer Arabic ZID name, fallback to SAP item_name.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->zb_name_ar ?: ($this->item_name ?: $this->item_code);
+    }
+
+    /**
+     * Get the first ZID image URL, or fallback to holeno.
+     */
+    public function getPrimaryImageAttribute(): string
+    {
+        $images = $this->zb_images;
+        if (!empty($images) && is_array($images)) {
+            return $images[0];
+        }
+        return $this->image_url;
+    }
 
     public function scopeProduction($query)
     {
@@ -59,6 +99,14 @@ class Product extends Model
     public function scopeWooSyncable($query)
     {
         return $query->where('woo_sync', true);
+    }
+
+    /**
+     * Scope: products active in the Zooboxi store (have ZID data).
+     */
+    public function scopeZooboxiActive($query)
+    {
+        return $query->where('zooboxi_active', true);
     }
 
     /**

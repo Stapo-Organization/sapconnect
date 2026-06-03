@@ -49,9 +49,9 @@ class SyncProducts extends Command
             do {
                 $this->info("  Fetching Products page $page... (Skip: $skip)");
 
-                // Fetch Items with select fields, including ItemPrices
+                // Fetch Items with select fields, including ItemPrices and ItemBarCodeCollection
                 $response = $sap->get('Items', [
-                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5,Mainsupplier',
+                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,ItemBarCodeCollection,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5,Mainsupplier',
                     '$orderby' => 'ItemCode',
                     '$top' => $pageSize,
                     '$skip' => $skip
@@ -76,13 +76,37 @@ class SyncProducts extends Command
 
                     $pricesData = $item['ItemPrices'] ?? [];
 
+                    // Determine piece barcode: prefer main BarCode, fallback to ItemBarCodeCollection
+                    $pieceBarcode = $item['BarCode'] ?? null;
+                    if (empty($pieceBarcode)) {
+                        $collection = $item['ItemBarCodeCollection'] ?? [];
+                        foreach ($collection as $bc) {
+                            // UoMEntry 58 = Piece unit, or FreeText indicates "Piece"
+                            if (($bc['UoMEntry'] ?? 0) === 58 || strtolower($bc['FreeText'] ?? '') === 'piece') {
+                                $pieceBarcode = $bc['Barcode'] ?? null;
+                                break;
+                            }
+                        }
+                        // If still empty and collection has entries, take first non-ItemCode barcode
+                        if (empty($pieceBarcode) && !empty($collection)) {
+                            foreach ($collection as $bc) {
+                                $bcVal = $bc['Barcode'] ?? '';
+                                // Skip if barcode is the same as ItemCode (not a real barcode)
+                                if ($bcVal && $bcVal !== $item['ItemCode']) {
+                                    $pieceBarcode = $bcVal;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     $data = [
                         'item_code' => $item['ItemCode'],
                         'item_name' => $item['ItemName'] ?? null,
                         'foreign_name' => $item['ForeignName'] ?? null,
                         'items_group_code' => $item['ItemsGroupCode'] ?? null,
                         'inventory_uom' => $item['InventoryUOM'] ?? null,
-                        'piece_barcode' => $item['BarCode'] ?? null,
+                        'piece_barcode' => $pieceBarcode,
                         'sales_items_per_unit' => $item['SalesItemsPerUnit'] ?? null,
                         'create_date' => isset($item['CreateDate']) ? date('Y-m-d', strtotime($item['CreateDate'])) : null,
                         'update_date' => isset($item['UpdateDate']) ? date('Y-m-d', strtotime($item['UpdateDate'])) : null,

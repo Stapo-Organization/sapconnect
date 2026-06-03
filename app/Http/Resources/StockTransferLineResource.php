@@ -19,6 +19,8 @@ class StockTransferLineResource extends JsonResource
             'line_id' => $this->id,
             'item_code' => $this->item_code,
             'item_description' => $this->item_description,
+            'item_name_ar' => $this->product ? ($this->product->foreign_name ?: ($this->product->zb_name_ar ?: $this->item_description)) : $this->item_description,
+            'item_name_en' => $this->product ? ($this->product->item_name ?: ($this->product->zb_name_en ?: $this->item_description)) : $this->item_description,
             'quantity' => (float) $this->quantity, // Original Qty
             'sent_quantity' => (float) $this->sent_quantity, // Actual Sent
             'received_quantity' => (float) $this->received_quantity, // (Maybe rename to actual_received to be clear, but staying consistent with DB column if it differs) 

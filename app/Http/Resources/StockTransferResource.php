@@ -38,6 +38,21 @@ class StockTransferResource extends JsonResource
         $receivingPercentage = $totalSent > 0 ? round(($totalReceived / $totalSent) * 100, 2) : 0;
         $sapReceivedPercentage = $totalQty > 0 ? round(($sapReceivedQty / $totalQty) * 100, 2) : 0;
 
+        // Direction relative to the requesting user (for Send / Receive tabs).
+        // Admins (no warehouse restriction) appear in both directions.
+        $userCodes = [];
+        $reqUser = $request->user();
+        if ($reqUser && $reqUser->warehouse_code) {
+            $wc = $reqUser->warehouse_code;
+            if (is_string($wc)) {
+                $decoded = json_decode($wc, true);
+                $wc = (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : [$wc];
+            }
+            $userCodes = is_array($wc) ? $wc : [$wc];
+        }
+        $isOutgoing = empty($userCodes) ? true : in_array($this->from_warehouse, $userCodes);
+        $isIncoming = empty($userCodes) ? true : in_array($this->to_warehouse, $userCodes);
+
         return [
             'id' => $this->id,
             'doc_entry' => $this->doc_entry,
@@ -78,6 +93,10 @@ class StockTransferResource extends JsonResource
             // Permissions (for current user)
             'can_send' => $this->resource->canSend(),
             'can_receive' => $this->resource->canReceive(),
+
+            // Direction relative to the requesting user (Send / Receive tabs)
+            'is_outgoing' => $isOutgoing,
+            'is_incoming' => $isIncoming,
 
             // Media
             'images' => $images,

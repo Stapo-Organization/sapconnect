@@ -21,3 +21,7 @@ Schedule::command('counting:classify-abc')->weeklyOn(6, '03:00'); // Saturday 3 
 Schedule::command('counting:generate-weekly-lists')->dailyAt('06:00'); // Daily 6 AM
 Schedule::command('counting:send-cycle-reminders')->dailyAt('07:00'); // Daily 7 AM (push only)
 
+// ── Quality Control Scheduled Tasks ─────────────────────────────
+Schedule::command('quality:generate-tasks')->dailyAt('05:30'); // Daily 5:30 AM (idempotent)
+Schedule::command('quality:send-reminders')->dailyAt('07:15'); // Daily 7:15 AM (push only)
+

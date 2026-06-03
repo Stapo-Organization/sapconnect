@@ -60,6 +60,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\SupplyChain\PaymentDueTimeline::class,
                 \App\Filament\Widgets\SupplyChain\SupplierPerformanceChart::class,
                 // Removed BranchManagerStats and LatestBranchTransfers as requested by new full admin dashboard
+                // Zooboxi Store Widgets
+                \App\Filament\Widgets\ZooboxiStatsWidget::class,
             ])
             ->navigationItems([
                 \Filament\Navigation\NavigationItem::make('API Doc (Developer)')

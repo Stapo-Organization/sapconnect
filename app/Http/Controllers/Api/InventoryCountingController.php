@@ -146,6 +146,19 @@ class InventoryCountingController extends Controller
 
         $folder = substr($product->item_code, 0, 4);
 
+        // For cycle sessions, tell the app whether this item belongs to the
+        // target list (so it can block off-list scans) and its ABC class.
+        // Null for full counts — those accept any product.
+        $isCycle = ($counting->counting_type ?? 'full') === 'cycle';
+        $inTargetList = null;
+        $abcClass = null;
+        if ($isCycle) {
+            $targets = collect($counting->target_items ?? []);
+            $inTargetList = $counting->isInTargets($product->item_code);
+            $match = $targets->firstWhere('item_code', $product->item_code);
+            $abcClass = $match['abc_class'] ?? null;
+        }
+
         // Return existing_line as null so frontend always adds a new record
         return response()->json([
             'product' => [
@@ -157,6 +170,8 @@ class InventoryCountingController extends Controller
                 'image_url' => "https://ppte.sa/imghd/{$folder}/{$product->item_code}.png",
             ],
             'existing_line' => null,
+            'in_target_list' => $inTargetList,
+            'abc_class' => $abcClass,
         ]);
     }
 
@@ -176,6 +191,15 @@ class InventoryCountingController extends Controller
         if (!$counting->isInProgress()) {
             return response()->json([
                 'message' => 'لا يمكن تعديل سجل جرد غير جاري'
+            ], 422);
+        }
+
+        // Cycle sessions are restricted to their target list — block off-list
+        // items server-side (the app also gates this in the scanner UI).
+        if (($counting->counting_type ?? 'full') === 'cycle'
+            && !$counting->isInTargets($request->item_code)) {
+            return response()->json([
+                'message' => 'هذا المنتج خارج قائمة الجرد الدوري ولا يمكن عدّه.'
             ], 422);
         }
 

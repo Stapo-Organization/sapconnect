@@ -92,6 +92,18 @@ class InventoryCounting extends Model
         return $this->counting_type === self::TYPE_CYCLE;
     }
 
+    /**
+     * Whether the given item_code belongs to this session's target list.
+     * target_items is a JSON array of [{item_code, abc_class}, …].
+     */
+    public function isInTargets(string $itemCode): bool
+    {
+        return collect($this->target_items ?? [])
+            ->pluck('item_code')
+            ->filter()
+            ->contains($itemCode);
+    }
+
     // ─── Helpers ────────────────────────────────────────────────
 
     public function isCompleted(): bool

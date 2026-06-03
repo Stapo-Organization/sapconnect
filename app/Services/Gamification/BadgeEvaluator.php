@@ -20,6 +20,14 @@ class BadgeEvaluator
         $cycleTotal = CountingScore::where('user_id', $user->id)->where('counting_type', 'cycle')->count();
         $highAccuracy = CountingScore::where('user_id', $user->id)->where('accuracy_pct', '>=', 98)->count();
 
+        // Quality-control counters
+        $qualityTotal = CountingScore::where('user_id', $user->id)->where('category', 'quality')->count();
+        $qualityWeek = CountingScore::where('user_id', $user->id)
+            ->where('category', 'quality')
+            ->where('on_time', true)
+            ->where('completed_at', '>=', now()->subDays(7))
+            ->count();
+
         $checks = [
             'first_count' => $completedTotal >= 1,
             'cycle_starter' => $cycleTotal >= 3,
@@ -29,6 +37,9 @@ class BadgeEvaluator
             'streak_3' => ($ctx['current_streak'] ?? 0) >= 3,
             'streak_8' => ($ctx['current_streak'] ?? 0) >= 8,
             'centurion' => ($ctx['lifetime_points'] ?? 0) >= 1000,
+            'first_quality' => $qualityTotal >= 1,
+            'quality_pro' => $qualityTotal >= 25,
+            'spotless_week' => $qualityWeek >= 5,
         ];
 
         $awarded = [];

@@ -17,6 +17,13 @@ return [
         'streak_cap' => 10,
     ],
 
+    // Quality-control task points (lands in the same lifetime pool).
+    'quality' => [
+        'base' => 15,
+        'on_time_bonus' => 15,
+        'completeness_bonus' => 10, // photo/checklist proof (vs acknowledge-only)
+    ],
+
     // Badge catalogue. Award logic lives in BadgeEvaluator; this drives display.
     'badges' => [
         'first_count'    => ['name_ar' => 'البداية', 'name_en' => 'First Count', 'icon' => 'flag', 'desc_ar' => 'أكملت أول جرد', 'desc_en' => 'Completed your first count'],
@@ -27,5 +34,10 @@ return [
         'streak_3'       => ['name_ar' => 'سلسلة 3', 'name_en' => '3-Week Streak', 'icon' => 'local_fire_department', 'desc_ar' => '3 أسابيع متتالية', 'desc_en' => '3 weeks in a row'],
         'streak_8'       => ['name_ar' => 'سلسلة 8', 'name_en' => '8-Week Streak', 'icon' => 'whatshot', 'desc_ar' => '8 أسابيع متتالية', 'desc_en' => '8 weeks in a row'],
         'centurion'      => ['name_ar' => 'المئوية', 'name_en' => 'Centurion', 'icon' => 'workspace_premium', 'desc_ar' => '1000 نقطة', 'desc_en' => 'Reached 1000 points'],
+
+        // Quality control
+        'first_quality'  => ['name_ar' => 'جودة', 'name_en' => 'First QC', 'icon' => 'verified', 'desc_ar' => 'أكملت أول مهمة جودة', 'desc_en' => 'Completed your first quality task'],
+        'quality_pro'    => ['name_ar' => 'محترف الجودة', 'name_en' => 'Quality Pro', 'icon' => 'verified_user', 'desc_ar' => 'أكملت 25 مهمة جودة', 'desc_en' => 'Completed 25 quality tasks'],
+        'spotless_week'  => ['name_ar' => 'أسبوع مثالي', 'name_en' => 'Spotless Week', 'icon' => 'cleaning_services', 'desc_ar' => '5 مهام جودة في الموعد خلال أسبوع', 'desc_en' => '5 on-time quality tasks in a week'],
     ],
 ];

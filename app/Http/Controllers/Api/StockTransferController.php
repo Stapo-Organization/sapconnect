@@ -63,6 +63,11 @@ class StockTransferController extends Controller
             $query->where('internal_status', $request->internal_status);
         }
 
+        // Hide Completed Transfers
+        if ($request->boolean('hide_completed')) {
+            $query->where('internal_status', '!=', 'Completed');
+        }
+
         // Warehouse filters
         if ($request->has('from_warehouse')) {
             $query->where('from_warehouse', $request->from_warehouse);

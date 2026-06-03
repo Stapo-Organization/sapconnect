@@ -89,6 +89,14 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::get('/gamification/badges', [\App\Http\Controllers\Api\GamificationController::class, 'badges']);
     Route::get('/gamification/leaderboard', [\App\Http\Controllers\Api\GamificationController::class, 'leaderboard']);
 
+    // ─── Quality Control (Exhibition Manager) ────────────────────
+    Route::get('/quality-tasks/summary', [\App\Http\Controllers\Api\QualityTaskController::class, 'summary']); // before {id}
+    Route::get('/quality-tasks', [\App\Http\Controllers\Api\QualityTaskController::class, 'index']);
+    Route::get('/quality-tasks/{id}', [\App\Http\Controllers\Api\QualityTaskController::class, 'show']);
+    Route::post('/quality-tasks/{id}/photos', [\App\Http\Controllers\Api\QualityTaskController::class, 'uploadPhotos']);
+    Route::delete('/quality-tasks/{id}/photos/{photoId}', [\App\Http\Controllers\Api\QualityTaskController::class, 'deletePhoto']);
+    Route::post('/quality-tasks/{id}/submit', [\App\Http\Controllers\Api\QualityTaskController::class, 'submit']);
+
     // ─── Dashboard Stats (Exhibition Manager) ────────────────────
     Route::get('/dashboard-stats', function (Request $request) {
         $user = $request->user();
