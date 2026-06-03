@@ -22,6 +22,8 @@ class ZooboxiOrder extends Model
         'tax_amount' => 'float',
         'total_amount' => 'float',
         'sap_synced_at' => 'datetime',
+        'prepared_at' => 'datetime',
+        'woo_status_synced_at' => 'datetime',
     ];
 
     // ─── Constants ──────────────────────────────────────────────
@@ -54,6 +56,14 @@ class ZooboxiOrder extends Model
     public function zooboxiWarehouse()
     {
         return $this->belongsTo(ZooboxiWarehouse::class, 'warehouse_code', 'warehouse_code');
+    }
+
+    /**
+     * The branch manager who marked the order prepared.
+     */
+    public function preparedBy()
+    {
+        return $this->belongsTo(User::class, 'prepared_by');
     }
 
     // ─── Scopes ─────────────────────────────────────────────────

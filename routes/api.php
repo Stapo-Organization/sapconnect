@@ -97,6 +97,13 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::delete('/quality-tasks/{id}/photos/{photoId}', [\App\Http\Controllers\Api\QualityTaskController::class, 'deletePhoto']);
     Route::post('/quality-tasks/{id}/submit', [\App\Http\Controllers\Api\QualityTaskController::class, 'submit']);
 
+    // ─── Zooboxi Express Orders (Exhibition Manager) ─────────────
+    Route::get('/zooboxi-orders/summary', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'summary']); // before {id}
+    Route::get('/zooboxi-orders', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'index']);
+    Route::get('/zooboxi-orders/{id}', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'show']);
+    Route::post('/zooboxi-orders/{id}/start', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'startPreparing']);
+    Route::post('/zooboxi-orders/{id}/prepare', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'markPrepared']);
+
     // ─── Dashboard Stats (Exhibition Manager) ────────────────────
     Route::get('/dashboard-stats', function (Request $request) {
         $user = $request->user();
