@@ -1,0 +1,29 @@
+# ── Secrets & environment ───────────────────────────────
+.env
+.env.*
+!.env.example
+*.exp
+
+# ── PHP / Node dependencies ─────────────────────────────
+/vendor/
+/node_modules/
+
+# ── Laravel runtime & caches ────────────────────────────
+/storage/framework/
+/storage/logs/
+/storage/*.key
+/bootstrap/cache/*.php
+
+# ── Local databases & dumps ─────────────────────────────
+*.sqlite
+*.sqlite-journal
+*.sql
+
+# ── Ad-hoc local scripts (root only) ────────────────────
+/check_barcodes.php
+/fix_*.php
+
+# ── OS / editor junk ────────────────────────────────────
+.DS_Store
+**/.DS_Store
+Thumbs.db
