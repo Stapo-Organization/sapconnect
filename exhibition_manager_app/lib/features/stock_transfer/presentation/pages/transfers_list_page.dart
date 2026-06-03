@@ -3,6 +3,8 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/stock_transfer_repository.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/models/stock_transfer.dart';
@@ -194,34 +196,11 @@ class _TransfersListPageState extends State<TransfersListPage> {
                   : _hasError
                       ? ErrorStateWidget(onRetry: _loadTransfers)
                       : _filteredTransfers.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(AppSpacing.xl),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.05),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.swap_horiz_rounded,
-                                      size: 64,
-                                      color: AppColors.primary.withValues(alpha: 0.4),
-                                    ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.base),
-                                  Text(
-                                    _searchController.text.isEmpty
-                                        ? context.tr('no_transfers')
-                                        : context.tr('no_results'),
-                                    style: AppTypography.titleMedium.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ? EmptyState(
+                              icon: Icons.swap_horiz_rounded,
+                              title: _searchController.text.isEmpty
+                                  ? context.tr('no_transfers')
+                                  : context.tr('no_results'),
                             )
                           : RefreshIndicator(
                               onRefresh: _loadTransfers,
@@ -397,15 +376,9 @@ class _TransferCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: AppRadius.borderLg,
+          borderRadius: AppRadius.borderXl,
           border: Border.all(color: AppColors.borderLight, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryDark.withAlpha(10),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: AppShadows.card,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,36 +397,9 @@ class _TransferCard extends StatelessWidget {
                   ),
                 ),
                 // Left side conceptually
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withAlpha(25),
-                    borderRadius: AppRadius.borderFull,
-                    border: Border.all(color: color.withAlpha(50), width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _statusLabel(context, transfer.internalStatus),
-                        style: AppTypography.labelSmall.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                StatusBadge(
+                  label: _statusLabel(context, transfer.internalStatus),
+                  color: color,
                 ),
               ],
             ),
