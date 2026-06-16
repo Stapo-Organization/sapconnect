@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دليل تجربة متجر منتجات — الرحلة · الذكاء · العروض الآلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  --blue:#3A71B3; --blue-dark:#1E4880; --blue-deep:#143966; --blue-tint:#E8F1FC;
+  --gold:#F4BE2C; --gold-dark:#D99E0B; --gold-tint:#FDF3D6;
+  --magenta:#C026D3; --magenta-dark:#9D174D; --magenta-tint:#FBEAFE;
+  --crimson:#E11D48; --crimson-dark:#BE123C; --crimson-tint:#FFE4EA;
+  --teal:#0E9BB0; --emerald:#0E9F6E; --amber:#E0A012; --indigo:#6D5DD3;
+  --success:#10B981; --warning:#F59E0B; --error:#EF4444; --info:#3B82F6;
+  --ink:#0F172A; --ink-2:#475569; --ink-3:#94A3B8;
+  --bg:#F4F6FA; --surface:#FFFFFF; --surface-2:#F8FAFC;
+  --border:#E2E8F0; --border-light:#F1F5F9;
+  --radius:20px; --radius-sm:12px; --radius-pill:999px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow:0 8px 24px rgba(15,23,42,.08);
+  --shadow-lg:0 18px 48px rgba(15,23,42,.12);
+  --maxw:840px;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Cairo',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.9;-webkit-font-smoothing:antialiased}
+.ltr,code,.formula{direction:ltr;unicode-bidi:isolate}
+code{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:.88em;background:var(--surface-2);border:1px solid var(--border-light);border-radius:6px;padding:1px 6px;color:var(--blue-dark)}
+p{orphans:3;widows:3}
+a{color:inherit;text-decoration:none}
+
+/* ---------- layout ---------- */
+.wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,5vw,44px)}
+.section{break-before:page;padding-block:34px 8px}
+.section:first-of-type{break-before:auto}
+
+/* ---------- cover ---------- */
+.cover{min-height:100vh;background:linear-gradient(135deg,var(--blue) 0%,var(--blue-dark) 48%,var(--blue-deep) 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;break-after:page;padding:40px}
+.cover .flourish{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cover .logo{width:96px;height:96px;border-radius:24px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin-bottom:30px;backdrop-filter:blur(6px)}
+.cover h1{font-size:3.4rem;font-weight:900;letter-spacing:-1px;line-height:1.25;margin-bottom:14px;text-shadow:0 4px 30px rgba(0,0,0,.25)}
+.cover .sub{font-size:1.18rem;font-weight:500;color:rgba(255,255,255,.82);max-width:560px;margin-bottom:30px}
+.cover .meta{font-size:.85rem;color:rgba(255,255,255,.6);letter-spacing:.3px;margin-bottom:34px}
+.cover .pills{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.cover .pills span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-pill);padding:8px 20px;font-size:.95rem;font-weight:600}
+.cover .pills span.g{background:rgba(244,190,44,.18);border-color:rgba(244,190,44,.4)}
+.cover .pills span.m{background:rgba(192,38,211,.20);border-color:rgba(192,38,211,.42)}
+
+/* ---------- toc ---------- */
+.toc{break-after:page}
+.toc h2{font-size:1.9rem;font-weight:800;margin-bottom:22px;padding-bottom:12px;border-bottom:3px solid var(--blue)}
+.toc-row{display:flex;align-items:baseline;gap:10px;padding:9px 0;font-size:1.05rem;font-weight:600}
+.toc-row .t{display:flex;align-items:center;gap:12px}
+.toc-row .num{width:30px;height:30px;border-radius:9px;background:var(--blue-tint);color:var(--blue-dark);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex:0 0 auto}
+.toc-row.m .num{background:var(--magenta-tint);color:var(--magenta)}
+.toc-row .dots{flex:1;border-bottom:2px dotted var(--border);transform:translateY(-4px)}
+.toc-row .pg{color:var(--ink-3);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- headings ---------- */
+.section h2{display:flex;align-items:center;gap:14px;font-size:1.85rem;font-weight:800;margin-bottom:8px;break-after:avoid}
+.section h2 .num{width:42px;height:42px;border-radius:12px;background:var(--blue);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:1.15rem;flex:0 0 auto;box-shadow:var(--shadow-sm)}
+.section h2 .ttl{position:relative;padding-bottom:8px}
+.section h2 .ttl::after{content:"";position:absolute;inset-inline-start:0;bottom:0;width:64px;height:3px;border-radius:3px;background:var(--blue)}
+.section.m h2 .num{background:var(--magenta)}
+.section.m h2 .ttl::after{background:var(--magenta)}
+.section .lead{font-size:1.08rem;color:var(--ink-2);margin:14px 0 20px;font-weight:500}
+h3{font-size:1.28rem;font-weight:700;margin:24px 0 10px}
+h4{font-size:1.06rem;font-weight:700;margin:16px 0 8px;color:var(--blue-dark)}
+p{margin-bottom:12px;color:var(--ink)}
+.muted{color:var(--ink-2)}
+
+/* ---------- cards / grids ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-sm);margin:14px 0;break-inside:avoid}
+.card--accent{border-inline-start:4px solid var(--blue)}
+.card--mag{border-inline-start:4px solid var(--magenta)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:640px){.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+
+/* ---------- stat ---------- */
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--shadow-sm)}
+.stat .n{font-size:2.3rem;font-weight:900;color:var(--blue);line-height:1.1}
+.stat .l{color:var(--ink-2);font-weight:600;font-size:.95rem;margin-top:4px}
+.stat.g .n{color:var(--gold-dark)} .stat.m .n{color:var(--magenta)} .stat.c .n{color:var(--crimson)}
+
+/* ---------- callout ---------- */
+.callout{border-inline-start:5px solid var(--info);background:var(--surface);border-radius:var(--radius-sm);padding:16px 18px;margin:16px 0;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);break-inside:avoid}
+.callout .ico{flex:0 0 auto;width:30px;height:30px}
+.callout h4{margin:0 0 4px}
+.callout--gold{border-color:var(--gold-dark);background:var(--gold-tint)}
+.callout--magenta{border-color:var(--magenta);background:var(--magenta-tint)}
+.callout--red{border-color:var(--error);background:#FEF2F2}
+.callout--info{border-color:var(--info);background:var(--blue-tint)}
+.callout--green{border-color:var(--success);background:#ECFDF5}
+
+/* ---------- formula card ---------- */
+.formula-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:14px 0;box-shadow:var(--shadow-sm);break-inside:avoid}
+.formula-card .fhead{padding:12px 18px;background:linear-gradient(135deg,var(--blue-tint),#fff);border-bottom:1px solid var(--border)}
+.formula-card.m .fhead{background:linear-gradient(135deg,var(--magenta-tint),#fff)}
+.formula-card .fhead .ft{font-weight:800;font-size:1.1rem}
+.formula-card .fhead .fm{color:var(--ink-2);font-size:.95rem;font-weight:500}
+.formula-card .fbody{padding:14px 18px}
+.formula{direction:ltr;background:#0F172A;color:#E2E8F0;border-radius:12px;padding:13px 16px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:.92rem;overflow-x:auto;line-height:1.7;text-align:left}
+.formula .op{color:var(--gold)} .formula .v{color:#7DD3FC} .formula .c{color:#86EFAC} .formula .k{color:#F0ABFC}
+.formula-card .drives{padding:10px 18px 14px;color:var(--ink-2);font-size:.92rem;border-top:1px dashed var(--border)}
+.formula-card .drives b{color:var(--blue-dark)}
+
+/* ---------- table ---------- */
+.table-wrap{overflow:hidden;border:1px solid var(--border);border-radius:var(--radius-sm);margin:14px 0;box-shadow:var(--shadow-sm)}
+table.table{width:100%;border-collapse:collapse;font-size:.95rem}
+.table th{background:var(--surface-2);color:var(--ink-2);font-weight:700;text-align:start;padding:11px 13px;border-bottom:1px solid var(--border)}
+.table td{padding:10px 13px;border-bottom:1px solid var(--border-light);vertical-align:top}
+.table tbody tr:nth-child(even){background:var(--surface-2)}
+.table tbody tr{break-inside:avoid}
+.table tbody tr:last-child td{border-bottom:none}
+
+/* ---------- chips ---------- */
+.chip{display:inline-block;border-radius:var(--radius-pill);padding:3px 12px;font-size:.82rem;font-weight:700;white-space:nowrap}
+.chip--green{background:#ECFDF5;color:#047857} .chip--amber{background:#FFFBEB;color:#B45309}
+.chip--red{background:#FEF2F2;color:#B91C1C} .chip--blue{background:var(--blue-tint);color:var(--blue-dark)}
+.chip--gold{background:var(--gold-tint);color:var(--gold-dark)} .chip--magenta{background:var(--magenta-tint);color:var(--magenta)}
+.chip--crimson{background:var(--crimson-tint);color:var(--crimson-dark)} .chip--slate{background:#F1F5F9;color:#475569}
+
+/* ---------- step ---------- */
+.step{display:grid;grid-template-columns:54px 1fr;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin:12px 0;box-shadow:var(--shadow-sm);break-inside:avoid}
+.step .glyph{width:54px;height:54px;border-radius:15px;background:var(--blue-tint);display:flex;align-items:center;justify-content:center}
+.step .glyph svg{width:30px;height:30px}
+.step .sn{font-size:.8rem;font-weight:800;color:var(--blue);letter-spacing:.5px}
+.step h4{margin:2px 0 8px;font-size:1.15rem;color:var(--ink)}
+.step .row{display:flex;gap:8px;margin-bottom:5px;font-size:.96rem}
+.step .row .lab{flex:0 0 auto;font-weight:800;color:var(--ink-2);min-width:96px}
+.step .row.see .lab{color:var(--blue)}
+.step .row.drive .lab{color:var(--magenta)}
+
+/* per-domain step glyph tints */
+.step.t1 .glyph{background:var(--blue-tint)} .step.t1 .sn{color:var(--blue)}
+.step.t2 .glyph{background:#E6F7F9} .step.t2 .sn{color:var(--teal)}
+.step.t3 .glyph{background:#FBEAFE} .step.t3 .sn{color:var(--magenta)}
+.step.t4 .glyph{background:var(--gold-tint)} .step.t4 .sn{color:var(--gold-dark)}
+.step.t5 .glyph{background:#EDEBFB} .step.t5 .sn{color:var(--indigo)}
+.step.t6 .glyph{background:var(--crimson-tint)} .step.t6 .sn{color:var(--crimson)}
+
+/* ---------- figure ---------- */
+.figure{margin:18px 0;break-inside:avoid}
+.figure svg{width:100%;height:auto;max-height:165mm;display:block}
+.figure figcaption{color:var(--ink-3);font-size:.85rem;text-align:center;margin-top:8px}
+
+/* ---------- divider ---------- */
+.divider{display:flex;align-items:center;gap:14px;margin:26px 0}
+.divider::before,.divider::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+.divider .d{width:9px;height:9px;background:var(--gold);transform:rotate(45deg);border-radius:2px}
+
+ul.clean{list-style:none;margin:8px 0}
+ul.clean li{position:relative;padding-inline-start:24px;margin-bottom:8px;color:var(--ink-2)}
+ul.clean li::before{content:"";position:absolute;inset-inline-start:0;top:11px;width:8px;height:8px;border-radius:50%;background:var(--blue)}
+ul.no li::before{background:var(--error)}
+ul.yes li::before{background:var(--success)}
+
+.kicker{font-size:.8rem;font-weight:800;letter-spacing:1px;color:var(--magenta);text-transform:uppercase;margin-bottom:6px}
+
+/* ---------- screen-only motion ---------- */
+@media screen{
+  @media (prefers-reduced-motion: no-preference){
+    .section .card,.section .step,.section .formula-card,.section .figure,.section .callout{animation:rise .5s ease both}
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  }
+  .card:hover,.step:hover{box-shadow:var(--shadow)}
+}
+
+/* ---------- print ---------- */
+@page{size:A4;margin:18mm 16mm 20mm}
+@media print{
+  html,body{background:#fff}
+  .wrap{max-width:none;padding-inline:0}
+  .section{break-before:page}
+  .cover,.toc{break-after:page}
+  h2,h3,h4{break-after:avoid}
+  .card,.figure,.formula-card,.step,.callout,.stat{break-inside:avoid}
+  .no-print{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <svg class="flourish" viewBox="0 0 800 1100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M800 0 L800 320 Q560 230 560 0 Z" fill="rgba(244,190,44,.16)"/>
+    <path d="M0 1100 L0 760 Q280 880 320 1100 Z" fill="rgba(192,38,211,.18)"/>
+    <circle cx="120" cy="160" r="120" fill="rgba(255,255,255,.05)"/>
+    <circle cx="700" cy="940" r="160" fill="rgba(255,255,255,.04)"/>
+  </svg>
+  <div class="logo">
+    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l1-5h16l1 5"/><path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9"/><path d="M9 20v-6h6v6"/>
+    </svg>
+  </div>
+  <h1>دليل تجربة متجر منتجات</h1>
+  <div class="sub">رحلة العميل · ذكاء المنتجات · نظام الإعلانات والعروض الآلي</div>
+  <div class="meta">الإصدار 1.0 &nbsp;·&nbsp; يونيو 2026 &nbsp;·&nbsp; سرّي — للاستخدام الداخلي</div>
+  <div class="pills">
+    <span>الذكاء</span>
+    <span class="g">الرحلة</span>
+    <span class="m">العروض الآلية</span>
+  </div>
+</section>
+
+<div class="wrap">
+
+<!-- ============================ TOC ============================ -->
+<section class="toc">
+  <h2>المحتويات</h2>
+  <div class="toc-row"><div class="t"><span class="num">١</span><span>المتجر باختصار</span></div><span class="dots"></span><span class="pg">٣</span></div>
+  <div class="toc-row"><div class="t"><span class="num">٢</span><span>رحلة العميل</span></div><span class="dots"></span><span class="pg">٤</span></div>
+  <div class="toc-row"><div class="t"><span class="num">٣</span><span>كيف تعمل الخوارزميات</span></div><span class="dots"></span><span class="pg">٧</span></div>
+  <div class="toc-row"><div class="t"><span class="num">٤</span><span>كيف تُصنّف المنتجات</span></div><span class="dots"></span><span class="pg">١٠</span></div>
+  <div class="toc-row m"><div class="t"><span class="num">٥</span><span>نظام الإعلانات والعروض الآلي الجديد</span></div><span class="dots"></span><span class="pg">١٢</span></div>
+  <div class="toc-row"><div class="t"><span class="num">٦</span><span>الحوكمة والسلامة</span></div><span class="dots"></span><span class="pg">١٦</span></div>
+  <div class="toc-row"><div class="t"><span class="num">٧</span><span>خارطة الطريق</span></div><span class="dots"></span><span class="pg">١٧</span></div>
+  <div class="toc-row"><div class="t"><span class="num">+</span><span>الملحق والمسرد</span></div><span class="dots"></span><span class="pg">١٨</span></div>
+
+  <div class="divider"><span class="d"></span></div>
+
+  <!-- Executive summary lives on the TOC page bottom -->
+  <h3>نظرة عامة تنفيذية</h3>
+  <p class="muted">«منتجات» تدير متجراً إلكترونياً (Zooboxi) على WooCommerce، متعدّد المستودعات وواعٍ بموقع العميل، تُغذّيه بيانات SAP. كل ما يظهر للعميل — الترتيب، الشارات، وعود التوصيل، التوصيات — يقرّره «دماغ» يومي مبنيّ على إشارة واحدة نظيفة: ما يشتريه العملاء فعلاً من سجل التجزئة في SAP. هذا الدليل يضيف الطبقة الجديدة: نظام إعلانات وعروض <b>آلي بالكامل في الاقتراح</b>، يولّد التصاميم بالذكاء الاصطناعي، ويبقى <b>قراره النهائي بيد المالك</b> عبر التطبيق — دون أي خطر على سعر الجملة.</p>
+
+  <div class="grid-3" style="margin-top:16px">
+    <div class="stat"><div class="n">٤</div><div class="l">مستويات توصيل ذكية</div></div>
+    <div class="stat g"><div class="n">ساعتان</div><div class="l">توصيل Express من فرعك</div></div>
+    <div class="stat m"><div class="n">١٠٠٪</div><div class="l">قرار العرض بيد المالك</div></div>
+  </div>
+  <p style="font-size:.8rem;color:var(--ink-3);margin-top:6px">* الأرقام أعلاه توضيحية تمثّل قدرات النظام.</p>
+
+  <div class="callout callout--gold">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+    <div><h4>الضمانات الثلاث</h4><div class="muted">سعر الجملة محميّ دائماً &nbsp;·&nbsp; SAP للقراءة فقط &nbsp;·&nbsp; لا يُنشر أي عرض بدون موافقة المالك.</div></div>
+  </div>
+</section>
+
+<!-- ============================ §1 STORE AT A GLANCE ============================ -->
+<section class="section">
+  <h2><span class="num">١</span><span class="ttl">المتجر باختصار</span></h2>
+  <p class="lead">متجر «منتجات» ليس متجراً عادياً: هو واجهة WooCommerce تجلس فوق شبكة مستودعات، وتعرف موقع كل عميل، وتُدار بذكاء مصدره الوحيد بيانات SAP الحقيقية.</p>
+
+  <p>تتكوّن المنظومة من ثلاث طبقات تعمل معاً:</p>
+
+  <div class="figure">
+    <svg viewBox="0 0 820 300" role="img" aria-label="مخطط الطبقات: SAP إلى الذكاء إلى المتجر إلى العميل مع تفرّع تطبيق المالك">
+      <title>تدفّق الطبقات</title>
+      <defs>
+        <filter id="ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.12"/></filter>
+        <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#94A3B8"/></marker>
+        <marker id="arrm" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#C026D3"/></marker>
+      </defs>
+      <!-- boxes (RTL: rightmost = source) -->
+      <g filter="url(#ds)">
+        <rect x="630" y="40" width="170" height="86" rx="14" fill="#0F172A"/>
+        <rect x="430" y="40" width="170" height="86" rx="14" fill="#3A71B3"/>
+        <rect x="230" y="40" width="170" height="86" rx="14" fill="#0E9BB0"/>
+        <rect x="20"  y="40" width="170" height="86" rx="14" fill="#1E4880"/>
+        <rect x="430" y="200" width="170" height="76" rx="14" fill="#C026D3"/>
+      </g>
+      <g font-family="Cairo" fill="#fff" text-anchor="middle">
+        <text x="715" y="74" font-size="17" font-weight="800">SAP B1</text>
+        <text x="715" y="98" font-size="12" fill="#CBD5E1">المصدر — قراءة فقط 🔒</text>
+        <text x="515" y="74" font-size="16" font-weight="800">الذكاء (sapconnect)</text>
+        <text x="515" y="98" font-size="12" fill="#DBEAFE">Laravel — يحسب يومياً</text>
+        <text x="315" y="74" font-size="16" font-weight="800">إضافة WooCommerce</text>
+        <text x="315" y="98" font-size="12" fill="#E0F2FE">المتجر — يعرض</text>
+        <text x="105" y="80" font-size="17" font-weight="800">العميل</text>
+        <text x="515" y="232" font-size="15" font-weight="800">تطبيق المالك</text>
+        <text x="515" y="254" font-size="12" fill="#FBEAFE">Flutter — موافقة</text>
+      </g>
+      <!-- arrows -->
+      <g stroke="#94A3B8" stroke-width="2.2" fill="none">
+        <path d="M630 83 L600 83" marker-end="url(#arr)"/>
+        <path d="M430 83 L400 83" marker-end="url(#arr)"/>
+        <path d="M230 83 L190 83" marker-end="url(#arr)"/>
+      </g>
+      <g font-family="Cairo" fill="#64748B" font-size="11" text-anchor="middle">
+        <text x="615" y="32">طلب C0000001 · GRPO · مخزون</text>
+        <text x="415" y="32">/snapshot · clearance · recs</text>
+        <text x="210" y="32">ترتيب · شارات · بانرات</text>
+      </g>
+      <!-- branch to app + approval return -->
+      <g fill="none">
+        <path d="M515 126 L515 200" stroke="#C026D3" stroke-width="2.2" marker-end="url(#arrm)"/>
+        <path d="M560 200 C600 170 600 150 600 126" stroke="#C026D3" stroke-width="2.2" stroke-dasharray="5 4" marker-end="url(#arrm)"/>
+      </g>
+      <text x="455" y="170" font-family="Cairo" fill="#C026D3" font-size="11" text-anchor="middle">يقترح</text>
+      <text x="640" y="170" font-family="Cairo" fill="#C026D3" font-size="11" text-anchor="middle">موافقة</text>
+    </svg>
+    <figcaption>الشكل ١ — تدفّق البيانات من SAP إلى العميل، وتفرّع تطبيق المالك للموافقة على العروض.</figcaption>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>الطبقة</th><th>دورها</th><th>أين تعمل</th></tr></thead>
+      <tbody>
+        <tr><td><b>SAP B1</b></td><td>المصدر الرئيسي للأصناف والأسعار والطلب الحقيقي (سجل التجزئة <code>C0000001</code>) — <b>قراءة فقط</b></td><td>خادم SAP</td></tr>
+        <tr><td><b>الذكاء (sapconnect)</b></td><td>يحسب يومياً: السرعة، الصحة، الترتيب، التصفية، التوصيات — ويعرضها عبر API</td><td><code>62.138.14.178</code></td></tr>
+        <tr><td><b>إضافة WooCommerce</b></td><td>المتجر الذي يراه العميل: الترتيب، الشارات، التوصيل، البانرات</td><td><code>62.138.14.178</code></td></tr>
+        <tr><td><b>تطبيق مدير المعرض</b></td><td>موافقة المالك على العروض + تجهيز الطلبات في الفروع</td><td>آيفون المالك/المدير</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ §2 CUSTOMER JOURNEY ============================ -->
+<section class="section">
+  <h2><span class="num">٢</span><span class="ttl">رحلة العميل</span></h2>
+  <p class="lead">من لحظة فتح المتجر إلى استلام الطلب — ست خطوات، كل واحدة مدعومة بإشارة ذكاء حقيقية. لكل خطوة نوضّح: <b>ماذا يرى العميل</b> و<b>ما الذي يحرّكه من الذكاء</b>.</p>
+
+  <div class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-label="قمع رحلة العميل من تحديد الموقع إلى التسليم">
+      <title>قمع رحلة العميل</title>
+      <defs>
+        <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3A71B3"/><stop offset="1" stop-color="#143966"/>
+        </linearGradient>
+      </defs>
+      <g font-family="Cairo" text-anchor="middle">
+        <g>
+          <polygon points="80,20 680,20 640,62 120,62" fill="#3A71B3"/>
+          <text x="380" y="48" fill="#fff" font-size="15" font-weight="700">١ · تحديد الموقع — GPS وتأكيد على الخريطة</text>
+        </g>
+        <g>
+          <polygon points="122,68 638,68 598,110 162,110" fill="#3F77B8"/>
+          <text x="380" y="96" fill="#fff" font-size="15" font-weight="700">٢ · التسوّق — ترتيب «موصى به» + شارات ذكية</text>
+        </g>
+        <g>
+          <polygon points="164,116 596,116 556,158 204,158" fill="#356399"/>
+          <text x="380" y="144" fill="#fff" font-size="15" font-weight="700">٣ · صفحة المنتج — توصيل + ندرة + «يُشترى معاً»</text>
+        </g>
+        <g>
+          <polygon points="206,164 554,164 514,206 246,206" fill="#2B5688"/>
+          <text x="380" y="192" fill="#fff" font-size="15" font-weight="700">٤ · السلة — شحنات ذكية + كوبون</text>
+        </g>
+        <g>
+          <polygon points="248,212 512,212 472,254 288,254" fill="#214877"/>
+          <text x="380" y="240" fill="#fff" font-size="15" font-weight="700">٥ · الدفع — خريطة + تحقّق OTP</text>
+        </g>
+        <g>
+          <polygon points="290,260 470,260 430,296 330,296" fill="#E11D48"/>
+          <text x="380" y="285" fill="#fff" font-size="14" font-weight="800">٦ · التسليم</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>الشكل ٢ — قمع الرحلة: كل مرحلة تضيّق نحو إتمام الطلب، وتنتهي بالتسليم السريع.</figcaption>
+  </div>
+
+  <div class="step t1">
+    <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#3A71B3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.5-7-11a7 7 0 1114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+    <div>
+      <div class="sn">الخطوة ١</div><h4>تحديد الموقع</h4>
+      <div class="row see"><span class="lab">يرى العميل</span><span>نافذة تحدّد موقعه تلقائياً عبر GPS، ويضبط الدبّوس على الخريطة لتأكيد الحي.</span></div>
+      <div class="row drive"><span class="lab">يحرّكه الذكاء</span><span>يحدّد «فرعك» الأقرب، وأهلية التوصيل السريع، ووعود التوصيل لكل منتج لاحقاً.</span></div>
+    </div>
+  </div>
+
+  <div class="step t2">
+    <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#0E9BB0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+    <div>
+      <div class="sn">الخطوة ٢</div><h4>التسوّق والتصنيفات</h4>
+      <div class="row see"><span class="lab">يرى العميل</span><span>ترتيب افتراضي «موصى به»، والمنتجات المتوفّرة في فرعه السريع تتصدّر. شارات ذكية: 🔥 الأكثر طلباً، 📈 رائج، ✨ وصل حديثاً، ⏳ بقي X، 🔄 عاد للمخزون.</span></div>
+      <div class="row drive"><span class="lab">يحرّكه الذكاء</span><span>درجة الترتيب المركّبة <code>composite_rank_score</code> + تصدير المتوفّر في فرع Express + معدّل التوفّر. <b>لا أسعار على الشارات</b> (حماية لقناة الجملة).</span></div>
+    </div>
+  </div>
+
+  <div class="step t3">
+    <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#C026D3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></div>
+    <div>
+      <div class="sn">الخطوة ٣</div><h4>صفحة المنتج</h4>
+      <div class="row see"><span class="lab">يرى العميل</span><span>خيارات التوصيل (ساعتين / نفس اليوم / شحن / استلام)، ندرة («بقي X في فرعك» عند ≤5)، وقسم «يُشترى عادةً معاً» بأربعة منتجات مكمّلة.</span></div>
+      <div class="row drive"><span class="lab">يحرّكه الذكاء</span><span>محرّك التوصيل <code>Delivery_Engine</code> + بيانات الندرة + توصيات الشراء المتلازم (FBT) عبر <code>/recommendations</code>.</span></div>
+    </div>
+  </div>
+
+  <div class="step t4">
+    <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#D99E0B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="18" cy="21" r="1.6"/><path d="M2 3h3l2.6 13.4A2 2 0 009.5 18h8a2 2 0 002-1.6L21 7H6"/></svg></div>
+    <div>
+      <div class="sn">الخطوة ٤</div><h4>السلة</h4>
+      <div class="row see"><span class="lab">يرى العميل</span><span>مستوى توصيل لكل منتج، وتقسيم السلة إلى «شحنات ذكية» لكل مستوى (لكل شحنة سعرها وشريط شحن مجاني)، وطلب واحد ودفعة واحدة، مع خانة كوبون.</span></div>
+      <div class="row drive"><span class="lab">يحرّكه الذكاء</span><span><code>Smart_Shipments</code> + كوبونات WooCommerce المعتمدة + حدود الشحن المجاني.</span></div>
+    </div>
+  </div>
+
+  <div class="step t5">
+    <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#6D5DD3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg></div>
+    <div>
+      <div class="sn">الخطوة ٥</div><h4>الدفع (Checkout)</h4>
+      <div class="row see"><span class="lab">يرى العميل</span><span>تأكيد العنوان على الخريطة، والتحقّق برمز OTP، مع تعبئة العنوان من الموقع المحفوظ.</span></div>
+      <div class="row drive"><span class="lab">يحرّكه الذكاء</span><span><code>Checkout_Customizer</code> + نافذة OTP.</span></div>
+    </div>
+  </div>
+
+  <div class="step t6">
+    <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.7"/><circle cx="17" cy="18" r="1.7"/></svg></div>
+    <div>
+      <div class="sn">الخطوة ٦</div><h4>التجهيز والتسليم</h4>
+      <div class="row see"><span class="lab">يرى العميل</span><span>طلبه يُجهّز في أقرب فرع، ويصله خلال ساعتين (Express). الحالة تتحوّل إلى «جاهز للتسليم».</span></div>
+      <div class="row drive"><span class="lab">يحرّكه الذكاء</span><span><code>Fulfillment</code> + حالة الطلب المخصّصة <code>wc-zb-ready</code>، يضبطها مدير الفرع من تطبيق Flutter.</span></div>
+    </div>
+  </div>
+
+  <div class="callout callout--info">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#1E4880" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+    <div><h4>ما الذي يجعل هذه الرحلة ذكية؟</h4><div class="muted">كل خطوة مرتبطة بإشارة واحدة مشتقّة من SAP: الموقع يحدّد التوفّر، السرعة تحدّد الترتيب، الندرة تحدّد العاجل، والشراء المتلازم يحدّد التوصية. لا تخمين — كله مبنيّ على ما اشتراه العملاء فعلاً.</div></div>
+  </div>
+</section>
+
+<!-- ============================ §3 ALGORITHMS ============================ -->
+<section class="section">
+  <h2><span class="num">٣</span><span class="ttl">كيف تعمل الخوارزميات</span></h2>
+  <p class="lead">كل ما تراه مبنيّ على إشارة واحدة نظيفة: ما يشتريه العملاء فعلاً من سجل التجزئة <code>C0000001</code> في SAP.</p>
+
+  <div class="callout callout--info">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#1E4880" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 16V9m4 7V6m4 10v-4"/></svg>
+    <div><h4>المدخلات الأربعة</h4><div class="muted"><b>سجل <code>C0000001</code></b> (الطلب الفعلي) · <b>حركات الاستلام GRPO</b> (الوصول والتكلفة) · <b>المخزون الحالي</b> (اللقطة) · <b>التكلفة التقديرية</b> (للهوامش والأرضية).</div></div>
+  </div>
+
+  <p>كل خوارزمية أدناه تجيب على ثلاثة أسئلة: ماذا تعني بكلمات بسيطة، كيف تُحسب، وماذا تقود في المتجر.</p>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">سرعة الطلب (Velocity)</div><div class="fm">كم قطعة تُباع يومياً، مع ترجيح الأيام الأخيرة.</div></div>
+    <div class="fbody"><div class="formula"><span class="v">velocity</span> <span class="op">=</span> <span class="c">0.6</span> <span class="op">·</span> ads30 <span class="op">+</span> <span class="c">0.4</span> <span class="op">·</span> ads90
+<span class="v">ads30</span> <span class="op">=</span> s30 <span class="op">/</span> 30 &nbsp;&nbsp; <span class="v">ads90</span> <span class="op">=</span> s90 <span class="op">/</span> 90 &nbsp;<span class="k">// pieces/day</span></div></div>
+    <div class="drives"><b>يقود في المتجر:</b> أساس الترتيب وأيام التغطية وتصنيف الطلب.</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">إعادة بناء النفاد و v_true</div><div class="fm">السرعة «الحقيقية» وهو على الرف فعلاً — لتمييز الراكد عن الذي نفد.</div></div>
+    <div class="fbody">
+      <p class="muted" style="margin-bottom:10px">نمشي ٩٠ يوماً للخلف من المخزون الحالي، ونحسب لكل يوم: <code>الوصول (GRPO) − المبيعات</code>، ونعدّ الأيام التي كان فيها المخزون &gt; صفر.</p>
+      <div class="formula"><span class="v">in_stock_rate</span> <span class="op">=</span> in_stock_days <span class="op">/</span> 90
+<span class="v">v_true</span> <span class="op">=</span> s90 <span class="op">/</span> max(in_stock_days, <span class="c">1</span>)
+<span class="v">lost_sales</span> <span class="op">=</span> v_true <span class="op">·</span> max(0, 90 <span class="op">−</span> in_stock_days) <span class="op">/</span> 3</div></div>
+    <div class="drives"><b>يقود في المتجر:</b> تمييز «نفد لكنه مطلوب» (إعادة طلب) عن «راكد فعلاً» (تصفية).</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">أيام التغطية (Days of Cover)</div><div class="fm">كم يوماً يكفي المخزون الحالي بمعدّل البيع.</div></div>
+    <div class="fbody"><div class="formula"><span class="v">cover</span> <span class="op">=</span> current_stock <span class="op">/</span> velocity &nbsp;&nbsp;<span class="k">// الهدف = 180 يوماً</span></div></div>
+    <div class="drives"><b>يقود في المتجر:</b> كشف الفائض (overstock) والنقص (low).</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">آلة حالة الصحة (health_status)</div><div class="fm">تصنيف كل صنف لإجراء واضح — بترتيب قواعد محدّد.</div></div>
+    <div class="fbody">
+      <div class="figure" style="margin:4px 0">
+        <svg viewBox="0 0 760 230" role="img" aria-label="شجرة قرار حالة الصحة">
+          <title>شجرة قرار الصحة</title>
+          <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#94A3B8"/></marker></defs>
+          <g font-family="Cairo" font-size="12.5" text-anchor="middle">
+            <g><rect x="600" y="14" width="150" height="40" rx="9" fill="#0F172A"/><text x="675" y="39" fill="#fff" font-weight="700">المخزون ≤ 0 ؟</text></g>
+            <g><rect x="600" y="78" width="150" height="38" rx="9" fill="#FEE2E2"/><text x="675" y="102" fill="#B91C1C" font-weight="700">نفد / راكد</text></g>
+            <g><rect x="395" y="14" width="170" height="40" rx="9" fill="#0F172A"/><text x="480" y="33" fill="#fff" font-weight="700">معدّل التوفّر &lt;0.7</text><text x="480" y="48" fill="#CBD5E1" font-size="10">و v_true ≥ 0.5؟</text></g>
+            <g><rect x="402" y="78" width="156" height="38" rx="9" fill="#FFE4EA"/><text x="480" y="102" fill="#BE123C" font-weight="800">starved → إعادة طلب</text></g>
+            <g><rect x="215" y="14" width="150" height="40" rx="9" fill="#0F172A"/><text x="290" y="39" fill="#fff" font-weight="700">cover &gt; 180؟</text></g>
+            <g><rect x="215" y="78" width="150" height="38" rx="9" fill="#FEF3C7"/><text x="290" y="102" fill="#B45309" font-weight="700">overstock</text></g>
+            <g><rect x="20" y="14" width="150" height="40" rx="9" fill="#0F172A"/><text x="95" y="39" fill="#fff" font-weight="700">cover &lt; 30؟</text></g>
+            <g><rect x="20" y="78" width="72" height="38" rx="9" fill="#FEF9C3"/><text x="56" y="102" fill="#A16207" font-weight="700">low</text></g>
+            <g><rect x="98" y="78" width="72" height="38" rx="9" fill="#DCFCE7"/><text x="134" y="102" fill="#047857" font-weight="700">healthy</text></g>
+          </g>
+          <g stroke="#94A3B8" stroke-width="2" fill="none">
+            <path d="M600 34 L565 34" marker-end="url(#a2)"/>
+            <path d="M395 34 L365 34" marker-end="url(#a2)"/>
+            <path d="M215 34 L170 34" marker-end="url(#a2)"/>
+            <path d="M675 54 L675 78" marker-end="url(#a2)"/>
+            <path d="M480 54 L480 78" marker-end="url(#a2)"/>
+            <path d="M290 54 L290 78" marker-end="url(#a2)"/>
+            <path d="M95 54 L56 78" marker-end="url(#a2)"/>
+            <path d="M95 54 L134 78" marker-end="url(#a2)"/>
+          </g>
+          <g font-family="Cairo" font-size="10" fill="#64748B" text-anchor="middle">
+            <text x="582" y="28">نعم</text><text x="378" y="28">نعم</text><text x="198" y="28">نعم</text>
+            <text x="688" y="70">لا↓</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="drives"><b>القاعدة الذهبية:</b> <code>starved</code> = بائع جيد نفد ← <b>إعادة طلب</b>، وليس تخفيضاً أبداً.</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">درجة الترتيب المركّبة (composite_rank_score)</div><div class="fm">رقم واحد 0–100 يرتّب كل المنتجات في المتجر.</div></div>
+    <div class="fbody">
+      <div class="formula"><span class="v">score</span> <span class="op">=</span> 100 <span class="op">·</span> availGate <span class="op">·</span> (
+   <span class="c">0.30</span>·avail <span class="op">+</span> <span class="c">0.26</span>·pop <span class="op">+</span> <span class="c">0.14</span>·margin
+   <span class="op">+</span> <span class="c">0.24</span>·clearance <span class="op">+</span> <span class="c">0.06</span>·freshness )</div>
+      <ul class="clean" style="margin-top:12px">
+        <li><b>availGate</b>: ١ عند التوفّر، و٠٫٠٥ عند النفاد (لا يُخفى تماماً).</li>
+        <li><b>avail</b>: نسبة أسبوع من التغطية · <b>pop</b>: ترتيب مئوي للسرعة · <b>margin</b>: الهامش (0–0.6) · <b>clearance</b>: ضغط الفائض (سيغمويد) · <b>freshness</b>: حداثة الصنف.</li>
+      </ul>
+      <p class="muted" style="font-size:.9rem;margin-top:8px">الأوزان <b>قابلة للضبط من المالك</b>. وهناك «أرضية للفئة A»: البائع المثبت لا تنزل درجته تحت <code>5·availGate</code> أثناء بناء بيانات المتجر (حماية البداية الباردة).</p>
+    </div>
+    <div class="drives"><b>يقود في المتجر:</b> الترتيب الافتراضي «موصى به» في كل صفحات المتجر.</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">أولوية التصفية (LPS)</div><div class="fm">يرتّب الفائض والراكد حسب رأس المال المحتجَز.</div></div>
+    <div class="fbody"><div class="formula"><span class="v">LPS</span> <span class="op">=</span> 100 <span class="op">·</span> (<span class="c">0.40</span>·zCap <span class="op">+</span> <span class="c">0.35</span>·zExcess <span class="op">+</span> <span class="c">0.25</span>·zStag) <span class="op">+</span> <span class="c">15</span>
+<span class="k">// المرشّحون: overstock + dead فقط (لا starved/stockout)</span></div>
+      <div class="formula" style="margin-top:8px"><span class="v">floor_price</span> <span class="op">=</span> max( cost <span class="op">·</span> <span class="c">1.10</span>, retail <span class="op">·</span> <span class="c">1.00</span> )</div>
+    </div>
+    <div class="drives"><b>يقود في المتجر:</b> طابور التصفية + <b>السعر الأرضي</b> الذي لا يُكسر أبداً. الخصم المقترح = <b>صفر</b> افتراضياً (يقترح فقط).</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">الشراء المتلازم (FBT)</div><div class="fm">المنتجات التي تُشترى معاً أكثر من الصدفة.</div></div>
+    <div class="fbody"><div class="formula"><span class="v">lift</span> <span class="op">=</span> (co_count <span class="op">·</span> n) <span class="op">/</span> (freqA <span class="op">·</span> freqB) &nbsp;<span class="k">// نُبقي lift ≥ 1.5</span>
+<span class="v">confidence</span> <span class="op">=</span> co <span class="op">/</span> freqA &nbsp;&nbsp; <span class="v">support</span> <span class="op">=</span> co <span class="op">/</span> n</div></div>
+    <div class="drives"><b>يقود في المتجر:</b> قسم «يُشترى عادةً معاً» وعروض الحزم (أعلى ١٦ شريكاً لكل صنف).</div>
+  </div>
+
+  <div class="formula-card">
+    <div class="fhead"><div class="ft">تصنيف ABC (باريتو)</div><div class="fm">يقسّم الأصناف حسب مساهمتها في قيمة المبيعات السنوية.</div></div>
+    <div class="fbody"><div class="formula"><span class="v">A</span> <span class="op">≤</span> 80% &nbsp;·&nbsp; <span class="v">B</span> <span class="op">≤</span> 95% &nbsp;·&nbsp; <span class="v">C</span> <span class="op">≤</span> 100% &nbsp;<span class="k">// من القيمة التراكمية</span></div></div>
+    <div class="drives"><b>يقود في المتجر:</b> أولوية الجرد الدوري وحماية أرضية الفئة A في الترتيب.</div>
+  </div>
+</section>
+
+<!-- ============================ §4 CLASSIFICATION ============================ -->
+<section class="section">
+  <h2><span class="num">٤</span><span class="ttl">كيف تُصنّف المنتجات</span></h2>
+  <p class="lead">كل صنف يحمل عدّة تصنيفات في آنٍ واحد، وكل تصنيف يُطلق إجراءً مختلفاً في المتجر.</p>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>التصنيف</th><th>المعنى</th><th>ما الذي يُشغّله</th></tr></thead>
+      <tbody>
+        <tr><td><span class="chip chip--green">fast</span></td><td>طلب قوي (≥30 خلال 90 يوماً)</td><td>تصدّر الترتيب، شارة «الأكثر طلباً»</td></tr>
+        <tr><td><span class="chip chip--blue">intermittent</span></td><td>طلب متقطّع</td><td>ترتيب متوسط</td></tr>
+        <tr><td><span class="chip chip--blue">new</span></td><td>صنف جديد (&lt;60 يوماً، بلا مبيعات بعد)</td><td>شارة «وصل حديثاً» + رفع الحداثة</td></tr>
+        <tr><td><span class="chip chip--red">dead</span></td><td>بلا مبيعات في 365 يوماً</td><td>مرشّح تصفية (LPS)</td></tr>
+        <tr><td><span class="chip chip--green">healthy</span></td><td>تغطية متوازنة</td><td>عرض طبيعي</td></tr>
+        <tr><td><span class="chip chip--amber">low</span></td><td>تغطية &lt;30 يوماً</td><td>تنبيه إعادة طلب</td></tr>
+        <tr><td><span class="chip chip--amber">overstock</span></td><td>تغطية &gt;180 يوماً</td><td>مرشّح تصفية / عرض</td></tr>
+        <tr><td><span class="chip chip--crimson">starved</span></td><td>بائع جيد نفد (توفّر منخفض + طلب حقيقي)</td><td><b>إعادة طلب</b> — لا تصفية</td></tr>
+        <tr><td><span class="chip chip--slate">stockout</span></td><td>نفد لكنه باع مؤخراً</td><td>إعادة طلب عاجلة</td></tr>
+        <tr><td><span class="chip chip--gold">A / B / C</span></td><td>مساهمة المبيعات (باريتو)</td><td>أولوية الجرد + أرضية الترتيب للفئة A</td></tr>
+        <tr><td><span class="chip chip--crimson">Hero</span></td><td>سرعة ≥ 3.33 قطعة/يوم (~100 شهرياً)</td><td>مرشّح إبراز قوي</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="figure">
+    <svg viewBox="0 0 620 380" role="img" aria-label="مصفوفة التصنيف: الطلب مقابل المخزون">
+      <title>مصفوفة التصنيف</title>
+      <g font-family="Cairo">
+        <!-- quadrants -->
+        <rect x="60" y="40" width="245" height="150" rx="12" fill="#FEF3C7"/>
+        <rect x="315" y="40" width="245" height="150" rx="12" fill="#FDF3D6"/>
+        <rect x="60" y="200" width="245" height="150" rx="12" fill="#FFE4EA"/>
+        <rect x="315" y="200" width="245" height="150" rx="12" fill="#E8F1FC"/>
+        <!-- labels -->
+        <g text-anchor="middle">
+          <text x="437" y="95" font-size="16" font-weight="800" fill="#B45309">⭐ النجوم / Hero</text>
+          <text x="437" y="120" font-size="12.5" fill="#92400E">طلب مرتفع + مخزون كافٍ</text>
+          <text x="437" y="145" font-size="13" font-weight="700" fill="#B45309">← إبراز</text>
+
+          <text x="182" y="95" font-size="16" font-weight="800" fill="#B45309">📦 فائض / راكد</text>
+          <text x="182" y="120" font-size="12.5" fill="#92400E">طلب منخفض + مخزون مرتفع</text>
+          <text x="182" y="145" font-size="13" font-weight="700" fill="#B45309">← عرض / كوبون</text>
+
+          <text x="437" y="255" font-size="16" font-weight="800" fill="#1E4880">👀 جديد / مراقبة</text>
+          <text x="437" y="280" font-size="12.5" fill="#1E4880">طلب منخفض + مخزون منخفض</text>
+          <text x="437" y="305" font-size="13" font-weight="700" fill="#1E4880">← متابعة</text>
+
+          <text x="182" y="255" font-size="16" font-weight="800" fill="#BE123C">🔥 starved</text>
+          <text x="182" y="280" font-size="12.5" fill="#9F1239">طلب مرتفع + مخزون منخفض</text>
+          <text x="182" y="305" font-size="13" font-weight="700" fill="#BE123C">← إعادة طلب</text>
+        </g>
+        <!-- axes -->
+        <g stroke="#475569" stroke-width="2">
+          <line x1="310" y1="30" x2="310" y2="360"/>
+          <line x1="50" y1="195" x2="570" y2="195"/>
+        </g>
+        <g font-family="Cairo" font-size="12.5" fill="#475569" font-weight="700">
+          <text x="540" y="20" text-anchor="middle">الطلب ⟶ مرتفع</text>
+          <text x="90" y="20" text-anchor="middle">منخفض</text>
+          <text x="595" y="60" text-anchor="middle" transform="rotate(90 595 60)">مخزون مرتفع</text>
+          <text x="595" y="330" text-anchor="middle" transform="rotate(90 595 330)">منخفض</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>الشكل ٣ — مصفوفة التصنيف: محور الطلب × محور المخزون يحدّد الإجراء المناسب لكل صنف.</figcaption>
+  </div>
+
+  <div class="callout callout--red">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+    <div><h4>‏starved ≠ dead — أذكى تمييز في النظام</h4><div class="muted">بائع جيد نفد من الرف يُصنّف <code>starved</code> ويُطلق <b>إعادة طلب</b> (ودرجة ترتيب أقوى عند عودته) — ولا يُخفّض سعره أبداً. هذا يمنع الخطأ الكلاسيكي: معاقبة منتج ناجح لأنه نفد.</div></div>
+  </div>
+</section>
+
+<!-- ============================ §5 NEW ADS SYSTEM ============================ -->
+<section class="section m">
+  <div class="kicker">الجديد · الطبقة الإعلانية</div>
+  <h2><span class="num">٥</span><span class="ttl">نظام الإعلانات والعروض الآلي</span></h2>
+  <p class="lead">طبقة جديدة فوق الذكاء القائم: تقترح يومياً ماذا نعلن وأي عرض، تولّد التصميم بالذكاء الاصطناعي، ويعتمدها المالك من التطبيق، ثم تُنشر تلقائياً داخل المتجر.</p>
+
+  <h3>٥٫١ الفكرة في جملة</h3>
+  <div class="card card--mag">
+    <p style="margin:0">كل يوم: النظام <b>يقترح</b> (منتج + نوع عرض + تصميم + نص عربي) ← المالك <b>يراجع ويوافق</b> في التطبيق ← العرض <b>يُنشر تلقائياً</b> في نطاقات البانر ← يُقاس الأثر <b>ويتعلّم</b> النظام لليوم التالي.</p>
+  </div>
+
+  <h3>٥٫٢ الحلقة الكاملة</h3>
+  <div class="figure">
+    <svg viewBox="0 0 800 250" role="img" aria-label="خط الأتمتة اليومي بست مراحل مع حلقة تغذية راجعة">
+      <title>خط الأتمتة اليومي</title>
+      <defs>
+        <marker id="am" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#C026D3"/></marker>
+        <filter id="ds2" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.12"/></filter>
+      </defs>
+      <!-- 6 nodes RTL: 1 rightmost -->
+      <g filter="url(#ds2)" font-family="Cairo" text-anchor="middle">
+        <g><circle cx="710" cy="80" r="46" fill="#fff" stroke="#C026D3" stroke-width="2"/><text x="710" y="74" font-size="22">💡</text><text x="710" y="98" font-size="11.5" font-weight="700" fill="#9D174D">١ اقتراح</text></g>
+        <g><circle cx="568" cy="80" r="46" fill="#fff" stroke="#C026D3" stroke-width="2"/><text x="568" y="74" font-size="22">🖼️</text><text x="568" y="98" font-size="11" font-weight="700" fill="#9D174D">٢ تصميم AI</text></g>
+        <g><circle cx="426" cy="80" r="46" fill="#fff" stroke="#C026D3" stroke-width="2"/><text x="426" y="72" font-size="20" font-weight="900" fill="#C026D3">ع</text><text x="426" y="98" font-size="11" font-weight="700" fill="#9D174D">٣ تركيب عربي</text></g>
+        <g><circle cx="284" cy="80" r="46" fill="#fff" stroke="#D99E0B" stroke-width="2.5"/><text x="284" y="74" font-size="22">✅</text><text x="284" y="98" font-size="11" font-weight="700" fill="#B45309">٤ موافقة المالك</text></g>
+        <g><circle cx="142" cy="80" r="46" fill="#fff" stroke="#E11D48" stroke-width="2"/><text x="142" y="74" font-size="22">📣</text><text x="142" y="98" font-size="11.5" font-weight="700" fill="#BE123C">٥ نشر</text></g>
+        <g><circle cx="60" cy="190" r="40" fill="#fff" stroke="#3A71B3" stroke-width="2"/><text x="60" y="185" font-size="20">📊</text><text x="60" y="208" font-size="11" font-weight="700" fill="#1E4880">٦ قياس</text></g>
+      </g>
+      <g fill="none" stroke="#C026D3" stroke-width="2.2">
+        <path d="M664 80 L614 80" marker-end="url(#am)"/>
+        <path d="M522 80 L472 80" marker-end="url(#am)"/>
+        <path d="M380 80 L330 80" marker-end="url(#am)"/>
+        <path d="M238 80 L188 80" marker-end="url(#am)"/>
+        <path d="M120 120 C90 150 75 160 68 152" marker-end="url(#am)"/>
+        <path d="M95 205 C400 250 650 230 712 128" stroke-dasharray="6 5" marker-end="url(#am)"/>
+      </g>
+      <text x="430" y="240" font-family="Cairo" font-size="11.5" fill="#C026D3" text-anchor="middle">تغذية راجعة — يتعلّم أي العروض ينجح</text>
+    </svg>
+    <figcaption>الشكل ٤ — الحلقة اليومية الكاملة: من الاقتراح إلى القياس، مع تعلّم مستمر.</figcaption>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><h4>١ · الاقتراح اليومي</h4><p class="muted" style="margin:0">يختار المرشّحين من الذكاء: طابور التصفية (LPS) للإبراز/الكوبون، أزواج FBT للحزم، والأبطال/الفئة A للإبراز. يختار نوع العرض المناسب لكل مرشّح بأمان قناة الجملة.</p></div>
+    <div class="card"><h4>٢ · توليد التصميم (الأساس البصري)</h4><p class="muted" style="margin:0">مولّد صور قابل للتبديل (Gemini/OpenAI/Stability) يحوّل صورة المنتج الحقيقية إلى مشهد جذّاب باستبدال الخلفية — <b>دون أي نص عربي من النموذج</b>.</p></div>
+    <div class="card"><h4>٣ · التركيب على الخادم</h4><p class="muted" style="margin:0">طبقة في الخادم تضيف العنوان العربي + الشعار + شارة العرض + الإطار بخط Cairo، بمقاسات البانر المطلوبة. <b>لماذا؟</b> لأن نماذج الـAI ترسم العربي بشكل مشوّه — ففصلنا المهام.</p></div>
+    <div class="card"><h4>٤ · مراجعة المالك</h4><p class="muted" style="margin:0">يرى المالك المنتج والعرض والتصميم والنص العربي؛ يعدّل النص، يبدّل التصميم، يغيّر العرض، يوافق أو يرفض.</p></div>
+    <div class="card"><h4>٥ · النشر التلقائي</h4><p class="muted" style="margin:0">العرض الموافَق يُنشر في نطاقات البانر؛ الكوبونات كوبونات WooCommerce حقيقية؛ الحزم مبنية من FBT.</p></div>
+    <div class="card"><h4>٦ · القياس والتعلّم</h4><p class="muted" style="margin:0">سجل <code>store_events</code> يلتقط مسبقاً الظهور والنقر والتحويل عبر <code>zone</code>+<code>ab_variant</code> — فالإسناد واختبار A/B <b>جاهزان أصلاً</b>.</p></div>
+  </div>
+
+  <h3>٥٫٣ تدفّق الموافقة</h3>
+  <div class="figure">
+    <svg viewBox="0 0 800 210" role="img" aria-label="آلة حالة الموافقة على الحملة">
+      <title>آلة حالة الموافقة</title>
+      <defs><marker id="as" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#64748B"/></marker></defs>
+      <g font-family="Cairo" text-anchor="middle" font-size="13" font-weight="700">
+        <g><rect x="650" y="40" width="130" height="46" rx="11" fill="#F1F5F9" stroke="#94A3B8"/><text x="715" y="68" fill="#475569">مقترَح</text></g>
+        <g><rect x="490" y="40" width="130" height="46" rx="11" fill="#FDF3D6" stroke="#D99E0B"/><text x="555" y="68" fill="#B45309">موافَق</text></g>
+        <g><rect x="330" y="40" width="130" height="46" rx="11" fill="#E8F1FC" stroke="#3A71B3"/><text x="395" y="68" fill="#1E4880">مجدول</text></g>
+        <g><rect x="170" y="40" width="130" height="46" rx="11" fill="#FFE4EA" stroke="#E11D48"/><text x="235" y="68" fill="#BE123C">منشور</text></g>
+        <g><rect x="20" y="40" width="130" height="46" rx="11" fill="#E2E8F0" stroke="#64748B"/><text x="85" y="68" fill="#334155">منتهٍ</text></g>
+        <g><rect x="585" y="140" width="130" height="44" rx="11" fill="#FEE2E2" stroke="#EF4444"/><text x="650" y="167" fill="#B91C1C">مرفوض</text></g>
+      </g>
+      <g fill="none" stroke="#64748B" stroke-width="2">
+        <path d="M650 63 L620 63" marker-end="url(#as)"/>
+        <path d="M490 63 L460 63" marker-end="url(#as)"/>
+        <path d="M330 63 L300 63" marker-end="url(#as)"/>
+        <path d="M170 63 L150 63" marker-end="url(#as)"/>
+        <path d="M700 86 L665 140" marker-end="url(#as)"/>
+      </g>
+      <g font-family="Cairo" font-size="10.5" fill="#64748B" text-anchor="middle">
+        <text x="635" y="34">يوافق</text><text x="475" y="34">يُجدول</text><text x="315" y="34">يبدأ</text><text x="160" y="34">ينتهي</text>
+        <text x="715" y="115">يرفض</text>
+      </g>
+      <!-- edit loop -->
+      <path d="M555 86 C555 120 660 120 660 90" fill="none" stroke="#C026D3" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#as)"/>
+      <text x="610" y="122" font-family="Cairo" font-size="10.5" fill="#C026D3" text-anchor="middle">تعديل ↺ إعادة مراجعة</text>
+    </svg>
+    <figcaption>الشكل ٥ — دورة حياة الحملة: من «مقترَح» إلى «منتهٍ»، مع فرعَي الرفض والتعديل.</figcaption>
+  </div>
+
+  <h3>٥٫٤ شاشة المالك في التطبيق</h3>
+  <p>شاشة جديدة مبنية على أنماط التطبيق نفسها (نطاق لوني بنفسجي خاص بالعروض): قائمة بأشرطة تبويب (مقترحة / مجدولة / نشطة / منتهية)، كل بطاقة فيها صورة التصميم + نوع العرض + معاينة النص. بالضغط تُفتح صفحة الاعتماد: معرض التصاميم لاختيار النسخة، محرّر نص عربي، ملخّص العرض مع <b>بانر أمان السعر الأرضي</b>، وسبب الاقتراح، وشريط سفلي: رفض / إعادة توليد / <b>موافقة ونشر</b>. زر الموافقة <b>معطّل تلقائياً</b> لو كان العرض يكسر سعر الجملة.</p>
+
+  <h3>٥٫٥ أنواع العروض الثلاثة</h3>
+  <div class="grid-3">
+    <div class="card card--mag"><h4>إبراز</h4><p class="muted" style="margin:0">رفع الترتيب ووضع بانر — <b>دون أي مساس بالسعر</b>. الأكثر أماناً، ومسموح دائماً.</p></div>
+    <div class="card card--mag"><h4>كوبون</h4><p class="muted" style="margin:0">كوبون WooCommerce معتمد من المالك، السعر الفعلي <b>لا ينزل تحت الأرضي</b>، ولا يُعدّل سعر SAP إطلاقاً.</p></div>
+    <div class="card card--mag"><h4>حزمة (FBT)</h4><p class="muted" style="margin:0">مبنية من الشراء المتلازم؛ تُباع المنتجات معاً، ويبقى <b>كل سطر فوق الأرضي</b>.</p></div>
+  </div>
+
+  <div class="callout callout--gold" style="margin-top:18px">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <div><h4>٥٫٦ ضمانات سلامة القناة</h4>
+      <div class="formula" style="margin:8px 0"><span class="v">floor_price</span> <span class="op">=</span> max( cost <span class="op">·</span> <span class="c">1.10</span>, retail <span class="op">·</span> <span class="c">1.00</span> )</div>
+      <ul class="clean yes" style="margin:0"><li>لا بيع تحت السعر الأرضي — يُتحقّق وقت الموافقة <b>ووقت التطبيق</b>، على السعر الفعلي الحالي.</li><li>لا كتابة سعر تخفيض على المتجر ولا في SAP — كوبونات WooCommerce فقط، مقيّدة بالمنتج ولا تتراكم على تصفية قائمة.</li><li>الكوبون يُنشأ فقط بعد موافقة المالك، وعمره مربوط بعمر الحملة (يُلغى فوراً عند الرفض/الانتهاء).</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §6 GOVERNANCE ============================ -->
+<section class="section">
+  <h2><span class="num">٦</span><span class="ttl">الحوكمة والسلامة</span></h2>
+  <p class="lead">ثلاث ركائز تحكم كل قرار في النظام، ولا يمكن تجاوزها.</p>
+
+  <div class="grid-3">
+    <div class="card card--accent" style="text-align:center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3A71B3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      <h4 style="text-align:center">حماية سعر الجملة</h4>
+      <p class="muted" style="margin:0;font-size:.92rem">منتجات تاجر الجملة الرئيسي. لا عرض B2C يكسر سعر الجملة.</p>
+    </div>
+    <div class="card card--accent" style="text-align:center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3A71B3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+      <h4 style="text-align:center">SAP للقراءة فقط</h4>
+      <p class="muted" style="margin:0;font-size:.92rem">استيراد فقط. الطلب من سجل <code>C0000001</code>. لا كتابة في SAP أبداً.</p>
+    </div>
+    <div class="card card--accent" style="text-align:center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3A71B3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0112 0v1"/></svg>
+      <h4 style="text-align:center">المالك في الحلقة</h4>
+      <p class="muted" style="margin:0;font-size:.92rem">كل حملة تُعتمد في التطبيق قبل النشر. لا أتمتة بلا موافقة.</p>
+    </div>
+  </div>
+
+  <div class="callout callout--red" style="margin-top:20px">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+    <div><h4>ما الذي لا يفعله النظام أبداً</h4>
+      <ul class="clean no" style="margin:6px 0 0">
+        <li>لا يبيع تحت <code>floor_price</code>.</li>
+        <li>لا يكتب في SAP، ولا يستبدل سعر SAP على المتجر.</li>
+        <li>لا ينشر أي عرض بدون موافقة المالك.</li>
+        <li>لا يرسل عبر قنوات خارجية (هذه المرحلة) — داخل المتجر فقط.</li>
+        <li>لا يُظهر أرقام التكلفة أو سعر الجملة في أي تصميم عام.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §7 ROADMAP ============================ -->
+<section class="section">
+  <h2><span class="num">٧</span><span class="ttl">خارطة الطريق</span></h2>
+  <p class="lead">نبدأ بأصغر شريحة ذات قيمة، ثم نوسّع تدريجياً بحسب نضوج البيانات.</p>
+
+  <div class="figure">
+    <svg viewBox="0 0 780 170" role="img" aria-label="مخطط المراحل الثلاث">
+      <title>مراحل المشروع</title>
+      <line x1="90" y1="80" x2="690" y2="80" stroke="#CBD5E1" stroke-width="3"/>
+      <line x1="90" y1="80" x2="390" y2="80" stroke="#C026D3" stroke-width="3"/>
+      <g font-family="Cairo" text-anchor="middle">
+        <g><circle cx="690" cy="80" r="26" fill="#C026D3"/><text x="690" y="87" font-size="18" font-weight="800" fill="#fff">١</text>
+           <text x="690" y="34" font-size="13" font-weight="800" fill="#9D174D">الآن</text>
+           <text x="690" y="125" font-size="11.5" fill="#475569">بانرات داخل المتجر</text>
+           <text x="690" y="142" font-size="11.5" fill="#475569">+ ٣ أنواع عروض + موافقة</text></g>
+        <g><circle cx="390" cy="80" r="26" fill="#fff" stroke="#C026D3" stroke-width="2.5"/><text x="390" y="87" font-size="18" font-weight="800" fill="#C026D3">٢</text>
+           <text x="390" y="125" font-size="11.5" fill="#475569">صور AI حقيقية + كوبونات</text>
+           <text x="390" y="142" font-size="11.5" fill="#475569">+ مزيد من المناطق</text></g>
+        <g><circle cx="90" cy="80" r="26" fill="#fff" stroke="#CBD5E1" stroke-width="2.5"/><text x="90" y="87" font-size="18" font-weight="800" fill="#94A3B8">٣</text>
+           <text x="90" y="125" font-size="11.5" fill="#475569">حزم + اختبار A/B</text>
+           <text x="90" y="142" font-size="11.5" fill="#475569">+ استهداف وتحليلات</text></g>
+      </g>
+      <line x1="240" y1="80" x2="90" y2="80" stroke="#CBD5E1" stroke-width="3" stroke-dasharray="6 5"/>
+      <text x="165" y="68" font-family="Cairo" font-size="10.5" fill="#94A3B8" text-anchor="middle">مرهون بنضوج البيانات</text>
+    </svg>
+    <figcaption>الشكل ٦ — المراحل الثلاث: المرحلة الأولى جاهزة للشحن، والتالية مرهونة بنمو بيانات المتجر.</figcaption>
+  </div>
+
+  <div class="grid-3">
+    <div class="card"><h4 style="color:var(--magenta)">المرحلة ١ — الآن</h4><ul class="clean" style="margin:0;font-size:.92rem"><li>بانرات داخل المتجر (إبراز).</li><li>موافقة المالك في التطبيق.</li><li>تصاميم تيبوغرافية بلا تكلفة.</li></ul></div>
+    <div class="card"><h4>المرحلة ٢</h4><ul class="clean" style="margin:0;font-size:.92rem"><li>توليد صور AI حقيقي.</li><li>كوبونات معتمدة + حارس الأرضية.</li><li>مناطق بانر إضافية.</li></ul></div>
+    <div class="card"><h4>المرحلة ٣</h4><ul class="clean" style="margin:0;font-size:.92rem"><li>عروض الحزم.</li><li>اختبار A/B (بعد وجود ترافيك).</li><li>استهداف وتحليلات كاملة.</li></ul></div>
+  </div>
+
+  <div class="divider"><span class="d"></span></div>
+  <p class="muted" style="text-align:center">للاستفسار حول هذا الدليل أو النظام — فريق منتجات التقني.</p>
+</section>
+
+<!-- ============================ APPENDIX ============================ -->
+<section class="section">
+  <h2><span class="num">+</span><span class="ttl">الملحق والمسرد</span></h2>
+
+  <h3>مسرد المصطلحات</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>المصطلح</th><th>التعريف</th></tr></thead>
+      <tbody>
+        <tr><td><code>ads30 / ads90</code></td><td>متوسط البيع اليومي خلال 30 / 90 يوماً (قطع/يوم).</td></tr>
+        <tr><td><code>v_true</code></td><td>السرعة الحقيقية أثناء توفّر المنتج على الرف فعلاً.</td></tr>
+        <tr><td><code>cover</code></td><td>أيام التغطية = المخزون ÷ السرعة (الهدف 180).</td></tr>
+        <tr><td><code>LPS</code></td><td>درجة أولوية التصفية — كلما ارتفعت زاد رأس المال المحتجَز.</td></tr>
+        <tr><td><code>lift</code></td><td>قوة الشراء المتلازم — كم مرة يُشترى صنفان معاً مقارنة بالصدفة.</td></tr>
+        <tr><td><code>floor_price</code></td><td>السعر الأرضي = <code>max(cost·1.10, retail·1.00)</code> — لا يُكسر أبداً.</td></tr>
+        <tr><td><code>C0000001</code></td><td>بطاقة سجل التجزئة في SAP — مصدر إشارة الطلب الوحيد.</td></tr>
+        <tr><td><code>GRPO</code></td><td>حركات استلام البضائع — مصدر الوصول والتكلفة الفعلية.</td></tr>
+        <tr><td><code>store_events</code></td><td>سجل أحداث المتجر — يلتقط الظهور والنقر والتحويل للإسناد و A/B.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>مرجع واجهات API (للقارئ التقني)</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>المسار</th><th>الوظيفة</th></tr></thead>
+      <tbody>
+        <tr><td><code dir="ltr">GET /api/woo/snapshot</code></td><td>درجة الترتيب والصحة والتصفية لكل صنف.</td></tr>
+        <tr><td><code dir="ltr">GET /api/woo/clearance</code></td><td>طابور التصفية مرتّباً حسب LPS.</td></tr>
+        <tr><td><code dir="ltr">GET /api/woo/recommendations/{item}</code></td><td>الشراء المتلازم (FBT) + البدائل.</td></tr>
+        <tr><td><code dir="ltr">POST /api/woo/events</code></td><td>التقاط أحداث المتجر (ظهور/نقر/تحويل).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="muted" style="text-align:center;margin-top:26px;font-size:.85rem">دليل تجربة متجر منتجات · الإصدار 1.0 · يونيو 2026 · سرّي — للاستخدام الداخلي</p>
+</section>
+
+</div><!-- /wrap -->
+</body>
+</html>

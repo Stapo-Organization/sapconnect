@@ -13,6 +13,7 @@ class WarehouseItemStock extends Model
         'item_code',
         'warehouse_code',
         'in_stock',
+        'committed',
         'ordered',
     ];
 

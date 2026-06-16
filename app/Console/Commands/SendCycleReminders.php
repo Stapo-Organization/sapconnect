@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\InventoryCounting;
 use App\Services\NotificationService;
+use App\Services\NotificationRouter;
+use App\Support\NotificationAudience;
 use Illuminate\Console\Command;
 
 class SendCycleReminders extends Command
@@ -13,7 +15,7 @@ class SendCycleReminders extends Command
 
     public function handle(): int
     {
-        $notifier = new NotificationService();
+        $router = new NotificationRouter(new NotificationService());
 
         $sessions = InventoryCounting::query()
             ->where('counting_type', 'cycle')
@@ -33,10 +35,18 @@ class SendCycleReminders extends Command
             $body = "لديك مهمة جرد دوري ({$s->total_target_items} صنف) في " . ($s->warehouse_name ?? $s->warehouse_code);
 
             try {
-                $notifier->pushToWarehouseUsers($s->warehouse_code, $title, $body, [
-                    'type' => 'cycle_due',
-                    'session_id' => $s->id,
-                    'warehouse_code' => $s->warehouse_code,
+                $router->route('cycle_count_due', NotificationAudience::warehouseUsers($s->warehouse_code), [
+                    'title' => $title,
+                    'body'  => $body,
+                    'data'  => [
+                        'type' => 'cycle_due',
+                        'session_id' => (string) $s->id,
+                        'warehouse_code' => $s->warehouse_code,
+                    ],
+                    'email_variables' => [
+                        'warehouse' => $s->warehouse_name ?? $s->warehouse_code,
+                        'items' => $s->total_target_items,
+                    ],
                 ]);
                 $s->update(['last_reminded_at' => now()]);
                 $sent++;

@@ -3,6 +3,9 @@
 namespace App\Notifications;
 
 use App\Models\Supplier;
+use App\Models\User;
+use App\Notifications\Channels\FcmChannel;
+use App\Support\NotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -26,10 +29,41 @@ class ContractExpiryAlert extends Notification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
+     *
+     * جرس Filament (database) قناة مستقلة تبقى دائماً؛ البريد و Push يخضعان
+     * لتفضيل قناة المستخدم لحدث 'contract_expiry'.
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['database'];
+
+        if (! $notifiable instanceof User) {
+            return array_merge($channels, ['mail']);
+        }
+
+        $prefs = NotificationPreferences::channelsFor($notifiable, 'contract_expiry');
+        if ($prefs['email'] ?? false) {
+            $channels[] = 'mail';
+        }
+        if ($prefs['push'] ?? false) {
+            $channels[] = FcmChannel::class;
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Push (FCM) representation — يُرسل عبر FcmChannel عند تفعيل قناة التطبيق.
+     *
+     * @return array{title:string, body:string, data:array}
+     */
+    public function toFcm(object $notifiable): array
+    {
+        return [
+            'title' => 'قرب انتهاء عقد مورّد',
+            'body'  => "عقد المورّد {$this->supplier->name} ينتهي خلال {$this->daysRemaining} يوم",
+            'data'  => ['type' => 'contract_expiry', 'supplier_id' => (string) $this->supplier->id],
+        ];
     }
 
     /**

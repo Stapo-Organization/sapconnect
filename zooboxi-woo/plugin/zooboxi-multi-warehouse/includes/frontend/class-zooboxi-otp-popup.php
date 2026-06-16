@@ -327,6 +327,14 @@ class Zooboxi_OTP_Popup
                 $('#zbx-otp-modal').fadeOut(200);
             });
 
+            // ── External open trigger (homepage gentle login invite) ──
+            // Opens the same modal with no pending cart/wishlist action, so a
+            // successful verify simply reloads into the personalized homepage.
+            document.body.addEventListener('zbx:open-otp', function() {
+                pendingAction = null;
+                showModal();
+            });
+
             // ── Step 1: Send OTP ──
             $(document).on('click', '#zbx-otp-send', function() {
                 var phone = $('#zbx-otp-phone').val().trim();

@@ -28,24 +28,32 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::get('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'index']);
     Route::put('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
 
-    // Stock Transfers
-    Route::get('/stock-transfers', [\App\Http\Controllers\Api\StockTransferController::class, 'index']);
-    Route::get('/stock-transfers/{id}', [\App\Http\Controllers\Api\StockTransferController::class, 'show']);
+    // Stock Transfers — gated by app feature permissions (defense in depth)
+    Route::middleware('feature:stock_transfer.view')->group(function () {
+        Route::get('/stock-transfers', [\App\Http\Controllers\Api\StockTransferController::class, 'index']);
+        Route::get('/stock-transfers/{id}', [\App\Http\Controllers\Api\StockTransferController::class, 'show']);
+        Route::get('/stock-transfers/{id}/logs', [\App\Http\Controllers\Api\StockTransferController::class, 'logs']);
+    });
 
-    // Sender Actions
-    Route::post('/stock-transfers/{id}/send-items', [\App\Http\Controllers\Api\StockTransferController::class, 'sendItems']);
-    Route::post('/stock-transfers/{id}/confirm-send', [\App\Http\Controllers\Api\StockTransferController::class, 'confirmSend']);
+    // Sender Actions — require the "send" ability
+    Route::middleware('feature:stock_transfer.send')->group(function () {
+        Route::post('/stock-transfers/{id}/send-items', [\App\Http\Controllers\Api\StockTransferController::class, 'sendItems']);
+        Route::post('/stock-transfers/{id}/confirm-send', [\App\Http\Controllers\Api\StockTransferController::class, 'confirmSend']);
+    });
 
-    // Receiver Actions
-    Route::post('/stock-transfers/{id}/receive-items', [\App\Http\Controllers\Api\StockTransferController::class, 'receiveItems']);
-    Route::post('/stock-transfers/{id}/confirm-receive', [\App\Http\Controllers\Api\StockTransferController::class, 'confirmReceive']);
-
-    // Audit Logs
-    Route::get('/stock-transfers/{id}/logs', [\App\Http\Controllers\Api\StockTransferController::class, 'logs']);
+    // Receiver Actions — require the "confirm_receive" ability
+    Route::middleware('feature:stock_transfer.confirm_receive')->group(function () {
+        Route::post('/stock-transfers/{id}/receive-items', [\App\Http\Controllers\Api\StockTransferController::class, 'receiveItems']);
+        Route::post('/stock-transfers/{id}/confirm-receive', [\App\Http\Controllers\Api\StockTransferController::class, 'confirmReceive']);
+    });
 
     // FCM Token
     Route::put('/profile/fcm-token', [\App\Http\Controllers\Api\ProfileController::class, 'updateFcmToken']);
     Route::delete('/profile/fcm-token', [\App\Http\Controllers\Api\ProfileController::class, 'deleteFcmToken']);
+
+    // Notification channel preferences (email / app push) — per-user, audience-filtered
+    Route::get('/profile/notification-preferences', [\App\Http\Controllers\Api\ProfileController::class, 'notificationPreferences']);
+    Route::put('/profile/notification-preferences', [\App\Http\Controllers\Api\ProfileController::class, 'updateNotificationPreferences']);
 
     // Warehouses
     Route::get('/warehouses', function () {
@@ -91,8 +99,23 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
 
     // ─── Quality Control (Exhibition Manager) ────────────────────
     Route::get('/quality-tasks/summary', [\App\Http\Controllers\Api\QualityTaskController::class, 'summary']); // before {id}
+
+    // ─── Super Admin: Quality Tasks management (إنشاء ومتابعة) ───────
+    // Registered BEFORE /quality-tasks/{id} so the literal "manage" segment
+    // isn't captured as an {id}.
+    Route::middleware('feature:quality_admin.view')->group(function () {
+        Route::get('/quality-tasks/manage', [\App\Http\Controllers\Api\QualityTaskAdminController::class, 'index']);
+        Route::get('/quality-tasks/manage/instances', [\App\Http\Controllers\Api\QualityTaskAdminController::class, 'instances']); // before manage/{id}
+        Route::get('/quality-tasks/manage/{id}', [\App\Http\Controllers\Api\QualityTaskAdminController::class, 'show'])->whereNumber('id');
+    });
+    Route::middleware('feature:quality_admin.manage')->group(function () {
+        Route::post('/quality-tasks/manage', [\App\Http\Controllers\Api\QualityTaskAdminController::class, 'store']);
+        Route::put('/quality-tasks/manage/{id}', [\App\Http\Controllers\Api\QualityTaskAdminController::class, 'update'])->whereNumber('id');
+        Route::post('/quality-tasks/manage/{id}/generate', [\App\Http\Controllers\Api\QualityTaskAdminController::class, 'generate'])->whereNumber('id');
+    });
+
     Route::get('/quality-tasks', [\App\Http\Controllers\Api\QualityTaskController::class, 'index']);
-    Route::get('/quality-tasks/{id}', [\App\Http\Controllers\Api\QualityTaskController::class, 'show']);
+    Route::get('/quality-tasks/{id}', [\App\Http\Controllers\Api\QualityTaskController::class, 'show'])->whereNumber('id');
     Route::post('/quality-tasks/{id}/photos', [\App\Http\Controllers\Api\QualityTaskController::class, 'uploadPhotos']);
     Route::delete('/quality-tasks/{id}/photos/{photoId}', [\App\Http\Controllers\Api\QualityTaskController::class, 'deletePhoto']);
     Route::post('/quality-tasks/{id}/submit', [\App\Http\Controllers\Api\QualityTaskController::class, 'submit']);
@@ -104,38 +127,67 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::post('/zooboxi-orders/{id}/start', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'startPreparing']);
     Route::post('/zooboxi-orders/{id}/prepare', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'markPrepared']);
 
+    // ─── Promotions / Ad Campaigns (Owner only — Super Admin) ────
+    Route::get('/promotions/summary', [\App\Http\Controllers\Api\PromotionController::class, 'summary']); // before {id}
+    Route::get('/promotions/placements', [\App\Http\Controllers\Api\PromotionController::class, 'placements']);
+    Route::get('/promotions', [\App\Http\Controllers\Api\PromotionController::class, 'index']);
+    Route::get('/promotions/{id}', [\App\Http\Controllers\Api\PromotionController::class, 'show']);
+    Route::post('/promotions/{id}/approve', [\App\Http\Controllers\Api\PromotionController::class, 'approve']);
+    Route::post('/promotions/{id}/publish', [\App\Http\Controllers\Api\PromotionController::class, 'publish']);
+    Route::post('/promotions/{id}/reject', [\App\Http\Controllers\Api\PromotionController::class, 'reject']);
+    Route::post('/promotions/{id}/regenerate', [\App\Http\Controllers\Api\PromotionController::class, 'regenerate']);
+    Route::post('/promotions/{id}/refine', [\App\Http\Controllers\Api\PromotionController::class, 'refine']);
+
+    // ─── Home Dashboard (Exhibition Manager) ─────────────────────
+    // Single smart aggregation behind the home screen: ranked priority feed
+    // + all module summaries in one round trip.
+    Route::get('/home/overview', [\App\Http\Controllers\Api\HomeOverviewController::class, 'index']);
+
     // ─── Dashboard Stats (Exhibition Manager) ────────────────────
-    Route::get('/dashboard-stats', function (Request $request) {
-        $user = $request->user();
-        $warehouseCodes = is_array($user->warehouse_code) ? $user->warehouse_code : (json_decode($user->warehouse_code, true) ?? []);
-
-        // Transfers pending send (New status, user's from_warehouse)
-        $pendingSend = \App\Models\StockTransfer::where('internal_status', 'New')
-            ->whereIn('from_warehouse', $warehouseCodes)
-            ->count();
-
-        // Transfers pending receive (Shipped status, user's to_warehouse)
-        $pendingReceive = \App\Models\StockTransfer::where('internal_status', 'Shipped')
-            ->whereIn('to_warehouse', $warehouseCodes)
-            ->count();
-
-        // In-progress counting sessions (by this user or in their warehouses)
-        $inProgressCounting = \App\Models\InventoryCounting::where('status', 'in_progress')
-            ->where(function ($q) use ($user, $warehouseCodes) {
-                $q->where('counted_by', $user->name)
-                  ->orWhereIn('warehouse_code', $warehouseCodes);
-            })
-            ->count();
-
-        return response()->json([
-            'pending_send' => $pendingSend,
-            'pending_receive' => $pendingReceive,
-            'in_progress_counting' => $inProgressCounting,
-        ]);
-    });
+    // Kept for back-compat; shares the transfer/counting stat helper.
+    Route::get('/dashboard-stats', [\App\Http\Controllers\Api\HomeOverviewController::class, 'dashboardStats']);
 
     // Product lookup by barcode (for scanner)
     Route::get('/products/barcode/{barcode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'lookupBarcode']);
+
+    // ─── Product Search & Detail (Exhibition Manager) ────────────
+    // Search by name / SAP code / barcode → product detail with stock across
+    // every warehouse & showroom. Read-only; available to all app users.
+    Route::get('/products/search', [\App\Http\Controllers\Api\ProductLookupController::class, 'search']);
+    Route::get('/products/{itemCode}/detail', [\App\Http\Controllers\Api\ProductLookupController::class, 'detail']);
+
+    // ─── Showroom Pulse / نبض المعرض (per-branch decision dashboard) ──
+    Route::middleware('feature:showroom_pulse.view')->group(function () {
+        Route::get('/showroom-pulse', [\App\Http\Controllers\Api\ShowroomPulseController::class, 'index']);
+        Route::get('/showroom-pulse/lever', [\App\Http\Controllers\Api\ShowroomPulseController::class, 'leverItems']);
+    });
+    Route::middleware('feature:showroom_pulse.request_transfer')->group(function () {
+        Route::post('/showroom-pulse/transfer-request', [\App\Http\Controllers\Api\ShowroomPulseController::class, 'requestTransfer']);
+    });
+    Route::middleware('feature:showroom_pulse.suggest_discount')->group(function () {
+        Route::post('/showroom-pulse/discount-suggestion', [\App\Http\Controllers\Api\ShowroomPulseController::class, 'suggestDiscount']);
+    });
+
+    // ─── Super Admin: Retail Dashboard (لوحة البيع بالتجزئة) ─────────
+    Route::middleware('feature:retail_dashboard.view')->group(function () {
+        Route::get('/retail-dashboard', [\App\Http\Controllers\Api\RetailDashboardController::class, 'index']);
+        Route::get('/retail-dashboard/branches/{warehouseCode}', [\App\Http\Controllers\Api\RetailDashboardController::class, 'branch']);
+    });
+
+    // ─── Super Admin: Smart Stock Distribution (التوزيع الذكي) ───────
+    Route::middleware('feature:stock_distribution.view')->group(function () {
+        Route::get('/stock-distribution', [\App\Http\Controllers\Api\StockDistributionController::class, 'index']);
+        Route::get('/stock-distribution/status', [\App\Http\Controllers\Api\StockDistributionController::class, 'status']);
+    });
+    Route::middleware('feature:stock_distribution.run')->group(function () {
+        Route::post('/stock-distribution/run', [\App\Http\Controllers\Api\StockDistributionController::class, 'run']);
+    });
+
+    // ─── Super Admin: Container Tracking (تتبّع الحاويات) ────────────
+    Route::middleware('feature:container_tracking.view')->group(function () {
+        Route::get('/container-tracking', [\App\Http\Controllers\Api\ContainerTrackingController::class, 'index']);
+        Route::get('/container-tracking/{id}', [\App\Http\Controllers\Api\ContainerTrackingController::class, 'show'])->whereNumber('id');
+    });
 });
 
 // Store Public/Customer Routes
@@ -186,8 +238,22 @@ Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
     Route::post('/orders', [\App\Http\Controllers\Api\WooSyncController::class, 'receiveOrder']);
     Route::put('/orders/{woo_order_id}/status', [\App\Http\Controllers\Api\WooSyncController::class, 'updateOrderStatus']);
 
+    // Ad Campaigns (banners) — live campaigns + performance rollup
+    Route::get('/campaigns/active', [\App\Http\Controllers\Api\CampaignDeliveryController::class, 'active']);
+    Route::get('/campaigns/performance', [\App\Http\Controllers\Api\CampaignDeliveryController::class, 'performance']);
+
+    // Brand boutique pages (/brand/<slug>/) — published brands + their AI banners
+    Route::get('/brands', [\App\Http\Controllers\Api\BrandPageController::class, 'index']);
+    Route::get('/brands/{code}/page', [\App\Http\Controllers\Api\BrandPageController::class, 'show']);
+
     // Sync Status
     Route::get('/sync-status', [\App\Http\Controllers\Api\WooSyncController::class, 'getSyncStatus']);
+
+    // Zooboxi Intelligence (ranking snapshot, channel-safe clearance, FBT recs, event beacon)
+    Route::get('/snapshot', [\App\Http\Controllers\Api\ZooboxiIntelligenceController::class, 'snapshot']);
+    Route::get('/clearance', [\App\Http\Controllers\Api\ZooboxiIntelligenceController::class, 'clearance']);
+    Route::get('/recommendations/{item_code}', [\App\Http\Controllers\Api\ZooboxiIntelligenceController::class, 'recommendations']);
+    Route::post('/events', [\App\Http\Controllers\Api\ZooboxiIntelligenceController::class, 'storeEvent']);
 
     // TEMPORARY: Diagnostic endpoint to check stock data
     Route::get('/diagnostic/stock', function () {

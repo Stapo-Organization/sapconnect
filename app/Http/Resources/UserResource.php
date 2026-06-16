@@ -22,7 +22,8 @@ class UserResource extends JsonResource
             'warehouse_code' => $this->warehouse_code,
             'avatar_url' => $this->avatar_url,
             'roles' => $this->getRoleNames(),
-            // 'permissions' => $this->getAllPermissions()->pluck('name'), // heavy query, enable if needed
+            // قدرات خصائص التطبيق الفعّالة (أدوار + استثناءات المستخدم) — يقودها التطبيق لإظهار/إخفاء الخصائص.
+            'abilities' => \App\Support\AppFeatures::resolveForUser($this->resource)['abilities'],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

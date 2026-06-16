@@ -14,6 +14,9 @@ class SapInvoiceLine extends Model
         'item_code',
         'quantity',
         'warehouse_code',
+        'line_revenue',
+        'unit_cost',
+        'gross_profit',
     ];
 
     public function invoice()

@@ -20,6 +20,12 @@ class Zooboxi_Standard_Shipping extends WC_Shipping_Method
 
     public function calculate_shipping($package = []): void
     {
+        // Tier gate: standard (24h) is the only option for a next-day shipment — no speed choice.
+        $tier = is_array($package) ? ($package['zooboxi_tier'] ?? null) : null;
+        if (null !== $tier && 'same_day' !== $tier) {
+            return;
+        }
+
         $session = WC()->session;
         if (!$session) return;
 
@@ -46,7 +52,9 @@ class Zooboxi_Standard_Shipping extends WC_Shipping_Method
 
         $fee = (float) get_option('zooboxi_standard_fee', 10);
         $freeMin = (float) get_option('zooboxi_free_shipping_min', 200);
-        if ($package['contents_cost'] >= $freeMin) $fee = 0;
+        // Order-level free shipping (matches express): qualify once, every shipment is free.
+        $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);
+        if ($orderTotal >= $freeMin) $fee = 0;
 
         $this->add_rate([
             'id'        => $this->id,

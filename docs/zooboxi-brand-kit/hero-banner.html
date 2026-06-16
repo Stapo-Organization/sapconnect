@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=El+Messiri:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#429D9C;--teal-dark:#2D7A79;--teal-deep:#1F5C5B;--mint:#E6F2E6;
+    --coral:#D46856;--orange:#D48644;--amber:#F4BE2C;--peach:#F7DDC7;
+    --ink:#2C3E2D;--ink-soft:#5C6B5C;--cream:#FFF7EF;--success:#2FA36B;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#cfd6d0}
+  .hero{position:relative;width:1600px;height:600px;overflow:hidden;
+    background:linear-gradient(110deg,#FFF7EF 0%,#FFF7EF 43%,#EAF4EA 71%,#E0F0EB 100%);
+    font-family:'Tajawal',sans-serif}
+
+  /* backdrop */
+  .blob{position:absolute;border-radius:50%;filter:blur(2px)}
+  .b-coral{width:300px;height:300px;background:radial-gradient(circle,#F2C3B8 0%,transparent 68%);top:-90px;right:-40px;opacity:.7}
+  .b-amber{width:260px;height:260px;background:radial-gradient(circle,#FBE6B0 0%,transparent 70%);bottom:-110px;right:33%;opacity:.6}
+  .dot{position:absolute;border-radius:50%}
+  .paw{position:absolute;opacity:.10}
+
+  /* collage */
+  .collage{position:absolute;top:0;left:0;width:900px;height:600px;z-index:2}
+  .stage{position:absolute;top:26px;left:160px;width:580px;height:580px;border-radius:50%;
+    background:radial-gradient(circle at 50% 44%,#ECF7F2 0%,#CDEBE6 56%,#B3E0DA 100%);
+    box-shadow:inset 0 -18px 40px rgba(45,122,121,.12)}
+  .stage::after{content:"";position:absolute;inset:26px;border-radius:50%;border:2px dashed rgba(66,157,156,.26)}
+  .p{position:absolute;object-fit:contain;filter:drop-shadow(0 18px 20px rgba(31,92,91,.26))}
+  .anchor{height:350px;left:300px;top:140px;z-index:5;filter:drop-shadow(0 26px 26px rgba(31,92,91,.30))}
+  .bird  {height:252px;left:150px;top:236px;z-index:4;transform:rotate(-5deg)}
+  .pouch {height:178px;left:126px;top:90px; z-index:6;transform:rotate(-9deg)}
+  .cups  {height:152px;left:545px;top:76px; z-index:6;transform:rotate(8deg)}
+  .can   {height:150px;left:594px;top:250px;z-index:6;transform:rotate(6deg)}
+  .toy   {height:154px;left:466px;top:402px;z-index:7;transform:rotate(4deg)}
+  .bowls {height:148px;left:120px;top:392px;z-index:6;transform:rotate(-6deg)}
+
+  .sale{position:absolute;top:48px;left:402px;z-index:8;transform:rotate(-9deg);
+    background:linear-gradient(135deg,#FF6B6B,#EE5A24);color:#fff;border-radius:18px;
+    padding:9px 15px;text-align:center;box-shadow:0 10px 24px rgba(238,90,36,.42)}
+  .sale b{font-family:'Baloo Bhaijaan 2';font-weight:800;font-size:25px;display:block;line-height:1}
+  .sale span{font-size:12.5px;font-weight:700;opacity:.95}
+
+  /* text */
+  .txt{position:absolute;top:0;right:0;width:720px;height:600px;z-index:3;
+    padding:46px 58px 46px 40px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+  .txt .logo{height:58px;width:auto;align-self:flex-start}
+  .pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-weight:800;font-size:14.5px;border-radius:999px;padding:6px 14px}
+  .pill.coral{background:#F7E0DB;color:#B14B3B}
+  .pill.teal{background:#DCEFEE;color:#1F5C5B}
+  h1{font-family:'Baloo Bhaijaan 2';font-weight:800;font-size:56px;line-height:1.24;color:var(--teal-deep)}
+  h1 .hl{color:var(--coral)}
+  .sub{font-size:19.5px;color:var(--ink-soft);max-width:580px;line-height:1.65;font-weight:500}
+  .cta{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg,#429D9C,#2D7A79);color:#fff;font-family:'Baloo Bhaijaan 2';
+    font-weight:700;font-size:22px;border-radius:999px;padding:14px 32px;margin-top:4px;
+    box-shadow:0 14px 30px rgba(45,122,121,.34)}
+  .cta svg{width:21px;height:21px}
+  .chips{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E7EBE6;
+    border-radius:999px;padding:9px 15px;font-weight:700;font-size:15px;color:var(--teal-deep);
+    box-shadow:0 3px 10px rgba(44,62,45,.06)}
+  .chip svg{width:19px;height:19px}
+  .chip.c1 svg{color:var(--coral)} .chip.c2 svg{color:var(--success)} .chip.c3 svg{color:var(--orange)}
+</style>
+</head>
+<body>
+<svg style="display:none">
+  <symbol id="bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11.5H12l1-7.5Z"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 5.8v5.1c0 4.4 3 7.5 7 9 4-1.5 7-4.6 7-9V5.8L12 3Z"/><path d="m9 11.8 2 2 4-4"/></symbol>
+  <symbol id="truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5h11v9.5h-11zM13.5 9.5h3.6L21 12.6V16h-7.5"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6l-6 6 6 6M7 12h11"/></symbol>
+  <symbol id="paw" viewBox="0 0 24 24"><g fill="#429D9C"><ellipse cx="6" cy="9.5" rx="1.9" ry="2.5"/><ellipse cx="10.5" cy="6.6" rx="2" ry="2.7"/><ellipse cx="15.5" cy="7.4" rx="1.9" ry="2.5"/><ellipse cx="19" cy="11" rx="1.7" ry="2.2"/><path d="M12.2 12.4c-3 0-5.2 2.2-5.2 4.6 0 1.9 1.7 3 3.4 2.2.95-.45 2.7-.45 3.6 0 1.7.8 3.4-.3 3.4-2.2 0-2.4-2.2-4.6-5.2-4.6Z"/></g></symbol>
+</svg>
+
+<div class="hero">
+  <div class="blob b-coral"></div>
+  <div class="blob b-amber"></div>
+  <span class="dot" style="width:16px;height:16px;background:#F4BE2C;top:78px;left:58px"></span>
+  <span class="dot" style="width:11px;height:11px;background:#D46856;top:150px;left:770px"></span>
+  <span class="dot" style="width:13px;height:13px;background:#429D9C;bottom:86px;left:38px"></span>
+  <span class="dot" style="width:10px;height:10px;background:#D48644;bottom:150px;left:842px"></span>
+  <span class="dot" style="width:14px;height:14px;background:#7CC6C2;top:300px;left:18px"></span>
+  <svg class="paw" style="width:58px;height:58px;top:38px;left:372px;transform:rotate(20deg)"><use href="#paw"/></svg>
+  <svg class="paw" style="width:44px;height:44px;bottom:54px;left:300px;transform:rotate(-12deg)"><use href="#paw"/></svg>
+
+  <div class="collage">
+    <div class="stage"></div>
+    <img class="p pouch"  src="products/applaws-pouch.png"     alt="">
+    <img class="p bird"   src="products/versele-birdfood.png"  alt="">
+    <img class="p bowls"  src="products/mpb-bowls.png"         alt="">
+    <img class="p cups"   src="products/inaba-cups.png"        alt="">
+    <img class="p can"    src="products/drclauders-can.png"    alt="">
+    <img class="p toy"    src="products/smartykat-toy.png"     alt="">
+    <img class="p anchor" src="products/core-catfood.png"      alt="">
+    <div class="sale"><b>٢٠٪</b><span>كود hiboxi</span></div>
+  </div>
+
+  <div class="txt">
+    <img class="logo" src="logo.png" alt="Zooboxi">
+    <div class="pills">
+      <span class="pill coral">🎉 افتتاح متجرنا الجديد</span>
+      <span class="pill teal">📍 التوصيل السريع الآن في الرياض</span>
+    </div>
+    <h1>كل اللي يفرّح أليفك…<br><span class="hl">يوصلك خلال ساعتين</span> 🐾</h1>
+    <p class="sub">قطط · كلاب · طيور · حيوانات صغيرة — منتجات أصلية ١٠٠٪ من أفضل البراندات، وتوصيل خلال ساعتين داخل الرياض.</p>
+    <span class="cta">تسوّق الحين <svg><use href="#arrow"/></svg></span>
+    <div class="chips">
+      <span class="chip c1"><svg><use href="#bolt"/></svg> توصيل ساعتين · الرياض</span>
+      <span class="chip c2"><svg><use href="#shield"/></svg> أصلي ١٠٠٪</span>
+      <span class="chip c3"><svg><use href="#truck"/></svg> شحن لكل السعودية</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

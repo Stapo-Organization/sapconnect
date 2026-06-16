@@ -43,6 +43,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Marketing — AI Creative Generation (Replicate)
+    |--------------------------------------------------------------------------
+    | Server-side image generation for ad banners. The driver produces the
+    | VISUAL BASE only; the Arabic headline/CTA/logo are composited on top by
+    | App\Services\Marketing\BannerCompositor (Chrome) — never by the AI model.
+    */
+    'replicate' => [
+        'token' => env('REPLICATE_API_TOKEN'),
+        // Scene model (image-to-image) — places the REAL product image into a scene.
+        'scene_model' => env('REPLICATE_SCENE_MODEL', 'google/nano-banana'),
+        // Text-to-image model — for campaigns with no product image (seasonal/category).
+        'txt2img_model' => env('REPLICATE_TXT2IMG_MODEL', 'google/imagen-4-ultra'),
+        // Cheap fallback (kept for low-cost mode).
+        'image_model' => env('REPLICATE_IMAGE_MODEL', 'black-forest-labs/flux-schnell'),
+        // gpt-image-2: renders the COMPLETE banner (scene + product + correct Arabic
+        // + logo) in one step — the production creative engine.
+        'gpt_image_model' => env('REPLICATE_GPT_IMAGE_MODEL', 'openai/gpt-image-2'),
+        'gpt_image_quality' => env('REPLICATE_GPT_IMAGE_QUALITY', 'high'),
+        'gpt_image_timeout' => env('REPLICATE_GPT_IMAGE_TIMEOUT', 300),
+        'base_url' => env('REPLICATE_BASE_URL', 'https://api.replicate.com/v1'),
+        'timeout' => env('REPLICATE_TIMEOUT', 120),
+    ],
+
+    'creative' => [
+        // 'replicate' (real AI) or 'placeholder' (no external call, typographic base)
+        'driver' => env('CREATIVE_DRIVER', 'replicate'),
+        // Node rasterises the Arabic banner SVG via @resvg/resvg-js (no browser).
+        'node_binary' => env('NODE_BINARY', 'node'),
+        // hard daily ceiling on AI generations (cost guard)
+        'max_generations_per_day' => env('CREATIVE_MAX_PER_DAY', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Traqo Container — Ocean Freight Tracking (READ-ONLY)
     |--------------------------------------------------------------------------
     | Powers the "تتبّع الحاويات" supply-chain board. We ONLY issue GETs against

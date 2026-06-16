@@ -21,6 +21,12 @@ class Zooboxi_National_Shipping extends WC_Shipping_Method
 
     public function calculate_shipping($package = []): void
     {
+        // Tier gate: national shipping is the only option for a shipping-tier shipment.
+        $tier = is_array($package) ? ($package['zooboxi_tier'] ?? null) : null;
+        if (null !== $tier && 'shipping' !== $tier) {
+            return;
+        }
+
         // 1. Get customer city
         $city = '';
         if (function_exists('WC') && WC()->session) {
@@ -62,7 +68,9 @@ class Zooboxi_National_Shipping extends WC_Shipping_Method
 
         $fee = (float) get_option('zooboxi_shipping_fee', 25);
         $freeMin = (float) get_option('zooboxi_free_shipping_min', 200);
-        if (isset($package['contents_cost']) && $package['contents_cost'] >= $freeMin) $fee = 0;
+        // Order-level free shipping (matches express/standard): qualify once, every shipment is free.
+        $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);
+        if ($orderTotal >= $freeMin) $fee = 0;
 
         $this->add_rate([
             'id'        => $this->id,

@@ -27,3 +27,15 @@
 .DS_Store
 **/.DS_Store
 Thumbs.db
+
+# Google service-account keys (secrets — never commit)
+storage/app/google/
+*.sa.json
+
+# Firebase admin credentials (FCM push — secrets, never commit)
+/storage/app/firebase/
+firebase-credentials*.json
+*-firebase-adminsdk-*.json
+*.p8
+GoogleService-Info.plist
+google-services.json

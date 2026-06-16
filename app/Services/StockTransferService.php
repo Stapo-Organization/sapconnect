@@ -7,7 +7,9 @@ use App\Models\StockTransferLine;
 use App\Models\StockTransferLog;
 use App\Services\SAP\SapClient;
 use App\Services\NotificationService;
+use App\Services\NotificationRouter;
 use App\Services\EmailNotificationService;
+use App\Support\NotificationAudience;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -16,11 +18,13 @@ class StockTransferService
 {
     protected $sap;
     protected $notificationService;
+    protected $notificationRouter;
 
     public function __construct(SapClient $sap)
     {
         $this->sap = $sap;
         $this->notificationService = new NotificationService();
+        $this->notificationRouter = new NotificationRouter($this->notificationService);
     }
 
     public function setDatabase($db)
@@ -263,17 +267,7 @@ class StockTransferService
             $toWarehouseCode = $transfer->to_warehouse ?? 'Unknown';
             $docNum = $transfer->doc_num;
 
-            // In-App Notification
-            try {
-                $this->notificationService->notifyWarehouseUsers(
-                    $fromWarehouseCode,
-                    "طلب تحويل جديد #{$docNum}",
-                    "يوجد طلب تحويل جديد من {$fromWarehouseCode} إلى {$toWarehouseCode}. يرجى مراجعة وتأكيد الكميات.",
-                    ['transfer_id' => $transfer->id]
-                );
-            } catch (\Exception $e) {
-                Log::error("StockTransferService: In-App Notification failed for transfer {$docNum}: " . $e->getMessage());
-            }
+            // الإشعار (بريد + Push) يُوجَّه أدناه عبر NotificationRouter حسب تفضيل كل مستخدم.
 
             // Generate HTML table for items
             // Arabic Table
@@ -320,26 +314,31 @@ class StockTransferService
             $itemsHtmlAr .= '</table>';
             $itemsHtmlEn .= '</table>';
 
-            // 2. Email Notification System (Dynamic)
+            // 2. توجيه موحّد: بريد (قالب قابل للتحرير) + Push، لكل مستخدمي المستودع
+            //    المُرسِل، محترماً تفضيل القناة لكل واحد (إيميل/تطبيق/الاثنين).
             try {
                 $variables = [
                     'doc_num' => $docNum,
                     'from_warehouse' => $fromWarehouseCode,
                     'to_warehouse' => $toWarehouseCode,
-                    'link' => url('/admin/stock-transfers/' . $transfer->id), 
+                    'link' => url('/admin/stock-transfers/' . $transfer->id),
                     'items_table_ar' => $itemsHtmlAr,
                     'items_table_en' => $itemsHtmlEn,
                 ];
 
-                $context = [
-                    'from_warehouse' => $fromWarehouseCode,
-                    'to_warehouse' => $toWarehouseCode,
-                ];
-
-                EmailNotificationService::dispatch('stock_transfer_created', $variables, $context);
+                $this->notificationRouter->route(
+                    'stock_transfer_created',
+                    NotificationAudience::warehouseUsers($fromWarehouseCode),
+                    [
+                        'title' => "طلب تحويل جديد #{$docNum}",
+                        'body'  => "يوجد طلب تحويل جديد من {$fromWarehouseCode} إلى {$toWarehouseCode}. يرجى مراجعة وتأكيد الكميات.",
+                        'data'  => ['type' => 'stock_transfer', 'transfer_id' => (string) $transfer->id],
+                        'email_variables' => $variables,
+                    ]
+                );
 
             } catch (\Exception $e) {
-                Log::error("StockTransferService: Dynamic Email Notification failed for transfer {$docNum}: " . $e->getMessage());
+                Log::error("StockTransferService: notification routing failed for transfer {$docNum}: " . $e->getMessage());
             }
         }
     }

@@ -120,8 +120,9 @@ class Zooboxi_Delivery_Engine
      *   'is_express_hours' => true,
      * ]
      */
-    public static function detect_product_delivery(int $productId, float $lat, float $lng, ?string $customerCity = null): array
+    public static function detect_product_delivery(int $productId, float $lat, float $lng, ?string $customerCity = null, int $quantity = 1): array
     {
+        $quantity = max(1, $quantity);
         $warehouseStock = Zooboxi_Stock_Manager::get_warehouse_stock($productId);
 
         if (empty($warehouseStock)) {
@@ -146,7 +147,8 @@ class Zooboxi_Delivery_Engine
         $expressWarehouses = Zooboxi_Warehouse_Manager::find_express_warehouses($lat, $lng);
         foreach ($expressWarehouses as $ew) {
             $code = $ew['warehouse']['warehouse_code'];
-            if (isset($stockMap[$code])) {
+            // Quantity-aware: the branch must hold the FULL requested quantity for express.
+            if (isset($stockMap[$code]) && $stockMap[$code] >= $quantity) {
                 $wh = $ew['warehouse'];
                 return [
                     'type'             => self::TYPE_EXPRESS,
@@ -165,7 +167,7 @@ class Zooboxi_Delivery_Engine
         $city = $customerCity ?: self::detect_city($lat, $lng);
         if ($city) {
             $central = Zooboxi_Warehouse_Manager::find_central($city);
-            if ($central && isset($stockMap[$central['warehouse_code']])) {
+            if ($central && isset($stockMap[$central['warehouse_code']]) && $stockMap[$central['warehouse_code']] >= $quantity) {
                 return [
                     'type'             => self::TYPE_STANDARD,
                     'label'            => __('خلال 24 ساعة', 'zooboxi'),
@@ -234,7 +236,7 @@ class Zooboxi_Delivery_Engine
             $productId = $item['product_id'] ?? ($item['id'] ?? 0);
             if (!$productId) continue;
 
-            $delivery = self::detect_product_delivery($productId, $lat, $lng);
+            $delivery = self::detect_product_delivery($productId, $lat, $lng, null, (int) ($item['quantity'] ?? 1));
             $type = $delivery['type'];
 
             $entry = [

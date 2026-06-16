@@ -1,0 +1,55 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": "Zooboxi",
+  "description": "هوية متجر زووبوكسي — المصدر الموحّد للألوان والخطوط. مستخرجة من الشعار الرسمي وثيم المتجر. الهوية المعتمدة: تركواز + كورال دافئ.",
+  "version": "1.0.0",
+  "color": {
+    "brand": {
+      "teal":      { "value": "#429D9C", "comment": "الأساسي — أزرار/روابط/رأس" },
+      "tealDark":  { "value": "#2D7A79", "comment": "تمرير/تدرّجات" },
+      "tealDeep":  { "value": "#1F5C5B", "comment": "نص داكن/تذييل" },
+      "tealTint":  { "value": "#DCEFEE", "comment": "سطح ناعم" },
+      "mint":      { "value": "#E6F2E6", "comment": "خلفية رأس/أقسام" }
+    },
+    "warm": {
+      "coral":     { "value": "#D46856", "comment": "أكشن ثانوي/أيقونات" },
+      "coralDark": { "value": "#B14B3B" },
+      "orange":    { "value": "#D48644", "comment": "ثانوي دافئ/شارات" },
+      "amber":     { "value": "#F4BE2C", "comment": "إبراز نادر/سعر" },
+      "peach":     { "value": "#F7DDC7", "comment": "شريط إعلان/خلفية دافئة" }
+    },
+    "neutral": {
+      "ink":     { "value": "#2C3E2D", "comment": "النص الأساسي" },
+      "inkSoft": { "value": "#5C6B5C", "comment": "نص ثانوي" },
+      "line":    { "value": "#E7EBE6", "comment": "حدود/فواصل" },
+      "cream":   { "value": "#FFF7EF", "comment": "خلفية الصفحة" },
+      "paper":   { "value": "#FFFFFF", "comment": "البطاقات" }
+    },
+    "semantic": {
+      "success": { "value": "#2FA36B" },
+      "warning": { "value": "#E8A33D" },
+      "error":   { "value": "#E5484D" },
+      "info":    { "value": "#429D9C" }
+    }
+  },
+  "gradient": {
+    "brand": { "value": "linear-gradient(90deg, #D46856 0%, #E08A4B 38%, #429D9C 100%)", "comment": "تدرّج الشعار: كورال→تركواز" },
+    "teal":  { "value": "linear-gradient(135deg, #429D9C 0%, #2D7A79 100%)" },
+    "warm":  { "value": "linear-gradient(135deg, #F4BE2C 0%, #D48644 100%)" },
+    "hot":   { "value": "linear-gradient(135deg, #FF6B6B 0%, #EE5A24 100%)", "comment": "عرض ساخن/تخفيض" }
+  },
+  "font": {
+    "display": { "value": "Baloo Bhaijaan 2", "comment": "عناوين مرحة بحواف مستديرة (روح الشعار)" },
+    "heading": { "value": "El Messiri", "comment": "عناوين أنيقة" },
+    "body":    { "value": "Tajawal", "comment": "نصوص وأسعار" },
+    "app":     { "value": "Cairo", "comment": "بديل للتطبيقات" }
+  },
+  "weight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700, "black": 800 },
+  "radius": { "sm": "8px", "md": "12px", "lg": "16px", "xl": "22px", "pill": "999px" },
+  "shadow": {
+    "card":  { "value": "0 1px 3px rgba(44,62,45,.07)" },
+    "hover": { "value": "0 10px 30px rgba(45,122,121,.16)" },
+    "pop":   { "value": "0 8px 24px rgba(212,104,86,.28)" }
+  },
+  "space": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "6": "24px", "8": "32px", "12": "48px" }
+}

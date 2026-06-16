@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Traits\ReadOnlyStakeholder;
 use App\Models\User;
+use App\Support\AppFeatures;
+use App\Support\NotificationPreferences;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -103,7 +105,121 @@ class UserResource extends Resource
                             ->helperText(__('Notify this user when new stock transfers are imported.'))
                             ->default(false),
                     ])->columns(2),
+
+                static::appPermissionsSection(),
+
+                static::appNotificationsSection(),
             ]);
+    }
+
+    /**
+     * قسم "صلاحيات التطبيق" — لكل خاصية وكل إجراء حالة ثلاثية:
+     *   حسب الدور (وراثة) / مسموح (منح استثنائي) / ممنوع (منع استثنائي).
+     * الحالة تُخزّن في feature_overrides ثم تُحفظ في user_feature_overrides عبر HandlesFeatureOverrides.
+     */
+    public static function appPermissionsSection(): Forms\Components\Section
+    {
+        $fieldsets = [];
+
+        foreach (AppFeatures::all() as $feature => $def) {
+            $controls = [];
+            foreach (($def['actions'] ?? []) as $action => $actionLabel) {
+                $controls[] = Forms\Components\ToggleButtons::make("feature_overrides.{$feature}.{$action}")
+                    ->label($actionLabel)
+                    ->inline()
+                    ->default('inherit')
+                    ->options([
+                        'inherit' => __('حسب الدور'),
+                        'allow'   => __('مسموح'),
+                        'deny'    => __('ممنوع'),
+                    ])
+                    ->colors([
+                        'inherit' => 'gray',
+                        'allow'   => 'success',
+                        'deny'    => 'danger',
+                    ])
+                    ->icons([
+                        'inherit' => 'heroicon-o-minus',
+                        'allow'   => 'heroicon-o-check',
+                        'deny'    => 'heroicon-o-x-mark',
+                    ]);
+            }
+
+            $defaultRoles = implode('، ', $def['default_roles'] ?? []);
+
+            $fieldsets[] = Forms\Components\Fieldset::make($def['label'] ?? $feature)
+                ->schema(array_merge(
+                    [Forms\Components\Placeholder::make("hint_{$feature}")
+                        ->hiddenLabel()
+                        ->content($defaultRoles
+                            ? __('الافتراضي لهذه الخاصية لأدوار: ') . $defaultRoles
+                            : __('لا أدوار افتراضية — مُتاحة فقط بمنح استثنائي.'))],
+                    $controls,
+                ))
+                ->columns(1);
+        }
+
+        return Forms\Components\Section::make(__('صلاحيات التطبيق (مدير المعرض)'))
+            ->description(__('تحكّم بما يراه هذا المستخدم في التطبيق. "حسب الدور" = يرث افتراضي دوره؛ استخدم "مسموح"/"ممنوع" كاستثناء فردي.'))
+            ->icon('heroicon-o-shield-check')
+            ->collapsible()
+            ->schema($fieldsets);
+    }
+
+    /**
+     * قسم "تفضيلات الإشعارات" — لكل تنبيه قناة رباعية الاختيار:
+     *   حسب الافتراضي (وراثة، لا سطر) / بريد / تطبيق / الاثنين.
+     * تُخزَّن في notification_prefs ثم تُحفظ في notification_preferences عبر HandlesNotificationPreferences.
+     */
+    public static function appNotificationsSection(): Forms\Components\Section
+    {
+        $byGroup = [];
+        foreach (NotificationPreferences::all() as $key => $def) {
+            if (! ($def['user_configurable'] ?? false)) {
+                continue;
+            }
+            $byGroup[$def['group'] ?? 'أخرى'][$key] = $def;
+        }
+
+        $fieldsets = [];
+        foreach ($byGroup as $group => $events) {
+            $controls = [];
+            foreach ($events as $key => $def) {
+                $controls[] = Forms\Components\ToggleButtons::make("notification_prefs.{$key}")
+                    ->label($def['label'] ?? $key)
+                    ->inline()
+                    ->default('inherit')
+                    ->options([
+                        'inherit' => __('حسب الافتراضي'),
+                        'email'   => __('بريد'),
+                        'push'    => __('تطبيق'),
+                        'both'    => __('الاثنين'),
+                    ])
+                    ->colors([
+                        'inherit' => 'gray',
+                        'email'   => 'warning',
+                        'push'    => 'info',
+                        'both'    => 'success',
+                    ])
+                    ->icons([
+                        'inherit' => 'heroicon-o-minus',
+                        'email'   => 'heroicon-o-envelope',
+                        'push'    => 'heroicon-o-device-phone-mobile',
+                        'both'    => 'heroicon-o-check-circle',
+                    ]);
+            }
+
+            $fieldsets[] = Forms\Components\Fieldset::make($group)
+                ->schema($controls)
+                ->columns(1);
+        }
+
+        return Forms\Components\Section::make(__('تفضيلات الإشعارات'))
+            ->description(__('قناة كل تنبيه لهذا المستخدم: "حسب الافتراضي" = وراثة إعداد النظام؛ أو خصّص بريد / تطبيق / الاثنين.'))
+            ->icon('heroicon-o-bell')
+            ->collapsible()
+            ->collapsed()
+            ->schema($fieldsets);
     }
 
     public static function table(Table $table): Table

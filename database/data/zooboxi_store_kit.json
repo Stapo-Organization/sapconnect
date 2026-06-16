@@ -1,0 +1,32 @@
+[
+  {
+    "brand_key": "zooboxi",
+    "brand_name": "Zooboxi",
+    "country": "Saudi Arabia",
+    "founded": "",
+    "category": "multi",
+    "positioning": "mid",
+    "tagline_en": "Everything your pet loves — delivered in 2 hours",
+    "tagline_ar": "كل اللي يفرّح أليفك… يوصلك خلال ساعتين",
+    "audience_ar": "أصحاب القطط والكلاب والطيور والحيوانات الصغيرة في السعودية، الباحثون عن مستلزمات أصلية وتوصيل سريع موثوق بأسلوب ودود ومريح وبأسعار في المتناول",
+    "imagery_style": "hybrid",
+    "imagery_notes": "Real warm daylight photography of happy, healthy pets with the product, combined with Zooboxi's playful brand graphics — the smiling kraft delivery box, paw prints and subtle confetti/sparkles; rounded friendly shapes; clean cream (#FFF7EF) and mint (#E6F2E6) backgrounds; teal as the anchor with warm coral/orange pops; never luxury, never moody",
+    "accent": "#429D9C",
+    "accent_dark": "#2D7A79",
+    "gold": "#E58A3E",
+    "palette_notes": "Teal (#429D9C) leads as the brand anchor, paired with warm coral (#D46856) and orange (#D48644) for action and warmth; cream and mint surfaces keep it light and friendly; the signature wordmark gradient runs coral→teal; reserve bright amber for small highlights and the hot red-orange gradient only for sale/clearance flashes",
+    "headline_font": "Baloo Bhaijaan 2",
+    "body_font": "Tajawal",
+    "text_style_ar": "خط مرح بحواف مستديرة ممتلئة للعناوين، عربية واضحة دافئة وودودة، أوزان عريضة للعناوين ونص مريح للقراءة، إحساس بهيج وقريب من العميل",
+    "mood_ar": "مرح·ودود·دافئ·سريع·موثوق",
+    "scene_style": "Playful, warm and friendly pet e-commerce scene: a happy real cat, dog or bird together with the featured product, bright natural daylight, soft cream and mint backdrop, the signature Zooboxi teal (#429D9C) and warm coral (#D46856) as accent blocks, a smiling kraft delivery box motif with subtle paw prints and light confetti, rounded shapes, cheerful clean and uncluttered, conveys fast 2-hour delivery and genuine care for pets",
+    "do_not_ar": "لا أجواء فاخرة متكلّفة، لا ذهبي لامع، لا خلفيات داكنة كئيبة، لا ازدحام بصري، لا ألوان نيون صارخة، لا حيوانات حزينة أو أقفاص موحشة، لا قصاصات clipart رخيصة — الهوية مرحة ودافئة ونظيفة",
+    "confidence": "high",
+    "sources": [
+      "store.zooboxi.com",
+      "zooboxi-woo/theme/style.css",
+      "official Zooboxi logo (zoologobanar)"
+    ],
+    "logo_url": null
+  }
+]

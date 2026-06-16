@@ -13,6 +13,7 @@ class SapInvoice extends Model
         'doc_num',
         'card_code',
         'doc_date',
+        'doc_time',
         'sales_employee_code',
         'doc_total',
     ];

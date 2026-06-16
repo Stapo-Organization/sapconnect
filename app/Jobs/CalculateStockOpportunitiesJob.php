@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -18,6 +19,10 @@ class CalculateStockOpportunitiesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $timeout = 3600;
+
+    /** Cache keys powering the app's "تشغيل المحرك" progress indicator. */
+    public const RUNNING_KEY = 'stock_distribution:running';
+    public const LAST_RUN_KEY = 'stock_distribution:last_run';
 
     public function handle(SapClient $sapClient): void
     {
@@ -187,10 +192,21 @@ class CalculateStockOpportunitiesJob implements ShouldQueue
             }
             DB::commit();
 
+            // Stamp completion so the app can show "آخر تشغيل" and drop the spinner.
+            Cache::forever(self::LAST_RUN_KEY, now()->toIso8601String());
+            Cache::forget(self::RUNNING_KEY);
+
         } catch (\Exception $e) {
             DB::rollBack();
+            Cache::forget(self::RUNNING_KEY);
             Log::error("CalculateStockOpportunitiesJob Failed: " . $e->getMessage());
             throw $e;
         }
+    }
+
+    /** Ensure the running flag is cleared even if the job ultimately fails. */
+    public function failed(\Throwable $e): void
+    {
+        Cache::forget(self::RUNNING_KEY);
     }
 }

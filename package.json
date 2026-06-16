@@ -1,0 +1,8 @@
+{
+  "name": "sapconnect-creative",
+  "private": true,
+  "description": "Node deps for the ad-creative banner compositor (resvg-js renders the Arabic SVG to PNG).",
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

@@ -1,0 +1,247 @@
+/**
+ * Zooboxi brand boutique page (/brand/<slug>/).
+ * Themed ENTIRELY by the per-brand CSS variables printed inline by
+ * Zooboxi_Brand_Page::print_brand_vars():
+ *   --zb-accent  --zb-accent-dark  --zb-gold  --zb-head-font  --zb-body-font
+ * so this single stylesheet themes every brand. RTL-first.
+ */
+
+/* Hide the default WooCommerce/Astra archive title — the hero carries the brand. */
+body.zb-has-brand-page .woocommerce-products-header,
+body.zb-has-brand-page .ast-archive-description,
+body.zb-has-brand-page .ast-woocommerce-shop-page-title,
+body.zb-has-brand-page h1.woocommerce-products-header__title {
+    display: none !important;
+}
+
+body.zb-has-brand-page {
+    --zb-radius: 20px;
+}
+
+.zb-brand {
+    direction: rtl;
+    font-family: var(--zb-body-font, "Tajawal", sans-serif);
+    margin: 0 0 8px;
+}
+
+.zb-brand h1, .zb-brand h2, .zb-brand h3,
+.zb-brand-catalog__title {
+    font-family: var(--zb-head-font, "Tajawal", sans-serif);
+}
+
+.zb-brand-h2 {
+    font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+    font-weight: 800;
+    margin: 0 0 14px;
+    color: var(--zb-accent-dark, #0a5560);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.zb-brand-h2::before {
+    content: "";
+    width: 6px;
+    height: 1.1em;
+    border-radius: 4px;
+    background: var(--zb-accent, #0d9488);
+    display: inline-block;
+}
+
+/* ── Hero ─────────────────────────────────────────────── */
+.zb-brand-hero {
+    border-radius: var(--zb-radius);
+    overflow: hidden;
+    margin: 4px 0 22px;
+    box-shadow: 0 14px 40px rgba(15, 23, 42, .14);
+}
+.zb-brand-hero--img { line-height: 0; }
+.zb-brand-hero__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+.zb-brand-hero--css {
+    background:
+        radial-gradient(120% 140% at 85% 0%, color-mix(in srgb, var(--zb-gold, #F4BE2C) 28%, transparent) 0%, transparent 55%),
+        linear-gradient(135deg, var(--zb-accent, #0d9488) 0%, var(--zb-accent-dark, #0a5560) 100%);
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+}
+.zb-brand-hero__inner { max-width: 680px; }
+.zb-brand-hero__logo {
+    max-width: 260px;
+    max-height: 130px;
+    width: auto;
+    height: auto;
+    margin: 0 auto 14px;
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .25));
+    background: rgba(255, 255, 255, .92);
+    padding: 14px 22px;
+    border-radius: 16px;
+}
+.zb-brand-hero__name {
+    color: #fff;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 800;
+    margin: 0 0 10px;
+    text-shadow: 0 3px 14px rgba(0, 0, 0, .25);
+}
+.zb-brand-hero__tag {
+    color: #fff;
+    font-size: clamp(1rem, 2.6vw, 1.3rem);
+    font-weight: 600;
+    margin: 0;
+    opacity: .96;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+}
+
+/* ── Story ────────────────────────────────────────────── */
+.zb-brand-story {
+    text-align: center;
+    max-width: 820px;
+    margin: 0 auto 26px;
+    padding: 0 8px;
+}
+.zb-brand-story__lead {
+    font-size: clamp(.98rem, 2.2vw, 1.18rem);
+    line-height: 1.9;
+    color: #374151;
+    margin: 0 0 14px;
+}
+.zb-brand-story__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+.zb-brand-story__chip {
+    font-size: .82rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    color: var(--zb-accent-dark, #0a5560);
+    background: color-mix(in srgb, var(--zb-accent, #0d9488) 12%, #fff);
+    border: 1px solid color-mix(in srgb, var(--zb-accent, #0d9488) 24%, transparent);
+}
+
+/* ── AI promo tiles ───────────────────────────────────── */
+.zb-brand-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 0 0 28px;
+}
+.zb-brand-tiles--1 { grid-template-columns: minmax(220px, 520px); justify-content: center; }
+.zb-brand-tile {
+    position: relative;
+    display: block;
+    border-radius: 18px;
+    overflow: hidden;
+    line-height: 0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .10);
+    transition: transform .18s ease, box-shadow .18s ease;
+    aspect-ratio: 1 / 1;
+    background: #f3f4f6;
+}
+.zb-brand-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, .18);
+}
+.zb-brand-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.zb-brand-tile__cap {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: 18px 14px 12px;
+    color: #fff;
+    font-weight: 700;
+    font-size: .95rem;
+    line-height: 1.4;
+    text-align: center;
+    background: linear-gradient(to top, rgba(0, 0, 0, .55), transparent);
+}
+
+/* ── In-brand category nav ────────────────────────────── */
+.zb-brand-cats { margin: 0 0 26px; }
+.zb-brand-cats__row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+.zb-brand-cat {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    color: #374151;
+    font-weight: 700;
+    font-size: .9rem;
+    text-decoration: none;
+    transition: all .15s ease;
+    white-space: nowrap;
+}
+.zb-brand-cat span {
+    font-size: .72rem;
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 1px 8px;
+    border-radius: 999px;
+}
+.zb-brand-cat:hover {
+    border-color: var(--zb-accent, #0d9488);
+    color: var(--zb-accent-dark, #0a5560);
+}
+.zb-brand-cat.is-active {
+    background: var(--zb-accent, #0d9488);
+    border-color: var(--zb-accent, #0d9488);
+    color: #fff;
+}
+.zb-brand-cat.is-active span { background: rgba(255, 255, 255, .25); color: #fff; }
+
+/* ── Curated rail (reuses .zb-rail from zooboxi-home.css) ─ */
+.zb-brand-rail { margin: 0 0 26px; }
+
+/* ── Catalog block ────────────────────────────────────── */
+.zb-brand-catalog { margin-top: 10px; }
+.zb-brand-catalog__title { margin-bottom: 16px; }
+
+/* ── Theme the native WooCommerce cards with the brand accent ── */
+body.zb-has-brand-page .woocommerce ul.products li.product .price,
+body.zb-has-brand-page ul.products li.product .price {
+    color: var(--zb-accent-dark, #0a5560);
+}
+body.zb-has-brand-page .woocommerce ul.products li.product .button,
+body.zb-has-brand-page ul.products li.product a.button,
+body.zb-has-brand-page ul.products li.product .added_to_cart {
+    background: var(--zb-accent, #0d9488);
+    border-color: var(--zb-accent, #0d9488);
+    color: #fff;
+}
+body.zb-has-brand-page .woocommerce ul.products li.product .button:hover,
+body.zb-has-brand-page ul.products li.product a.button:hover {
+    background: var(--zb-accent-dark, #0a5560);
+    border-color: var(--zb-accent-dark, #0a5560);
+}
+/* Ordering dropdown + pagination accents */
+body.zb-has-brand-page .woocommerce nav.woocommerce-pagination ul li span.current,
+body.zb-has-brand-page .woocommerce nav.woocommerce-pagination ul li a:hover {
+    background: var(--zb-accent, #0d9488);
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .zb-brand-hero--css { min-height: 200px; padding: 30px 18px; }
+    .zb-brand-tiles { gap: 12px; }
+}

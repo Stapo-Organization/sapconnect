@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zooboxi — دليل الهوية البصرية الكامل</title>
+<meta name="description" content="دليل هوية متجر زووبوكسي: الشعار، الألوان، الخطوط، الأيقونات، نبرة الصوت، ونظام الإعلانات.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;900&family=El+Messiri:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ TOKENS ═══════════════ */
+:root{
+  --teal:#429D9C; --teal-dark:#2D7A79; --teal-deep:#1F5C5B; --teal-tint:#DCEFEE; --mint:#E6F2E6;
+  --coral:#D46856; --coral-dark:#B14B3B; --orange:#D48644; --amber:#F4BE2C; --peach:#F7DDC7;
+  --ink:#2C3E2D; --ink-soft:#5C6B5C; --line:#E7EBE6; --cream:#FFF7EF; --paper:#FFFFFF;
+  --success:#2FA36B; --warning:#E8A33D; --error:#E5484D;
+  --grad-brand:linear-gradient(90deg,#D46856 0%,#E08A4B 38%,#429D9C 100%);
+  --grad-teal:linear-gradient(135deg,#429D9C 0%,#2D7A79 100%);
+  --grad-warm:linear-gradient(135deg,#F4BE2C 0%,#D48644 100%);
+  --grad-hot:linear-gradient(135deg,#FF6B6B 0%,#EE5A24 100%);
+  --f-display:"Baloo Bhaijaan 2","El Messiri","Cairo",sans-serif;
+  --f-head:"El Messiri","Cairo",sans-serif;
+  --f-body:"Tajawal","Cairo",sans-serif;
+  --r-md:12px; --r-lg:16px; --r-xl:22px; --r-pill:999px;
+  --sh-card:0 1px 3px rgba(44,62,45,.07); --sh-hover:0 12px 34px rgba(45,122,121,.16);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--f-body);background:var(--cream);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--f-head);line-height:1.3;margin:0}
+.disp{font-family:var(--f-display)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;direction:ltr;unicode-bidi:isolate}
+a{color:var(--teal-dark);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+.muted{color:var(--ink-soft)}
+
+/* ═══════════════ HERO ═══════════════ */
+.hero{position:relative;overflow:hidden;background:var(--grad-teal);color:#fff;text-align:center;padding:62px 22px 54px}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(2px);opacity:.5}
+.hero::before{width:240px;height:240px;background:radial-gradient(circle,#fff6 0%,transparent 70%);top:-60px;inset-inline-start:-40px}
+.hero::after{width:320px;height:320px;background:radial-gradient(circle,#F4BE2C55 0%,transparent 70%);bottom:-120px;inset-inline-end:-60px}
+.hero .sparkle{position:absolute;font-size:20px;opacity:.7;animation:float 5s ease-in-out infinite}
+.hero-logo{position:relative;display:inline-flex;align-items:center;justify-content:center;width:148px;height:148px;background:#fff;border-radius:34px;box-shadow:0 18px 50px rgba(0,0,0,.22);padding:16px;animation:float 6s ease-in-out infinite}
+.hero-logo img{width:100%;height:100%;object-fit:contain}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.hero h1{font-family:var(--f-display);font-size:46px;font-weight:800;margin:20px 0 4px;letter-spacing:.5px}
+.hero .ar-name{font-family:var(--f-head);font-size:20px;opacity:.95;margin-bottom:10px}
+.hero .tag{font-size:18px;max-width:600px;margin:0 auto;opacity:.96}
+.hero .essence{margin-top:6px;font-size:14px;opacity:.8}
+.stats{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px}
+.stat{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:16px;padding:11px 18px;min-width:104px;backdrop-filter:blur(4px)}
+.stat b{display:block;font-family:var(--f-display);font-size:22px;font-weight:800}
+.stat span{font-size:12.5px;opacity:.92}
+
+/* ═══════════════ NAV ═══════════════ */
+nav.toc{position:sticky;top:0;z-index:50;background:rgba(255,247,239,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav.toc .wrap{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:11px 22px}
+nav.toc a{font-family:var(--f-body);font-weight:700;font-size:13px;color:var(--teal-deep);background:#fff;border:1px solid var(--line);border-radius:var(--r-pill);padding:6px 14px;transition:.16s}
+nav.toc a:hover{background:var(--teal);color:#fff;border-color:var(--teal);transform:translateY(-1px)}
+
+/* ═══════════════ SECTION ═══════════════ */
+section{padding:54px 0;border-bottom:1px solid var(--line)}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.sec-no{font-family:var(--f-display);font-weight:800;font-size:15px;color:#fff;background:var(--grad-teal);width:40px;height:40px;border-radius:13px;display:grid;place-items:center;flex:none;box-shadow:var(--sh-card)}
+.sec-head h2{font-size:30px}
+.sec-sub{color:var(--ink-soft);font-size:15px;margin:0 0 26px;padding-inline-start:54px}
+.eyebrow{font-family:var(--f-body);font-weight:800;font-size:12px;letter-spacing:1px;color:var(--coral);text-transform:uppercase}
+
+/* ═══════════════ COMPONENTS ═══════════════ */
+.grid{display:grid;gap:18px}
+.cols-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.cols-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.cols-4{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;box-shadow:var(--sh-card);transition:.18s}
+.card:hover{box-shadow:var(--sh-hover);transform:translateY(-2px)}
+.card h3{font-size:18px;margin-bottom:6px}
+.card h4{font-family:var(--f-body);font-weight:800;font-size:14px;color:var(--teal-deep);margin-bottom:4px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-body);font-weight:700;font-size:13px;border-radius:var(--r-pill);padding:5px 13px}
+.pill.teal{background:var(--teal-tint);color:var(--teal-deep)}
+.pill.coral{background:#F7E0DB;color:var(--coral-dark)}
+.pill.warm{background:#FCEFD2;color:#8A6516}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+
+/* swatches */
+.sw{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:var(--sh-card)}
+.sw .chip-color{height:78px}
+.sw .sw-meta{padding:10px 12px}
+.sw .sw-meta b{font-family:var(--f-body);font-weight:800;font-size:13.5px;display:block}
+.sw .sw-meta code{font-size:12px;color:var(--ink-soft);display:block;margin-top:2px}
+.sw .sw-meta .role{font-size:11.5px;color:var(--ink-soft)}
+.grad-strip{height:54px;border-radius:var(--r-md);box-shadow:var(--sh-card)}
+.ratio-bar{display:flex;height:42px;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-card);font-family:var(--f-body);font-weight:800;font-size:12px;color:#fff}
+.ratio-bar div{display:grid;place-items:center}
+
+/* type spec */
+.type-spec{padding:20px 22px}
+.type-spec .label{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.type-spec .label b{font-family:var(--f-body);font-weight:800;font-size:14px;color:var(--teal-deep)}
+.type-spec .sample{font-size:34px;line-height:1.4}
+.type-spec .scale span{display:inline-block;color:var(--ink);margin-inline-end:14px;vertical-align:baseline}
+
+/* icons */
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:12px}
+.ico{display:flex;flex-direction:column;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:16px 8px;box-shadow:var(--sh-card);transition:.16s}
+.ico:hover{transform:translateY(-2px);box-shadow:var(--sh-hover);border-color:var(--teal)}
+.ico svg{width:30px;height:30px;color:var(--teal)}
+.ico.coral svg{color:var(--coral)}
+.ico span{font-family:var(--f-body);font-weight:700;font-size:12px;color:var(--ink-soft)}
+
+/* do / dont */
+.dd{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.do,.dont{border-radius:var(--r-lg);padding:16px 18px;border:1px solid}
+.do{background:#EAF7F0;border-color:#BFE6D2}
+.dont{background:#FCECEC;border-color:#F6CFCF}
+.do h4,.dont h4{font-family:var(--f-body);display:flex;align-items:center;gap:8px;font-size:15px;margin-bottom:8px}
+.do h4{color:var(--success)} .dont h4{color:var(--error)}
+.do ul,.dont ul{margin:0;padding-inline-start:20px;font-size:14px}
+.do li,.dont li{margin:5px 0}
+
+/* logo usage backgrounds */
+.logo-on{display:flex;flex-direction:column;gap:8px;align-items:center}
+.logo-on .box{width:100%;height:120px;border-radius:var(--r-md);display:grid;place-items:center;border:1px solid var(--line)}
+.logo-on .box img{height:84px;width:auto}
+.logo-on small{font-family:var(--f-body);font-weight:700;color:var(--ink-soft);font-size:12px}
+.bg-cream{background:var(--cream)} .bg-mint{background:var(--mint)} .bg-teal{background:var(--grad-teal)}
+.bg-photo{background:linear-gradient(135deg,#43707a,#7a9a5e)}
+
+/* clear space diagram */
+.clearspace{position:relative;background:#fff;border:1px dashed var(--teal);border-radius:var(--r-md);padding:34px;display:grid;place-items:center}
+.clearspace img{height:96px}
+.clearspace .x{position:absolute;font-family:var(--f-body);font-weight:800;color:var(--teal);font-size:12px;background:var(--teal-tint);border-radius:6px;padding:1px 7px}
+
+/* AD MOCKUPS */
+.ad-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;align-items:start}
+.ad{position:relative;border-radius:var(--r-lg);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.14);color:#fff;font-family:var(--f-body)}
+.ad .logo-badge{position:absolute;inset-block-start:12px;inset-inline-start:12px;background:#fff;border-radius:10px;padding:5px 8px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.ad .logo-badge img{height:22px}
+.ad .logo-badge b{color:var(--teal-deep);font-weight:800;font-size:13px;font-family:var(--f-display)}
+.ad .sale{position:absolute;inset-block-start:12px;inset-inline-end:12px;background:var(--grad-hot);border-radius:10px;padding:5px 11px;font-weight:800;font-size:13px;box-shadow:0 4px 14px rgba(238,90,36,.4)}
+.ad .body{position:relative;z-index:2;padding:20px}
+.ad .kicker{font-weight:700;font-size:13px;opacity:.95}
+.ad .headline{font-family:var(--f-display);font-weight:800;line-height:1.35;margin:6px 0}
+.ad .cta{display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--teal-deep);font-weight:800;border-radius:var(--r-pill);padding:8px 16px;font-size:14px;margin-top:10px}
+.ad .cta svg{width:16px;height:16px}
+.ad .prod{position:absolute;inset-block-end:-12px;inset-inline-start:-10px;width:118px;height:118px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:50%;display:grid;place-items:center;backdrop-filter:blur(2px)}
+.ad .prod svg{width:54px;height:54px;color:#fff}
+.ad-square{aspect-ratio:1/1;background:var(--grad-teal)}
+.ad-square .headline{font-size:25px}
+.ad-story{aspect-ratio:9/16;background:linear-gradient(160deg,#D46856,#E08A4B 55%,#429D9C)}
+.ad-story .headline{font-size:23px}
+.ad-wide{aspect-ratio:16/7;background:var(--grad-teal);display:flex;align-items:center}
+.ad-wide .body{padding:18px 22px}
+.ad-wide .headline{font-size:22px}
+.ad-strip{aspect-ratio:16/4;background:var(--grad-hot);display:flex;align-items:center}
+.ad-strip .headline{font-size:19px;margin:0}
+.ad cap,.cap{display:block;text-align:center;font-family:var(--f-body);font-weight:700;font-size:12px;color:var(--ink-soft);margin-top:8px}
+
+/* announcement marquee demo */
+.ann{background:var(--peach);color:#5a3a1a;font-weight:700;font-size:13.5px;border-radius:var(--r-pill);padding:9px 18px;overflow:hidden;white-space:nowrap;position:relative}
+.ann .run{display:inline-block;animation:run 16s linear infinite}
+@keyframes run{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* tables / code */
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-card)}
+th,td{padding:10px 12px;text-align:start;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--mint);font-family:var(--f-body);font-weight:800;color:var(--teal-deep)}
+tr:last-child td{border-bottom:0}
+.codeblock{background:#10312f;color:#cdeae8;border-radius:var(--r-lg);padding:18px 20px;overflow:auto;font-size:12.5px;line-height:1.7;direction:ltr;text-align:left;box-shadow:var(--sh-card)}
+.codeblock .k{color:#7fd4cf} .codeblock .s{color:#f3c98b} .codeblock .c{color:#6f8a88;font-style:italic}
+
+.callout{background:var(--teal-tint);border-inline-start:4px solid var(--teal);border-radius:var(--r-md);padding:14px 18px;font-size:14px}
+.callout.warm{background:#FCEFD2;border-color:var(--orange)}
+footer{text-align:center;color:var(--ink-soft);padding:34px 22px;font-size:13px}
+footer b{font-family:var(--f-display);color:var(--teal-deep)}
+
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  nav.toc{display:none}
+  section{break-inside:avoid} .card,.ad,.sw,.type-spec{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ICON SPRITE -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-paw" viewBox="0 0 24 24"><g fill="currentColor"><ellipse cx="6" cy="9.5" rx="1.9" ry="2.5"/><ellipse cx="10.5" cy="6.6" rx="2" ry="2.7"/><ellipse cx="15.5" cy="7.4" rx="1.9" ry="2.5"/><ellipse cx="19" cy="11" rx="1.7" ry="2.2"/><path d="M12.2 12.4c-3 0-5.2 2.2-5.2 4.6 0 1.9 1.7 3 3.4 2.2.95-.45 2.7-.45 3.6 0 1.7.8 3.4-.3 3.4-2.2 0-2.4-2.2-4.6-5.2-4.6Z"/></g></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3.2l8.5 4.3M3.5 7.5 12 11.8l8.5-4.3M3.5 7.5v9L12 20.8l8.5-4.3v-9M12 11.8v9"/><path d="M9 13.4c.9.8 1.8 1.1 3 1.1s2.1-.3 3-1.1"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11.5H12l1-7.5Z"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5h11v9.5h-11zM13.5 9.5h3.6L21 12.6V16h-7.5"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3.1 2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2s7-5.6 7-11.2a7 7 0 1 0-14 0c0 5.6 7 11.2 7 11.2Z"/><circle cx="12" cy="10" r="2.6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 12.5 11 5.3a2 2 0 0 1 1.4-.6l5 .1a1.6 1.6 0 0 1 1.6 1.6l.1 5a2 2 0 0 1-.6 1.4l-7.2 7.2a1.6 1.6 0 0 1-2.3 0l-5-5a1.6 1.6 0 0 1 0-2.3Z"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v9H4zM3.4 7.5h17.2V11H3.4zM12 7.5v12.5M12 7.5C12 7.5 10.6 3.4 8.2 4.4 6.4 5.2 7.6 7.5 12 7.5ZM12 7.5C12 7.5 13.4 3.4 15.8 4.4 17.6 5.2 16.4 7.5 12 7.5Z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.3S3.8 14.8 3.8 9.3A4.3 4.3 0 0 1 12 6.4 4.3 4.3 0 0 1 20.2 9.3C20.2 14.8 12 20.3 12 20.3Z"/></symbol>
+  <symbol id="i-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5h18a9 9 0 0 1-18 0Z"/><path d="M5 11.5c0-2.2 3.1-3.4 7-3.4s7 1.2 7 3.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 5.8v5.1c0 4.4 3 7.5 7 9 4-1.5 7-4.6 7-9V5.8L12 3Z"/><path d="m9 11.8 2 2 4-4"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 0 1 14.4-6.2L21 8.5M21 3.5v5h-5"/><path d="M20.5 12a8.5 8.5 0 0 1-14.4 6.2L3 15.5M3 20.5v-5h5"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9 4.2 4.3l4.2 2.9a8 8 0 0 1 7.2 0l4.2-2.9L18.5 9"/><path d="M4.6 11.2a7.4 7 0 0 0 14.8 0"/><path d="M9.6 12.6h.01M14.4 12.6h.01"/><path d="M12 14.6v1.1M12 15.7c-.9 0-1.6.4-2.3.9M12 15.7c.9 0 1.6.4 2.3.9"/></symbol>
+  <symbol id="i-dog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.4C4.7 7 3.4 8.6 3.4 11.2s1.3 4 2.6 3.8M17.5 7.4c1.8-.4 3.1 1.2 3.1 3.8s-1.3 4-2.6 3.8"/><path d="M6.4 8.2a5.6 5.6 0 0 1 11.2 0v4.4a5.6 5.6 0 0 1-11.2 0Z"/><path d="M10.6 12.4h.01M13.4 12.4h.01M12 14v1.4M12 15.4c-.7 0-1.3.4-1.8.8M12 15.4c.7 0 1.3.4 1.8.8"/></symbol>
+  <symbol id="i-bird" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.4c0-3 2.6-5.2 6.1-5.2 1.6 0 3 .5 4.1 1.5l6.3-2-2 4 1 1-3.9 1c-.8 2.5-3.2 4.1-6.2 4.1"/><path d="M9.4 18.8 8 21.5M13.4 18 13 21.5"/><path d="M8.6 11.2h.01"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2 11.2a1.6 1.6 0 0 0 1.6 1.3h7.8a1.6 1.6 0 0 0 1.6-1.3L19.6 7H6.2"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6l-6 6 6 6M7 12h11"/></symbol>
+</svg>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<header class="hero">
+  <span class="sparkle" style="top:30px;inset-inline-start:14%">✦</span>
+  <span class="sparkle" style="top:70px;inset-inline-end:18%;animation-delay:1.5s">✦</span>
+  <span class="sparkle" style="bottom:40px;inset-inline-start:24%;animation-delay:.8s">❤</span>
+  <div class="hero-logo"><img src="zooboxi-brand-kit/logo.png" alt="شعار زووبوكسي"></div>
+  <h1>Zooboxi</h1>
+  <div class="ar-name">زووبوكسي · متجر الحيوانات الأليفة</div>
+  <p class="tag">كل اللي يفرّح أليفك… يوصلك خلال ساعتين 🐾</p>
+  <p class="essence">دليل الهوية البصرية الكامل — الشعار، الألوان، الخطوط، الأيقونات، نبرة الصوت، ونظام الإعلانات</p>
+  <div class="stats">
+    <div class="stat"><b>2h</b><span>توصيل إكسبريس</span></div>
+    <div class="stat"><b>4</b><span>عوائل أليفة</span></div>
+    <div class="stat"><b>100%</b><span>منتجات أصلية</span></div>
+    <div class="stat"><b>+250</b><span>شحن مجاني (ر.س)</span></div>
+  </div>
+</header>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="toc"><div class="wrap">
+  <a href="#essence">الجوهر</a>
+  <a href="#logo">الشعار</a>
+  <a href="#color">الألوان</a>
+  <a href="#type">الخطوط</a>
+  <a href="#icons">الأيقونات</a>
+  <a href="#voice">نبرة الصوت</a>
+  <a href="#imagery">الصورة</a>
+  <a href="#ads">الإعلانات</a>
+  <a href="#ai">مولّد الـ AI</a>
+  <a href="#apply">التطبيقات</a>
+</div></nav>
+
+<!-- ═══════════════ 01 ESSENCE ═══════════════ -->
+<section id="essence"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">01</div><h2>جوهر العلامة</h2></div>
+  <p class="sec-sub">من نحن، ولماذا نبدو بهذا الشكل.</p>
+  <div class="grid cols-2">
+    <div class="card">
+      <span class="eyebrow">القصة</span>
+      <h3 style="margin:6px 0 8px">Zoo + Boxi</h3>
+      <p class="muted" style="margin:0">الاسم نفسه يحكي الحكاية: <b style="color:var(--ink)">Zoo</b> (عالم الحيوانات الأليفة) و<b style="color:var(--ink)">Boxi</b> (الصندوق الذي يصلك). الشعار يجسّدها حرفيًا — كلبٌ وقطٌّ يطلّان بفرح من صندوق توصيل تعلوه ابتسامة. زووبوكسي يحوّل التسوّق لمستلزمات الحيوانات إلى لحظة فرح تصل إلى الباب خلال ساعتين.</p>
+    </div>
+    <div class="card">
+      <span class="eyebrow">الوعد</span>
+      <h3 style="margin:6px 0 8px">سرعة + ثقة + دفء</h3>
+      <p class="muted" style="margin:0">متجر سعودي لكل ما يخص القطط والكلاب والطيور والحيوانات الصغيرة. منتجات أصلية 100%، توصيل سريع من أقرب مستودع، وإرجاع سهل. نتكلم بلغة أصحاب الحيوانات: ودودة، واضحة، ومرحة — بلا تكلّف.</p>
+    </div>
+  </div>
+  <div class="grid cols-4" style="margin-top:18px">
+    <div class="card" style="text-align:center"><svg style="width:30px;height:30px;color:var(--coral)"><use href="#i-bolt"/></svg><h4 style="margin-top:8px">مرح</h4><p class="muted" style="font-size:13px;margin:0">طاقة إيجابية، ابتسامة، إيموجي بحساب</p></div>
+    <div class="card" style="text-align:center"><svg style="width:30px;height:30px;color:var(--teal)"><use href="#i-heart"/></svg><h4 style="margin-top:8px">ودود</h4><p class="muted" style="font-size:13px;margin:0">قريب من العميل، يخاطبه بصيغة شخصية</p></div>
+    <div class="card" style="text-align:center"><svg style="width:30px;height:30px;color:var(--orange)"><use href="#i-clock"/></svg><h4 style="margin-top:8px">سريع</h4><p class="muted" style="font-size:13px;margin:0">التوصيل خلال ساعتين هو بطل الرسالة</p></div>
+    <div class="card" style="text-align:center"><svg style="width:30px;height:30px;color:var(--success)"><use href="#i-shield"/></svg><h4 style="margin-top:8px">موثوق</h4><p class="muted" style="font-size:13px;margin:0">أصلي 100%، إرجاع سهل، شفافية</p></div>
+  </div>
+</div></section>
+
+<!-- ═══════════════ 02 LOGO ═══════════════ -->
+<section id="logo"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">02</div><h2>نظام الشعار</h2></div>
+  <p class="sec-sub">الشعار هو البطل — نحافظ عليه ونبني حوله. التميمة (الكلب + القط + الصندوق المبتسم) لا تُعاد رسمتها أو تلوينها.</p>
+
+  <div class="grid cols-2" style="margin-bottom:18px">
+    <div class="card" style="text-align:center;background:var(--mint)">
+      <img src="zooboxi-brand-kit/logo.png" alt="الشعار الكامل" style="height:150px">
+      <h4 style="margin-top:10px">الشعار الكامل (Primary)</h4>
+      <p class="muted" style="font-size:13px;margin:0">التميمة + الكلمة المرسومة بتدرّج كورال→تركواز. الاستخدام الافتراضي للواجهات والإعلانات.</p>
+    </div>
+    <div class="card">
+      <span class="eyebrow">تشريح الشعار</span>
+      <ul style="margin:10px 0 0;padding-inline-start:18px;font-size:14px" class="muted">
+        <li><b style="color:var(--ink)">الصندوق الكرتوني</b> + الابتسامة = التوصيل السعيد والسريع.</li>
+        <li><b style="color:var(--ink)">الكلب والقط</b> = عوائل الحيوانات الأليفة التي نخدمها.</li>
+        <li><b style="color:var(--ink)">الكلمة المرسومة</b> بخط ممتلئ مستدير وتدرّج كورال→تركواز.</li>
+        <li><b style="color:var(--ink)">القلوب والنجوم</b> = الفرح والعناية (عناصر زينة، تُستخدم بحساب).</li>
+        <li><b style="color:var(--ink)">الحدود السوداء</b> بأسلوب الملصق (sticker) تمنح الشعار حضورًا واضحًا.</li>
+      </ul>
+    </div>
+  </div>
+
+  <span class="eyebrow">المتغيّرات</span>
+  <div class="grid cols-4" style="margin:10px 0 22px">
+    <div class="card logo-on"><div class="box bg-cream"><img src="zooboxi-brand-kit/logo.png" alt=""></div><small>الكامل — أفقي/مربع</small></div>
+    <div class="card" style="text-align:center"><div style="height:120px;display:grid;place-items:center"><span class="disp" style="font-size:34px;font-weight:800;background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;color:transparent">Zooboxi</span></div><small class="muted" style="font-family:var(--f-body);font-weight:700;font-size:12px">الكلمة فقط (Wordmark)</small></div>
+    <div class="card" style="text-align:center"><div style="height:120px;display:grid;place-items:center"><span style="width:74px;height:74px;border-radius:18px;background:var(--grad-teal);display:grid;place-items:center;box-shadow:var(--sh-card)"><svg style="width:40px;height:40px;color:#fff"><use href="#i-box"/></svg></span></div><small class="muted" style="font-family:var(--f-body);font-weight:700;font-size:12px">العلامة الرمزية (Submark)</small></div>
+    <div class="card logo-on"><div class="box" style="background:var(--ink)"><img src="zooboxi-brand-kit/logo.png" alt="" style="filter:grayscale(1) brightness(2.4)"></div><small>أحادي اللون (عكسي)</small></div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h4>مساحة الأمان والحد الأدنى</h4>
+      <div class="clearspace" style="margin:12px 0">
+        <span class="x" style="top:8px;inset-inline-start:8px">↕ مسافة = ارتفاع الصندوق</span>
+        <img src="zooboxi-brand-kit/logo.png" alt="">
+      </div>
+      <p class="muted" style="font-size:13px;margin:0">اترك حول الشعار مساحة فارغة لا تقل عن ارتفاع «الصندوق» في الشعار. الحد الأدنى للعرض: <b style="color:var(--ink)">96px</b> رقميًا / <b style="color:var(--ink)">22mm</b> طباعيًا، أو استخدم العلامة الرمزية للأحجام الأصغر.</p>
+    </div>
+    <div class="card">
+      <h4>الخلفيات المسموحة</h4>
+      <div class="grid cols-4" style="margin-top:12px">
+        <div class="logo-on"><div class="box bg-cream"><img src="zooboxi-brand-kit/logo.png" alt=""></div><small>كريمي</small></div>
+        <div class="logo-on"><div class="box bg-mint"><img src="zooboxi-brand-kit/logo.png" alt=""></div><small>منتي</small></div>
+        <div class="logo-on"><div class="box bg-teal"><img src="zooboxi-brand-kit/logo.png" alt=""></div><small>تركواز</small></div>
+        <div class="logo-on"><div class="box bg-photo"><img src="zooboxi-brand-kit/logo.png" alt=""></div><small>صورة هادئة</small></div>
+      </div>
+      <p class="muted" style="font-size:13px;margin:10px 0 0">على الخلفيات الداكنة أو الصور، ضع الشعار داخل «ملصق» أبيض دائري/مستدير الحواف لضمان الوضوح.</p>
+    </div>
+  </div>
+
+  <div class="dd" style="margin-top:18px">
+    <div class="do"><h4>✓ افعل</h4><ul>
+      <li>استخدم الشعار الأصلي بألوانه كما هو.</li>
+      <li>امنحه مساحة تنفّس كافية.</li>
+      <li>على الصور: ضعه داخل ملصق أبيض.</li>
+    </ul></div>
+    <div class="dont"><h4>✕ لا تفعل</h4><ul>
+      <li>لا تعِد تلوين التميمة أو تغيّر تدرّج الكلمة.</li>
+      <li>لا تمطّطه أو تدوّره أو تضف ظلًّا/توهجًا.</li>
+      <li>لا تضعه على خلفية مزدحمة أو منخفضة التباين.</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<!-- ═══════════════ 03 COLOR ═══════════════ -->
+<section id="color"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">03</div><h2>الألوان</h2></div>
+  <p class="sec-sub">التركواز يقود، والكورال/البرتقالي يضيفان الدفء والأكشن. مأخوذة من الشعار وثيم المتجر.</p>
+
+  <span class="eyebrow">أساسي · التركواز</span>
+  <div class="grid cols-4" style="margin:10px 0 20px">
+    <div class="sw"><div class="chip-color" style="background:#429D9C"></div><div class="sw-meta"><b>تركواز</b><code>#429D9C</code><span class="role">الأساسي · أزرار/روابط</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#2D7A79"></div><div class="sw-meta"><b>تركواز غامق</b><code>#2D7A79</code><span class="role">تمرير/تدرّجات</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#1F5C5B"></div><div class="sw-meta"><b>تركواز عميق</b><code>#1F5C5B</code><span class="role">نص/تذييل</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#E6F2E6"></div><div class="sw-meta"><b>منتي</b><code>#E6F2E6</code><span class="role">خلفية أقسام</span></div></div>
+  </div>
+
+  <span class="eyebrow">دافئ · الكورال والبرتقالي</span>
+  <div class="grid cols-4" style="margin:10px 0 20px">
+    <div class="sw"><div class="chip-color" style="background:#D46856"></div><div class="sw-meta"><b>كورال</b><code>#D46856</code><span class="role">أكشن/أيقونات</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#D48644"></div><div class="sw-meta"><b>برتقالي</b><code>#D48644</code><span class="role">ثانوي/شارات</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#F4BE2C"></div><div class="sw-meta"><b>عنبري</b><code>#F4BE2C</code><span class="role">إبراز/سعر (نادر)</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#F7DDC7"></div><div class="sw-meta"><b>خوخي</b><code>#F7DDC7</code><span class="role">شريط إعلان</span></div></div>
+  </div>
+
+  <span class="eyebrow">محايد ودلالي</span>
+  <div class="grid cols-4" style="margin:10px 0 22px">
+    <div class="sw"><div class="chip-color" style="background:#2C3E2D"></div><div class="sw-meta"><b>حبري</b><code>#2C3E2D</code><span class="role">النص الأساسي</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#FFF7EF;border-bottom:1px solid var(--line)"></div><div class="sw-meta"><b>كريمي</b><code>#FFF7EF</code><span class="role">خلفية الصفحة</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#2FA36B"></div><div class="sw-meta"><b>نجاح</b><code>#2FA36B</code><span class="role">تم/متوفر</span></div></div>
+    <div class="sw"><div class="chip-color" style="background:#E5484D"></div><div class="sw-meta"><b>خطأ/تخفيض</b><code>#E5484D</code><span class="role">تنبيه/سعر تخفيض</span></div></div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h4>نسبة الاستخدام · 60 / 30 / 10</h4>
+      <div class="ratio-bar" style="margin:12px 0">
+        <div style="background:var(--cream);color:var(--ink);flex:6">60% كريمي/أبيض</div>
+        <div style="background:var(--teal);flex:3">30% تركواز</div>
+        <div style="background:var(--coral);flex:1">10% كورال</div>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0">الأساس فاتح ونظيف، التركواز للهوية، والكورال للمسات الأكشن (أزرار، شارات، أيقونات).</p>
+    </div>
+    <div class="card">
+      <h4>التدرّجات الموقّعة</h4>
+      <div style="display:grid;gap:10px;margin-top:12px">
+        <div class="grad-strip" style="background:var(--grad-brand)"></div>
+        <div style="display:flex;gap:10px"><div class="grad-strip" style="flex:1;background:var(--grad-teal)"></div><div class="grad-strip" style="flex:1;background:var(--grad-hot)"></div></div>
+      </div>
+      <p class="muted" style="font-size:12.5px;margin:8px 0 0">الأعلى: تدرّج العلامة (كورال→تركواز). الأسفل: تركواز للأبطال · الأحمر-البرتقالي للعروض الساخنة فقط.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- ═══════════════ 04 TYPOGRAPHY ═══════════════ -->
+<section id="type"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">04</div><h2>الخطوط</h2></div>
+  <p class="sec-sub">ثلاثة أصوات: عناوين مرحة، عناوين أنيقة، ونص واضح للأسعار والتفاصيل.</p>
+
+  <div style="display:grid;gap:14px">
+    <div class="card type-spec">
+      <div class="label"><b>Baloo Bhaijaan 2 — العنوان المرح (Display)</b><span class="pill coral">روح الشعار</span></div>
+      <div class="sample disp" style="font-weight:800;color:var(--teal-deep)">كل اللي يفرّح أليفك يوصلك بساعتين</div>
+      <div class="muted scale" style="font-size:13px;margin-top:8px"><span>للعناوين الكبيرة والشارات والإعلانات · أوزان 700–800 · حواف مستديرة ممتلئة تعكس الشعار.</span></div>
+    </div>
+    <div class="card type-spec">
+      <div class="label"><b>El Messiri — العنوان الأنيق (Heading)</b><span class="pill teal">عناوين المتجر</span></div>
+      <div class="sample" style="font-family:'El Messiri';font-weight:700;color:var(--ink)">أحدث المنتجات · تصفّح الأقسام · الأكثر مبيعًا</div>
+      <div class="muted scale" style="font-size:13px;margin-top:8px"><span>لعناوين الأقسام والبطاقات · أوزان 500–700 · أنيق ودافئ.</span></div>
+    </div>
+    <div class="card type-spec">
+      <div class="label"><b>Tajawal — النص والأسعار (Body)</b><span class="pill warm">قراءة وأسعار</span></div>
+      <div class="sample" style="font-family:'Tajawal';font-weight:500;color:var(--ink);font-size:26px">منتجات أصلية 100% · توصيل من أقرب مستودع · 149 ر.س</div>
+      <div class="scale" style="margin-top:10px">
+        <span style="font-family:'Tajawal';font-size:30px;font-weight:800">800</span>
+        <span style="font-family:'Tajawal';font-size:24px;font-weight:700">700</span>
+        <span style="font-family:'Tajawal';font-size:19px;font-weight:500">500</span>
+        <span style="font-family:'Tajawal';font-size:15px;font-weight:400">400 — نص أساسي مريح للقراءة</span>
+      </div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:16px">داخل التطبيقات يُقبل <b>Cairo</b> كبديل عملي (الخط المستخدم في تطبيق العمليات). تجنّب الأوزان الرفيعة في العناوين، وأبقِ ارتفاع السطر للعربية مريحًا (1.6–1.8).</div>
+</div></section>
+
+<!-- ═══════════════ 05 ICONS ═══════════════ -->
+<section id="icons"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">05</div><h2>الأيقونات</h2></div>
+  <p class="sec-sub">أسلوب خطّي مستدير الحواف (2px تقريبًا)، بسيط وودود — بلون التركواز افتراضيًا والكورال للأكشن.</p>
+  <div class="icon-grid">
+    <div class="ico"><svg><use href="#i-box"/></svg><span>توصيل/صندوق</span></div>
+    <div class="ico coral"><svg><use href="#i-bolt"/></svg><span>إكسبريس</span></div>
+    <div class="ico"><svg><use href="#i-clock"/></svg><span>ساعتين</span></div>
+    <div class="ico"><svg><use href="#i-truck"/></svg><span>شحن</span></div>
+    <div class="ico"><svg><use href="#i-pin"/></svg><span>أقرب فرع</span></div>
+    <div class="ico coral"><svg><use href="#i-tag"/></svg><span>عرض/خصم</span></div>
+    <div class="ico"><svg><use href="#i-gift"/></svg><span>هدية/نقاط</span></div>
+    <div class="ico coral"><svg><use href="#i-heart"/></svg><span>المفضلة</span></div>
+    <div class="ico"><svg><use href="#i-cart"/></svg><span>السلة</span></div>
+    <div class="ico"><svg><use href="#i-bowl"/></svg><span>طعام</span></div>
+    <div class="ico"><svg><use href="#i-shield"/></svg><span>أصلي 100%</span></div>
+    <div class="ico"><svg><use href="#i-return"/></svg><span>إرجاع سهل</span></div>
+    <div class="ico"><svg><use href="#i-cat"/></svg><span>قطط</span></div>
+    <div class="ico"><svg><use href="#i-dog"/></svg><span>كلاب</span></div>
+    <div class="ico"><svg><use href="#i-bird"/></svg><span>طيور</span></div>
+    <div class="ico coral"><svg><use href="#i-paw"/></svg><span>عام</span></div>
+  </div>
+  <div class="grid cols-2" style="margin-top:16px">
+    <div class="callout">الموتيفات المتكرّرة: <b>الصندوق المبتسم</b>، <b>أثر القدم 🐾</b>، <b>النجوم/القلوب</b>. استخدمها كزينة خفيفة لا كضجيج.</div>
+    <div class="callout warm">الإيموجي مسموح بروح المتجر (🚀 🔥 ⭐ 🐾 💯) لكن <b>بحساب</b> — إيموجي واحد إلى اثنين للعنوان يكفي.</div>
+  </div>
+</div></section>
+
+<!-- ═══════════════ 06 VOICE ═══════════════ -->
+<section id="voice"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">06</div><h2>نبرة الصوت</h2></div>
+  <p class="sec-sub">نتكلم كصديق خبير بالحيوانات: ودود، واضح، مرح — وعملي. عربية سعودية خفيفة.</p>
+  <div class="grid cols-3" style="margin-bottom:18px">
+    <div class="card"><h4>ودود لا رسمي</h4><p class="muted" style="font-size:13.5px;margin:0">«وصل طلبك!» بدل «تم استلام طلبكم بنجاح».</p></div>
+    <div class="card"><h4>واضح ومباشر</h4><p class="muted" style="font-size:13.5px;margin:0">السعر، السرعة، والفائدة في أول سطر — بلا لف.</p></div>
+    <div class="card"><h4>مرح بحساب</h4><p class="muted" style="font-size:13.5px;margin:0">طاقة وابتسامة، لكن لا نبالغ في الإيموجي أو التعجّب.</p></div>
+  </div>
+  <span class="eyebrow">أمثلة من صوت المتجر</span>
+  <div class="grid cols-2" style="margin:10px 0 18px">
+    <div class="card" style="background:var(--mint)"><h4>عناوين</h4><ul class="muted" style="font-size:14px;margin:6px 0 0;padding-inline-start:18px">
+      <li>«كل اللي يفرّح أليفك… يوصلك بساعتين 🐾»</li>
+      <li>«اطلب بـ250+ ريال وخلّ التوصيل علينا 🚀»</li>
+      <li>«خصم 20٪ لأول طلب! استخدم كود: hiboxi 🔥»</li></ul></div>
+    <div class="card"><h4>أزرار ودعوات (CTA)</h4><ul class="muted" style="font-size:14px;margin:6px 0 0;padding-inline-start:18px">
+      <li>«أضِف إلى السلة» · «اطلب الحين» · «وصّلها لي»</li>
+      <li>«تسوّق القطط» · «شوف العروض»</li>
+      <li>حالة فارغة: «ما في شيء هنا بعد — نبدأ التسوّق؟»</li></ul></div>
+  </div>
+  <div class="ann"><span class="run">🚀 اطلب بـ250+ ريال وخلّ التوصيل علينا! &nbsp;&nbsp;•&nbsp;&nbsp; 🔥 خصم 20٪ لأول طلب — كود hiboxi &nbsp;&nbsp;•&nbsp;&nbsp; 🐾 توصيل خلال ساعتين من أقرب مستودع &nbsp;&nbsp;•&nbsp;&nbsp; 🚀 اطلب بـ250+ ريال وخلّ التوصيل علينا! &nbsp;&nbsp;•&nbsp;&nbsp; 🔥 خصم 20٪ لأول طلب — كود hiboxi &nbsp;&nbsp;•&nbsp;&nbsp; 🐾 توصيل خلال ساعتين من أقرب مستودع &nbsp;&nbsp;•&nbsp;&nbsp;</span></div>
+  <p class="cap">↑ شريط الإعلان المتحرّك بهوية المتجر (خوخي + نص بنّي دافئ)</p>
+</div></section>
+
+<!-- ═══════════════ 07 IMAGERY ═══════════════ -->
+<section id="imagery"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">07</div><h2>الصورة والتصوير</h2></div>
+  <p class="sec-sub">مزيج (Hybrid): صور حقيقية دافئة لحيوانات سعيدة ومنتجات + لمسات رسومية من عالم زووبوكسي.</p>
+  <div class="dd">
+    <div class="do"><h4>✓ افعل</h4><ul>
+      <li>حيوانات حقيقية سعيدة وصحّية مع المنتج.</li>
+      <li>إضاءة نهار طبيعية دافئة، خلفيات كريمية/منتية نظيفة.</li>
+      <li>أشكال مستديرة، تكوين مرتّب، التركواز والكورال كلمسات.</li>
+      <li>الصندوق المبتسم وأثر القدم كعناصر متكرّرة.</li>
+    </ul></div>
+    <div class="dont"><h4>✕ لا تفعل</h4><ul>
+      <li>لا ذهبي فاخر متكلّف ولا أجواء داكنة كئيبة.</li>
+      <li>لا حيوانات حزينة أو أقفاص موحشة.</li>
+      <li>لا ازدحام بصري ولا ألوان نيون صارخة.</li>
+      <li>لا قصاصات (clipart) رخيصة.</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<!-- ═══════════════ 08 ADS ═══════════════ -->
+<section id="ads"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">08</div><h2>نظام الإعلانات</h2></div>
+  <p class="sec-sub">قوالب جاهزة بهوية المتجر — تصلح للنسخ اليدوي ولتغذية مولّد الإعلانات. كل بانر: شعار + عنوان + دعوة + شارة.</p>
+  <div class="ad-gallery">
+    <div>
+      <div class="ad ad-square">
+        <div class="logo-badge"><img src="zooboxi-brand-kit/logo.png" alt=""><b>Zooboxi</b></div>
+        <div class="sale">خصم ٢٠٪</div>
+        <div class="body">
+          <div class="kicker">🐾 أول طلب لك</div>
+          <div class="headline">كل اللي يفرّح<br>أليفك… بساعتين</div>
+          <span class="cta">اطلب الحين <svg><use href="#i-arrow"/></svg></span>
+        </div>
+        <div class="prod"><svg><use href="#i-bowl"/></svg></div>
+      </div>
+      <span class="cap">منشور مربّع 1:1 (إنستقرام/المتجر)</span>
+    </div>
+    <div>
+      <div class="ad ad-story">
+        <div class="logo-badge"><img src="zooboxi-brand-kit/logo.png" alt=""><b>Zooboxi</b></div>
+        <div class="body" style="padding-top:64px">
+          <div class="kicker">🚀 توصيل إكسبريس</div>
+          <div class="headline">من أقرب مستودع<br>إلى باب بيتك<br>خلال ساعتين</div>
+          <span class="cta">تسوّق الحين <svg><use href="#i-arrow"/></svg></span>
+        </div>
+        <div class="prod"><svg><use href="#i-bolt"/></svg></div>
+      </div>
+      <span class="cap">ستوري 9:16</span>
+    </div>
+    <div>
+      <div class="ad ad-wide">
+        <div class="logo-badge"><img src="zooboxi-brand-kit/logo.png" alt=""><b>Zooboxi</b></div>
+        <div class="body">
+          <div class="kicker">🚚 شحن مجاني</div>
+          <div class="headline">اطلب بـ250+ ريال<br>وخلّ التوصيل علينا</div>
+          <span class="cta">ابدأ التسوّق <svg><use href="#i-arrow"/></svg></span>
+        </div>
+      </div>
+      <span class="cap">بانر عريض 16:7 (واجهة المتجر/التطبيق)</span>
+      <div class="ad ad-strip" style="margin-top:14px">
+        <div class="body"><div class="headline">🔥 الأكثر مبيعًا — خصومات تصل ٤٠٪ على مستلزمات القطط والكلاب</div></div>
+      </div>
+      <span class="cap">شريط عرض ساخن 16:4</span>
+    </div>
+  </div>
+  <div class="callout warm" style="margin-top:18px"><b>قاعدة التخطيط:</b> الشعار أعلى البداية (يمين)، الشارة أعلى النهاية (يسار)، العنوان كبير بخط Display، دعوة واحدة واضحة، ومنتج/حيوان واحد بطل. لا تزدحم.</div>
+</div></section>
+
+<!-- ═══════════════ 09 AI KIT ═══════════════ -->
+<section id="ai"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">09</div><h2>هوية المتجر لمولّد الـ AI</h2></div>
+  <p class="sec-sub">هذه القيَم المُهيكلة هي التي تُغذّي مولّد الإعلانات (gpt-image-2)، فتخرج البانرات بهوية زووبوكسي تلقائيًا.</p>
+  <div class="grid cols-2" style="margin-bottom:18px">
+    <table>
+      <tr><th>الحقل</th><th>تأثيره على الصورة</th></tr>
+      <tr><td><code>scene_style</code></td><td>اتجاه فني للمشهد (دافئ، مرح، كريمي/منتي، تركواز+كورال)</td></tr>
+      <tr><td><code>imagery_style</code></td><td><code>hybrid</code> — صور حقيقية + لمسات رسومية</td></tr>
+      <tr><td><code>accent</code> / <code>gold</code></td><td>كتل اللون في البانر (تركواز + برتقالي دافئ)</td></tr>
+      <tr><td><code>mood_ar</code></td><td>المزاج: مرح·ودود·دافئ·سريع·موثوق</td></tr>
+      <tr><td><code>do_not_ar</code></td><td>ما يتجنّبه المولّد (فخامة/ذهبي/كآبة)</td></tr>
+      <tr><td><code>logo_image</code></td><td>الشعار يُدرج كما هو في البانر</td></tr>
+    </table>
+    <div class="codeblock"><span class="c">// database/data/zooboxi_store_kit.json</span><br>{<br>&nbsp;&nbsp;<span class="k">"brand_key"</span>: <span class="s">"zooboxi"</span>,<br>&nbsp;&nbsp;<span class="k">"brand_name"</span>: <span class="s">"Zooboxi"</span>,<br>&nbsp;&nbsp;<span class="k">"imagery_style"</span>: <span class="s">"hybrid"</span>,<br>&nbsp;&nbsp;<span class="k">"accent"</span>: <span class="s">"#429D9C"</span>,<br>&nbsp;&nbsp;<span class="k">"accent_dark"</span>: <span class="s">"#2D7A79"</span>,<br>&nbsp;&nbsp;<span class="k">"gold"</span>: <span class="s">"#E58A3E"</span>,<br>&nbsp;&nbsp;<span class="k">"headline_font"</span>: <span class="s">"Baloo Bhaijaan 2"</span>,<br>&nbsp;&nbsp;<span class="k">"body_font"</span>: <span class="s">"Tajawal"</span>,<br>&nbsp;&nbsp;<span class="k">"mood_ar"</span>: <span class="s">"مرح·ودود·دافئ·سريع·موثوق"</span>,<br>&nbsp;&nbsp;<span class="k">"scene_style"</span>: <span class="s">"playful warm pet scene…"</span><br>}</div>
+  </div>
+  <div class="callout">يُحمّل عبر الأمر <code>php artisan marketing:seed-brand-kits --file=database/data/zooboxi_store_kit.json</code>، ويصبح الهوية الافتراضية لحملات «واجهة المتجر» (المتعدّدة البراندات).</div>
+</div></section>
+
+<!-- ═══════════════ 10 APPLY ═══════════════ -->
+<section id="apply"><div class="wrap">
+  <div class="sec-head"><div class="sec-no">10</div><h2>التطبيقات</h2></div>
+  <p class="sec-sub">كيف تظهر الهوية على نقاط اللمس المختلفة.</p>
+  <div class="grid cols-3">
+    <div class="card">
+      <h4>رأس المتجر / التطبيق</h4>
+      <div style="background:var(--mint);border-radius:var(--r-md);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <svg style="width:22px;height:22px;color:var(--coral)"><use href="#i-cart"/></svg>
+        <img src="zooboxi-brand-kit/logo.png" style="height:34px" alt="">
+        <svg style="width:22px;height:22px;color:var(--teal-deep)"><use href="#i-pin"/></svg>
+      </div>
+    </div>
+    <div class="card">
+      <h4>أيقونة التطبيق</h4>
+      <div style="display:flex;justify-content:center;margin-top:10px"><div style="width:84px;height:84px;border-radius:22px;background:var(--grad-teal);display:grid;place-items:center;box-shadow:var(--sh-hover)"><svg style="width:48px;height:48px;color:#fff"><use href="#i-box"/></svg></div></div>
+    </div>
+    <div class="card">
+      <h4>ملصق الطرد 🐾</h4>
+      <div style="margin-top:10px;background:var(--peach);border:2px dashed var(--orange);border-radius:var(--r-md);padding:14px;text-align:center">
+        <span class="disp" style="font-weight:800;color:var(--coral-dark);font-size:20px">شكراً إنك اخترتنا!</span>
+        <p class="muted" style="margin:4px 0 0;font-size:12.5px">طرد زووبوكسي وصل — افتحه وخلّ أليفك يفرح 🐱🐶</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout warm" style="margin-top:18px"><b>ملاحظة محاذاة:</b> تطبيق العميل الحالي يستخدم لونًا أزرق خارج الهوية — يُنصح بمحاذاته مع التركواز/الكورال عبر ملفات <code>tokens</code> المرفقة (CSS · Dart · JSON) في <code>docs/zooboxi-brand-kit/tokens/</code>.</div>
+</div></section>
+
+<footer>
+  <p><b>Zooboxi</b> — دليل الهوية البصرية · الإصدار 1.0</p>
+  <p class="muted">أُعدّ من الشعار الرسمي وثيم المتجر · يغذّي مولّد الإعلانات بالذكاء الاصطناعي · سرّي — للاستخدام الداخلي</p>
+</footer>
+
+</body>
+</html>

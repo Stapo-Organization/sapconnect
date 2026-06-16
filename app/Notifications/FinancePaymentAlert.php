@@ -2,6 +2,9 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
+use App\Notifications\Channels\FcmChannel;
+use App\Support\NotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -32,11 +35,42 @@ class FinancePaymentAlert extends Notification implements ShouldQueue
     /**
      * Get the notification's delivery channels.
      *
+     * جرس Filament (database) قناة مستقلة تبقى دائماً؛ البريد و Push يخضعان
+     * لتفضيل قناة المستخدم لحدث 'finance_payment_due'.
+     *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['database'];
+
+        if (! $notifiable instanceof User) {
+            return array_merge($channels, ['mail']);
+        }
+
+        $prefs = NotificationPreferences::channelsFor($notifiable, 'finance_payment_due');
+        if ($prefs['email'] ?? false) {
+            $channels[] = 'mail';
+        }
+        if ($prefs['push'] ?? false) {
+            $channels[] = FcmChannel::class;
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Push (FCM) representation — يُرسل عبر FcmChannel عند تفعيل قناة التطبيق.
+     *
+     * @return array{title:string, body:string, data:array}
+     */
+    public function toFcm(object $notifiable): array
+    {
+        return [
+            'title' => 'استحقاق دفعة مورّد',
+            'body'  => "دفعة مستحقة على أمر الشراء #{$this->po->id} بقيمة " . number_format($this->dueAmount, 2) . " {$this->po->currency}",
+            'data'  => ['type' => 'finance_payment_due', 'purchase_order_id' => (string) $this->po->id],
+        ];
     }
 
     /**

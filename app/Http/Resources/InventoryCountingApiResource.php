@@ -9,13 +9,15 @@ class InventoryCountingApiResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lines = $this->whenLoaded('lines');
+        // 'lines' is only present when eager-loaded; whenLoaded() returns a
+        // MissingValue (a truthy object with no collection methods) otherwise,
+        // so guard on relationLoaded() before treating it as a collection.
         $linesCount = 0;
         $totalCountedQty = 0;
 
-        if ($lines && $lines->isNotEmpty()) {
-            $linesCount = $lines->count();
-            $totalCountedQty = $lines->sum('counted_quantity');
+        if ($this->relationLoaded('lines')) {
+            $linesCount = $this->lines->count();
+            $totalCountedQty = $this->lines->sum('counted_quantity');
         }
 
         return [

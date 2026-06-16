@@ -55,6 +55,7 @@ class SyncRecentInvoices extends Command
                         [
                             'card_code' => $inv['CardCode'] ?? null,
                             'doc_date' => $inv['DocDate'] ?? null,
+                            'doc_time' => $inv['DocTime'] ?? null,
                             'sales_employee_code' => $inv['SalesPersonCode'] ?? null,
                             'doc_total' => $inv['DocTotal'] ?? 0,
                         ]
@@ -71,6 +72,10 @@ class SyncRecentInvoices extends Command
                                     ],
                                     [
                                         'quantity' => $line['Quantity'] ?? 0,
+                                        // SAP actual economics (ex-VAT): real gross profit at posting.
+                                        'line_revenue' => $line['LineTotal'] ?? null,
+                                        'unit_cost' => $line['GrossBuyPrice'] ?? null,
+                                        'gross_profit' => $line['GrossProfit'] ?? null,
                                     ]
                                 );
                             }

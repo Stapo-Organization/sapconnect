@@ -87,6 +87,31 @@ class EmailNotificationService
     }
 
     /**
+     * Render a DB email template (subject/body, bilingual) WITHOUT sending.
+     *
+     * Lets NotificationRouter reuse the admin-editable templates while applying
+     * each recipient's per-channel preference (instead of one blast to everyone).
+     *
+     * @return array{subject_ar:string,subject_en:string,body_ar:string,body_en:string,cc_emails:array,is_active:bool}|null
+     */
+    public static function render(string $eventName, array $variables = []): ?array
+    {
+        $template = EmailNotification::where('event_name', $eventName)->first();
+        if (! $template) {
+            return null;
+        }
+
+        return [
+            'subject_ar' => self::parseVariables($template->subject_ar ?? '', $variables),
+            'subject_en' => self::parseVariables($template->subject_en ?? '', $variables),
+            'body_ar'    => self::parseVariables($template->body_ar ?? '', $variables),
+            'body_en'    => self::parseVariables($template->body_en ?? '', $variables),
+            'cc_emails'  => array_values(array_filter($template->cc_emails ?? [])),
+            'is_active'  => (bool) $template->is_active,
+        ];
+    }
+
+    /**
      * Replace dynamic variables like {doc_num} with their actual values.
      */
     protected static function parseVariables(string $text, array $variables): string

@@ -75,6 +75,9 @@ class SyncRecentCreditMemos extends Command
                                         'item_description' => $line['ItemDescription'] ?? null,
                                         'quantity' => $line['Quantity'] ?? 0,
                                         'price' => $line['Price'] ?? 0,
+                                        // SAP actual economics (ex-VAT) — a return's true profit reversal.
+                                        'line_revenue' => $line['LineTotal'] ?? null,
+                                        'gross_profit' => $line['GrossProfit'] ?? null,
                                     ]
                                 );
                             }

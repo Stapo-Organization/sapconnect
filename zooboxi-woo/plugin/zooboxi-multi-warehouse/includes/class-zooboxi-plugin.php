@@ -55,6 +55,7 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-sync-dashboard.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-stock-dashboard.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-express-zones-admin.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-order-admin.php';
         }
 
         // Frontend
@@ -63,10 +64,29 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-delivery-badge.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-checkout-customizer.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-cart-delivery.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-sku-search.php';
         }
 
         // API
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/class-zooboxi-rest-controller.php';
+
+        // Intelligence (ranking/clearance/recommendations/events from sapconnect)
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/intelligence/class-zooboxi-intelligence.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/intelligence/class-zooboxi-campaigns.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-dynamic-badges.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-smart-shipments.php';
+
+        // Dynamic homepage (shell shortcode + product rail + per-customer feed).
+        // Loaded unconditionally: the rail/feed are needed in the REST context, and
+        // the buy-again cache buster hooks order changes that fire in admin/cron too.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/homepage/class-zooboxi-product-rail.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/homepage/class-zooboxi-hero-slider.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/homepage/class-zooboxi-home-feed.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/homepage/class-zooboxi-homepage.php';
+
+        // Brand boutique pages (/brand/<slug>/): backend sync + themed archive takeover.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/intelligence/class-zooboxi-brand-sync.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-brand-page.php';
     }
 
     /* ── Hooks ─────────────────────────────────────── */
@@ -76,6 +96,12 @@ class Zooboxi_Plugin
         // Assets
         add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_assets']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
+
+        // Kill WordPress's emoji script site-wide. We don't use core emoji, and
+        // wp-emoji-release.min.js rewrites Unicode emoji into s.w.org twemoji <img>
+        // tags that render blank/broken (it was eating our badge icons). Native
+        // emoji still render via the device font; our badges use inline SVG anyway.
+        add_action('init', [$this, 'disable_wp_emojis']);
 
         // WooCommerce order hooks
         add_action('woocommerce_checkout_order_processed', [$this, 'on_order_created'], 10, 3);
@@ -110,10 +136,25 @@ class Zooboxi_Plugin
 
             // Product edit — warehouse stock panel in Inventory tab
             add_action('woocommerce_product_options_stock_status', [self::class, 'render_warehouse_stock_panel']);
+
+            // Orders screen — show the fulfilling branch column + detail line
+            (new Zooboxi_Order_Admin())->register_hooks();
         }
 
         // OTP Authentication (works for both admin and frontend AJAX)
         Zooboxi_OTP_Auth::register_hooks();
+
+        // Intelligence: registered unconditionally (cron + admin-ajax beacon need it outside frontend)
+        new Zooboxi_Intelligence();
+        // Ad campaigns: registered unconditionally (cron + sync-now ajax + hero shortcode)
+        new Zooboxi_Campaigns();
+        // Brand boutique sync: unconditional (hourly cron + sync-now ajax).
+        new Zooboxi_Brand_Sync();
+        // Dynamic homepage: registered unconditionally (shortcode on the front page +
+        // the buy-again cache buster must hear order-status changes fired in admin/cron).
+        new Zooboxi_Homepage();
+        // Smart hero slider (front render is static; instance registers the admin panel).
+        new Zooboxi_Hero_Slider();
 
         // Init frontend components
         if (!is_admin()) {
@@ -124,6 +165,10 @@ class Zooboxi_Plugin
             new Zooboxi_OTP_Popup();
             new Zooboxi_Recently_Viewed();
             new Zooboxi_Brands_Slider();
+            new Zooboxi_Brand_Page();
+            new Zooboxi_Dynamic_Badges();
+            new Zooboxi_Smart_Shipments();
+            new Zooboxi_Sku_Search();
 
             // Filter stock to show only active warehouse quantity
             add_filter('woocommerce_product_get_stock_quantity', [$this, 'filter_stock_for_customer'], 10, 2);
@@ -136,6 +181,69 @@ class Zooboxi_Plugin
 
             // Inject GPS into shipping package hash so WC recalculates when location changes
             add_filter('woocommerce_cart_shipping_packages', [$this, 'inject_gps_into_packages']);
+
+            // Gently cap cart lines to what is actually reachable in the customer's area,
+            // BEFORE WooCommerce's own stock check fires — so the customer sees a friendly
+            // "we adjusted the quantity" notice instead of a scary red "(N available)" error.
+            add_action('woocommerce_cart_loaded_from_session', [$this, 'cap_cart_to_reachable'], 20);
+        }
+    }
+
+    /**
+     * Reduce (or remove) any cart line whose quantity exceeds the stock reachable for the
+     * customer's location. Runs once on cart load, before validation, so it pre-empts the
+     * raw WooCommerce out-of-stock error. Location-aware via the same filtered stock the
+     * rest of the store uses (single source of truth).
+     */
+    public function cap_cart_to_reachable($cart): void
+    {
+        if (is_admin() && !wp_doing_ajax()) return;
+        if (!($cart instanceof WC_Cart)) {
+            $cart = function_exists('WC') ? WC()->cart : null;
+        }
+        if (!$cart) return;
+
+        // No location → no filtering → nothing to cap.
+        if (empty($this->get_customer_warehouses())) return;
+
+        $adjusted = [];
+        foreach ($cart->get_cart() as $key => $item) {
+            $product = $item['data'] ?? null;
+            if (!$product || !$product->managing_stock()) continue;
+
+            $reachable = $product->get_stock_quantity(); // already filtered to the customer's area
+            if ($reachable === null) continue;            // unmanaged → skip
+            $reachable = (int) $reachable;
+            $qty = (int) ($item['quantity'] ?? 0);
+            if ($qty <= $reachable) continue;
+
+            try {
+                if ($reachable <= 0) {
+                    $cart->remove_cart_item($key);
+                    $adjusted[] = [$product->get_name(), 0];
+                } else {
+                    $cart->set_quantity($key, $reachable, false);
+                    $adjusted[] = [$product->get_name(), $reachable];
+                }
+            } catch (\Throwable $e) {
+                // never break the cart over a cap adjustment
+            }
+        }
+
+        if (!empty($adjusted) && function_exists('wc_add_notice')) {
+            foreach ($adjusted as [$name, $n]) {
+                if ($n > 0) {
+                    wc_add_notice(sprintf(
+                        __('عدّلنا كمية «%1$s» إلى %2$d — هذا أقصى المتاح للتوصيل في منطقتك حالياً.', 'zooboxi'),
+                        $name, $n
+                    ), 'notice');
+                } else {
+                    wc_add_notice(sprintf(
+                        __('أزلنا «%s» من السلة — غير متوفر للتوصيل في منطقتك حالياً.', 'zooboxi'),
+                        $name
+                    ), 'error');
+                }
+            }
         }
     }
 
@@ -252,6 +360,39 @@ class Zooboxi_Plugin
                 'nationalShipping'  => __('شحن', 'zooboxi'),
             ],
         ]);
+    }
+
+    /**
+     * Disable WordPress's core emoji handling everywhere (front + admin + feeds + mail).
+     * Removes the detection script (wp-emoji-release.min.js) that swaps Unicode emoji
+     * for s.w.org twemoji <img> tags, plus the related styles, content filters, TinyMCE
+     * plugin and DNS prefetch. Native emoji keep rendering via the device font.
+     */
+    public function disable_wp_emojis(): void
+    {
+        remove_action('wp_head', 'print_emoji_detection_script', 7);
+        remove_action('admin_print_scripts', 'print_emoji_detection_script');
+        remove_action('wp_print_styles', 'print_emoji_styles');
+        remove_action('admin_print_styles', 'print_emoji_styles');
+        remove_filter('the_content_feed', 'wp_staticize_emoji');
+        remove_filter('comment_text_rss', 'wp_staticize_emoji');
+        remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
+
+        // Drop the emoji plugin from the TinyMCE editor.
+        add_filter('tiny_mce_plugins', static function ($plugins) {
+            return is_array($plugins) ? array_diff($plugins, ['wpemoji']) : [];
+        });
+
+        // Remove the s.w.org emoji DNS-prefetch hint.
+        add_filter('wp_resource_hints', static function ($urls, $relation_type) {
+            if ('dns-prefetch' === $relation_type) {
+                $emoji_url = apply_filters('emoji_svg_url', 'https://s.w.org/images/core/emoji/');
+                $urls = array_filter($urls, static function ($url) use ($emoji_url) {
+                    return !is_string($url) || strpos($url, $emoji_url) === false;
+                });
+            }
+            return $urls;
+        }, 10, 2);
     }
 
     public function enqueue_admin_assets(string $hook): void

@@ -49,8 +49,14 @@ class AuthController extends Controller
                 // Create Token
                 $token = $user->createToken('api-login')->plainTextToken;
 
-                // Append roles
-                $user->roles = $user->getRoleNames();
+                // Read abilities + role names from the intact model FIRST — appAbilities()
+                // traverses the Spatie `roles` relation, so we must not clobber it before reading.
+                $abilities = $user->appAbilities();
+                $roleNames = $user->getRoleNames();
+
+                // Append roles + app feature abilities for the response payload.
+                $user->roles = $roleNames;
+                $user->abilities = $abilities;
 
                 return response()->json([
                     'message' => 'Login successful',
@@ -136,8 +142,14 @@ class AuthController extends Controller
         // Create Token (assuming Sanctum)
         $token = $user->createToken('mobile-login')->plainTextToken;
 
-        // Append roles
-        $user->roles = $user->getRoleNames();
+        // Read abilities + role names from the intact model FIRST — appAbilities()
+        // traverses the Spatie `roles` relation, so we must not clobber it before reading.
+        $abilities = $user->appAbilities();
+        $roleNames = $user->getRoleNames();
+
+        // Append roles + app feature abilities for the response payload.
+        $user->roles = $roleNames;
+        $user->abilities = $abilities;
 
         return response()->json([
             'message' => 'Login successful',

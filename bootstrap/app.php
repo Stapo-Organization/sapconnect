@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.app_token' => \App\Http\Middleware\AuthByAppToken::class,
             'set.sap.env' => \App\Http\Middleware\SetSapEnvironment::class,
+            'feature' => \App\Http\Middleware\EnsureFeatureAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

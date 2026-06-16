@@ -7,8 +7,8 @@ use App\Models\Automation;
 use App\Models\AutomationLog;
 use App\Models\SapInvoice;
 use App\Models\EmailNotification;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
+use App\Services\NotificationRouter;
+use App\Support\NotificationAudience;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -87,73 +87,48 @@ class MonitorSapInvoices extends Command
             return;
         }
 
-        $emails = [];
-        if (!empty($template->cc_emails)) {
-            $emails = array_merge($emails, $template->cc_emails);
-        }
+        // توجيه موحّد: بريد (Mailable القالب) + Push حسب تفضيل كل مستلم.
+        // المستلمون من أدوار القالب؛ الـ cc_emails تُراسَل دائماً (لا تفضيل).
+        // لا dedupe هنا — التعافي محكوم بفحص Cache::has أعلاه ثم يُنسى المفتاح في المسار الصحي.
+        app(NotificationRouter::class)->route(
+            'sap_invoice_recovery',
+            NotificationAudience::byRoles($template->recipient_roles ?? []),
+            [
+                'mailable'  => new \App\Mail\SapInvoiceRecoveryAlert($template, $lastTime->toDateTimeString()),
+                'cc_emails' => $template->cc_emails ?? [],
+                'title'     => 'تعافي مزامنة فواتير SAP',
+                'body'      => 'استؤنفت مزامنة فواتير SAP بنجاح.',
+                'data'      => ['type' => 'sap_invoice_recovery'],
+            ]
+        );
 
-        if (!empty($template->recipient_roles)) {
-            $roles = $template->recipient_roles;
-            $users = User::whereHas('roles', function($q) use ($roles) {
-                $q->whereIn('name', $roles);
-            })->pluck('email')->toArray();
-            $emails = array_merge($emails, $users);
-        }
-
-        $emails = array_unique(array_filter($emails));
-
-        if (empty($emails)) {
-            Log::warning("No valid emails found for sap_invoice_recovery notification.");
-            return;
-        }
-
-        Mail::to($emails)->send(new \App\Mail\SapInvoiceRecoveryAlert($template, $lastTime->toDateTimeString()));
-        
-        Log::info("Sent SAP Invoice Recovery Alert to: " . implode(',', $emails));
+        Log::info("Routed SAP Invoice Recovery Alert (event=sap_invoice_recovery).");
     }
 
     private function triggerAlert($lastTime, $diffMinutes)
     {
-        // Spam prevention: Only send once per hour during an ongoing outage
-        if (Cache::has('sap_delay_alert_sent')) {
-            Log::info("SAP Delay Alert suppressed (spam prevention). Delay is $diffMinutes min.");
-            return;
-        }
-
         $template = EmailNotification::where('event_name', 'sap_invoice_delay')->first();
         if (!$template || !$template->is_active) {
             Log::warning("sap_invoice_delay email template not found or inactive.");
             return;
         }
 
-        $emails = [];
-        // Add CC emails
-        if (!empty($template->cc_emails)) {
-            $emails = array_merge($emails, $template->cc_emails);
-        }
+        // توجيه موحّد: بريد (Mailable القالب) + Push حسب تفضيل كل مستلم.
+        // حارس التكرار (مرة/ساعة) انتقل إلى الموجِّه عبر dedupe_key/dedupe_ttl،
+        // ويُضبط بعد إرسال ناجح فقط (إن فشل البريد يُعاد المحاولة في التشغيل التالي).
+        app(NotificationRouter::class)->route(
+            'sap_invoice_delay',
+            NotificationAudience::byRoles($template->recipient_roles ?? []),
+            [
+                'mailable'  => new SapInvoiceDelayAlert($template, $lastTime->toDateTimeString(), $diffMinutes),
+                'cc_emails' => $template->cc_emails ?? [],
+                'title'     => 'تأخّر مزامنة فواتير SAP',
+                'body'      => "لم تصل فواتير SAP منذ {$diffMinutes} دقيقة.",
+                'data'      => ['type' => 'sap_invoice_delay'],
+            ],
+            ['dedupe_key' => 'sap_delay_alert_sent', 'dedupe_ttl' => 60]
+        );
 
-        // Add users by role
-        if (!empty($template->recipient_roles)) {
-            $roles = $template->recipient_roles;
-            // Assuming Spatie roles or basic role logic
-            $users = User::whereHas('roles', function($q) use ($roles) {
-                $q->whereIn('name', $roles);
-            })->pluck('email')->toArray();
-            $emails = array_merge($emails, $users);
-        }
-
-        $emails = array_unique(array_filter($emails));
-
-        if (empty($emails)) {
-            Log::warning("No valid emails found for sap_invoice_delay notification.");
-            return;
-        }
-
-        Mail::to($emails)->send(new SapInvoiceDelayAlert($template, $lastTime->toDateTimeString(), $diffMinutes));
-        
-        Log::info("Sent SAP Invoice Delay Alert to: " . implode(',', $emails));
-
-        // Cache exactly for 60 minutes
-        Cache::put('sap_delay_alert_sent', true, 60);
+        Log::info("Routed SAP Invoice Delay Alert (delay {$diffMinutes} min, event=sap_invoice_delay).");
     }
 }

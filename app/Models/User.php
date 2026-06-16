@@ -11,6 +11,8 @@ use Spatie\Permission\Traits\HasRoles;
 
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Support\AppFeatures;
 
 class User extends Authenticatable implements HasAvatar
 {
@@ -49,6 +51,30 @@ class User extends Authenticatable implements HasAvatar
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url ? Storage::url($this->avatar_url) : null;
+    }
+
+    /** استثناءات صلاحيات خصائص التطبيق لهذا المستخدم (allow / deny فوق افتراضي الدور). */
+    public function featureOverrides(): HasMany
+    {
+        return $this->hasMany(UserFeatureOverride::class);
+    }
+
+    /** تفضيلات قنوات التنبيه (بريد/تطبيق) لكل حدث — غياب السطر = افتراضي الكتالوج. */
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    /** القدرات الفعّالة لخصائص التطبيق (للتطبيق و middleware). */
+    public function appAbilities(): array
+    {
+        return AppFeatures::resolveForUser($this)['abilities'];
+    }
+
+    /** هل يملك المستخدم قدرة خاصية معيّنة؟ مثال: can('stock_transfer.confirm_receive'). */
+    public function canFeature(string $ability): bool
+    {
+        return in_array($ability, $this->appAbilities(), true);
     }
 
     public function setMobileNumberAttribute($value)

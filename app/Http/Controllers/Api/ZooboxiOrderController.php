@@ -21,10 +21,17 @@ class ZooboxiOrderController extends Controller
 {
     public function __construct(private WooStoreClient $store) {}
 
-    // Un-prepared = still actionable by the branch.
+    // Un-prepared = still actionable by the branch (the "waiting" tab).
     private const OPEN_STATUSES = [
         ZooboxiOrder::STATUS_PENDING,
         ZooboxiOrder::STATUS_PREPARING,
+    ];
+
+    // Prepared / handed off = the "done" tab.
+    private const DONE_STATUSES = [
+        ZooboxiOrder::STATUS_READY_FOR_PICKUP,
+        ZooboxiOrder::STATUS_OUT_FOR_DELIVERY,
+        ZooboxiOrder::STATUS_DELIVERED,
     ];
 
     /**
@@ -60,6 +67,8 @@ class ZooboxiOrderController extends Controller
 
         if ($request->filled('status')) {
             $query->where('delivery_status', $request->status);
+        } elseif ($request->get('scope') === 'done') {
+            $query->whereIn('delivery_status', self::DONE_STATUSES);
         } else {
             $query->whereIn('delivery_status', self::OPEN_STATUSES);
         }

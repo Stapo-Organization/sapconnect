@@ -28,6 +28,13 @@ class Zooboxi_Express_Shipping extends WC_Shipping_Method
      */
     public function calculate_shipping($package = []): void
     {
+        // Tier gate: once the cart is split into per-tier shipments, express is the ONLY option
+        // for an express shipment (no "change the delivery speed" choice — fast stays fast).
+        $tier = is_array($package) ? ($package['zooboxi_tier'] ?? null) : null;
+        if (null !== $tier && 'express' !== $tier) {
+            return;
+        }
+
         // 1. Get customer GPS from session → cookies
         $lat = 0.0;
         $lng = 0.0;
@@ -77,9 +84,11 @@ class Zooboxi_Express_Shipping extends WC_Shipping_Method
                     break;
                 }
 
+                $needQty = (int) ($item['quantity'] ?? 1);
                 $found = false;
                 foreach ($stockData as $ws) {
-                    if (($ws['warehouse_code'] ?? '') === $whCode && ((int) ($ws['in_stock'] ?? 0)) > 0) {
+                    // Express requires the branch to hold the FULL requested quantity.
+                    if (($ws['warehouse_code'] ?? '') === $whCode && ((int) ($ws['in_stock'] ?? 0)) >= $needQty) {
                         $found = true;
                         break;
                     }
@@ -96,7 +105,10 @@ class Zooboxi_Express_Shipping extends WC_Shipping_Method
             // 4. All items available — add express rate
             $fee = (float) get_option('zooboxi_express_fee', 15);
             $freeMin = (float) get_option('zooboxi_free_shipping_min', 200);
-            if (isset($package['contents_cost']) && $package['contents_cost'] >= $freeMin) $fee = 0;
+            // Order-level free shipping: if the WHOLE order qualifies, every shipment (incl. express)
+            // is free — so splitting into baskets never adds a surprise charge.
+            $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);
+            if ($orderTotal >= $freeMin) $fee = 0;
 
             $this->add_rate([
                 'id'        => $this->id,

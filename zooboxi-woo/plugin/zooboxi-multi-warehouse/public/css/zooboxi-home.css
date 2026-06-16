@@ -1,0 +1,405 @@
+/* =====================================================================
+ * Zooboxi Dynamic Homepage
+ * Brand tokens (from theme): --z-primary #429D9C · --z-primary-dark #2D7A79
+ * --z-secondary #D48644 · --z-icons #D46856 · --z-text #2C3E2D
+ * Fonts: El Messiri (headings) · Tajawal (body)
+ * ===================================================================== */
+
+.zb-home {
+    --zbh-teal: var(--z-primary, #429d9c);
+    --zbh-teal-dark: var(--z-primary-dark, #2d7a79);
+    --zbh-coral: var(--z-icons, #d46856);
+    --zbh-ink: var(--z-text, #2c3e2d);
+    --zbh-muted: #6b7c6e;
+    --zbh-line: #e2e8e0;
+    --zbh-radius: 18px;
+    --zbh-max: 1200px;
+    direction: rtl;
+}
+
+.zb-home .zb-home-slot:empty {
+    display: none;
+    margin: 0;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+.zb-home-hero {
+    max-width: var(--zbh-max);
+    margin: 0 auto 40px;
+    padding: 0 20px;
+}
+.zb-home-hero__frame {
+    border-radius: var(--zbh-radius);
+    overflow: hidden;
+    line-height: 0;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+}
+.zb-home-hero__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .zb-home-hero__img {
+        animation: zb-kenburns 18s ease-in-out infinite alternate;
+        transform-origin: center;
+    }
+}
+@keyframes zb-kenburns {
+    from { transform: scale(1); }
+    to   { transform: scale(1.04); }
+}
+.zb-home-hero--campaign .zb-camp { margin-bottom: 0; }
+
+/* ── Delivery promise strip ──────────────────────── */
+.zb-home-promise { max-width: var(--zbh-max); margin: 0 auto; padding: 0 20px; }
+.zb-promise {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: var(--zbh-max);
+    margin: -18px auto 26px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #eef7f7, #ffffff);
+    border: 1px solid rgba(66, 157, 156, 0.22);
+    box-shadow: 0 6px 18px rgba(66, 157, 156, 0.08);
+    font-family: 'Tajawal', sans-serif;
+}
+.zb-promise__icon { font-size: 20px; line-height: 1; }
+.zb-promise__text { font-weight: 700; color: var(--zbh-teal-dark); font-size: 15px; }
+.zb-promise__edit {
+    margin-inline-start: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--zbh-muted);
+    text-decoration: underline;
+}
+.zb-promise--express { border-color: rgba(66, 157, 156, 0.4); }
+.zb-promise--invite { justify-content: center; background: #fff; }
+.zb-promise__chip {
+    border: 1.5px dashed var(--zbh-teal);
+    background: #f3fafa;
+    color: var(--zbh-teal-dark);
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 22px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.zb-promise__chip:hover { background: var(--zbh-teal); color: #fff; transform: translateY(-1px); }
+
+/* ── Welcome ─────────────────────────────────────── */
+.zb-welcome { max-width: var(--zbh-max); margin: 26px auto 2px; padding: 0 24px; }
+.zb-welcome__txt {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'El Messiri', sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    color: var(--zbh-ink);
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--zbh-coral);
+}
+
+/* ── Product rails ───────────────────────────────── */
+.zb-rail {
+    max-width: var(--zbh-max);
+    margin: 34px auto;
+    padding: 0 20px;
+    position: relative;
+}
+.zb-rail__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.zb-rail__heading { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.zb-rail__icon { font-size: 22px; line-height: 1; }
+.zb-rail__title {
+    font-family: 'El Messiri', sans-serif !important;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--zbh-ink);
+    margin: 0;
+    position: relative;
+    padding-bottom: 8px;
+}
+.zb-rail__title::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    bottom: 0;
+    width: 42px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--zbh-coral);
+}
+.zb-rail__title--center { text-align: center; display: block; }
+.zb-rail__title--center::after { inset-inline-start: 50%; transform: translateX(50%); }
+.zb-rail__subtitle { font-family: 'Tajawal', sans-serif; font-size: 13px; color: var(--zbh-muted); font-weight: 600; }
+.zb-rail__nav { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.zb-rail__cta {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--zbh-teal-dark);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.zb-rail__cta:hover { color: var(--zbh-coral); }
+.zb-rail__arrow {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: #fff;
+    background: linear-gradient(135deg, var(--zbh-teal), var(--zbh-teal-dark));
+    box-shadow: 0 4px 12px rgba(66, 157, 156, 0.28);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.zb-rail__arrow:hover { transform: translateY(-2px); }
+.zb-rail__arrow:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+/* Horizontal scroller. The theme forces `.woocommerce ul.products{display:grid
+   !important}` + `li.product{width:100%!important}` (same specificity as a 2-class
+   selector), so we must out-specify it with a 4-class chain to win regardless of
+   source order — otherwise the rail wraps into a grid instead of scrolling. */
+.zb-home .zb-rail__scroller {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+}
+.zb-home .zb-rail__scroller::-webkit-scrollbar { display: none; }
+.zb-home .zb-rail__scroller ul.products.zb-rail__track {
+    display: flex !important;
+    grid-template-columns: none !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    width: max-content !important;
+    max-width: none !important;
+    gap: 16px !important;
+    margin: 0 !important;
+    padding: 4px 2px !important;
+    list-style: none !important;
+}
+.zb-home .zb-rail__scroller ul.products.zb-rail__track::before,
+.zb-home .zb-rail__scroller ul.products.zb-rail__track::after { content: none !important; display: none !important; }
+
+/* Fixed-width cards; the theme paints the card visuals (border/shadow/hover),
+   we only own the layout (width + snap + equal height). */
+.zb-home .zb-rail__scroller ul.products.zb-rail__track li.product {
+    flex: 0 0 210px !important;
+    width: 210px !important;
+    max-width: 210px !important;
+    margin: 0 !important;
+    scroll-snap-align: start;
+}
+/* When a rail's items don't fill the row (e.g. a single recently-viewed item),
+   center them so the row reads as intentional instead of a lopsided void. */
+.zb-home .zb-rail--fits .zb-rail__scroller { display: flex; justify-content: center; }
+
+/* Delivery badge inside rails: take it OUT of the image overlay (where it collided
+   with the HOT/category badge) and render it as an in-flow chip. The JS relocates it
+   to sit just above the product name; this CSS makes it static so it never overlaps. */
+.zb-home .zb-rail li.product .zooboxi-delivery-badge {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important; bottom: auto !important; left: auto !important; right: auto !important;
+    display: inline-flex !important;
+    margin: 0 !important;
+}
+.zb-home .zb-rail li.product .zooboxi-delivery-badge.zb-relocated {
+    margin: 0 0 6px !important;
+}
+
+/* Push the add-to-cart button to the bottom so card faces line up. */
+.zb-home .zb-rail__track li.product .astra-shop-summary-wrap,
+.zb-home .zb-rail__track li.product .product-details-wrap { flex: 1 1 auto !important; }
+.zb-home .zb-rail__track li.product .ast-on-card-button,
+.zb-home .zb-rail__track li.product > .button,
+.zb-home .zb-rail__track li.product > a.button { margin-top: auto !important; }
+
+.zb-rail--clearance .zb-rail__title { color: var(--zbh-coral); }
+.zb-rail--clearance .zb-rail__title::after { background: var(--zbh-coral); }
+
+/* ── Buy-again / login invite card ───────────────── */
+.zb-login-card {
+    max-width: var(--zbh-max);
+    margin: 30px auto;
+    padding: 22px 26px;
+    border-radius: var(--zbh-radius);
+    background: linear-gradient(135deg, #eef7f7 0%, #ffffff 70%);
+    border: 1px solid rgba(66, 157, 156, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+.zb-login-card__body { display: flex; align-items: center; gap: 14px; }
+.zb-login-card__emoji {
+    font-size: 30px;
+    width: 56px; height: 56px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(66, 157, 156, 0.12);
+    flex-shrink: 0;
+}
+.zb-login-card__title {
+    font-family: 'El Messiri', sans-serif;
+    font-size: 19px; font-weight: 700; color: var(--zbh-ink); margin: 0 0 4px;
+}
+.zb-login-card__sub { font-family: 'Tajawal', sans-serif; font-size: 14px; color: var(--zbh-muted); margin: 0; }
+.zb-login-card__actions { display: flex; align-items: center; gap: 12px; }
+.zb-login-card__btn {
+    border: none; cursor: pointer;
+    font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 15px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--zbh-coral), #c0573f);
+    padding: 13px 28px; border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(212, 104, 86, 0.30);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.zb-login-card__btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(212, 104, 86, 0.4); }
+.zb-login-card__later {
+    border: none; background: none; cursor: pointer;
+    font-family: 'Tajawal', sans-serif; font-size: 13px; color: var(--zbh-muted); text-decoration: underline;
+}
+
+/* ── Skeletons ───────────────────────────────────── */
+.zb-rail--skel { pointer-events: none; }
+.zb-skel {
+    background: linear-gradient(90deg, #eef2ed 25%, #f7f9f7 37%, #eef2ed 63%);
+    background-size: 400% 100%;
+    border-radius: 14px;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .zb-skel { animation: zb-shimmer 1.4s ease infinite; }
+}
+@keyframes zb-shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+.zb-skel-title { width: 200px; height: 28px; margin-bottom: 16px; }
+.zb-skel-track { display: flex; gap: 16px; overflow: hidden; }
+.zb-skel-card { flex: 0 0 auto; width: 210px; height: 300px; }
+
+/* ── Existing shell sections (ported from page 8161) ── */
+.zbx-animals-nav {
+    display: flex; justify-content: center; gap: 32px;
+    max-width: var(--zbh-max); margin: 36px auto 44px; padding: 0 20px; flex-wrap: wrap;
+}
+.zbx-animal-card {
+    display: flex; flex-direction: column; align-items: center;
+    text-decoration: none !important; color: var(--zbh-ink) !important;
+    transition: all 0.3s ease; width: 140px;
+}
+.zbx-animal-card__img-wrap {
+    width: 130px; height: 130px; border-radius: 50%; overflow: hidden;
+    margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: #fff; transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+}
+.zbx-animal-card__img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+.zbx-animal-card:hover .zbx-animal-card__img-wrap { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 25px rgba(66, 157, 156, 0.15); }
+.zbx-animal-card:hover .zbx-animal-card__img-wrap img { transform: scale(1.05); }
+.zbx-animal-card__name { font-family: 'El Messiri', sans-serif !important; font-size: 16px; font-weight: 700; text-align: center; margin-top: 4px; }
+
+.zbx-categories-grid { max-width: var(--zbh-max); margin: 44px auto; padding: 0 20px; }
+.zbx-cats { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.zbx-cat-pill {
+    display: inline-flex; align-items: center; gap: 6px; background: #fff;
+    border: 2px solid var(--zbh-line); border-radius: 30px; padding: 10px 22px;
+    font-family: 'Tajawal', sans-serif; font-size: 14px; font-weight: 600;
+    color: var(--zbh-ink); text-decoration: none; transition: all 0.3s;
+}
+.zbx-cat-pill:hover { border-color: var(--zbh-teal); background: #eef7f7; color: var(--zbh-teal-dark); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(66, 157, 156, 0.12); }
+
+.zbx-features-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: var(--zbh-max); margin: 48px auto; padding: 0 20px; }
+.zbx-feature { background: #fff; border: 1px solid var(--zbh-line); border-radius: var(--zbh-radius); padding: 36px 24px; text-align: center; transition: all 0.3s; }
+.zbx-feature:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); border-color: var(--zbh-teal); }
+.zbx-feature__icon { font-size: 44px; margin-bottom: 14px; }
+.zbx-feature h3 { font-family: 'El Messiri', sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 8px; color: var(--zbh-ink); }
+.zbx-feature p { font-family: 'Tajawal', sans-serif; font-size: 14px; color: var(--zbh-muted); line-height: 1.6; margin: 0; }
+
+.zb-home-brands { max-width: var(--zbh-max); margin: 36px auto; }
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+    .zb-rail__title { font-size: 21px; }
+    .zb-rail__arrow { display: none; }
+    .zb-home .zb-rail__scroller ul.products.zb-rail__track li.product {
+        flex: 0 0 156px !important; width: 156px !important; max-width: 156px !important;
+    }
+    .zb-skel-card { width: 156px; height: 240px; }
+    .zb-welcome__txt { font-size: 18px; }
+    .zb-login-card { padding: 18px; }
+    .zb-login-card__actions { width: 100%; }
+    .zb-login-card__btn { flex: 1; }
+    .zbx-animals-nav { gap: 16px; }
+    .zbx-animal-card { width: 100px; }
+    .zbx-animal-card__img-wrap { width: 90px; height: 90px; }
+    .zbx-animal-card__name { font-size: 14px; }
+    .zbx-features-section { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .zbx-feature { padding: 24px 16px; }
+    .zbx-feature__icon { font-size: 32px; }
+    .zbx-feature h3 { font-size: 15px; }
+    .zb-promise { margin-top: 0; }
+}
+
+/* ── Mobile: full-bleed, edge-to-edge homepage (no side gutters) ── */
+@media (max-width: 768px) {
+    /* Kill the theme's 20px gutter on the .zb-home wrapper (the entry-content child). */
+    body.home .site-content .entry-content > .zb-home {
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    /* All sections span the full screen width. */
+    .zb-home .zb-home-hero,
+    .zb-home .zb-home-promise,
+    .zb-home .zb-welcome,
+    .zb-home .zb-home-slot,
+    .zb-home .zb-rail,
+    .zb-home .zbx-animals-nav,
+    .zb-home .zbx-categories-grid,
+    .zb-home .zbx-features-section,
+    .zb-home .zb-home-brands,
+    .zb-home .zb-clearance {
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    /* Banners / hero: true edge-to-edge (drop frame radius + shadow). */
+    .zb-home .zb-home-hero { padding: 0 !important; margin-bottom: 22px; }
+    .zb-home .zb-home-hero__frame { border-radius: 0 !important; box-shadow: none !important; }
+    /* Rails: full-bleed; only a small lead inset so the first card isn't glued. */
+    .zb-home .zb-home-slot { padding-left: 0 !important; padding-right: 0 !important; }
+    .zb-home .zb-rail { padding-left: 0 !important; padding-right: 0 !important; }
+    .zb-home .zb-rail__head { padding: 0 14px !important; }
+    .zb-home .zb-rail__scroller ul.products.zb-rail__track { padding-inline: 12px !important; }
+    /* Text / structured sections keep a tiny readable inset only. */
+    .zb-home .zb-home-promise { padding: 0 12px !important; }
+    .zb-home .zb-welcome { padding: 0 14px !important; }
+    .zb-home .zbx-categories-grid { padding: 0 12px !important; }
+    .zb-home .zbx-features-section { padding: 0 12px !important; }
+    .zb-home .zbx-animals-nav { padding: 0 8px !important; }
+    .zb-home .zb-clearance { padding: 0 8px !important; }
+}

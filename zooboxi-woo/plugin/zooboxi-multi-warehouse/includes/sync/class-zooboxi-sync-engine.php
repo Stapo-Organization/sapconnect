@@ -94,11 +94,14 @@ class Zooboxi_Sync_Engine
                 if (!$productId) continue;
 
                 $prices = $item['prices'] ?? [];
-                $retail = $prices[$priceList] ?? $prices[1] ?? null;
+                $retail = $this->extract_price($prices, $priceList);
 
-                if ($retail && isset($retail['price'])) {
-                    update_post_meta($productId, '_regular_price', $retail['price']);
-                    update_post_meta($productId, '_price', $retail['price']);
+                if ($retail !== null && $retail > 0) {
+                    update_post_meta($productId, '_regular_price', (string) $retail);
+                    // Respect an existing clearance sale price; otherwise current price = regular.
+                    $sale = get_post_meta($productId, '_sale_price', true);
+                    $current = ($sale !== '' && (float) $sale > 0 && (float) $sale < $retail) ? (string) $sale : (string) $retail;
+                    update_post_meta($productId, '_price', $current);
                 }
 
                 // Store all price lists for future use
@@ -172,6 +175,48 @@ class Zooboxi_Sync_Engine
 
     /* ── Private Helpers ──────────────────────────── */
 
+    /**
+     * Extract the price for a given SAP price list from the raw prices payload.
+     *
+     * SAP / sapconnect emit a LIST of objects with CAPITAL keys:
+     *   [{"PriceList":1,"Price":140,...}, {"PriceList":2,"Price":190,...}]
+     * The old code did `$prices[$priceList]` (array POSITION, so list #1 = the 2nd
+     * element = PriceList 2) and read `['price']` (lowercase, which never exists),
+     * silently zeroing every price. This matches by PriceList VALUE and reads `Price`
+     * with a lowercase fallback. Also tolerates payloads keyed by price-list number.
+     *
+     * @return float|null  the price, or null if none found
+     */
+    private function extract_price(array $prices, int $priceList): ?float
+    {
+        if (empty($prices)) return null;
+
+        $readPrice = static function ($row): ?float {
+            if (!is_array($row)) return null;
+            $p = $row['Price'] ?? $row['price'] ?? null;
+            return $p === null ? null : (float) $p;
+        };
+
+        // 1) Match by PriceList value (capital, lowercase, or the array key as a fallback).
+        foreach ($prices as $key => $row) {
+            if (!is_array($row)) continue;
+            $pl = $row['PriceList'] ?? $row['priceList'] ?? $row['price_list'] ?? null;
+            if ($pl === null && is_numeric($key)) $pl = (int) $key;
+            if ($pl !== null && (int) $pl === $priceList) {
+                $p = $readPrice($row);
+                if ($p !== null) return $p;
+            }
+        }
+
+        // 2) Fallback: first row that carries a positive price.
+        foreach ($prices as $row) {
+            $p = $readPrice($row);
+            if ($p !== null && $p > 0) return $p;
+        }
+
+        return null;
+    }
+
     private function upsert_product(array $data): void
     {
         $itemCode = $data['item_code'] ?? '';
@@ -185,9 +230,9 @@ class Zooboxi_Sync_Engine
             $product = wc_get_product($existingId);
             if (!$product) return;
 
-            // Update price
-            $price = $data['prices'][1]['price'] ?? $data['prices']['1']['price'] ?? null;
-            if ($price !== null) {
+            // Update price (match by PriceList value + capital 'Price' key)
+            $price = $this->extract_price($data['prices'] ?? [], (int) get_option('zooboxi_default_price_list', 1));
+            if ($price !== null && $price > 0) {
                 $product->set_regular_price((string) $price);
             }
 
@@ -290,7 +335,7 @@ class Zooboxi_Sync_Engine
 
             $product->set_props([
                 'name'          => $name,
-                'regular_price' => (string) ($data['prices'][1]['price'] ?? $data['prices']['1']['price'] ?? ''),
+                'regular_price' => (string) ($this->extract_price($data['prices'] ?? [], (int) get_option('zooboxi_default_price_list', 1)) ?? ''),
                 'manage_stock'  => true,
                 'stock_status'  => 'instock',
                 'catalog_visibility' => 'visible',
@@ -412,8 +457,13 @@ class Zooboxi_Sync_Engine
                 'name'      => $order->get_formatted_billing_full_name(),
                 'phone'     => $order->get_billing_phone(),
                 'email'     => $order->get_billing_email(),
-                'latitude'  => (float) $order->get_meta('_zooboxi_lat'),
-                'longitude' => (float) $order->get_meta('_zooboxi_lng'),
+                // Precise checkout-map pin first; fall back to billing field, then session.
+                'latitude'  => (float) ($order->get_meta('_zooboxi_checkout_lat')
+                    ?: $order->get_meta('_billing_zooboxi_lat')
+                    ?: $order->get_meta('_zooboxi_lat')),
+                'longitude' => (float) ($order->get_meta('_zooboxi_checkout_lng')
+                    ?: $order->get_meta('_billing_zooboxi_lng')
+                    ?: $order->get_meta('_zooboxi_lng')),
                 'city'      => $order->get_shipping_city() ?: $order->get_billing_city(),
                 'address'   => $order->get_shipping_address_1() ?: $order->get_billing_address_1(),
             ],

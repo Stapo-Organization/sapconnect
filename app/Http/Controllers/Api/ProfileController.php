@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\DeviceToken;
+use App\Models\NotificationPreference;
+use App\Support\NotificationPreferences;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -81,5 +83,49 @@ class ProfileController extends Controller
             ->delete();
 
         return response()->json(['message' => 'تم إلغاء تسجيل الجهاز']);
+    }
+
+    /**
+     * تفضيلات قنوات التنبيه لهذا المستخدم (مُصفّاة حسب جمهوره).
+     * كل عنصر: event_key, label, label_en, group, email, push.
+     */
+    public function notificationPreferences(Request $request)
+    {
+        return response()->json([
+            'data' => NotificationPreferences::resolveForUser($request->user()),
+        ]);
+    }
+
+    /**
+     * تحديث تفضيلات القنوات. يقبل فقط الأحداث ضمن جمهور المستخدم.
+     * body: { preferences: [ { event_key, email, push }, ... ] }
+     */
+    public function updateNotificationPreferences(Request $request)
+    {
+        $request->validate([
+            'preferences'             => ['required', 'array'],
+            'preferences.*.event_key' => ['required', 'string'],
+            'preferences.*.email'     => ['required', 'boolean'],
+            'preferences.*.push'      => ['required', 'boolean'],
+        ]);
+
+        $user    = $request->user();
+        $allowed = array_keys(NotificationPreferences::configurableFor($user));
+
+        foreach ($request->input('preferences') as $pref) {
+            if (! in_array($pref['event_key'], $allowed, true)) {
+                continue; // تجاهُل أي حدث خارج جمهور المستخدم
+            }
+
+            NotificationPreference::updateOrCreate(
+                ['user_id' => $user->id, 'event_key' => $pref['event_key']],
+                ['email' => (bool) $pref['email'], 'push' => (bool) $pref['push']]
+            );
+        }
+
+        return response()->json([
+            'message' => 'تم تحديث تفضيلات الإشعارات',
+            'data'    => NotificationPreferences::resolveForUser($user->fresh()),
+        ]);
     }
 }
