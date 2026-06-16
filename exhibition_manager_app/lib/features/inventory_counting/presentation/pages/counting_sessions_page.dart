@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
@@ -320,15 +321,42 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
                             )
                           : RefreshIndicator(
                               onRefresh: _loadSessions,
-                              color: AppColors.primary,
+                              color: AppDomain.counting.accent,
                               child: ListView.builder(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.base,
                                   vertical: AppSpacing.sm,
                                 ),
-                                itemCount: _filteredSessions.length,
-                                itemBuilder: (context, index) =>
-                                    _SessionCard(session: _filteredSessions[index], onRefresh: _loadSessions),
+                                // +1 trailing context hint on the cycle tab — fills the
+                                // space under short lists and explains auto-generation.
+                                itemCount: _filteredSessions.length + (_typeFilter == 'cycle' ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  if (index >= _filteredSessions.length) {
+                                    return Container(
+                                      margin: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xl),
+                                      padding: const EdgeInsets.all(AppSpacing.base),
+                                      decoration: BoxDecoration(
+                                        color: AppDomain.counting.soft,
+                                        borderRadius: AppRadius.borderLg,
+                                        border: Border.all(color: AppDomain.counting.accent.withValues(alpha: 0.15)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.autorenew_rounded, color: AppDomain.counting.accentDark, size: 20),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          Expanded(
+                                            child: Text(context.tr('cycle_auto_generated'),
+                                                style: AppTypography.bodySmall.copyWith(color: AppDomain.counting.accentDark)),
+                                          ),
+                                        ],
+                                      ),
+                                    ).animate().fadeIn(duration: 400.ms, delay: 200.ms);
+                                  }
+                                  return _SessionCard(session: _filteredSessions[index], onRefresh: _loadSessions)
+                                      .animate()
+                                      .fadeIn(duration: 280.ms, delay: (index.clamp(0, 8) * 35).ms)
+                                      .slideY(begin: 0.06, end: 0, curve: Curves.easeOut);
+                                },
                               ),
                             ),
             ),

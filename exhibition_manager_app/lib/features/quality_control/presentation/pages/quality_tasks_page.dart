@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
@@ -99,7 +100,10 @@ class _QualityTasksPageState extends State<QualityTasksPage> {
                                       builder: (_) => QualityTaskDetailPage(instanceId: _tasks[i].id),
                                     ),
                                   ).then((_) => _load()),
-                                ),
+                                )
+                                    .animate()
+                                    .fadeIn(duration: 280.ms, delay: (i.clamp(0, 8) * 35).ms)
+                                    .slideY(begin: 0.06, end: 0, curve: Curves.easeOut),
                               ),
                             ),
             ),

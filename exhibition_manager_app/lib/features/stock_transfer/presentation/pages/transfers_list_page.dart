@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
@@ -219,7 +220,10 @@ class _TransfersListPageState extends State<TransfersListPage> {
                                   transfer: visible[index],
                                   tab: _tab,
                                   onReturn: _loadTransfers,
-                                ),
+                                )
+                                    .animate()
+                                    .fadeIn(duration: 280.ms, delay: (index.clamp(0, 8) * 35).ms)
+                                    .slideY(begin: 0.06, end: 0, curve: Curves.easeOut),
                               ),
                             ),
             ),

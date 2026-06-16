@@ -26,10 +26,11 @@ class ZooboxiOrdersRepository {
     return (success: false, urgentCount: 0, orders: <ZooboxiOrder>[], error: result.errorMessage);
   }
 
-  /// List express orders for the branch (un-prepared by default).
-  Future<({bool success, List<ZooboxiOrder> orders, String? error})> getOrders({String? status}) async {
+  /// List express orders for the branch. [scope] = 'waiting' (default) | 'done'.
+  Future<({bool success, List<ZooboxiOrder> orders, String? error})> getOrders({String? status, String? scope}) async {
     final params = <String, String>{};
     if (status != null) params['status'] = status;
+    if (scope != null) params['scope'] = scope;
 
     final result = await _api.get(ApiEndpoints.zooboxiOrders, queryParams: params.isEmpty ? null : params);
     if (result.isSuccess) {

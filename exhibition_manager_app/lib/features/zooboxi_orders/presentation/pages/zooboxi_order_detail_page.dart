@@ -31,7 +31,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage> {
   bool _busy = false;
   final Set<int> _picked = {}; // line ids confirmed picked
 
-  static const _accent = AppColors.error; // crimson — urgency
+  static final _accent = AppDomain.zooboxi.accent; // crimson — urgency
 
   @override
   void initState() {
@@ -115,7 +115,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage> {
                 ? ErrorStateWidget(onRetry: _load)
                 : RefreshIndicator(
                     onRefresh: _load,
-                    color: AppColors.primary,
+                    color: _accent,
                     child: ListView(
                       padding: const EdgeInsets.all(AppSpacing.base),
                       children: [
@@ -297,12 +297,12 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: _accent.withValues(alpha: 0.08),
               borderRadius: AppRadius.borderFull,
             ),
             child: Text('${context.tr('qty_short')} ${line.quantity.toInt()}',
                 style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.primary, fontWeight: FontWeight.w800)),
+                    color: _accent, fontWeight: FontWeight.w800)),
           ),
         ],
       ),

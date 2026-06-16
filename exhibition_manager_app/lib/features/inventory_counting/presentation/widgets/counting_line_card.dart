@@ -6,7 +6,9 @@ import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/core/permissions/app_session.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
+import 'package:exhibition_manager_app/features/product_search/presentation/product_detail_launcher.dart';
 
 /// A single counting record (line). Each scan creates its own record, so the
 /// same product can appear multiple times with different quantities — every
@@ -69,7 +71,12 @@ class CountingLineCard extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
+            child: GestureDetector(
+              onTap: () => openProductDetail(context, line.itemCode,
+                  name: line.getLocalizedName(AppLocalizations.isArabic),
+                  myWarehouses: AppSession.user?.warehouseCodes ?? const []),
+              behavior: HitTestBehavior.opaque,
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(line.getLocalizedName(AppLocalizations.isArabic),
@@ -100,6 +107,7 @@ class CountingLineCard extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),

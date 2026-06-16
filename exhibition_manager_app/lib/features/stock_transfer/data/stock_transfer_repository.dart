@@ -7,7 +7,8 @@ class StockTransferRepository {
   final ApiClient _api = ApiClient();
 
   /// List stock transfers with optional filters
-  Future<({bool success, List<StockTransfer> transfers, String? error})> getTransfers({
+  Future<({bool success, List<StockTransfer> transfers, String? error})>
+  getTransfers({
     String? status,
     String? internalStatus,
     bool hideCompleted = true,
@@ -22,7 +23,10 @@ class StockTransferRepository {
     if (internalStatus != null) params['internal_status'] = internalStatus;
     if (hideCompleted) params['hide_completed'] = '1';
 
-    final result = await _api.get(ApiEndpoints.stockTransfers, queryParams: params);
+    final result = await _api.get(
+      ApiEndpoints.stockTransfers,
+      queryParams: params,
+    );
 
     if (result.isSuccess) {
       final List items = result.data['data'] ?? [];
@@ -30,16 +34,26 @@ class StockTransferRepository {
       return (success: true, transfers: transfers, error: null);
     }
 
-    return (success: false, transfers: <StockTransfer>[], error: result.errorMessage);
+    return (
+      success: false,
+      transfers: <StockTransfer>[],
+      error: result.errorMessage,
+    );
   }
 
   /// Get single transfer details
-  Future<({bool success, StockTransfer? transfer, String? error})> getTransfer(int id) async {
+  Future<({bool success, StockTransfer? transfer, String? error})> getTransfer(
+    int id,
+  ) async {
     final result = await _api.get(ApiEndpoints.stockTransfer(id));
 
     if (result.isSuccess) {
       final data = result.data['data'] ?? result.data;
-      return (success: true, transfer: StockTransfer.fromJson(data), error: null);
+      return (
+        success: true,
+        transfer: StockTransfer.fromJson(data),
+        error: null,
+      );
     }
 
     return (success: false, transfer: null, error: result.errorMessage);
@@ -47,11 +61,14 @@ class StockTransferRepository {
 
   /// Send items (update sent quantities)
   Future<({bool success, String? error})> sendItems(
-      int id, List<Map<String, dynamic>> items, {String? notes}) async {
-    final result = await _api.post(ApiEndpoints.sendItems(id), body: {
-      'items': items,
-      if (notes != null) 'notes': notes,
-    });
+    int id,
+    List<Map<String, dynamic>> items, {
+    String? notes,
+  }) async {
+    final result = await _api.post(
+      ApiEndpoints.sendItems(id),
+      body: {'items': items, 'notes': ?notes},
+    );
 
     return (success: result.isSuccess, error: result.errorMessage);
   }
@@ -64,11 +81,14 @@ class StockTransferRepository {
 
   /// Receive items (update received quantities)
   Future<({bool success, String? error})> receiveItems(
-      int id, List<Map<String, dynamic>> items, {String? notes}) async {
-    final result = await _api.post(ApiEndpoints.receiveItems(id), body: {
-      'items': items,
-      if (notes != null) 'notes': notes,
-    });
+    int id,
+    List<Map<String, dynamic>> items, {
+    String? notes,
+  }) async {
+    final result = await _api.post(
+      ApiEndpoints.receiveItems(id),
+      body: {'items': items, 'notes': ?notes},
+    );
 
     return (success: result.isSuccess, error: result.errorMessage);
   }

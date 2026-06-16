@@ -11,7 +11,7 @@ import 'colors.dart';
 /// emerald, gold, indigo); Quality (amber) and Zooboxi (urgency crimson) only
 /// appear on their own pushed pages and the Home launcher cards, so no two
 /// adjacent surfaces ever clash.
-enum AppDomain { home, transfers, counting, quality, achievements, profile, zooboxi }
+enum AppDomain { home, transfers, counting, quality, achievements, profile, zooboxi, promotions, showroomPulse, productSearch, admin, stockDistribution, containerTracking }
 
 extension AppDomainPalette on AppDomain {
   /// Primary accent — fills, active states, icon glyphs on soft chips.
@@ -31,6 +31,18 @@ extension AppDomainPalette on AppDomain {
         return const Color(0xFF6D5DD3); // indigo-violet — account
       case AppDomain.zooboxi:
         return const Color(0xFFE11D48); // crimson — urgency / express orders
+      case AppDomain.promotions:
+        return const Color(0xFF9333EA); // violet-magenta — promotions / spotlight
+      case AppDomain.showroomPulse:
+        return AppColors.primary; // royal blue — the dashboard "brain" of the app
+      case AppDomain.productSearch:
+        return const Color(0xFF4C5FD5); // cobalt-indigo — the product catalogue / lookup
+      case AppDomain.admin:
+        return const Color(0xFF334155); // slate — the owner's command centre
+      case AppDomain.stockDistribution:
+        return const Color(0xFF0D9488); // deep teal — smart redistribution
+      case AppDomain.containerTracking:
+        return const Color(0xFF0C6E9C); // ocean blue — sea-freight / containers
     }
   }
 
@@ -51,6 +63,18 @@ extension AppDomainPalette on AppDomain {
         return const Color(0xFF564BB0);
       case AppDomain.zooboxi:
         return const Color(0xFFBE123C); // deep crimson
+      case AppDomain.promotions:
+        return const Color(0xFF7E22CE); // deep violet
+      case AppDomain.showroomPulse:
+        return AppColors.primaryDark;
+      case AppDomain.productSearch:
+        return const Color(0xFF3A4BB0); // deep cobalt
+      case AppDomain.admin:
+        return const Color(0xFF1E293B); // deep slate
+      case AppDomain.stockDistribution:
+        return const Color(0xFF0F766E); // deep teal
+      case AppDomain.containerTracking:
+        return const Color(0xFF084E70); // deep ocean blue
     }
   }
 

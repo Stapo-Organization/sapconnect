@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
+import 'package:exhibition_manager_app/core/permissions/app_abilities.dart';
+import 'package:exhibition_manager_app/core/permissions/app_session.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/stock_transfer_repository.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/models/stock_transfer.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/presentation/pages/barcode_scanner_page.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/features/product_search/presentation/product_detail_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -134,7 +138,7 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
                 ? Center(child: Text(context.tr('no_transfers')))
                 : RefreshIndicator(
                     onRefresh: _loadTransfer,
-                    color: AppColors.primary,
+                    color: AppDomain.transfers.accent,
                     child: ListView(
                       padding: const EdgeInsets.all(AppSpacing.base),
                       children: [
@@ -148,12 +152,12 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.10),
+                                color: AppDomain.transfers.accent.withValues(alpha: 0.10),
                                 borderRadius: AppRadius.borderFull,
                               ),
                               child: Text('${t.lines.length}',
                                   style: AppTypography.labelSmall.copyWith(
-                                      color: AppColors.primary, fontWeight: FontWeight.w800)),
+                                      color: AppDomain.transfers.accent, fontWeight: FontWeight.w800)),
                             ),
                           ],
                         ),
@@ -169,14 +173,17 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
   }
 
   Widget? _buildBottomActions(StockTransfer t) {
-    if (!t.canSend && !t.canReceive) return null;
+    // Gate by the user's action abilities — the same permissions the backend enforces.
+    final canSend = t.canSend && AppSession.can(Ability.stockTransferSend);
+    final canReceive = t.canReceive && AppSession.can(Ability.stockTransferConfirmReceive);
+    if (!canSend && !canReceive) return null;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.base),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (t.canSend) ...[
+            if (canSend) ...[
               AppButton(
                 label: context.tr('scan_to_confirm_send'),
                 onPressed: _openScannerForSend,
@@ -190,7 +197,7 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
                 icon: Icons.local_shipping_rounded,
               ),
             ],
-            if (t.canReceive) ...[
+            if (canReceive) ...[
               AppButton(
                 label: context.tr('scan_to_confirm_receive'),
                 onPressed: _openScannerForReceive,
@@ -284,7 +291,7 @@ class _HeroCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _stat(context, Icons.category_rounded, '${transfer.linesCount}', context.tr('items_count_label'), AppColors.primary),
+                child: _stat(context, Icons.category_rounded, '${transfer.linesCount}', context.tr('items_count_label'), AppDomain.transfers.accent),
               ),
               _vDivider(),
               Expanded(
@@ -397,7 +404,12 @@ class _LineCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
+          GestureDetector(
+            onTap: () => openProductDetail(context, line.itemCode,
+                name: line.getLocalizedName(isArabic),
+                myWarehouses: AppSession.user?.warehouseCodes ?? const []),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ClipRRect(
@@ -435,6 +447,7 @@ class _LineCard extends StatelessWidget {
                 ),
               ),
             ],
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           // Required / Sent / Received chips

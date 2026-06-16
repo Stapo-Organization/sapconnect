@@ -114,6 +114,15 @@ class ZooboxiOrder {
   bool get isPending => deliveryStatus == 'pending';
   bool get isPreparing => deliveryStatus == 'preparing';
 
+  /// Still waiting on the branch (shown in the "تنتظر" tab).
+  bool get isWaiting => isPending || isPreparing;
+
+  /// Prepared / handed off (shown in the "تمت" tab).
+  bool get isDone =>
+      deliveryStatus == 'ready_for_pickup' ||
+      deliveryStatus == 'out_for_delivery' ||
+      deliveryStatus == 'delivered';
+
   /// A short order reference for headers/cards.
   String get reference => (wooOrderNumber != null && wooOrderNumber!.isNotEmpty)
       ? wooOrderNumber!

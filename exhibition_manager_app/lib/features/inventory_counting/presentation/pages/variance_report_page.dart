@@ -25,7 +25,10 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
   }
 
   Future<void> _loadReport() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     final result = await _repo.getVarianceReport(widget.sessionId);
     if (mounted) {
       setState(() {
@@ -52,17 +55,27 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           elevation: 0,
         ),
         body: _loading
-            ? const Center(child: CircularProgressIndicator(color: Colors.tealAccent))
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.tealAccent),
+              )
             : _error != null
-                ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 16)))
-                : _buildReport(),
+            ? Center(
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                ),
+              )
+            : _buildReport(),
       ),
     );
   }
 
   Widget _buildReport() {
     final report = _reportData?['report'];
-    if (report == null) return const Center(child: Text('لا توجد بيانات', style: TextStyle(color: Colors.white70)));
+    if (report == null)
+      return const Center(
+        child: Text('لا توجد بيانات', style: TextStyle(color: Colors.white70)),
+      );
 
     final summary = report['summary'] as Map<String, dynamic>? ?? {};
     final discrepancies = report['discrepancies'] as List? ?? [];
@@ -98,7 +111,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 '⚠️ الفروقات (${discrepancies.length})',
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             ...discrepancies.map((d) => _buildDiscrepancyCard(d)),
@@ -109,7 +126,10 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     );
   }
 
-  Widget _buildHeaderCard(Map<String, dynamic> report, Map<String, dynamic> summary) {
+  Widget _buildHeaderCard(
+    Map<String, dynamic> report,
+    Map<String, dynamic> summary,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -126,7 +146,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         children: [
           Text(
             report['warehouse_name'] ?? report['warehouse_code'] ?? '',
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -140,7 +164,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               const SizedBox(width: 6),
               Text(
                 '${summary['total_lines'] ?? 0} منتج مجرود',
-                style: const TextStyle(color: Colors.tealAccent, fontSize: 16, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: Colors.tealAccent,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -152,13 +180,29 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
   Widget _buildSummaryGrid(Map<String, dynamic> summary) {
     return Row(
       children: [
-        Expanded(child: _statCard('✅ مطابق', '${summary['match'] ?? 0}', Colors.green)),
+        Expanded(
+          child: _statCard('✅ مطابق', '${summary['match'] ?? 0}', Colors.green),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _statCard('⚡ ضمن التسامح', '${summary['within_tolerance'] ?? 0}', Colors.amber)),
+        Expanded(
+          child: _statCard(
+            '⚡ ضمن التسامح',
+            '${summary['within_tolerance'] ?? 0}',
+            Colors.amber,
+          ),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _statCard('📈 زيادة', '${summary['over'] ?? 0}', Colors.blue)),
+        Expanded(
+          child: _statCard('📈 زيادة', '${summary['over'] ?? 0}', Colors.blue),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _statCard('📉 نقص', '${summary['short'] ?? 0}', Colors.redAccent)),
+        Expanded(
+          child: _statCard(
+            '📉 نقص',
+            '${summary['short'] ?? 0}',
+            Colors.redAccent,
+          ),
+        ),
       ],
     );
   }
@@ -173,9 +217,20 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       ),
       child: Column(
         children: [
-          Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color.withOpacity(0.8), fontSize: 11), textAlign: TextAlign.center),
+          Text(
+            label,
+            style: TextStyle(color: color.withOpacity(0.8), fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -183,7 +238,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
 
   Widget _buildAccuracyCard(Map<String, dynamic> summary) {
     final accuracy = (summary['accuracy_percentage'] ?? 100).toDouble();
-    final color = accuracy >= 98 ? Colors.green : accuracy >= 95 ? Colors.amber : Colors.redAccent;
+    final color = accuracy >= 98
+        ? Colors.green
+        : accuracy >= 95
+        ? Colors.amber
+        : Colors.redAccent;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -195,7 +254,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       child: Row(
         children: [
           Icon(
-            accuracy >= 98 ? Icons.check_circle : accuracy >= 95 ? Icons.warning : Icons.error,
+            accuracy >= 98
+                ? Icons.check_circle
+                : accuracy >= 95
+                ? Icons.warning
+                : Icons.error,
             color: color,
             size: 40,
           ),
@@ -204,11 +267,18 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('نسبة دقة المخزون', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                const Text(
+                  'نسبة دقة المخزون',
+                  style: TextStyle(color: Colors.white60, fontSize: 13),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '${accuracy.toStringAsFixed(1)}%',
-                  style: TextStyle(color: color, fontSize: 32, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -216,10 +286,14 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('الكمية المجرودة: ${summary['total_counted_qty'] ?? 0}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              Text('الكمية النظامية: ${summary['total_system_qty'] ?? 0}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(
+                'الكمية المجرودة: ${summary['total_counted_qty'] ?? 0}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              Text(
+                'الكمية النظامية: ${summary['total_system_qty'] ?? 0}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
             ],
           ),
         ],
@@ -237,16 +311,29 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange,
+            size: 28,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('منتجات لم تُجرد', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 15)),
+                const Text(
+                  'منتجات لم تُجرد',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('$count منتج في المخزون لم يتم جرده — قرار إداري',
-                    style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(
+                  '$count منتج في المخزون لم يتم جرده — قرار إداري',
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -259,7 +346,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     final status = d['variance_status'] ?? '';
     final variance = (d['variance'] ?? 0).toDouble();
     final variancePct = (d['variance_percentage'] ?? 0).toDouble();
-    final color = status == 'short' ? Colors.redAccent : status == 'over' ? Colors.blue : Colors.amber;
+    final color = status == 'short'
+        ? Colors.redAccent
+        : status == 'over'
+        ? Colors.blue
+        : Colors.amber;
     final icon = status == 'short' ? Icons.trending_down : Icons.trending_up;
 
     return Container(
@@ -283,17 +374,17 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               placeholder: (context, url) => Shimmer.fromColors(
                 baseColor: Colors.grey[800]!,
                 highlightColor: Colors.grey[700]!,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  color: Colors.white,
-                ),
+                child: Container(width: 50, height: 50, color: Colors.white),
               ),
-              errorWidget: (_, __, ___) => Container(
+              errorWidget: (_, _, _) => Container(
                 width: 50,
                 height: 50,
                 color: Colors.grey[800],
-                child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 24),
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                  size: 24,
+                ),
               ),
             ),
           ),
@@ -305,18 +396,27 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               children: [
                 Text(
                   d['item_name'] ?? d['item_code'] ?? '',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Text(d['item_code'] ?? '', style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                Text(
+                  d['item_code'] ?? '',
+                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                ),
                 if (d['investigation_note'] != null) ...[
                   const SizedBox(height: 4),
-                  Text('📝 ${d['investigation_note']}',
-                      style: const TextStyle(color: Colors.amber, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    '📝 ${d['investigation_note']}',
+                    style: const TextStyle(color: Colors.amber, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ],
             ),
@@ -332,11 +432,18 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                   const SizedBox(width: 4),
                   Text(
                     '${variance > 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
-                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
-              Text('${variancePct.toStringAsFixed(1)}%', style: TextStyle(color: color.withOpacity(0.7), fontSize: 11)),
+              Text(
+                '${variancePct.toStringAsFixed(1)}%',
+                style: TextStyle(color: color.withOpacity(0.7), fontSize: 11),
+              ),
               const SizedBox(height: 2),
               Text(
                 'نظام: ${(d['system_quantity'] ?? 0).toDouble().toStringAsFixed(0)} | جرد: ${(d['counted_quantity'] ?? 0).toDouble().toStringAsFixed(0)}',
@@ -361,11 +468,20 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         children: [
           Icon(Icons.check_circle, color: Colors.green, size: 48),
           SizedBox(height: 12),
-          Text('🎉 لا توجد فروقات!', style: TextStyle(color: Colors.green, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            '🎉 لا توجد فروقات!',
+            style: TextStyle(
+              color: Colors.green,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           SizedBox(height: 4),
-          Text('جميع المنتجات المجرودة مطابقة أو ضمن نسبة التسامح',
-              style: TextStyle(color: Colors.white54, fontSize: 13),
-              textAlign: TextAlign.center),
+          Text(
+            'جميع المنتجات المجرودة مطابقة أو ضمن نسبة التسامح',
+            style: TextStyle(color: Colors.white54, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

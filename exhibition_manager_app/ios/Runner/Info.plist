@@ -4,6 +4,12 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>التطبيق يحتاج الكاميرا لمسح الباركود وتصوير أدلة مهام الجودة</string>
 	<key>NSPhotoLibraryUsageDescription</key>

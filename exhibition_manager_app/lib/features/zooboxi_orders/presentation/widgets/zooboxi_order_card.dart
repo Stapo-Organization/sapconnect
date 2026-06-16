@@ -19,19 +19,30 @@ String elapsedLabel(BuildContext context, int minutes) {
 class ZooboxiOrderCard extends StatelessWidget {
   final ZooboxiOrder order;
   final VoidCallback onTap;
-  const ZooboxiOrderCard({super.key, required this.order, required this.onTap});
+
+  /// Live minutes-waiting value (recomputed by the page timer). When null,
+  /// falls back to the server-provided value.
+  final int? minutesOverride;
+
+  const ZooboxiOrderCard({
+    super.key,
+    required this.order,
+    required this.onTap,
+    this.minutesOverride,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const accent = AppColors.error; // crimson — urgency
-    final preparing = order.isPreparing;
+    final done = order.isDone;
+    final accent = done ? AppColors.success : AppDomain.zooboxi.accent; // green vs urgency crimson
+    final minutes = minutesOverride ?? order.minutesSinceCreated;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: AppCard(
         onTap: onTap,
         padding: const EdgeInsets.all(AppSpacing.md),
-        borderColor: AppDomain.zooboxi.accent.withValues(alpha: 0.18),
+        borderColor: accent.withValues(alpha: 0.18),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -43,7 +54,7 @@ class ZooboxiOrderCard extends StatelessWidget {
                 color: accent.withValues(alpha: 0.10),
                 borderRadius: AppRadius.borderMd,
               ),
-              child: const Icon(Icons.bolt_rounded, color: accent, size: 24),
+              child: Icon(done ? Icons.check_circle_rounded : Icons.bolt_rounded, color: accent, size: 24),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -60,26 +71,29 @@ class ZooboxiOrderCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.10),
-                          borderRadius: AppRadius.borderFull,
+                      if (!done) ...[
+                        const SizedBox(width: 6),
+                        // Live "waiting for X" counter.
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.10),
+                            borderRadius: AppRadius.borderFull,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.schedule_rounded, size: 11, color: accent),
+                              const SizedBox(width: 3),
+                              Text(
+                                elapsedLabel(context, minutes),
+                                style: AppTypography.labelSmall.copyWith(
+                                    color: accent, fontWeight: FontWeight.w700, fontSize: 10),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.schedule_rounded, size: 11, color: accent),
-                            const SizedBox(width: 3),
-                            Text(
-                              elapsedLabel(context, order.minutesSinceCreated),
-                              style: AppTypography.labelSmall.copyWith(
-                                  color: accent, fontWeight: FontWeight.w700, fontSize: 10),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 3),
@@ -96,7 +110,13 @@ class ZooboxiOrderCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            if (preparing)
+            if (done)
+              StatusBadge(
+                label: order.deliveryStatusLabel.isNotEmpty ? order.deliveryStatusLabel : context.tr('status_done'),
+                color: AppColors.success,
+                icon: Icons.check_rounded,
+              )
+            else if (order.isPreparing)
               StatusBadge(
                 label: context.tr('status_preparing'),
                 color: AppColors.warning,

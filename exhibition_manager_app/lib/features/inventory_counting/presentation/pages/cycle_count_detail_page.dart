@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
@@ -215,7 +216,7 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
                 ? ErrorStateWidget(onRetry: _load)
                 : RefreshIndicator(
                     onRefresh: _load,
-                    color: AppColors.primary,
+                    color: AppDomain.counting.accent,
                     child: CustomScrollView(
                       slivers: [
                         SliverToBoxAdapter(child: _buildHero()),
@@ -233,7 +234,7 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
             ? FloatingActionButton.extended(
                 onPressed: _openScanner,
                 backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.primaryDark,
+                foregroundColor: AppDomain.counting.accentDark,
                 icon: const Icon(Icons.qr_code_scanner_rounded),
                 label: Text(context.tr('scan_to_count'),
                     style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -276,7 +277,7 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text('${p.countedTargets}',
-                              style: AppTypography.displayMedium.copyWith(color: AppColors.primary)),
+                              style: AppTypography.displayMedium.copyWith(color: AppDomain.counting.accent)),
                           Text(' / ${p.totalTargets}',
                               style: AppTypography.titleMedium.copyWith(color: AppColors.textTertiary)),
                           const SizedBox(width: 6),
@@ -291,7 +292,7 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
                       if (d.scheduledDate != null)
                         StatusBadge(
                           label: '${overdue ? context.tr('overdue_label') : context.tr('due_label')} • ${_formatDate(d.scheduledDate)}',
-                          color: overdue ? AppColors.error : AppColors.primary,
+                          color: overdue ? AppColors.error : AppDomain.counting.accent,
                           icon: overdue ? Icons.warning_amber_rounded : Icons.event_rounded,
                         ),
                     ],

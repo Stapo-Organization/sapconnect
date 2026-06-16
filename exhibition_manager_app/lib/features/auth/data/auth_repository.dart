@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/network/api_endpoints.dart';
+import 'package:exhibition_manager_app/core/notifications/push_service.dart';
+import 'package:exhibition_manager_app/core/permissions/app_session.dart';
 import 'package:exhibition_manager_app/core/storage/secure_storage.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 
@@ -26,6 +30,12 @@ class AuthRepository {
       // Set token in API client
       _api.setToken(token);
 
+      // Publish to the global session so any page can check abilities.
+      AppSession.set(user);
+
+      // Register this device for push (non-blocking; prompts for permission on iOS).
+      unawaited(PushService.instance.registerToken());
+
       return (success: true, error: null, user: user, token: token);
     }
 
@@ -34,8 +44,11 @@ class AuthRepository {
 
   /// Logout
   Future<void> logout() async {
+    // Drop this device server-side BEFORE the auth token is invalidated.
+    await PushService.instance.unregisterToken();
     await _api.post(ApiEndpoints.logout);
     _api.clearToken();
+    AppSession.clear();
     await SecureStorage.clearAll();
   }
 
@@ -49,7 +62,13 @@ class AuthRepository {
     // Verify token with server
     final result = await _api.get(ApiEndpoints.profile);
     if (result.isSuccess) {
-      return User.fromJson(result.data['data'] ?? result.data);
+      final user = User.fromJson(result.data['data'] ?? result.data);
+      AppSession.set(user); // refresh abilities each session restore
+
+      // Re-register this device for push on each session restore.
+      unawaited(PushService.instance.registerToken());
+
+      return user;
     }
 
     // Token invalid

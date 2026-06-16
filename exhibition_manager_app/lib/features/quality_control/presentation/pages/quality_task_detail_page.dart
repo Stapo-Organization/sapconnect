@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
@@ -163,7 +164,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
                 ? ErrorStateWidget(onRetry: _load)
                 : RefreshIndicator(
                     onRefresh: _load,
-                    color: AppColors.primary,
+                    color: AppDomain.quality.accent,
                     child: ListView(
                       padding: const EdgeInsets.all(AppSpacing.base),
                       children: [
@@ -252,13 +253,13 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: (photos.length >= r.minPhotos ? AppColors.success : AppColors.primary).withValues(alpha: 0.10),
+                color: (photos.length >= r.minPhotos ? AppColors.success : AppDomain.quality.accent).withValues(alpha: 0.10),
                 borderRadius: AppRadius.borderFull,
               ),
               child: Text(
                 context.tr('photos_progress').replaceAll('{x}', '${photos.length}').replaceAll('{min}', '${r.minPhotos}'),
                 style: AppTypography.labelSmall.copyWith(
-                    color: photos.length >= r.minPhotos ? AppColors.success : AppColors.primary,
+                    color: photos.length >= r.minPhotos ? AppColors.success : AppDomain.quality.accent,
                     fontWeight: FontWeight.w800),
               ),
             ),
@@ -291,12 +292,12 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: (doneCount == items.length ? AppColors.success : AppColors.primary).withValues(alpha: 0.10),
+                color: (doneCount == items.length ? AppColors.success : AppDomain.quality.accent).withValues(alpha: 0.10),
                 borderRadius: AppRadius.borderFull,
               ),
               child: Text('$doneCount / ${items.length}',
                   style: AppTypography.labelSmall.copyWith(
-                      color: doneCount == items.length ? AppColors.success : AppColors.primary,
+                      color: doneCount == items.length ? AppColors.success : AppDomain.quality.accent,
                       fontWeight: FontWeight.w800)),
             ),
           ],
@@ -407,7 +408,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
               borderRadius: AppRadius.borderMd,
               border: Border.all(color: AppColors.border, style: BorderStyle.solid),
             ),
-            child: const Icon(Icons.add_a_photo_rounded, color: AppColors.primary),
+            child: Icon(Icons.add_a_photo_rounded, color: AppDomain.quality.accent),
           ),
         ),
       ],

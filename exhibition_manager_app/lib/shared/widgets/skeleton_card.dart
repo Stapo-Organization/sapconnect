@@ -9,10 +9,7 @@ import '../../core/design_system/tokens/radius.dart';
 class SkeletonCard extends StatelessWidget {
   final double height;
 
-  const SkeletonCard({
-    super.key,
-    this.height = 120,
-  });
+  const SkeletonCard({super.key, this.height = 120});
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +34,7 @@ class SkeletonList extends StatelessWidget {
   final int itemCount;
   final double cardHeight;
 
-  const SkeletonList({
-    super.key,
-    this.itemCount = 5,
-    this.cardHeight = 120,
-  });
+  const SkeletonList({super.key, this.itemCount = 5, this.cardHeight = 120});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +44,7 @@ class SkeletonList extends StatelessWidget {
         vertical: AppSpacing.md,
       ),
       itemCount: itemCount,
-      itemBuilder: (_, __) => SkeletonCard(height: cardHeight),
+      itemBuilder: (_, _) => SkeletonCard(height: cardHeight),
     );
   }
 }

@@ -179,13 +179,18 @@ class _AchievementsPageState extends State<AchievementsPage> {
   }
 
   Widget _statCard({required IconData icon, required Color color, required String value, required String label}) {
+    // Soften "nothing yet" zeros so a fresh account reads as encouraging, not empty.
+    final isZero = value == '0' || value == '0%' || value == '٠' || value == '٠%';
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.base, horizontal: AppSpacing.sm),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 26),
+          Icon(icon, color: isZero ? AppColors.textTertiary : color, size: 26),
           const SizedBox(height: 6),
-          Text(value, style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
+          Text(value,
+              style: AppTypography.titleLarge.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: isZero ? AppColors.textTertiary : AppColors.textPrimary)),
           Text(label,
               textAlign: TextAlign.center,
               style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),

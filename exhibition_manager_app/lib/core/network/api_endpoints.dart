@@ -9,6 +9,10 @@ class ApiEndpoints {
   static const String logout = '$baseUrl/logout';
   static const String profile = '$baseUrl/profile';
 
+  // ─── Notifications (push token + channel preferences) ──────
+  static const String fcmToken = '$baseUrl/profile/fcm-token';
+  static const String notificationPreferences = '$baseUrl/profile/notification-preferences';
+
   // ─── Stock Transfers ───────────────────────────────────────
   static const String stockTransfers = '$baseUrl/stock-transfers';
   static String stockTransfer(int id) => '$baseUrl/stock-transfers/$id';
@@ -37,6 +41,9 @@ class ApiEndpoints {
 
   // ─── Products ──────────────────────────────────────────────
   static String productByBarcode(String barcode) => '$baseUrl/products/barcode/$barcode';
+  static const String productSearch = '$baseUrl/products/search';
+  static String productDetail(String itemCode) =>
+      '$baseUrl/products/${Uri.encodeComponent(itemCode)}/detail';
 
   // ─── Warehouses ────────────────────────────────────────────
   // ─── Gamification ──────────────────────────────────────────
@@ -49,6 +56,9 @@ class ApiEndpoints {
 
   // ─── Dashboard Stats ──────────────────────────────────────
   static const String dashboardStats = '$baseUrl/dashboard-stats';
+
+  // ─── Home Dashboard (smart aggregation) ───────────────────
+  static const String homeOverview = '$baseUrl/home/overview';
 
   // ─── Quality Control ───────────────────────────────────────
   static const String qualityTasks = '$baseUrl/quality-tasks';
@@ -64,4 +74,41 @@ class ApiEndpoints {
   static String zooboxiOrder(int id) => '$baseUrl/zooboxi-orders/$id';
   static String zooboxiOrderStart(int id) => '$baseUrl/zooboxi-orders/$id/start';
   static String zooboxiOrderPrepare(int id) => '$baseUrl/zooboxi-orders/$id/prepare';
+
+  // ─── Promotions / Ad Campaigns (owner only) ────────────────
+  static const String promotions = '$baseUrl/promotions';
+  static const String promotionsSummary = '$baseUrl/promotions/summary';
+  static const String promotionsPlacements = '$baseUrl/promotions/placements';
+  static String promotion(int id) => '$baseUrl/promotions/$id';
+  static String promotionApprove(int id) => '$baseUrl/promotions/$id/approve';
+  static String promotionPublish(int id) => '$baseUrl/promotions/$id/publish';
+  static String promotionReject(int id) => '$baseUrl/promotions/$id/reject';
+  static String promotionRegenerate(int id) => '$baseUrl/promotions/$id/regenerate';
+  static String promotionRefine(int id) => '$baseUrl/promotions/$id/refine';
+
+  // ─── Showroom Pulse / نبض المعرض ────────────────────────────
+  static const String showroomPulse = '$baseUrl/showroom-pulse';
+  static const String showroomPulseLever = '$baseUrl/showroom-pulse/lever';
+  static const String showroomPulseTransferRequest = '$baseUrl/showroom-pulse/transfer-request';
+  static const String showroomPulseDiscountSuggestion = '$baseUrl/showroom-pulse/discount-suggestion';
+
+  // ─── Super Admin: Retail Dashboard (لوحة البيع بالتجزئة) ─────
+  static const String retailDashboard = '$baseUrl/retail-dashboard';
+  static String retailBranch(String warehouseCode) =>
+      '$baseUrl/retail-dashboard/branches/${Uri.encodeComponent(warehouseCode)}';
+
+  // ─── Super Admin: Quality Tasks management ──────────────────
+  static const String qualityManage = '$baseUrl/quality-tasks/manage';
+  static const String qualityManageInstances = '$baseUrl/quality-tasks/manage/instances';
+  static String qualityManageTask(int id) => '$baseUrl/quality-tasks/manage/$id';
+  static String qualityManageGenerate(int id) => '$baseUrl/quality-tasks/manage/$id/generate';
+
+  // ─── Super Admin: Smart Stock Distribution ──────────────────
+  static const String stockDistribution = '$baseUrl/stock-distribution';
+  static const String stockDistributionStatus = '$baseUrl/stock-distribution/status';
+  static const String stockDistributionRun = '$baseUrl/stock-distribution/run';
+
+  // ─── Super Admin: Container Tracking (تتبّع الحاويات) ────────
+  static const String containerTracking = '$baseUrl/container-tracking';
+  static String containerTrackingDetail(int id) => '$baseUrl/container-tracking/$id';
 }

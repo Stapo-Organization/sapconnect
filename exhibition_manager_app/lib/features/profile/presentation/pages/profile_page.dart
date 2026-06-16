@@ -8,6 +8,8 @@ import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/storage/secure_storage.dart';
 import 'package:exhibition_manager_app/core/network/api_client.dart';
+import 'package:exhibition_manager_app/core/notifications/push_service.dart';
+import 'package:exhibition_manager_app/features/notifications/presentation/pages/notification_preferences_page.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/localization/language_switch_overlay.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
@@ -51,6 +53,8 @@ class ProfilePage extends StatelessWidget {
     );
 
     if (confirm == true) {
+      // Drop this device server-side before clearing the auth token.
+      await PushService.instance.unregisterToken();
       ApiClient().clearToken();
       await SecureStorage.clearAll();
       if (context.mounted) {
@@ -79,9 +83,9 @@ class ProfilePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                gradient: AppColors.heroGradient,
+                gradient: AppDomain.profile.gradient,
                 borderRadius: AppRadius.borderXxxl,
-                boxShadow: AppShadows.glow(AppColors.primaryDark, alpha: 0.28),
+                boxShadow: AppShadows.glow(AppDomain.profile.accentDark, alpha: 0.28),
               ),
               child: Column(
                 children: [
@@ -209,6 +213,56 @@ class ProfilePage extends StatelessWidget {
                     ],
                   ),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.base),
+
+            // ─── Notifications Preferences (tap → full screen) ──
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NotificationPreferencesPage()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.base),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.borderLg,
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications_active_outlined,
+                        color: AppDomain.profile.accent, size: 22),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr('notifications_title'),
+                            style: AppTypography.labelLarge.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            context.tr('notifications_subtitle'),
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                      color: AppColors.textTertiary,
+                    ),
+                  ],
+                ),
               ),
             ),
 
