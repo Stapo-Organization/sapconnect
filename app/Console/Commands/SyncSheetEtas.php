@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\Log;
 /**
  * Writes Traqo ship/arrival dates back into the procurement Google Sheet.
  *
- * The sheet is keyed at PO level: column U holds one OR MORE container numbers
- * per row. We parse each row's containers, match them to tracked Traqo shipments,
+ * The sheet is keyed at PO level: the "Container No" column holds one OR MORE
+ * container numbers per row. The column letter is resolved from the header row
+ * at runtime (so inserted/moved columns can't silently break the link), falling
+ * back to COL_CONTAINER. We parse each row's containers, match them to tracked
+ * Traqo shipments,
  * and fill the EXISTING ETD (B) / ETA (C) columns plus two appended Traqo columns
  * (status + last-update). Only matched rows are touched — individual cells are
  * written, never whole columns — so manual data in other rows is never clobbered.
@@ -34,8 +37,11 @@ class SyncSheetEtas extends Command
     private const COL_UPDATED = 'AM';
     private const COL_ISSUES  = 'AN';   // flags malformed container numbers (Phase 3)
     private const COL_TODO    = 'AO';   // NEW active containers not yet in Traqo
-    private const COL_CONTAINER = 'U';
+    private const COL_CONTAINER = 'Q';  // "Container No" — fallback if header lookup fails
     private const COL_RECEIVED = 'K';   // "Received Dated" — empty = shipment still active
+
+    // Header labels used to resolve the container column dynamically (EN + AR).
+    private const CONTAINER_HEADERS = ['container no', 'رقم الحاوية'];
 
     public function handle(GoogleSheetsClient $sheets): int
     {
@@ -82,7 +88,12 @@ class SyncSheetEtas extends Command
                 $traqo[$this->norm($s->reference_number)] = $s;
             }
 
-            $rows = $sheets->getValues($id, $q . '!' . self::COL_CONTAINER . '1:' . self::COL_CONTAINER . '2000');
+            // Resolve the container column from the header row so inserted/moved
+            // columns can't silently break the link (Q is only the fallback).
+            $containerCol = $this->resolveContainerColumn($sheets, $id, $q);
+            $this->line("Container column resolved to: {$containerCol}");
+
+            $rows = $sheets->getValues($id, $q . '!' . $containerCol . '1:' . $containerCol . '2000');
             $received = $sheets->getValues($id, $q . '!' . self::COL_RECEIVED . '1:' . self::COL_RECEIVED . '2000');
             $stamp = now()->format('Y-m-d H:i');
             $data = [
@@ -240,6 +251,41 @@ class SyncSheetEtas extends Command
             }
         }
         return array_keys($out);
+    }
+
+    /**
+     * Find the "Container No" column by scanning the header row, so the link
+     * survives columns being inserted/moved in the sheet. Falls back to the
+     * COL_CONTAINER constant if no matching header is found.
+     */
+    private function resolveContainerColumn(GoogleSheetsClient $sheets, string $id, string $q): string
+    {
+        try {
+            $header = $sheets->getValues($id, $q . '!A1:BZ1')[0] ?? [];
+            foreach ($header as $i => $label) {
+                $norm = strtolower(trim((string) $label));
+                foreach (self::CONTAINER_HEADERS as $needle) {
+                    if ($norm !== '' && str_contains($norm, $needle)) {
+                        return $this->indexToCol($i + 1); // 0-based → 1-based → letters
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->warn('Container header lookup failed (' . $e->getMessage() . '); using fallback ' . self::COL_CONTAINER);
+        }
+        return self::COL_CONTAINER;
+    }
+
+    /** 1-based index → column letters (1="A", 17="Q", 39="AM"). */
+    private function indexToCol(int $n): string
+    {
+        $s = '';
+        while ($n > 0) {
+            $n--;
+            $s = chr(65 + ($n % 26)) . $s;
+            $n = intdiv($n, 26);
+        }
+        return $s;
     }
 
     /** Column letters → 1-based index ("A"=1, "AM"=39). */

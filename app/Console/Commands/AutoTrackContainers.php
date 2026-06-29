@@ -45,8 +45,13 @@ class AutoTrackContainers extends Command
     protected $signature = 'traqo:auto-track {--dry : List what WOULD be registered, write nothing}';
     protected $description = 'Auto-register new active untracked shipments with Traqo (one per row, capped & ledgered)';
 
-    private const COL_CONTAINER = 'U';
+    private const COL_CONTAINER = 'Q';  // "Container No" — fallback if header lookup fails
     private const COL_RECEIVED  = 'K';
+    private const COL_BL        = 'V';  // Master BL (MBL/MAWB) — its SCAC prefix = the sealine
+
+    // Header labels used to resolve columns dynamically (EN + AR).
+    private const CONTAINER_HEADERS = ['container no', 'رقم الحاوية'];
+    private const BL_HEADERS        = ['mbl', 'mawb'];  // master BL, NOT the house "HBL"
 
     public function handle(TraqoClient $traqo, GoogleSheetsClient $sheets): int
     {
@@ -109,13 +114,23 @@ class AutoTrackContainers extends Command
                 throw new \RuntimeException('Could not resolve sheet tab (no access?).');
             }
             $q = "'" . str_replace("'", "''", $tab) . "'";
-            $rows = $sheets->getValues($id, $q . '!' . self::COL_CONTAINER . '1:' . self::COL_CONTAINER . '2000');
+            // Resolve the container column from the header (Q is only the fallback)
+            // so columns inserted/moved in the sheet can't silently break tracking.
+            $containerCol = $this->resolveContainerColumn($sheets, $id, $q);
+            $this->line("Container column resolved to: {$containerCol}");
+            $rows = $sheets->getValues($id, $q . '!' . $containerCol . '1:' . $containerCol . '2000');
             $received = $sheets->getValues($id, $q . '!' . self::COL_RECEIVED . '1:' . self::COL_RECEIVED . '2000');
+            // Master-BL column: its SCAC prefix is the sealine Traqo now REQUIRES.
+            // Rows without a derivable sealine can't be auto-registered → left for manual.
+            $blCol = $this->resolveBlColumn($sheets, $id, $q);
+            $this->line("Master-BL column resolved to: {$blCol}");
+            $bls = $sheets->getValues($id, $q . '!' . $blCol . '1:' . $blCol . '2000');
 
             // Build the candidate list: new+active rows, one representative each,
             // de-duplicated across rows.
             $candidates = [];
             $pickedNumbers = [];
+            $skippedNoSealine = 0;
             foreach ($rows as $idx => $row) {
                 if ($idx === 0) {
                     continue; // header
@@ -143,22 +158,30 @@ class AutoTrackContainers extends Command
                 if ($covered) {
                     continue;
                 }
+                // Traqo mandates a sealine (SCAC). Derive it from the master BL's
+                // prefix (e.g. MAEU271975225 → MAEU). No BL → can't auto-register;
+                // leave it for manual (push-sheet still flags it in "Track in Traqo?").
+                $sealine = $this->deriveSealine($bls[$idx][0] ?? '');
+                if (!$sealine) {
+                    $skippedNoSealine++;
+                    continue;
+                }
                 $rep = $containers[0]; // one box per shipment is enough
                 if (isset($pickedNumbers[$rep])) {
                     continue; // same number already queued from another row
                 }
                 $pickedNumbers[$rep] = true;
-                $candidates[] = ['number' => $rep, 'row' => $idx + 1, 'siblings' => count($containers)];
+                $candidates[] = ['number' => $rep, 'row' => $idx + 1, 'siblings' => count($containers), 'sealine' => $sealine];
             }
 
             $this->info(sprintf(
-                'Auto-track: %d candidate row(s); budget left this month=%d/%d; per-run cap=%d → will register up to %d.',
-                count($candidates), $budgetLeft, $monthlyBudget, $perRunCap, $cap
+                'Auto-track: %d candidate row(s) [%d skipped — no BL/sealine]; budget left this month=%d/%d; per-run cap=%d → will register up to %d.',
+                count($candidates), $skippedNoSealine, $budgetLeft, $monthlyBudget, $perRunCap, $cap
             ));
 
             if ($this->option('dry')) {
                 foreach ($candidates as $c) {
-                    $this->line("  would register {$c['number']} (row {$c['row']}, 1 of {$c['siblings']})");
+                    $this->line("  would register {$c['number']} (row {$c['row']}, 1 of {$c['siblings']}) via sealine {$c['sealine']}");
                 }
                 $this->info('DRY RUN — nothing registered.');
                 if ($automation) $automation->update(['last_run_status' => 'success']);
@@ -182,6 +205,7 @@ class AutoTrackContainers extends Command
                         'status'           => 'pending',
                         'attempts'         => 1,
                         'sheet_row'        => $c['row'],
+                        'sealine'          => $c['sealine'],
                         'note'             => 'auto-track claim',
                     ]);
                 } catch (QueryException $e) {
@@ -189,7 +213,7 @@ class AutoTrackContainers extends Command
                     continue;
                 }
 
-                $body = $traqo->container($number, null);
+                $body = $traqo->container($number, $c['sealine']);
                 $ok = !empty($body) && ($body['success'] ?? false);
                 if ($ok) {
                     $data = $body['data'] ?? [];
@@ -249,5 +273,74 @@ class AutoTrackContainers extends Command
     {
         preg_match_all('/[A-Z]{4}\d{7}/', strtoupper(str_replace([' ', "\n", "\r"], ['', ',', ','], $cell)), $m);
         return array_values(array_unique($m[0] ?? []));
+    }
+
+    /**
+     * Find the "Container No" column by scanning the header row, so tracking
+     * survives columns being inserted/moved in the sheet. Falls back to the
+     * COL_CONTAINER constant if no matching header is found.
+     */
+    private function resolveContainerColumn(GoogleSheetsClient $sheets, string $id, string $q): string
+    {
+        try {
+            $header = $sheets->getValues($id, $q . '!A1:BZ1')[0] ?? [];
+            foreach ($header as $i => $label) {
+                $norm = strtolower(trim((string) $label));
+                foreach (self::CONTAINER_HEADERS as $needle) {
+                    if ($norm !== '' && str_contains($norm, $needle)) {
+                        return $this->indexToCol($i + 1);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->warn('Container header lookup failed (' . $e->getMessage() . '); using fallback ' . self::COL_CONTAINER);
+        }
+        return self::COL_CONTAINER;
+    }
+
+    /**
+     * Find the master-BL column ("MBL/MAWB") by header, falling back to COL_BL.
+     * Deliberately matches "mbl"/"mawb" only — NOT the house "HBL" column, whose
+     * prefix is the forwarder, not the ocean carrier.
+     */
+    private function resolveBlColumn(GoogleSheetsClient $sheets, string $id, string $q): string
+    {
+        try {
+            $header = $sheets->getValues($id, $q . '!A1:BZ1')[0] ?? [];
+            foreach ($header as $i => $label) {
+                $norm = strtolower(trim((string) $label));
+                foreach (self::BL_HEADERS as $needle) {
+                    if ($norm !== '' && str_contains($norm, $needle)) {
+                        return $this->indexToCol($i + 1);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->warn('BL header lookup failed (' . $e->getMessage() . '); using fallback ' . self::COL_BL);
+        }
+        return self::COL_BL;
+    }
+
+    /**
+     * The SCAC sealine code = the master BL's leading 4 letters
+     * (MAEU271975225 → MAEU, MEDUXXXX → MEDU). Returns null when the cell is
+     * empty or doesn't start with a clean 4-letter prefix.
+     */
+    private function deriveSealine(?string $bl): ?string
+    {
+        $bl = strtoupper(trim((string) $bl));
+        return preg_match('/^([A-Z]{4})/', $bl, $m) ? $m[1] : null;
+    }
+
+    /** 1-based index → column letters (1="A", 17="Q", 39="AM"). */
+    private function indexToCol(int $n): string
+    {
+        $s = '';
+        while ($n > 0) {
+            $n--;
+            $s = chr(65 + ($n % 26)) . $s;
+            $n = intdiv($n, 26);
+        }
+        return $s;
     }
 }
