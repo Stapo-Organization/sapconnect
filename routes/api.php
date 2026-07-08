@@ -15,9 +15,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Auth Routes
-Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
-Route::post('/verify-otp', [\App\Http\Controllers\Api\AuthController::class, 'verifyOtp']);
+// Auth Routes (throttled — guards OTP send/verify against abuse & brute-force)
+Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login'])
+    ->middleware('throttle:10,1');
+Route::post('/verify-otp', [\App\Http\Controllers\Api\AuthController::class, 'verifyOtp'])
+    ->middleware('throttle:6,1');
 
 // Protected Mobile App Routes
 Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
@@ -172,6 +174,7 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::middleware('feature:retail_dashboard.view')->group(function () {
         Route::get('/retail-dashboard', [\App\Http\Controllers\Api\RetailDashboardController::class, 'index']);
         Route::get('/retail-dashboard/branches/{warehouseCode}', [\App\Http\Controllers\Api\RetailDashboardController::class, 'branch']);
+        Route::get('/retail-dashboard/branches/{warehouseCode}/items', [\App\Http\Controllers\Api\RetailDashboardController::class, 'branchItems']);
     });
 
     // ─── Super Admin: Smart Stock Distribution (التوزيع الذكي) ───────
@@ -188,6 +191,14 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
         Route::get('/container-tracking', [\App\Http\Controllers\Api\ContainerTrackingController::class, 'index']);
         Route::get('/container-tracking/{id}', [\App\Http\Controllers\Api\ContainerTrackingController::class, 'show'])->whereNumber('id');
     });
+
+    // ─── Super Admin: Operations & Supply-Chain summary (read-only) ──
+    Route::middleware('feature:supply_chain.view')->group(function () {
+        Route::get('/supply-chain/overview', [\App\Http\Controllers\Api\SupplyChainSummaryController::class, 'overview']);
+        Route::get('/supply-chain/po-summary', [\App\Http\Controllers\Api\SupplyChainSummaryController::class, 'poSummary']);
+        Route::get('/supply-chain/arrived-shipments', [\App\Http\Controllers\Api\SupplyChainSummaryController::class, 'arrivedShipments']);
+        Route::get('/supply-chain/registrations', [\App\Http\Controllers\Api\SupplyChainSummaryController::class, 'registrations']);
+    });
 });
 
 // Store Public/Customer Routes
@@ -195,6 +206,12 @@ Route::prefix('store')->group(function () {
     Route::get('/brands', [\App\Http\Controllers\Api\StoreController::class, 'getBrands']);
     Route::get('/products', [\App\Http\Controllers\Api\StoreController::class, 'getProducts']);
     Route::get('/proxy-image', [\App\Http\Controllers\Api\StoreController::class, 'proxyImage']);
+
+    // Pre-login landing feed for the Muntajat HUB app (company news + info).
+    Route::get('/landing', [\App\Http\Controllers\Api\StoreController::class, 'getLanding']);
+    Route::get('/news-image/{announcement}', [\App\Http\Controllers\Api\StoreController::class, 'newsImage']);
+    // Per-brand intro page (logo + info + product gallery, no prices).
+    Route::get('/brands/{code}', [\App\Http\Controllers\Api\StoreController::class, 'getBrand']);
 });
 
 // SAP Integration Routes
@@ -279,3 +296,12 @@ Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
         ]);
     });
 });
+
+// ─── ShipGo WMS Catalog Integration ──────────────────────────────
+// Read-only catalog feed (SAP B1 mirror) for the ShipGo WMS. Bearer token.
+Route::middleware([\App\Http\Middleware\AuthenticateShipGoToken::class])
+    ->prefix('shipgo')
+    ->group(function () {
+        Route::get('/catalog', [\App\Http\Controllers\Api\ShipGoCatalogController::class, 'catalog']);
+        Route::get('/stock', [\App\Http\Controllers\Api\ShipGoCatalogController::class, 'stock']);
+    });

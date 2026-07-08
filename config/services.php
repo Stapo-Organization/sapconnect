@@ -41,6 +41,13 @@ return [
         'default_price_list' => env('WOO_DEFAULT_PRICE_LIST', 1),
     ],
 
+    // ShipGo WMS read API (catalog mirror) — Bearer token + which SAP price
+    // list is the wholesale/selling price exposed to ShipGo (convention: 1).
+    'shipgo' => [
+        'api_token' => env('SHIPGO_API_TOKEN'),
+        'price_list' => env('SHIPGO_PRICE_LIST', 1),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Marketing — AI Creative Generation (Replicate)
