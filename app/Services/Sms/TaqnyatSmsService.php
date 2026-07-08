@@ -19,7 +19,7 @@ class TaqnyatSmsService
             return false;
         }
 
-        $message = "Your OTP code is: {$otp}";
+        $message = "رمز الدخول إلى Muntajat HUB: {$otp}";
 
         try {
             $response = Http::get("{$this->baseUrl}/messages", [

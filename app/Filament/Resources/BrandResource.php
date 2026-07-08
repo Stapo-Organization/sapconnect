@@ -63,6 +63,10 @@ class BrandResource extends Resource
                     ->searchable()
                     ->preload()
                     ->helperText('Select the suppliers that provide this brand'),
+                Forms\Components\Toggle::make('hidden_in_app')
+                    ->label('إخفاء من التطبيق')
+                    ->helperText('عند التفعيل لا يظهر هذا البراند في تطبيق Muntajat HUB.')
+                    ->default(false),
             ]);
     }
 
@@ -87,6 +91,8 @@ class BrandResource extends Resource
                     ->counts('products')
                     ->label(__('Products'))
                     ->sortable(),
+                Tables\Columns\ToggleColumn::make('hidden_in_app')
+                    ->label('مخفي بالتطبيق'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('Created At'))
                     ->dateTime()

@@ -14,11 +14,22 @@ class Brand extends Model
         'code',
         'name',
         'source',
+        'hidden_in_app',
+    ];
+
+    protected $casts = [
+        'hidden_in_app' => 'boolean',
     ];
 
     protected $appends = [
         'image_url',
     ];
+
+    /** Brands visible in the Muntajat HUB public app showcase. */
+    public function scopeVisibleInApp($query)
+    {
+        return $query->where('hidden_in_app', false);
+    }
 
     public function getImageUrlAttribute()
     {
