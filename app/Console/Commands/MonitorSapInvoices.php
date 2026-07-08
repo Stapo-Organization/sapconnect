@@ -30,8 +30,10 @@ class MonitorSapInvoices extends Command
             $now = Carbon::now();
             $hour = $now->hour;
 
-            // Only run between 9 AM and 11:59 PM (23:59)
-            if ($hour < 9) {
+            // Operating window (Asia/Riyadh): Fridays the showrooms open after
+            // Jumu'ah at 4 PM; every other day at 9 AM. Monitored until 23:59.
+            $startHour = $now->isFriday() ? 16 : 9;
+            if ($hour < $startHour) {
                 // Not in operational hours
                 if ($automation) {
                     $automation->update(['last_run_status' => 'success']);
@@ -41,16 +43,21 @@ class MonitorSapInvoices extends Command
 
             // Get the last invoice created_at
             $lastInvoice = SapInvoice::orderBy('created_at', 'desc')->first();
-            
+
             if (!$lastInvoice) {
                  if ($automation) {
                     $automation->update(['last_run_status' => 'success']);
                  }
-                 return; 
+                 return;
             }
 
             $lastTime = $lastInvoice->created_at;
-            $diffMinutes = $lastTime->diffInMinutes($now);
+            // Measure the silence inside TODAY's window only — otherwise the first
+            // check after opening sees last night's final invoice and cries wolf
+            // every single morning.
+            $windowStart = $now->copy()->startOfDay()->addHours($startHour);
+            $baseline = $lastTime->greaterThan($windowStart) ? $lastTime : $windowStart;
+            $diffMinutes = (int) $baseline->diffInMinutes($now);
 
             if ($diffMinutes > 30) {
                 // It has been more than 30 minutes since the last invoice was synced
