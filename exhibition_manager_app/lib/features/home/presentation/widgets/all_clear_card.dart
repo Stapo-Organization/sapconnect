@@ -29,7 +29,7 @@ class AllClearCard extends StatelessWidget {
             width: 46,
             height: 46,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: AppColors.goldGradient,
               shape: BoxShape.circle,
             ),

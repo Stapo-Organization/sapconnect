@@ -123,7 +123,7 @@ class ZooboxiOrderCard extends StatelessWidget {
                 icon: Icons.timelapse_rounded,
               )
             else
-              const Icon(Icons.chevron_left_rounded, color: AppColors.textTertiary),
+              Icon(Icons.chevron_left_rounded, color: AppColors.textTertiary),
           ],
         ),
       ),

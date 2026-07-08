@@ -14,7 +14,8 @@ class AppButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final IconData? icon;
   final AppButtonVariant variant;
-  final Color color;
+  /// Defaults to mode-aware [AppColors.primary] when null (resolved at build).
+  final Color? color;
   final bool expand;
   final bool loading;
   final Gradient? gradient;
@@ -25,7 +26,7 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.variant = AppButtonVariant.filled,
-    this.color = AppColors.primary,
+    this.color,
     this.expand = true,
     this.loading = false,
     this.gradient,
@@ -33,6 +34,7 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? AppColors.primary;
     final disabled = onPressed == null || loading;
     final isFilled = variant == AppButtonVariant.filled;
     final isTonal = variant == AppButtonVariant.tonal;

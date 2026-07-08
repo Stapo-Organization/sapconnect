@@ -420,7 +420,7 @@ class _PromotionDetailPageState extends State<PromotionDetailPage> {
         child: Container(color: Colors.white),
       ),
       errorWidget: (_, _, _) =>
-          Container(color: AppColors.surfaceVariant, child: const Icon(Icons.broken_image_outlined, color: AppColors.textTertiary)),
+          Container(color: AppColors.surfaceVariant, child: Icon(Icons.broken_image_outlined, color: AppColors.textTertiary)),
     );
   }
 
@@ -682,7 +682,7 @@ class _PromotionDetailPageState extends State<PromotionDetailPage> {
                 decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.08), borderRadius: AppRadius.borderSm),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified_user_rounded, color: AppColors.success, size: 16),
+                    Icon(Icons.verified_user_rounded, color: AppColors.success, size: 16),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(child: Text(context.tr('reason_help_safe'),
                         style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary, height: 1.4))),
@@ -770,7 +770,7 @@ class _PromotionDetailPageState extends State<PromotionDetailPage> {
 
   Widget _scheduleNote(Campaign c) => Row(
         children: [
-          const Icon(Icons.schedule_rounded, size: 16, color: AppColors.textTertiary),
+          Icon(Icons.schedule_rounded, size: 16, color: AppColors.textTertiary),
           const SizedBox(width: 6),
           Text(context.tr('publish_now'), style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
         ],

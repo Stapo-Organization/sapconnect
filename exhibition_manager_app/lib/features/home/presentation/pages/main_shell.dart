@@ -6,6 +6,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/notifications/push_service.dart';
 import 'package:exhibition_manager_app/core/permissions/app_abilities.dart';
+import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'home_page.dart';
 import 'package:exhibition_manager_app/features/showroom_pulse/presentation/pages/showroom_pulse_page.dart';
@@ -47,7 +48,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   int _currentIndex = 0;
 
   late final AnimationController _transition;
-  late final List<_TabDef> _tabs;
+  late List<_TabDef> _tabs;
 
   /// Switch tab with a short fade + rise so navigation feels intentional
   /// instead of a hard cut. IndexedStack keeps every tab's state alive.
@@ -173,8 +174,15 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
-    final domain = _tabs[_currentIndex].domain;
-    return Directionality(
+    // Rebuild the whole shell (background + nav bar + every tab) when the
+    // light/dark choice changes — this mounted route won't be reached by a
+    // top-level rebuild otherwise. Fresh [_tabs] recolour the IndexedStack pages.
+    return ValueListenableBuilder<AppThemeMode>(
+      valueListenable: AppThemeController.modeNotifier,
+      builder: (context, _, _) {
+        _tabs = _buildTabs();
+        final domain = _tabs[_currentIndex].domain;
+        return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         body: AnimatedBuilder(
@@ -246,6 +254,8 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
           ),
         ),
       ),
+        );
+      },
     );
   }
 }

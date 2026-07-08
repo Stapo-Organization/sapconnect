@@ -17,18 +17,20 @@ class AppSegmentedControl extends StatelessWidget {
   final List<SegmentItem> items;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
-  final Color activeColor;
+  /// Defaults to mode-aware [AppColors.primary] when null (resolved at build).
+  final Color? activeColor;
 
   const AppSegmentedControl({
     super.key,
     required this.items,
     required this.selectedIndex,
     required this.onChanged,
-    this.activeColor = AppColors.primary,
+    this.activeColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final active = activeColor ?? AppColors.primary;
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth / items.length;
@@ -64,7 +66,7 @@ class AppSegmentedControl extends StatelessWidget {
                     borderRadius: AppRadius.borderSm,
                     boxShadow: [
                       BoxShadow(
-                        color: activeColor.withValues(alpha: 0.12),
+                        color: active.withValues(alpha: 0.12),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -90,13 +92,13 @@ class AppSegmentedControl extends StatelessWidget {
                           if (item.icon != null) ...[
                             Icon(item.icon,
                                 size: 16,
-                                color: selected ? activeColor : AppColors.textTertiary),
+                                color: selected ? active : AppColors.textTertiary),
                             const SizedBox(width: 6),
                           ],
                           Text(
                             item.label,
                             style: AppTypography.labelMedium.copyWith(
-                              color: selected ? activeColor : AppColors.textSecondary,
+                              color: selected ? active : AppColors.textSecondary,
                               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                             ),
                           ),
@@ -105,7 +107,7 @@ class AppSegmentedControl extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                               decoration: BoxDecoration(
-                                color: selected ? activeColor : AppColors.textTertiary,
+                                color: selected ? active : AppColors.textTertiary,
                                 borderRadius: AppRadius.borderFull,
                               ),
                               child: Text(

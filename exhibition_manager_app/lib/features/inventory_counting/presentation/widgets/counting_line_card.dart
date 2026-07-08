@@ -65,7 +65,7 @@ class CountingLineCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 color: AppColors.surfaceVariant,
-                child: const Icon(Icons.image_not_supported, size: 24, color: AppColors.textTertiary),
+                child: Icon(Icons.image_not_supported, size: 24, color: AppColors.textTertiary),
               ),
             ),
           ),
@@ -128,7 +128,7 @@ class CountingLineCard extends StatelessWidget {
                       style: AppTypography.titleMedium.copyWith(color: AppColors.primary)),
                   if (canEdit) ...[
                     const SizedBox(width: 4),
-                    const Icon(Icons.edit_rounded, size: 13, color: AppColors.primary),
+                    Icon(Icons.edit_rounded, size: 13, color: AppColors.primary),
                   ],
                 ],
               ),
@@ -137,7 +137,7 @@ class CountingLineCard extends StatelessWidget {
           if (canEdit) ...[
             const SizedBox(width: AppSpacing.xs),
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+              icon: Icon(Icons.delete_outline, color: AppColors.error, size: 20),
               onPressed: onDelete,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
@@ -7,6 +8,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/features/product_search/presentation/product_detail_launcher.dart';
 import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
@@ -14,10 +16,14 @@ import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 
 import '../../data/models/retail_models.dart';
 import '../../data/retail_dashboard_repository.dart';
+import '../widgets/product_metric_tile.dart';
 import '../widgets/sales_profit_chart.dart';
+import 'branch_items_page.dart';
 
-/// Full drill-down for one exhibition: revenue + trend, top sellers, pulse
-/// vitals, money levers and operations — all filterable by period.
+/// Full drill-down for one exhibition: revenue + trend + best-sellers (all bound
+/// to the period filter), then the branch's snapshot vitals, money levers and
+/// operations (period-independent). Changing the period reloads only the
+/// filter-bound section, so the snapshot cards never flash.
 class BranchDetailPage extends StatefulWidget {
   final String warehouseCode;
   final String initialName;
@@ -30,39 +36,53 @@ class BranchDetailPage extends StatefulWidget {
 class _BranchDetailPageState extends State<BranchDetailPage> {
   final RetailDashboardRepository _repo = RetailDashboardRepository();
   BranchDetail? _data;
-  bool _loading = true;
+  bool _loading = true; // first full-page load
+  bool _periodLoading = false; // re-fetch triggered by a period change
   bool _hasError = false;
   String _period = 'month';
 
-  static const _periods = ['today', 'week', 'month'];
+  static const _periods = ['today', 'week', 'month', 'year'];
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _fetch();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _hasError = false;
-    });
+  Future<void> _fetch() async {
     final r = await _repo.getBranch(widget.warehouseCode, period: _period);
     if (!mounted) return;
     setState(() {
-      _data = r.data;
+      if (r.success) {
+        _data = r.data;
+        _hasError = false;
+      } else {
+        _hasError = _data == null;
+      }
       _loading = false;
-      _hasError = !r.success;
+      _periodLoading = false;
     });
   }
 
+  // Pull-to-refresh: refetch silently (RefreshIndicator shows its own spinner).
+  Future<void> _refresh() => _fetch();
+
   void _setPeriod(String p) {
-    _period = p;
-    _load();
+    if (p == _period) return;
+    setState(() {
+      _period = p;
+      _periodLoading = true; // only the period-bound cards go to skeleton
+    });
+    _fetch();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ValueListenableBuilder<AppThemeMode>(
+        valueListenable: AppThemeController.modeNotifier,
+        builder: (context, _, _) => _build(context),
+      );
+
+  Widget _build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
     final accent = AppDomain.admin.accent;
     return Directionality(
@@ -71,7 +91,7 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
         backgroundColor: AppColors.background,
         appBar: MuntajatAppBar(title: _data?.name ?? widget.initialName),
         body: RefreshIndicator(
-          onRefresh: _load,
+          onRefresh: _refresh,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.xxl),
@@ -91,6 +111,7 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
       'today': context.tr('rd_period_today'),
       'week': context.tr('rd_period_week'),
       'month': context.tr('rd_period_month'),
+      'year': context.tr('rd_period_year'),
     };
     final idx = _periods.indexOf(_period);
     return AppSegmentedControl(
@@ -106,23 +127,43 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
       return [const SkeletonCard(height: 120), const SizedBox(height: 12), const SkeletonCard(height: 180)];
     }
     if (_hasError || _data == null) {
-      return [Padding(padding: const EdgeInsets.only(top: AppSpacing.huge), child: ErrorStateWidget(onRetry: _load))];
+      return [Padding(padding: const EdgeInsets.only(top: AppSpacing.huge), child: ErrorStateWidget(onRetry: _fetch))];
     }
     final d = _data!;
     return [
-      _revenueCard(context, d),
-      const SizedBox(height: AppSpacing.base),
-      if (d.trend.points.isNotEmpty) ...[
-        SalesProfitChart(trend: d.trend, salesColor: accent),
-        const SizedBox(height: AppSpacing.base),
-      ],
+      // ── Filter-bound section (revenue · trend · best-sellers) ──
+      if (_periodLoading)
+        ..._periodSkeleton()
+      else
+        ..._periodScoped(context, d, accent),
+      // ── Snapshot section (period-independent) ──
       if (d.score != null) ...[_vitalsCard(context, d, accent), const SizedBox(height: AppSpacing.base)],
-      _leversCard(context, d),
+      _bleedingCard(context, d),
       const SizedBox(height: AppSpacing.base),
-      if (d.topProducts.isNotEmpty) ...[_topProductsCard(context, d), const SizedBox(height: AppSpacing.base)],
+      _trappedCard(context, d),
+      const SizedBox(height: AppSpacing.base),
       _opsCard(context, d),
     ];
   }
+
+  List<Widget> _periodSkeleton() => const [
+        SkeletonCard(height: 150),
+        SizedBox(height: AppSpacing.base),
+        SkeletonCard(height: 180),
+        SizedBox(height: AppSpacing.base),
+        SkeletonCard(height: 150),
+        SizedBox(height: AppSpacing.base),
+      ];
+
+  List<Widget> _periodScoped(BuildContext context, BranchDetail d, Color accent) => [
+        _revenueCard(context, d),
+        const SizedBox(height: AppSpacing.base),
+        if (d.trend.points.isNotEmpty) ...[
+          SalesProfitChart(trend: d.trend, salesColor: accent),
+          const SizedBox(height: AppSpacing.base),
+        ],
+        if (d.topProducts.isNotEmpty) ...[_topSellersCard(context, d, accent), const SizedBox(height: AppSpacing.base)],
+      ];
 
   Widget _sectionTitle(String text) =>
       Padding(padding: const EdgeInsets.only(bottom: AppSpacing.sm), child: Text(text, style: AppTypography.titleSmall));
@@ -173,7 +214,7 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
             width: 34,
             height: 34,
             decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.18), shape: BoxShape.circle),
-            child: const Icon(Icons.trending_up_rounded, color: AppColors.success, size: 19),
+            child: Icon(Icons.trending_up_rounded, color: AppColors.success, size: 19),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -283,37 +324,110 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
     );
   }
 
-  Widget _leversCard(BuildContext context, BranchDetail d) {
-    return Column(
-      children: [
-        _leverBlock(
-          context,
-          title: context.tr('bd_bleeding_title'),
-          total: d.bleedingTotal,
-          items: d.bleedingItems,
-          color: AppColors.error,
-          icon: Icons.trending_down_rounded,
-        ),
-        const SizedBox(height: AppSpacing.base),
-        _leverBlock(
-          context,
-          title: context.tr('bd_trapped_title'),
-          total: d.trappedTotal,
-          items: d.trappedItems,
-          color: AppColors.warning,
-          icon: Icons.lock_clock_rounded,
-        ),
+  // ─── Best-sellers (period-scoped) ────────────────────────────
+  Widget _topSellersCard(BuildContext context, BranchDetail d, Color accent) {
+    return _productSection(
+      context: context,
+      icon: Icons.local_fire_department_rounded,
+      accent: accent,
+      titleKey: 'bd_top_products',
+      tiles: [
+        for (var i = 0; i < d.topProducts.take(4).length; i++)
+          ProductMetricTile(
+            imageUrl: d.topProducts[i].imageUrl,
+            name: d.topProducts[i].name,
+            value: unitsLabel(d.topProducts[i].units),
+            valueLabel: context.tr('bd_units'),
+            accent: accent,
+            rank: i + 1,
+            onTap: () => openProductDetail(context, d.topProducts[i].itemCode,
+                name: d.topProducts[i].name, myWarehouses: [widget.warehouseCode]),
+          ),
       ],
+      onViewAll: () => _openItems(BranchItemsType.top, d.name),
     );
   }
 
-  Widget _leverBlock(
-    BuildContext context, {
-    required String title,
-    required double total,
-    required List<LeverItem> items,
-    required Color color,
+  // ─── Money levers (snapshot) ─────────────────────────────────
+  Widget _bleedingCard(BuildContext context, BranchDetail d) {
+    return _productSection(
+      context: context,
+      icon: Icons.trending_down_rounded,
+      accent: AppColors.error,
+      titleKey: 'bd_bleeding_title',
+      total: d.bleedingTotal > 0 ? sarCompact(d.bleedingTotal) : null,
+      tiles: [
+        for (final it in d.bleedingItems.take(3))
+          ProductMetricTile(
+            imageUrl: it.imageUrl,
+            name: it.name,
+            value: sarCompact(it.primaryValue),
+            valueLabel: context.tr('rd_lost_monthly'),
+            accent: AppColors.error,
+            stock: it.currentStock,
+            healthStatus: it.healthStatus,
+            chips: [
+              it.isOos
+                  ? (context.tr('rd_tag_reorder'), AppColors.error)
+                  : (context.tr('rd_tag_transfer'), AppColors.primary),
+              if (it.isOnOrder) (context.tr('rd_tag_on_order'), AppColors.warning),
+            ],
+            onTap: () => openProductDetail(context, it.itemCode,
+                name: it.name, myWarehouses: [widget.warehouseCode]),
+          ),
+      ],
+      onViewAll: d.bleedingItems.isEmpty ? null : () => _openItems(BranchItemsType.bleeding, d.name),
+    );
+  }
+
+  Widget _trappedCard(BuildContext context, BranchDetail d) {
+    return _productSection(
+      context: context,
+      icon: Icons.lock_clock_rounded,
+      accent: AppColors.warning,
+      titleKey: 'bd_trapped_title',
+      total: d.trappedTotal > 0 ? sarCompact(d.trappedTotal) : null,
+      tiles: [
+        for (final it in d.trappedItems.take(3))
+          ProductMetricTile(
+            imageUrl: it.imageUrl,
+            name: it.name,
+            value: sarCompact(it.primaryValue),
+            valueLabel: context.tr('rd_capital_short'),
+            accent: AppColors.warning,
+            stock: it.currentStock,
+            healthStatus: it.healthStatus,
+            onTap: () => openProductDetail(context, it.itemCode,
+                name: it.name, myWarehouses: [widget.warehouseCode]),
+          ),
+      ],
+      onViewAll: d.trappedItems.isEmpty ? null : () => _openItems(BranchItemsType.trapped, d.name),
+    );
+  }
+
+  void _openItems(BranchItemsType type, String branchName) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BranchItemsPage(
+          warehouseCode: widget.warehouseCode,
+          branchName: branchName,
+          type: type,
+          period: _period,
+        ),
+      ),
+    );
+  }
+
+  /// Shared card for the three product sections: an icon-chip header (with an
+  /// optional total), item rows separated by hairlines, and a "view all" link.
+  Widget _productSection({
+    required BuildContext context,
     required IconData icon,
+    required Color accent,
+    required String titleKey,
+    required List<Widget> tiles,
+    String? total,
+    VoidCallback? onViewAll,
   }) {
     return AppCard(
       child: Column(
@@ -321,58 +435,59 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 18),
+              Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: accent.withValues(alpha: 0.13), borderRadius: AppRadius.borderMd),
+                child: Icon(icon, color: accent, size: 19),
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text(title, style: AppTypography.titleSmall)),
-              Text(sarCompact(total), style: AppTypography.titleSmall.copyWith(color: color, fontWeight: FontWeight.w800)),
+              Expanded(
+                child: Text(context.tr(titleKey),
+                    style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800)),
+              ),
+              if (total != null)
+                Text(total, style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w900)),
             ],
           ),
-          if (items.isEmpty)
+          if (tiles.isEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              padding: const EdgeInsets.only(top: AppSpacing.md),
               child: Text('—', style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
             )
-          else
-            ...items.map((it) => Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(it.name, style: AppTypography.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ),
-                      Text(sarCompact(it.primaryValue),
-                          style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
-                    ],
-                  ),
-                )),
+          else ...[
+            const SizedBox(height: AppSpacing.xs),
+            for (var i = 0; i < tiles.length; i++) ...[
+              if (i > 0) Divider(height: 1, color: AppColors.borderLight),
+              tiles[i],
+            ],
+          ],
+          if (onViewAll != null) ...[
+            Divider(height: AppSpacing.md, color: AppColors.borderLight),
+            _viewAllButton(context, accent, onViewAll),
+          ],
         ],
       ),
     );
   }
 
-  Widget _topProductsCard(BuildContext context, BranchDetail d) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionTitle(context.tr('bd_top_products')),
-          ...d.topProducts.asMap().entries.map((e) {
-            final i = e.key;
-            final p = e.value;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(
-                children: [
-                  Text('${i + 1}', style: AppTypography.labelMedium.copyWith(color: AppColors.textTertiary)),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(child: Text(p.name, style: AppTypography.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  Text('${unitsLabel(p.units)} ${context.tr('bd_units')}',
-                      style: AppTypography.labelMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
-                ],
-              ),
-            );
-          }),
-        ],
+  Widget _viewAllButton(BuildContext context, Color accent, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.borderMd,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(context.tr('rd_view_all'),
+                style: AppTypography.labelMedium.copyWith(color: accent, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 3),
+            Icon(AppLocalizations.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                color: accent, size: 18),
+          ],
+        ),
       ),
     );
   }

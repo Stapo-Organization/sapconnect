@@ -116,7 +116,7 @@ class CompactPromotionCard extends StatelessWidget {
         ),
       );
 
-  Widget _cellError() => const Center(
+  Widget _cellError() => Center(
         child: Icon(Icons.image_not_supported_outlined, color: AppColors.textTertiary, size: 22),
       );
 

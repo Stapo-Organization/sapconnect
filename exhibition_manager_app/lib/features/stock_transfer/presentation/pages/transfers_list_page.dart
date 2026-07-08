@@ -135,10 +135,10 @@ class _TransfersListPageState extends State<TransfersListPage> {
                       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
                       decoration: InputDecoration(
                         hintText: context.tr('search_transfers'),
-                        prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
+                        prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: AppColors.textTertiary),
+                                icon: Icon(Icons.clear, color: AppColors.textTertiary),
                                 onPressed: () {
                                   _searchController.clear();
                                   setState(() {});
@@ -469,7 +469,7 @@ class _TransferCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(Icons.category_rounded, size: 15, color: AppColors.primary),
+                      Icon(Icons.category_rounded, size: 15, color: AppColors.primary),
                       const SizedBox(width: 5),
                       Text('${transfer.linesCount} ${context.tr('items')}',
                           style: AppTypography.labelMedium.copyWith(
@@ -592,7 +592,7 @@ class _ProductImageStack extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.surface, width: 2),
         ),
-        child: const Icon(Icons.inventory_2_rounded, size: 18, color: AppColors.textTertiary),
+        child: Icon(Icons.inventory_2_rounded, size: 18, color: AppColors.textTertiary),
       );
     }
 
@@ -625,12 +625,12 @@ class _ProductImageStack extends StatelessWidget {
                   placeholder: (context, url) => Container(
                     color: AppColors.surfaceVariant,
                     alignment: Alignment.center,
-                    child: const Icon(Icons.image_outlined, size: 16, color: AppColors.textTertiary),
+                    child: Icon(Icons.image_outlined, size: 16, color: AppColors.textTertiary),
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: AppColors.surfaceVariant,
                     alignment: Alignment.center,
-                    child: const Icon(Icons.inventory_2_rounded, size: 18, color: AppColors.textTertiary),
+                    child: Icon(Icons.inventory_2_rounded, size: 18, color: AppColors.textTertiary),
                   ),
                 ),
               ),

@@ -139,7 +139,7 @@ class ContainerCardTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.update_rounded, size: 12, color: AppColors.error),
+                  Icon(Icons.update_rounded, size: 12, color: AppColors.error),
                   const SizedBox(width: 3),
                   Text('${c.etaChangeCount}',
                       style: AppTypography.labelSmall.copyWith(color: AppColors.error, fontWeight: FontWeight.w800)),

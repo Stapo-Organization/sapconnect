@@ -228,7 +228,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.12), shape: BoxShape.circle),
-            child: const Icon(Icons.task_alt_rounded, color: AppColors.success, size: 38),
+            child: Icon(Icons.task_alt_rounded, color: AppColors.success, size: 38),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(context.tr('acknowledge_hint'),
@@ -379,7 +379,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
                   fit: BoxFit.cover,
                   errorWidget: (_, _, _) => Container(
                     width: 84, height: 84, color: AppColors.surfaceVariant,
-                    child: const Icon(Icons.broken_image, color: AppColors.textTertiary),
+                    child: Icon(Icons.broken_image, color: AppColors.textTertiary),
                   ),
                 ),
               ),
@@ -424,8 +424,8 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
         hintText: required ? context.tr('comment_required_label') : context.tr('comment_optional'),
         filled: true,
         fillColor: AppColors.surface,
-        border: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: const BorderSide(color: AppColors.borderLight)),
-        enabledBorder: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: const BorderSide(color: AppColors.borderLight)),
+        border: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: BorderSide(color: AppColors.borderLight)),
+        enabledBorder: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: BorderSide(color: AppColors.borderLight)),
       ),
     );
   }

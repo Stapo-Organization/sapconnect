@@ -364,7 +364,7 @@ class _WarehousePath extends StatelessWidget {
           const SizedBox(height: 3),
           Row(
             children: [
-              const Icon(Icons.store_rounded, size: 15, color: AppColors.textSecondary),
+              Icon(Icons.store_rounded, size: 15, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(code,
@@ -428,7 +428,7 @@ class _LineCard extends StatelessWidget {
                     width: 52,
                     height: 52,
                     color: AppColors.surfaceVariant,
-                    child: const Icon(Icons.image_not_supported, size: 22, color: AppColors.textTertiary),
+                    child: Icon(Icons.image_not_supported, size: 22, color: AppColors.textTertiary),
                   ),
                 ),
               ),
@@ -479,7 +479,7 @@ class _LineCard extends StatelessWidget {
                   value: recvPct,
                   minHeight: 6,
                   backgroundColor: Colors.transparent,
-                  valueColor: const AlwaysStoppedAnimation(AppColors.success),
+                  valueColor: AlwaysStoppedAnimation(AppColors.success),
                 ),
               ),
             ],

@@ -35,18 +35,15 @@ class MuntajatLogo extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF3A71B3), // Royal Blue
-                Color(0xFF1E4880), // Deep Navy
-              ],
-            ),
+            color: const Color(0xFFF8EDDF),
             borderRadius: BorderRadius.circular(size * 0.28),
+            border: Border.all(
+              color: const Color(0xFFE4C88B).withValues(alpha: 0.4),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1E4880).withValues(alpha: 0.18),
+                color: const Color(0xFFE4C88B).withValues(alpha: 0.15),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -63,7 +60,7 @@ class MuntajatLogo extends StatelessWidget {
                   width: size * 0.26,
                   height: size * 0.26,
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.22),
+                    color: accentColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                 ),

@@ -13,7 +13,9 @@ class GradientHeader extends StatelessWidget {
   final Widget? leading;
   final List<Widget>? actions;
   final Widget? child;
-  final Gradient gradient;
+  /// Defaults to the mode-aware [AppColors.heroGradient] when null (resolved at
+  /// build time — can't be a const default now that the token is a getter).
+  final Gradient? gradient;
   final EdgeInsetsGeometry padding;
 
   const GradientHeader({
@@ -23,7 +25,7 @@ class GradientHeader extends StatelessWidget {
     this.leading,
     this.actions,
     this.child,
-    this.gradient = AppColors.heroGradient,
+    this.gradient,
     this.padding = const EdgeInsets.fromLTRB(
       AppSpacing.lg,
       AppSpacing.base,
@@ -38,7 +40,7 @@ class GradientHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: gradient,
+        gradient: gradient ?? AppColors.heroGradient,
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.xxxl)),
         boxShadow: [
           BoxShadow(

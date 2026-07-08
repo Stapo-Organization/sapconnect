@@ -49,7 +49,7 @@ class MuntajatAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       // Rich brand gradient header for a modern look.
       flexibleSpace: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: AppColors.heroGradient,
         ),
       ),

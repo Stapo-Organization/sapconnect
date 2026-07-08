@@ -158,7 +158,7 @@ class LeaderboardRow extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.trending_up_rounded, size: 13, color: AppColors.success),
+          Icon(Icons.trending_up_rounded, size: 13, color: AppColors.success),
           const SizedBox(width: 4),
           Text(context.tr('rd_profit_short'),
               style: AppTypography.labelSmall.copyWith(color: AppColors.success)),
@@ -170,7 +170,7 @@ class LeaderboardRow extends StatelessWidget {
                 style: AppTypography.labelMedium.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
           ),
           const SizedBox(width: 5),
-          Container(width: 3, height: 3, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
+          Container(width: 3, height: 3, decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
           const SizedBox(width: 5),
           Text('${p.marginPct!.toStringAsFixed(0)}٪',
               style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
@@ -186,7 +186,7 @@ class LeaderboardRow extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.trending_down_rounded, size: 12, color: AppColors.error),
+          Icon(Icons.trending_down_rounded, size: 12, color: AppColors.error),
           const SizedBox(width: 3),
           Text(compactNum(branch.bleedingMonthlySar),
               style: AppTypography.labelSmall.copyWith(color: AppColors.error, fontWeight: FontWeight.w700)),

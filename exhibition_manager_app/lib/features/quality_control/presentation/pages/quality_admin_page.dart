@@ -15,6 +15,7 @@ import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 
 import '../../data/models/quality_admin_models.dart';
 import '../../data/quality_admin_repository.dart';
+import 'quality_submission_page.dart';
 import 'quality_task_create_page.dart';
 
 /// Owner-side Quality Tasks management: templates list (with create + activate
@@ -267,6 +268,11 @@ class _QualityAdminPageState extends State<QualityAdminPage> {
             : AppColors.warning;
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => QualitySubmissionPage(instanceId: r.id, initialTitle: r.title),
+        ),
+      ),
       child: Row(
         children: [
           Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
@@ -282,8 +288,12 @@ class _QualityAdminPageState extends State<QualityAdminPage> {
             ),
           ),
           if (r.isOverdue && r.status == 'pending')
-            Text(context.tr('qa_overdue'),
-                style: AppTypography.labelSmall.copyWith(color: AppColors.error, fontWeight: FontWeight.w700)),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
+              child: Text(context.tr('qa_overdue'),
+                  style: AppTypography.labelSmall.copyWith(color: AppColors.error, fontWeight: FontWeight.w700)),
+            ),
+          Icon(Icons.chevron_left_rounded, color: AppColors.textTertiary, size: 20),
         ],
       ),
     );

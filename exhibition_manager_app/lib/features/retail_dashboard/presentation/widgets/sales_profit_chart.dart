@@ -25,7 +25,7 @@ class SalesProfitChart extends StatefulWidget {
 }
 
 class _SalesProfitChartState extends State<SalesProfitChart> with SingleTickerProviderStateMixin {
-  static const _profitColor = AppColors.success;
+  static Color get _profitColor => AppColors.success;
 
   late final AnimationController _enter;
   int? _selected; // scrub index; null = show period summary

@@ -219,8 +219,8 @@ class _QualityTaskCreatePageState extends State<QualityTaskCreatePage> {
         labelText: label,
         filled: true,
         fillColor: AppColors.surface,
-        border: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: const BorderSide(color: AppColors.border)),
-        enabledBorder: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: const BorderSide(color: AppColors.border)),
+        border: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: BorderSide(color: AppColors.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: BorderSide(color: AppColors.border)),
         focusedBorder: OutlineInputBorder(borderRadius: AppRadius.borderMd, borderSide: BorderSide(color: _accent, width: 1.5)),
       ),
     );
@@ -279,7 +279,7 @@ class _QualityTaskCreatePageState extends State<QualityTaskCreatePage> {
                     ),
                     IconButton(
                       onPressed: () => setState(() => _checklist.removeAt(i)),
-                      icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                      icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
                     ),
                   ],
                 ),

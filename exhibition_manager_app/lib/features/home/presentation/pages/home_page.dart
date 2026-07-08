@@ -7,6 +7,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/theme_toggle_button.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/permissions/app_abilities.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
@@ -412,6 +413,8 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const ThemeToggleButton(),
                     const SizedBox(width: AppSpacing.sm),
                     _headerSearchButton(),
                     const SizedBox(width: AppSpacing.sm),

@@ -14,12 +14,18 @@ class AppTypography {
 
   static const String fontFamily = 'Cairo';
 
+  /// Fallback stack: Cairo carries all Arabic/Latin/digit glyphs; the new Saudi
+  /// Riyal symbol (U+E900, PUA) lives only in the SaudiRiyal font, so every text
+  /// style falls back to it for that one glyph — rendering ﷼ inline everywhere.
+  static const List<String> fontFamilyFallback = ['SaudiRiyal'];
+
   static const TextLeadingDistribution _evenLeading =
       TextLeadingDistribution.even;
 
   // ─── Display (hero numbers, points, big stats) ─────────────
   static const TextStyle displayLarge = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 40,
     fontWeight: FontWeight.w800,
     height: 1.1,
@@ -29,6 +35,7 @@ class AppTypography {
 
   static const TextStyle displayMedium = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 32,
     fontWeight: FontWeight.w800,
     height: 1.15,
@@ -39,6 +46,7 @@ class AppTypography {
   // ─── Headline ──────────────────────────────────────────────
   static const TextStyle headlineLarge = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 28,
     fontWeight: FontWeight.w700,
     height: 1.3,
@@ -48,6 +56,7 @@ class AppTypography {
 
   static const TextStyle headlineMedium = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 24,
     fontWeight: FontWeight.w600,
     height: 1.3,
@@ -56,6 +65,7 @@ class AppTypography {
 
   static const TextStyle headlineSmall = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.3,
@@ -65,6 +75,7 @@ class AppTypography {
   // ─── Title ─────────────────────────────────────────────────
   static const TextStyle titleLarge = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.4,
@@ -73,6 +84,7 @@ class AppTypography {
 
   static const TextStyle titleMedium = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.4,
@@ -81,6 +93,7 @@ class AppTypography {
 
   static const TextStyle titleSmall = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.4,
@@ -90,6 +103,7 @@ class AppTypography {
   // ─── Body ──────────────────────────────────────────────────
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -98,6 +112,7 @@ class AppTypography {
 
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -106,6 +121,7 @@ class AppTypography {
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -115,6 +131,7 @@ class AppTypography {
   // ─── Label ─────────────────────────────────────────────────
   static const TextStyle labelLarge = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.4,
@@ -123,6 +140,7 @@ class AppTypography {
 
   static const TextStyle labelMedium = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 12,
     fontWeight: FontWeight.w600,
     height: 1.4,
@@ -131,6 +149,7 @@ class AppTypography {
 
   static const TextStyle labelSmall = TextStyle(
     fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
     fontSize: 11,
     fontWeight: FontWeight.w500,
     height: 1.4,

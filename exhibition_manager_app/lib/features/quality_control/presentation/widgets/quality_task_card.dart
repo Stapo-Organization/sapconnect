@@ -100,7 +100,7 @@ class QualityTaskCard extends StatelessWidget {
             else if (task.isOverdue)
               StatusBadge(label: context.tr('overdue_badge'), color: AppColors.error, icon: Icons.warning_amber_rounded)
             else
-              const Icon(Icons.chevron_left_rounded, color: AppColors.textTertiary),
+              Icon(Icons.chevron_left_rounded, color: AppColors.textTertiary),
           ],
         ),
       ),

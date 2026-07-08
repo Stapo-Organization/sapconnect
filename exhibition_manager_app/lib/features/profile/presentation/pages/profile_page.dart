@@ -6,14 +6,13 @@ import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
-import 'package:exhibition_manager_app/core/storage/secure_storage.dart';
-import 'package:exhibition_manager_app/core/network/api_client.dart';
-import 'package:exhibition_manager_app/core/notifications/push_service.dart';
+import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
 import 'package:exhibition_manager_app/features/notifications/presentation/pages/notification_preferences_page.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/localization/language_switch_overlay.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
-import 'package:exhibition_manager_app/features/auth/presentation/pages/login_page.dart';
+import 'package:exhibition_manager_app/features/auth/data/auth_repository.dart';
+import 'package:exhibition_manager_app/features/public/presentation/pages/public_landing_page.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 
 /// Profile Page — User info, Language Switcher, and Logout (Bilingual & Premium Redesign)
@@ -35,7 +34,7 @@ class ProfilePage extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(
                 context.tr('cancel'),
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
             ),
             ElevatedButton(
@@ -52,17 +51,38 @@ class ProfilePage extends StatelessWidget {
       ),
     );
 
-    if (confirm == true) {
-      // Drop this device server-side before clearing the auth token.
-      await PushService.instance.unregisterToken();
-      ApiClient().clearToken();
-      await SecureStorage.clearAll();
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
-        );
-      }
+    if (confirm != true || !context.mounted) return;
+
+    // Blocking progress overlay so the (time-capped) server sign-out never
+    // looks like a frozen screen.
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: AppRadius.borderLg,
+            ),
+            child: const CircularProgressIndicator(),
+          ),
+        ),
+      ),
+    );
+
+    // One canonical sign-out path (device unregister + token revoke + local
+    // clear) — capped internally so it always returns quickly.
+    await AuthRepository().logout();
+
+    if (context.mounted) {
+      // Guests land on the public home, not the login form.
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const PublicLandingPage()),
+        (route) => false,
+      );
     }
   }
 
@@ -214,6 +234,57 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+
+            const SizedBox(height: AppSpacing.base),
+
+            // ─── Appearance (Light / Dark / System) ─────────────
+            ValueListenableBuilder<AppThemeMode>(
+              valueListenable: AppThemeController.modeNotifier,
+              builder: (context, mode, _) {
+                return Container(
+                  padding: const EdgeInsets.all(AppSpacing.base),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.borderLg,
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.dark_mode_rounded,
+                              color: AppDomain.profile.accent, size: 22),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            context.tr('appearance'),
+                            style: AppTypography.labelLarge.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppSegmentedControl(
+                        selectedIndex: mode.index,
+                        onChanged: (i) =>
+                            AppThemeController.setMode(AppThemeMode.values[i]),
+                        activeColor: AppDomain.profile.accent,
+                        items: [
+                          SegmentItem(context.tr('theme_system'),
+                              icon: Icons.brightness_auto_rounded),
+                          SegmentItem(context.tr('theme_light'),
+                              icon: Icons.light_mode_rounded),
+                          SegmentItem(context.tr('theme_dark'),
+                              icon: Icons.dark_mode_rounded),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: AppSpacing.base),

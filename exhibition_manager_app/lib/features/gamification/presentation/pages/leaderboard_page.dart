@@ -105,7 +105,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               shadow: const [],
               child: Row(
                 children: [
-                  const Icon(Icons.public_rounded, color: AppColors.primary),
+                  Icon(Icons.public_rounded, color: AppColors.primary),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(context.tr('rank_company'),

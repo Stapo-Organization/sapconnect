@@ -77,7 +77,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
               maxBlastForce: 22,
               minBlastForce: 8,
               gravity: 0.25,
-              colors: const [AppColors.accent, AppColors.primary, AppColors.success, AppColors.primaryLight],
+              colors: [AppColors.accent, AppColors.primary, AppColors.success, AppColors.primaryLight],
             ),
           ),
           Center(
@@ -95,7 +95,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                     Container(
                       width: 76,
                       height: 76,
-                      decoration: const BoxDecoration(gradient: AppColors.goldGradient, shape: BoxShape.circle),
+                      decoration: BoxDecoration(gradient: AppColors.goldGradient, shape: BoxShape.circle),
                       child: const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 42),
                     ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
                     const SizedBox(height: AppSpacing.base),

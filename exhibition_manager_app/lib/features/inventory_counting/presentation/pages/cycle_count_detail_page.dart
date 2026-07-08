@@ -571,7 +571,7 @@ class _TargetTile extends StatelessWidget {
                 width: 50,
                 height: 50,
                 color: AppColors.surfaceVariant,
-                child: const Icon(Icons.image_not_supported, size: 22, color: AppColors.textTertiary),
+                child: Icon(Icons.image_not_supported, size: 22, color: AppColors.textTertiary),
               ),
             ),
           ),
@@ -619,7 +619,7 @@ class _TargetTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 24),
+                Icon(Icons.check_circle_rounded, color: AppColors.success, size: 24),
                 const SizedBox(height: 2),
                 Text('${item.countedQuantity.toInt()}',
                     style: AppTypography.labelMedium.copyWith(

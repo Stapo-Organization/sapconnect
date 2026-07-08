@@ -15,7 +15,7 @@ String sar(num v) {
     if (i > 0 && (s.length - i) % 3 == 0) b.write('٬');
     b.write(s[i]);
   }
-  return '${b.toString()} ر.س';
+  return '${b.toString()} \u{E900}';
 }
 
 String scoreLabel(double s) {

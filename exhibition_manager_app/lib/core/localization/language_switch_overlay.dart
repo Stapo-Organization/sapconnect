@@ -87,7 +87,7 @@ class _LanguageDissolveState extends State<_LanguageDissolve>
                     Container(
                       width: 72,
                       height: 72,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: AppColors.heroGradient,
                         shape: BoxShape.circle,
                       ),

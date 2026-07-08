@@ -26,6 +26,21 @@ class RetailDashboardController extends ChangeNotifier {
   RetailOverview? get data => _data;
   String get period => _period;
   String get sort => _sort;
+
+  /// Branches sorted client-side by [_sort], descending — mirrors the backend's
+  /// sort. The full branch set is already loaded, so re-sorting is instant with
+  /// no network round-trip (and therefore needs no loading state).
+  List<BranchCard> get sortedBranches {
+    final list = [...?_data?.branches];
+    double key(BranchCard c) => switch (_sort) {
+          'score' => c.score ?? -1,
+          'bleeding' => c.bleedingMonthlySar,
+          'profit' => c.profit.profit,
+          _ => c.revenue.net,
+        };
+    list.sort((a, b) => key(b).compareTo(key(a)));
+    return list;
+  }
   String? get from => _from;
   String? get to => _to;
 
@@ -39,9 +54,11 @@ class RetailDashboardController extends ChangeNotifier {
     return _fetch(showSkeleton: true);
   }
 
-  Future<void> setSort(String sort) {
+  /// Re-sort locally and instantly — no fetch, so no waiting and no spinner.
+  void setSort(String sort) {
+    if (_sort == sort) return;
     _sort = sort;
-    return _fetch(showSkeleton: false);
+    _safeNotify();
   }
 
   Future<void> _fetch({required bool showSkeleton}) async {

@@ -232,10 +232,10 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
                       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
                       decoration: InputDecoration(
                         hintText: context.tr('search_counting'),
-                        prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
+                        prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: AppColors.textTertiary),
+                                icon: Icon(Icons.clear, color: AppColors.textTertiary),
                                 onPressed: () {
                                   _searchController.clear();
                                   _onSearchChanged('');
@@ -583,7 +583,7 @@ class _SessionCard extends StatelessWidget {
                     color: AppColors.background,
                     borderRadius: AppRadius.borderSm,
                   ),
-                  child: const Icon(Icons.warehouse_outlined, size: 16, color: AppColors.textSecondary),
+                  child: Icon(Icons.warehouse_outlined, size: 16, color: AppColors.textSecondary),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -635,7 +635,7 @@ class _SessionCard extends StatelessWidget {
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.success,
-                    side: const BorderSide(color: AppColors.success, width: 1.5),
+                    side: BorderSide(color: AppColors.success, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: AppRadius.borderMd,
                     ),
@@ -726,7 +726,7 @@ class _WarehousePickerSheet extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.08),
                     borderRadius: AppRadius.borderSm,
                   ),
-                  child: const Icon(Icons.inventory_2_rounded, color: AppColors.primary, size: 22),
+                  child: Icon(Icons.inventory_2_rounded, color: AppColors.primary, size: 22),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -772,7 +772,7 @@ class _WarehousePickerSheet extends StatelessWidget {
                           color: AppColors.background,
                           borderRadius: AppRadius.borderMd,
                         ),
-                        child: const Icon(Icons.warehouse_outlined, color: AppColors.primary, size: 22),
+                        child: Icon(Icons.warehouse_outlined, color: AppColors.primary, size: 22),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(

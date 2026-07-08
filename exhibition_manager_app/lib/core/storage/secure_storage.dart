@@ -46,6 +46,14 @@ class SecureStorage {
     return await _storage.read(key: key);
   }
 
+  // ─── Clear Auth ────────────────────────────────────────────
+  /// Remove only the session (token + user) — language and theme preferences
+  /// stay, so logging out doesn't reset the user's language.
+  static Future<void> clearAuth() async {
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _userKey);
+  }
+
   // ─── Clear All ─────────────────────────────────────────────
   static Future<void> clearAll() async {
     await _storage.deleteAll();

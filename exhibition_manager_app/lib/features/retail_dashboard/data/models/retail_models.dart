@@ -177,6 +177,12 @@ class LeverItem {
   final double primaryValue; // lost_revenue_monthly OR capital_at_risk_sar
   final String primaryLabelKey; // 'rd_bleeding' or 'rd_trapped'
 
+  // Bleeding-only: net available-to-sell across ALL warehouses, qty already on a
+  // supplier order, and the resulting remedy ('reorder' = OOS → buy, else transfer).
+  final double netAvailable;
+  final double onOrder;
+  final String remedy;
+
   LeverItem({
     required this.itemCode,
     required this.name,
@@ -185,7 +191,13 @@ class LeverItem {
     required this.currentStock,
     required this.primaryValue,
     required this.primaryLabelKey,
+    this.netAvailable = 0,
+    this.onOrder = 0,
+    this.remedy = '',
   });
+
+  bool get isOos => remedy == 'reorder';
+  bool get isOnOrder => onOrder > 0;
 
   factory LeverItem.bleeding(Map<String, dynamic> j) => LeverItem(
         itemCode: '${j['item_code'] ?? ''}',
@@ -195,6 +207,9 @@ class LeverItem {
         currentStock: _d(j['current_stock']),
         primaryValue: _d(j['lost_revenue_monthly']),
         primaryLabelKey: 'rd_bleeding',
+        netAvailable: _d(j['net_available']),
+        onOrder: _d(j['on_order']),
+        remedy: '${j['remedy'] ?? 'transfer'}',
       );
 
   factory LeverItem.trapped(Map<String, dynamic> j) => LeverItem(

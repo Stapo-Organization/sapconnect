@@ -38,7 +38,7 @@ extension AppDomainPalette on AppDomain {
       case AppDomain.productSearch:
         return const Color(0xFF4C5FD5); // cobalt-indigo — the product catalogue / lookup
       case AppDomain.admin:
-        return const Color(0xFF334155); // slate — the owner's command centre
+        return AppColors.primary; // indigo — the owner's command centre (mode-aware)
       case AppDomain.stockDistribution:
         return const Color(0xFF0D9488); // deep teal — smart redistribution
       case AppDomain.containerTracking:
@@ -70,7 +70,7 @@ extension AppDomainPalette on AppDomain {
       case AppDomain.productSearch:
         return const Color(0xFF3A4BB0); // deep cobalt
       case AppDomain.admin:
-        return const Color(0xFF1E293B); // deep slate
+        return AppColors.primaryDark; // deep indigo (mode-aware)
       case AppDomain.stockDistribution:
         return const Color(0xFF0F766E); // deep teal
       case AppDomain.containerTracking:

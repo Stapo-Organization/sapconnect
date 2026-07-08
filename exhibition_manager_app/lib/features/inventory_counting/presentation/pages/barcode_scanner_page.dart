@@ -370,7 +370,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                     right: AppSpacing.xl,
                     bottom: MediaQuery.of(context).padding.bottom + AppSpacing.base,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   ),
@@ -392,7 +392,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                           color: AppColors.warning.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 36),
+                        child: Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 36),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -447,7 +447,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                     right: AppSpacing.xl,
                     bottom: MediaQuery.of(context).padding.bottom + AppSpacing.base,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   ),
@@ -468,7 +468,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                           color: AppColors.error.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.block_rounded, color: AppColors.error, size: 36),
+                        child: Icon(Icons.block_rounded, color: AppColors.error, size: 36),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -653,7 +653,7 @@ class _ProductSheet extends StatelessWidget {
         right: AppSpacing.xl,
         bottom: MediaQuery.of(context).padding.bottom + AppSpacing.base,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -692,7 +692,7 @@ class _ProductSheet extends StatelessWidget {
                       color: AppColors.surfaceVariant,
                       borderRadius: AppRadius.borderMd,
                     ),
-                    child: const Icon(Icons.image_not_supported, color: AppColors.textTertiary),
+                    child: Icon(Icons.image_not_supported, color: AppColors.textTertiary),
                   ),
                 ),
               ),
@@ -712,7 +712,7 @@ class _ProductSheet extends StatelessWidget {
               ),
               // Dismiss
               IconButton(
-                icon: const Icon(Icons.close, color: AppColors.textTertiary),
+                icon: Icon(Icons.close, color: AppColors.textTertiary),
                 onPressed: onDismiss,
               ),
             ],

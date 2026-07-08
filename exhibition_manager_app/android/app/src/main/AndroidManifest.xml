@@ -2,7 +2,7 @@
     <!-- Runtime notification permission (Android 13+) for FCM push. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="exhibition_manager_app"
+        android:label="Muntajat HUB"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

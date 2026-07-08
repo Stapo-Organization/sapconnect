@@ -91,11 +91,110 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       children: [
                         _heroCard(_data!),
                         const SizedBox(height: AppSpacing.lg),
+                        if (_data!.transferSuggestions.isNotEmpty) ...[
+                          _transferSuggestionCard(_data!),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
                         _stockSection(_data!),
                       ],
                     ),
                   ),
       ),
+    );
+  }
+
+  // ─── Smart transfer suggestion (shown for "transfer" bleeding items) ──
+  static const Color _transferAccent = Color(0xFF0E9F8E);
+
+  Widget _transferSuggestionCard(ProductDetail d) {
+    final s = d.transferSuggestions;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.base),
+      decoration: BoxDecoration(
+        color: _transferAccent.withValues(alpha: 0.08),
+        borderRadius: AppRadius.borderLg,
+        border: Border.all(color: _transferAccent.withValues(alpha: 0.30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: _transferAccent.withValues(alpha: 0.16), borderRadius: AppRadius.borderMd),
+                child: const Icon(Icons.swap_horiz_rounded, color: _transferAccent, size: 20),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text('مقترح التحويل الذكي',
+                    style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text('متوفر بمستودعات أخرى — انقله إلى ${s.first.targetName} بدل طلبه من المورد.',
+              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+          const SizedBox(height: AppSpacing.md),
+          for (var i = 0; i < s.length; i++) ...[
+            if (i > 0) Divider(height: AppSpacing.lg, color: _transferAccent.withValues(alpha: 0.15)),
+            _suggestionRow(s[i]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _suggestionRow(TransferSuggestion s) {
+    final ctx = <String>[
+      'متوفر بالمصدر ${fmtQty(s.sourceAvailable ?? 0)}',
+      if (s.targetAds != null && s.targetAds! > 0) 'يبيع ${s.targetAds!.toStringAsFixed(1)}/يوم',
+    ].join(' · ');
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _fromTo('من', s.sourceName, AppColors.textPrimary),
+              const SizedBox(height: 3),
+              _fromTo('إلى', s.targetName, _transferAccent),
+              const SizedBox(height: 5),
+              Text(ctx, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Column(
+          children: [
+            Text(fmtQty(s.quantity),
+                style: AppTypography.titleMedium.copyWith(color: _transferAccent, fontWeight: FontWeight.w900)),
+            Text('وحدة', style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _fromTo(String label, String name, Color nameColor) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+          decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: AppRadius.borderFull),
+          child: Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary, fontSize: 10)),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(
+          child: Text(name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700, color: nameColor)),
+        ),
+      ],
     );
   }
 
@@ -127,12 +226,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(color: Colors.white, borderRadius: AppRadius.borderLg),
                 child: (d.imageUrl.isEmpty)
-                    ? const Icon(Icons.inventory_2_outlined, color: AppColors.textTertiary)
+                    ? Icon(Icons.inventory_2_outlined, color: AppColors.textTertiary)
                     : Image.network(
                         d.imageUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (_, _, _) =>
-                            const Icon(Icons.inventory_2_outlined, color: AppColors.textTertiary),
+                            Icon(Icons.inventory_2_outlined, color: AppColors.textTertiary),
                       ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -379,7 +478,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   String _price(double v) {
     final s = v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
-    return '$s ر.س';
+    return '$s \u{E900}';
   }
 
   Widget _errorState() {

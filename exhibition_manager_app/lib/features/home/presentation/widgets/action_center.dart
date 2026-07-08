@@ -39,7 +39,7 @@ class ActionCenter extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.priority_high_rounded, color: AppColors.primary, size: 20),
+            Icon(Icons.priority_high_rounded, color: AppColors.primary, size: 20),
             const SizedBox(width: 6),
             Flexible(
               child: Text(

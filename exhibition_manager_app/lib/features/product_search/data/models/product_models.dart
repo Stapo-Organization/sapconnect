@@ -62,6 +62,47 @@ class WarehouseStock {
       );
 }
 
+/// A smart transfer suggestion for a stocked-out branch: pull [quantity] of this
+/// item from [sourceName] into the branch the user opened the product from.
+/// [basis] is 'engine' (the replenishment engine's own plan) or 'availability'
+/// (derived live from current stock when the engine had none).
+class TransferSuggestion {
+  final String sourceCode;
+  final String sourceName;
+  final String targetCode;
+  final String targetName;
+  final double quantity;
+  final double? sourceAvailable;
+  final double? targetAds;
+  final String basis;
+
+  TransferSuggestion({
+    required this.sourceCode,
+    required this.sourceName,
+    required this.targetCode,
+    required this.targetName,
+    required this.quantity,
+    required this.sourceAvailable,
+    required this.targetAds,
+    required this.basis,
+  });
+
+  factory TransferSuggestion.fromJson(Map<String, dynamic> j) {
+    final src = Map<String, dynamic>.from((j['source'] as Map?) ?? const {});
+    final tgt = Map<String, dynamic>.from((j['target'] as Map?) ?? const {});
+    return TransferSuggestion(
+      sourceCode: (src['code'] ?? '').toString(),
+      sourceName: (src['name'] ?? '').toString(),
+      targetCode: (tgt['code'] ?? '').toString(),
+      targetName: (tgt['name'] ?? '').toString(),
+      quantity: _d(j['quantity']),
+      sourceAvailable: _dn(j['source_available']),
+      targetAds: _dn(j['target_ads']),
+      basis: (j['basis'] ?? 'availability').toString(),
+    );
+  }
+}
+
 /// Full product detail: identity + stock across every warehouse & showroom.
 class ProductDetail {
   final String itemCode;
@@ -77,6 +118,7 @@ class ProductDetail {
   final double totalOrdered;
   final int warehouseCount; // warehouses with in_stock > 0
   final List<WarehouseStock> warehouses;
+  final List<TransferSuggestion> transferSuggestions;
 
   ProductDetail({
     required this.itemCode,
@@ -92,6 +134,7 @@ class ProductDetail {
     required this.totalOrdered,
     required this.warehouseCount,
     required this.warehouses,
+    this.transferSuggestions = const [],
   });
 
   /// Network-wide sellable: total in stock − committed + on order.
@@ -112,6 +155,9 @@ class ProductDetail {
         warehouseCount: _i(j['warehouse_count']),
         warehouses: ((j['warehouses'] as List?) ?? [])
             .map((e) => WarehouseStock.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(),
+        transferSuggestions: ((j['transfer_suggestions'] as List?) ?? [])
+            .map((e) => TransferSuggestion.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
       );
 }

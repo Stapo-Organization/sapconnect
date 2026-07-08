@@ -208,7 +208,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.flag_rounded, color: AppColors.primary, size: 20),
+              Icon(Icons.flag_rounded, color: AppColors.primary, size: 20),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(context.tr('weekly_goal'),
@@ -286,7 +286,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.workspace_premium_rounded, color: AppColors.accent, size: 20),
+            Icon(Icons.workspace_premium_rounded, color: AppColors.accent, size: 20),
             const SizedBox(width: AppSpacing.sm),
             Text(context.tr('badges_title'),
                 style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),

@@ -6,6 +6,7 @@ export 'empty_state.dart';
 export 'gradient_header.dart';
 export 'pill_chip.dart';
 export 'pressable.dart';
+export 'product_thumb.dart';
 export 'progress_ring.dart';
 export 'segmented_control.dart';
 export 'stat_chip.dart';

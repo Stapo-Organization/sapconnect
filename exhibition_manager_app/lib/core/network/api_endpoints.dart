@@ -6,8 +6,14 @@ class ApiEndpoints {
 
   // ─── Auth ──────────────────────────────────────────────────
   static const String login = '$baseUrl/login';
+  static const String verifyOtp = '$baseUrl/verify-otp';
   static const String logout = '$baseUrl/logout';
   static const String profile = '$baseUrl/profile';
+
+  // ─── Public (pre-login landing) ────────────────────────────
+  static const String landing = '$baseUrl/store/landing';
+  static String brandDetail(String code) =>
+      '$baseUrl/store/brands/${Uri.encodeComponent(code)}';
 
   // ─── Notifications (push token + channel preferences) ──────
   static const String fcmToken = '$baseUrl/profile/fcm-token';
@@ -96,6 +102,8 @@ class ApiEndpoints {
   static const String retailDashboard = '$baseUrl/retail-dashboard';
   static String retailBranch(String warehouseCode) =>
       '$baseUrl/retail-dashboard/branches/${Uri.encodeComponent(warehouseCode)}';
+  static String retailBranchItems(String warehouseCode) =>
+      '$baseUrl/retail-dashboard/branches/${Uri.encodeComponent(warehouseCode)}/items';
 
   // ─── Super Admin: Quality Tasks management ──────────────────
   static const String qualityManage = '$baseUrl/quality-tasks/manage';

@@ -210,7 +210,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
                   if (value == 'cancel') _cancelCounting();
                 },
                 itemBuilder: (ctx) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'cancel',
                     child: Row(
                       children: [

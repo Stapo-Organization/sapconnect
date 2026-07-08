@@ -1,7 +1,7 @@
 name: exhibition_manager_app
-description: "Muntajat Exhibition Manager — مدير المعرض"
+description: "Muntajat HUB — منصة فروع ومعارض منتجات"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ^3.11.5
@@ -17,6 +17,8 @@ dependencies:
 
   # Storage
   flutter_secure_storage: ^9.2.0
+  # App-sandbox paths (fresh-install marker; was already a transitive dep)
+  path_provider: ^2.1.5
 
   # Barcode Scanner
   mobile_scanner: ^7.0.0
@@ -35,10 +37,29 @@ dependencies:
   firebase_messaging: ^16.3.0
   flutter_local_notifications: ^22.0.1
 
+  # Open maps directions / phone dialer from the branches section
+  url_launcher: ^6.3.0
+
+  # Interactive branches map (OpenStreetMap-based — no API key required)
+  flutter_map: ^8.0.0
+  latlong2: ^0.9.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# App launcher icon (home-screen icon) generated from the Muntajat HUB logo.
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#F8EDDF"
+  min_sdk_android: 21
+  adaptive_icon_background: "#F8EDDF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter:
   uses-material-design: true
@@ -57,3 +78,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/Cairo-Bold.ttf
           weight: 700
+    - family: SaudiRiyal
+      fonts:
+        - asset: assets/fonts/SaudiRiyal.otf
