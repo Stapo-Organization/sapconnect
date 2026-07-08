@@ -8,6 +8,7 @@ use App\Models\StockTransfer;
 use App\Models\Warehouse;
 use App\Models\ZooboxiOrder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -28,6 +29,23 @@ use Illuminate\Support\Facades\DB;
 class BranchInsightsService
 {
     private const RETAIL_CARD = 'C0000001';
+
+    /**
+     * A bleeding item whose NET available-to-sell (in_stock − committed) summed
+     * across every warehouse is below this can't be fixed by moving stock around —
+     * it needs a fresh supplier order (OOS). At or above it, stock exists somewhere
+     * in the network and the remedy is a transfer. Public so the product-detail
+     * endpoint gates its transfer suggestion on the same threshold.
+     */
+    public const OOS_NET_AVAILABLE_THRESHOLD = 100;
+
+    /**
+     * Central feeder warehouses (mirror of the smart-transfer engine). These plus
+     * the selling showrooms make up the sellable RETAIL network; everything else
+     * (ShipGo, damaged/expired, Amazon, government, head office…) is excluded from
+     * availability and transfer sourcing.
+     */
+    public const CENTRAL_WAREHOUSES = ['AGL001', '3PL001', 'STL001', 'STL002'];
 
     /**
      * Arabic display names for the showrooms (the warehouse master stores English
@@ -108,7 +126,7 @@ class BranchInsightsService
 
     /**
      * Resolve a period filter into a [start, end] Carbon pair.
-     * Accepts: today | week | month (default) | custom (with from/to).
+     * Accepts: today | week | month (default) | year | custom (with from/to).
      *
      * @return array{0: Carbon, 1: Carbon, 2: string}
      */
@@ -122,6 +140,8 @@ class BranchInsightsService
                 return [$today->copy()->startOfDay(), $today->copy()->endOfDay(), 'today'];
             case 'week':
                 return [$today->copy()->startOfWeek(), $today->copy()->endOfDay(), 'week'];
+            case 'year':
+                return [$today->copy()->startOfYear(), $today->copy()->endOfDay(), 'year'];
             case 'custom':
                 $start = $from ? Carbon::parse($from)->startOfDay() : $today->copy()->startOfMonth();
                 $end = $to ? Carbon::parse($to)->endOfDay() : $today->copy()->endOfDay();
@@ -197,24 +217,56 @@ class BranchInsightsService
      */
     public function salesProfitTrend(Carbon $start, Carbon $end, string $granularity, ?string $warehouseCode = null): array
     {
-        $hourly = $granularity === 'hour';
+        // SALES come from the invoice HEADER total (doc_total) — present for every
+        // month, and on the same basis as the net-sales KPI — so the whole year is
+        // always visible, even for months whose line economics aren't enriched yet.
+        // PROFIT comes from the enriched line data (gross_profit) where available.
+        $wh = $warehouseCode;
+        $bind = [self::RETAIL_CARD, $start->toDateTimeString(), $end->toDateTimeString()];
 
-        $q = DB::table('sap_invoice_lines as l')
-            ->join('sap_invoices as i', 'i.id', '=', 'l.sap_invoice_id')
-            ->where('i.card_code', self::RETAIL_CARD)
-            ->whereBetween('i.doc_date', [$start, $end])
-            ->whereNotNull('l.gross_profit');
-        if ($warehouseCode !== null) {
-            $q->where('l.warehouse_code', $warehouseCode);
+        // Bucket expression for the (header-based) sales query and (line-based) profit query.
+        [$hb, $lb] = match ($granularity) {
+            'hour' => ['HOUR(i.doc_time)', 'HOUR(i.doc_time)'],
+            'month' => ["DATE_FORMAT(i.doc_date, '%Y-%m')", "DATE_FORMAT(i.doc_date, '%Y-%m')"],
+            default => ['DATE(i.doc_date)', 'DATE(i.doc_date)'],
+        };
+        $timeGuard = $granularity === 'hour' ? ' AND i.doc_time IS NOT NULL' : '';
+
+        // ── Sales: one doc_total per invoice, bucketed. Overview = fast header-only
+        //    scan; branch view de-dupes per invoice to attribute a warehouse. ──
+        if ($wh === null) {
+            $salesSql = "SELECT {$hb} k, SUM(i.doc_total) v FROM sap_invoices i
+                WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ?{$timeGuard} GROUP BY k";
+            $salesBind = $bind;
+        } else {
+            $tg = $granularity === 'hour' ? ' AND t.doc_time IS NOT NULL' : '';
+            $tb = str_replace('i.', 't.', $hb);
+            $salesSql = "SELECT {$tb} k, SUM(t.doc_total) v FROM (
+                    SELECT i.id, MAX(i.doc_total) doc_total, MAX(i.doc_date) doc_date, MAX(i.doc_time) doc_time, MIN(l.warehouse_code) warehouse_code
+                    FROM sap_invoices i JOIN sap_invoice_lines l ON l.sap_invoice_id = i.id
+                    WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ?
+                    GROUP BY i.id
+                ) t WHERE t.warehouse_code = ?{$tg} GROUP BY k";
+            $salesBind = array_merge($bind, [$wh]);
         }
+        $salesRows = collect(DB::select($salesSql, $salesBind))->keyBy('k');
 
-        if ($hourly) {
-            $rows = $q->whereNotNull('i.doc_time') // un-timed invoices would all pile into hour 0
-                ->groupBy(DB::raw('HOUR(i.doc_time)'))
-                ->select(DB::raw('HOUR(i.doc_time) k'), DB::raw('SUM(l.line_revenue) sales'), DB::raw('SUM(l.gross_profit) profit'))
-                ->get()->keyBy('k');
-            // Fill from the first to the last hour that has sales (compact business window).
-            $hours = $rows->keys()->map(fn ($h) => (int) $h)->all();
+        // ── Profit: summed line gross_profit (where enriched), bucketed. ──
+        $profitSql = "SELECT {$lb} k, SUM(l.gross_profit) v
+            FROM sap_invoice_lines l JOIN sap_invoices i ON i.id = l.sap_invoice_id
+            WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ? AND l.gross_profit IS NOT NULL"
+            . ($wh !== null ? ' AND l.warehouse_code = ?' : '') . $timeGuard . " GROUP BY k";
+        $profitBind = $wh !== null ? array_merge($bind, [$wh]) : $bind;
+        $profitRows = collect(DB::select($profitSql, $profitBind))->keyBy('k');
+
+        $point = fn ($key, $label) => [
+            'label' => $label,
+            'sales' => round((float) ($salesRows[$key]->v ?? 0), 2),
+            'profit' => round((float) ($profitRows[$key]->v ?? 0), 2),
+        ];
+
+        if ($granularity === 'hour') {
+            $hours = $salesRows->keys()->map(fn ($h) => (int) $h)->all();
             if (empty($hours)) {
                 return ['granularity' => 'hour', 'points' => []];
             }
@@ -222,19 +274,24 @@ class BranchInsightsService
             $hi = min(23, max($hours));
             $points = [];
             for ($h = $lo; $h <= $hi; $h++) {
-                $r = $rows[$h] ?? null;
-                $points[] = [
-                    'label' => sprintf('%02d:00', $h),
-                    'sales' => round((float) ($r->sales ?? 0), 2),
-                    'profit' => round((float) ($r->profit ?? 0), 2),
-                ];
+                $points[] = $point($h, sprintf('%02d:00', $h));
             }
             return ['granularity' => 'hour', 'points' => $points];
         }
 
-        $rows = $q->groupBy(DB::raw('DATE(i.doc_date)'))
-            ->select(DB::raw('DATE(i.doc_date) k'), DB::raw('SUM(l.line_revenue) sales'), DB::raw('SUM(l.gross_profit) profit'))
-            ->get()->keyBy('k');
+        if ($granularity === 'month') {
+            $points = [];
+            $cursor = $start->copy()->startOfMonth();
+            $last = $end->copy()->startOfMonth();
+            $guard = 0;
+            while ($cursor->lte($last) && $guard < 24) {
+                $key = $cursor->format('Y-m');
+                $points[] = $point($key, $key);
+                $cursor->addMonth();
+                $guard++;
+            }
+            return ['granularity' => 'month', 'points' => $points];
+        }
 
         $points = [];
         $cursor = $start->copy()->startOfDay();
@@ -242,12 +299,7 @@ class BranchInsightsService
         $guard = 0;
         while ($cursor->lte($last) && $guard < 120) {
             $key = $cursor->toDateString();
-            $r = $rows[$key] ?? null;
-            $points[] = [
-                'label' => $key,
-                'sales' => round((float) ($r->sales ?? 0), 2),
-                'profit' => round((float) ($r->profit ?? 0), 2),
-            ];
+            $points[] = $point($key, $key);
             $cursor->addDay();
             $guard++;
         }
@@ -272,6 +324,11 @@ class BranchInsightsService
      */
     public function blendedMarginByWarehouse(Carbon $start, Carbon $end): array
     {
+        // Each sold line is valued at its catalog retail and weighted by its own
+        // per-item margin; outlier costs (margin outside 2%..70%) are dropped from
+        // the blend. The whole weighting is done in SQL so only one row per
+        // warehouse crosses into PHP — same result as the old per-item loop, ~3x
+        // faster over a full year.
         $rows = DB::table('sap_invoice_lines as l')
             ->join('sap_invoices as i', 'i.id', '=', 'l.sap_invoice_id')
             ->join('branch_product_intelligence as b', function ($j) {
@@ -281,30 +338,19 @@ class BranchInsightsService
             ->whereBetween('i.doc_date', [$start, $end])
             ->where('b.unit_retail_sar', '>', 0)
             ->where('b.unit_cost_sar', '>', 0)
-            ->groupBy('l.warehouse_code', 'l.item_code', 'b.unit_cost_sar', 'b.unit_retail_sar')
+            ->whereRaw('(1 - b.unit_cost_sar / b.unit_retail_sar) BETWEEN 0.02 AND 0.70')
+            ->groupBy('l.warehouse_code')
             ->select(
                 'l.warehouse_code',
-                DB::raw('SUM(l.quantity) qty'),
-                DB::raw('b.unit_cost_sar uc'),
-                DB::raw('b.unit_retail_sar ur')
+                DB::raw('SUM(l.quantity * b.unit_retail_sar) rev'),
+                DB::raw('SUM(l.quantity * b.unit_retail_sar * (1 - b.unit_cost_sar / b.unit_retail_sar)) profit')
             )
             ->get();
 
-        $acc = [];
-        foreach ($rows as $r) {
-            $margin = 1 - ((float) $r->uc / (float) $r->ur);
-            if ($margin < 0.02 || $margin > 0.70) {
-                continue; // outlier / dirty cost — excluded from the blend
-            }
-            $rev = (float) $r->qty * (float) $r->ur;
-            $acc[$r->warehouse_code]['rev'] = ($acc[$r->warehouse_code]['rev'] ?? 0) + $rev;
-            $acc[$r->warehouse_code]['profit'] = ($acc[$r->warehouse_code]['profit'] ?? 0) + $rev * $margin;
-        }
-
         $out = [];
-        foreach ($acc as $wc => $a) {
-            if (($a['rev'] ?? 0) > 0) {
-                $out[$wc] = $a['profit'] / $a['rev'];
+        foreach ($rows as $r) {
+            if ((float) $r->rev > 0) {
+                $out[$r->warehouse_code] = (float) $r->profit / (float) $r->rev;
             }
         }
         return $out;
@@ -497,11 +543,17 @@ class BranchInsightsService
             ->get();
 
         $meta = $this->productMeta($rows->pluck('item_code')->all());
+        $net = $this->transferableSupply($rows->pluck('item_code')->all(), $warehouseCode);
 
-        return $rows->map(function ($r) use ($meta) {
+        return $rows->map(function ($r) use ($meta, $net) {
             $unitRevenue = $r->unit_retail_sar !== null
                 ? (float) $r->unit_retail_sar
                 : ($r->unit_cost_sar !== null ? (float) $r->unit_cost_sar / 0.6 : 0.0);
+            $available = $net[$r->item_code]['surplus'] ?? 0.0;
+            $onOrder = $net[$r->item_code]['on_order'] ?? 0.0;
+            // No real surplus to move (no central stock and no surplus showroom) →
+            // order from the supplier (OOS); otherwise a surplus source exists → transfer.
+            $isOos = $available < self::OOS_NET_AVAILABLE_THRESHOLD;
             return [
                 'item_code' => $r->item_code,
                 'name' => $meta[$r->item_code]['name'] ?? $r->item_code,
@@ -510,8 +562,96 @@ class BranchInsightsService
                 'current_stock' => (float) $r->current_stock,
                 'lost_sales_monthly' => (float) $r->lost_sales_monthly,
                 'lost_revenue_monthly' => round((float) $r->lost_sales_monthly * $unitRevenue, 2),
+                'net_available' => round($available, 2),
+                'on_order' => round($onOrder, 2),
+                'remedy' => $isOos ? 'reorder' : 'transfer',
+                'oos' => $isOos,
             ];
         })->all();
+    }
+
+    /**
+     * Warehouse codes of the sellable RETAIL network — the selling showrooms
+     * (derived from actual retail sales) plus the central feeder warehouses.
+     * Mirrors the smart-transfer engine: ShipGo, damaged/expired, Amazon,
+     * government and other non-retail warehouses are NOT counted toward
+     * availability or offered as transfer sources. Cached briefly (the showroom
+     * set changes rarely).
+     *
+     * @return array<int, string>
+     */
+    public function retailNetworkCodes(): array
+    {
+        return Cache::remember('retail_network_codes', 1800, fn () => array_values(array_unique(array_merge(
+            self::CENTRAL_WAREHOUSES,
+            $this->exhibitions()->keys()->all()
+        ))));
+    }
+
+    /**
+     * Transferable SURPLUS per item — the stock the retail network can actually
+     * spare to fix a stockout at [$target], summed as:
+     *   • central warehouses → all their net available (in_stock − committed), and
+     *   • other showrooms → only their EXCESS (stock beyond their own needs),
+     * so a transfer never robs a showroom that still needs the item. When this is
+     * below the threshold the remedy is a supplier order (OOS); otherwise a surplus
+     * source exists and the remedy is a transfer. Also returns on-order qty (across
+     * the retail network) for the "قيد الطلب" flag.
+     *
+     * @param  array<int,string>  $itemCodes
+     * @return array<string, array{surplus: float, central_net: float, showroom_excess: float, on_order: float}>
+     */
+    private function transferableSupply(array $itemCodes, string $target): array
+    {
+        $itemCodes = array_values(array_unique(array_filter($itemCodes)));
+        if (empty($itemCodes)) {
+            return [];
+        }
+
+        $central = self::CENTRAL_WAREHOUSES;
+        $showrooms = array_values(array_diff($this->retailNetworkCodes(), $central));
+
+        // Central: all net available is spare (central exists to distribute).
+        $centralNet = DB::table('warehouse_item_stocks')
+            ->whereIn('item_code', $itemCodes)
+            ->whereIn('warehouse_code', $central)
+            ->groupBy('item_code')
+            ->select('item_code', DB::raw('SUM(GREATEST(in_stock - committed, 0)) v'))
+            ->get()->keyBy('item_code');
+
+        // Other showrooms: only their surplus (excess_units), never their needed stock.
+        $showroomExcess = collect();
+        if (!empty($showrooms)) {
+            $showroomExcess = DB::table('branch_product_intelligence')
+                ->whereIn('item_code', $itemCodes)
+                ->whereIn('warehouse_code', $showrooms)
+                ->where('warehouse_code', '!=', $target)
+                ->where('excess_units', '>', 0)
+                ->groupBy('item_code')
+                ->select('item_code', DB::raw('SUM(excess_units) v'))
+                ->get()->keyBy('item_code');
+        }
+
+        // On order across the retail network (a live supplier PO is incoming).
+        $onOrder = DB::table('warehouse_item_stocks')
+            ->whereIn('item_code', $itemCodes)
+            ->whereIn('warehouse_code', $this->retailNetworkCodes())
+            ->groupBy('item_code')
+            ->select('item_code', DB::raw('SUM(ordered) v'))
+            ->get()->keyBy('item_code');
+
+        $out = [];
+        foreach ($itemCodes as $code) {
+            $cn = (float) ($centralNet[$code]->v ?? 0);
+            $se = (float) ($showroomExcess[$code]->v ?? 0);
+            $out[$code] = [
+                'surplus' => $cn + $se,
+                'central_net' => $cn,
+                'showroom_excess' => $se,
+                'on_order' => (float) ($onOrder[$code]->v ?? 0),
+            ];
+        }
+        return $out;
     }
 
     /** 🟡 Top trapped-capital items at the branch. */

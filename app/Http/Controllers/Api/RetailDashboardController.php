@@ -34,7 +34,12 @@ class RetailDashboardController extends Controller
         $exhibitions = $this->insights->exhibitions();
         $revenue = $this->insights->revenueByWarehouse($start, $end);
         $actual = $this->insights->actualProfitByWarehouse($start, $end);
-        $margins = $this->insights->blendedMarginByWarehouse($start, $end);
+        // The blended margin is only a fallback for warehouses that have no SAP
+        // actual-profit rows in the period. Computing it is the heaviest query in
+        // this endpoint, so skip it entirely when every branch already has actuals
+        // (the usual case for recent periods) and only pay for it when needed.
+        $needsBlend = collect($exhibitions)->keys()->contains(fn ($code) => ! isset($actual[$code]));
+        $margins = $needsBlend ? $this->insights->blendedMarginByWarehouse($start, $end) : [];
 
         $cards = [];
         $totals = ['net' => 0.0, 'gross' => 0.0, 'returns' => 0.0, 'invoices' => 0, 'profit' => 0.0];
@@ -68,7 +73,7 @@ class RetailDashboardController extends Controller
 
         $cards = $this->sortCards($cards, $request->query('sort', 'revenue'));
 
-        $trend = $this->insights->salesProfitTrend($start, $end, $period === 'today' ? 'hour' : 'day');
+        $trend = $this->insights->salesProfitTrend($start, $end, $period === 'today' ? 'hour' : ($period === 'year' ? 'month' : 'day'));
 
         return response()->json([
             'generated_at' => now()->toIso8601String(),
@@ -116,7 +121,7 @@ class RetailDashboardController extends Controller
             'warehouse' => ['code' => $warehouseCode, 'name' => $wh->warehouse_name],
             'revenue' => array_merge($rev, ['aov' => $aov]),
             'profit' => $profit,
-            'trend' => $this->insights->salesProfitTrend($start, $end, $period === 'today' ? 'hour' : 'day', $warehouseCode),
+            'trend' => $this->insights->salesProfitTrend($start, $end, $period === 'today' ? 'hour' : ($period === 'year' ? 'month' : 'day'), $warehouseCode),
             'top_products' => $this->insights->topProducts($warehouseCode, $start, $end, 10),
             'score' => $this->insights->scoreBlock($pulse),
             'vitals' => $this->insights->vitalsBlock($pulse),
@@ -131,6 +136,44 @@ class RetailDashboardController extends Controller
                 ],
             ],
             'ops' => $this->insights->opsCounts($warehouseCode),
+        ]);
+    }
+
+    /**
+     * Full list for one branch section — powers the "More" full pages behind the
+     * compact cards on the branch detail screen.
+     *   type=bleeding|trapped  → snapshot money-lever items (period-independent)
+     *   type=top               → best-sellers for the selected period
+     */
+    public function branchItems(Request $request, string $warehouseCode): JsonResponse
+    {
+        $exhibitions = $this->insights->exhibitions();
+        $wh = $exhibitions->get($warehouseCode);
+        if (!$wh) {
+            return response()->json(['message' => 'المعرض غير موجود'], 404);
+        }
+
+        $type = $request->query('type', 'bleeding');
+        $limit = min((int) $request->query('limit', 60), 100);
+
+        $items = match ($type) {
+            'trapped' => $this->insights->trappedItems($warehouseCode, $limit),
+            'top' => (function () use ($request, $warehouseCode, $limit) {
+                [$start, $end] = $this->insights->resolvePeriod(
+                    $request->query('period'),
+                    $request->query('from'),
+                    $request->query('to'),
+                );
+                return $this->insights->topProducts($warehouseCode, $start, $end, $limit);
+            })(),
+            default => $this->insights->bleedingItems($warehouseCode, $limit),
+        };
+
+        return response()->json([
+            'warehouse' => ['code' => $warehouseCode, 'name' => $wh->warehouse_name],
+            'type' => $type,
+            'count' => count($items),
+            'items' => $items,
         ]);
     }
 

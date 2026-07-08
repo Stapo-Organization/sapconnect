@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\WarehouseItemStock;
+use App\Services\Branch\BranchInsightsService;
 use App\Services\Intelligence\DemandReconstructionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -145,6 +146,11 @@ class ProductLookupController extends Controller
         $retail = app(DemandReconstructionService::class)
             ->retailPrice($product->getRawOriginal('prices'));
 
+        // When the caller came from a specific branch (the bleeding "transfer"
+        // item), suggest where to pull this item from and how much.
+        $target = $branches[0] ?? null;
+        $transferSuggestions = $target ? $this->transferSuggestions($itemCode, $target, $warehouses) : [];
+
         return response()->json([
             'item_code'       => $product->item_code,
             'name'            => $this->displayName($product),
@@ -159,7 +165,101 @@ class ProductLookupController extends Controller
             'total_ordered'   => (float) $rows->sum('ordered'),
             'warehouse_count' => $rows->where('in_stock', '>', 0)->count(),
             'warehouses'      => $warehouses,
+            'transfer_suggestions' => $transferSuggestions,
         ]);
+    }
+
+    /**
+     * "Smart transfer" for a stocked-out branch: where to pull this item from and
+     * how much. Prefers the replenishment engine's own pending suggestion; when it
+     * has none (the engine only targets high-velocity thirst) it falls back to a
+     * live availability plan — central warehouses first, then any surplus branch —
+     * sized to roughly 30 days of the target's demand.
+     *
+     * @param  \Illuminate\Support\Collection  $warehouses  per-warehouse stock lines
+     * @return array<int, array<string, mixed>>
+     */
+    private function transferSuggestions(string $itemCode, string $target, $warehouses): array
+    {
+        $svc = app(BranchInsightsService::class);
+        $central = BranchInsightsService::CENTRAL_WAREHOUSES;
+        $showrooms = array_values(array_diff($svc->retailNetworkCodes(), $central));
+        $nameMap = $warehouses->pluck('warehouse_name', 'warehouse_code')->all();
+
+        // Surplus the retail network can actually spare (mirrors the classifier):
+        //  • central warehouses → all net available (they exist to distribute)
+        //  • other showrooms → only their EXCESS — never stock they still need
+        // so a suggested transfer never creates a new stockout at the source.
+        $centralCands = $warehouses
+            ->filter(fn ($w) => in_array($w['warehouse_code'], $central, true))
+            ->map(fn ($w) => [
+                'code' => $w['warehouse_code'],
+                'name' => BranchInsightsService::arName($w['warehouse_code'], $w['warehouse_name']),
+                'avail' => max(0.0, (float) $w['in_stock'] - (float) $w['committed']),
+            ])
+            ->filter(fn ($w) => $w['avail'] > 0)
+            ->sortByDesc('avail')
+            ->values();
+
+        $showroomCands = collect();
+        if (!empty($showrooms)) {
+            $showroomCands = DB::table('branch_product_intelligence')
+                ->where('item_code', $itemCode)
+                ->whereIn('warehouse_code', $showrooms)
+                ->where('warehouse_code', '!=', $target)
+                ->where('excess_units', '>', 0)
+                ->orderByDesc('excess_units')
+                ->get(['warehouse_code', 'excess_units'])
+                ->map(fn ($r) => [
+                    'code' => $r->warehouse_code,
+                    'name' => BranchInsightsService::arName($r->warehouse_code, $nameMap[$r->warehouse_code] ?? null),
+                    'avail' => (float) $r->excess_units,
+                ]);
+        }
+
+        // Central first, then the most-overstocked showrooms.
+        $cands = $centralCands->concat($showroomCands)->values();
+
+        // Gate identical to the classifier: no meaningful surplus anywhere → the real
+        // remedy is a supplier order (OOS), so offer no transfer plan.
+        if ($cands->sum('avail') < BranchInsightsService::OOS_NET_AVAILABLE_THRESHOLD) {
+            return [];
+        }
+
+        // Size the plan to the target's ~30-day need (net of what it has / expects).
+        $ti = DB::table('branch_product_intelligence')
+            ->where('item_code', $itemCode)->where('warehouse_code', $target)->first();
+        $ads = $ti ? (float) ($ti->ads_30 ?: $ti->velocity_blended) : 0.0;
+        $monthlyNeed = max($ads * 30, $ti ? (float) $ti->lost_sales_monthly : 0.0);
+        $tgt = $warehouses->firstWhere('warehouse_code', $target);
+        $tgtEffective = $tgt ? ((float) $tgt['in_stock'] + (float) $tgt['ordered']) : 0.0;
+        $tgtName = BranchInsightsService::arName($target, $tgt['warehouse_name'] ?? $target);
+        $need = (int) ceil($monthlyNeed - $tgtEffective);
+        if ($need <= 0) {
+            return [];
+        }
+
+        $out = [];
+        $remaining = $need;
+        foreach ($cands->take(3) as $w) {
+            if ($remaining <= 0) {
+                break;
+            }
+            $qty = (int) min($remaining, $w['avail']);
+            if ($qty <= 0) {
+                continue;
+            }
+            $out[] = [
+                'source' => ['code' => $w['code'], 'name' => $w['name']],
+                'target' => ['code' => $target, 'name' => $tgtName],
+                'quantity' => (float) $qty,
+                'source_available' => (float) $w['avail'],
+                'target_ads' => $ads > 0 ? round($ads, 2) : null,
+                'basis' => 'availability',
+            ];
+            $remaining -= $qty;
+        }
+        return $out;
     }
 
     // ─── Helpers ────────────────────────────────────────────────
