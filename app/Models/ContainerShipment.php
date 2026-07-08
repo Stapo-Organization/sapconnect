@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * A snapshot of one Traqo ocean-freight shipment.
@@ -249,5 +250,13 @@ class ContainerShipment extends Model
         if (blank($this->route_json)) return [];
         $decoded = is_array($this->route_json) ? $this->route_json : json_decode($this->route_json, true);
         return is_array($decoded) ? $decoded : [];
+    }
+
+    /* -------------------- Operational link (durable; survives Traqo prune) -------------------- */
+
+    /** The operational Shipment this Traqo container belongs to (manually linked). */
+    public function shipment(): BelongsTo
+    {
+        return $this->belongsTo(Shipment::class);
     }
 }

@@ -155,9 +155,14 @@ class SyncContainerShipments extends Command
             // Mirror cleanup: drop local rows no longer present in Traqo (e.g. once
             // the operator deletes duplicate/old shipments in the Traqo dashboard).
             // Guarded by a non-empty pull so a failed list never wipes the mirror.
+            // CRITICAL: never prune a container that has been LINKED to an operational
+            // Shipment — a delivered box dropped from Traqo must not take its PO link
+            // with it. Linked rows are kept as a durable record.
             $pruned = 0;
             if ($seen > 0 && !empty($listed)) {
-                $pruned = ContainerShipment::whereNotIn('name', array_keys($listed))->delete();
+                $pruned = ContainerShipment::whereNull('shipment_id')
+                    ->whereNotIn('name', array_keys($listed))
+                    ->delete();
             }
 
             $msg = "Traqo sync success. listed={$seen} detailed={$detailed} pruned={$pruned}";

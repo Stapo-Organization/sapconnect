@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Shipment extends Model
 {
@@ -15,6 +16,8 @@ class Shipment extends Model
         'purchase_order_id',
         'status',
         'is_announced',
+        'announcement_no',
+        'commercial_invoice_no',
         'forwarder_name',
         'forwarder_id',
         'broker_id',
@@ -99,11 +102,28 @@ class Shipment extends Model
     }
 
     /**
+     * Traqo container mirror rows manually linked to this shipment.
+     * (Distinct from `containers()` — those are manually-entered ShipmentContainer rows.)
+     */
+    public function containerShipments(): HasMany
+    {
+        return $this->hasMany(ContainerShipment::class);
+    }
+
+    /**
      * Get the customs clearance broker.
      */
     public function broker(): BelongsTo
     {
         return $this->belongsTo(Broker::class);
+    }
+
+    /**
+     * The landed-cost record for this shipment (carries pricing_status = "prices updated?").
+     */
+    public function landedCost(): HasOne
+    {
+        return $this->hasOne(LandedCost::class);
     }
 
     /**

@@ -161,20 +161,26 @@ class SyncPurchaseOrders extends Command
             'bost_Delivered' => 'Delivered',
         ];
 
+        // SAP-OWNED columns only. updateOrCreate never nulls omitted columns, so the
+        // manual operational OVERLAY the ops team maintains in Filament survives every
+        // re-sync. NEVER add pq_ref / pq_value / est_departure / factory_name /
+        // payment_policy_id here — those are operator-entered and must not be clobbered.
+        $sapFields = [
+            'sap_doc_num' => $sapPO['DocNum'] ?? null,
+            'supplier_id' => $supplier->id,
+            'currency' => $currency,
+            'po_number' => (string) ($sapPO['DocNum'] ?? $docEntry),
+            'po_value' => $docTotal,
+            'doc_date' => $this->parseDate($sapPO['DocDate'] ?? null),
+            'doc_due_date' => $this->parseDate($sapPO['DocDueDate'] ?? null),
+            'doc_status' => $statusMap[$docStatus] ?? $docStatus,
+            'sync_status' => 'synced',
+            'comments' => $sapPO['Comments'] ?? null,
+        ];
+
         $po = PurchaseOrder::updateOrCreate(
             ['sap_doc_entry' => $docEntry],
-            [
-                'sap_doc_num' => $sapPO['DocNum'] ?? null,
-                'supplier_id' => $supplier->id,
-                'currency' => $currency,
-                'po_number' => (string) ($sapPO['DocNum'] ?? $docEntry),
-                'po_value' => $docTotal,
-                'doc_date' => $this->parseDate($sapPO['DocDate'] ?? null),
-                'doc_due_date' => $this->parseDate($sapPO['DocDueDate'] ?? null),
-                'doc_status' => $statusMap[$docStatus] ?? $docStatus,
-                'sync_status' => 'synced',
-                'comments' => $sapPO['Comments'] ?? null,
-            ]
+            $sapFields
         );
 
         // Sync lines

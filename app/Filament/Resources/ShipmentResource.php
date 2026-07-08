@@ -75,6 +75,10 @@ class ShipmentResource extends Resource
                         Forms\Components\Toggle::make('is_announced')
                             ->label('Announced (ASN received)'),
 
+                        Forms\Components\TextInput::make('announcement_no')
+                            ->label('Announcement No. (رقم الإعلان)')
+                            ->maxLength(255),
+
                         Forms\Components\TextInput::make('order_description')
                             ->label('Order Description')
                             ->placeholder('e.g., TUNA WITH-400G')
@@ -256,6 +260,10 @@ class ShipmentResource extends Resource
                         Forms\Components\TextInput::make('customs_manifest_no')
                             ->label('Customs Manifest No. (رقم البيان)')
                             ->placeholder('e.g., 93087'),
+
+                        Forms\Components\TextInput::make('commercial_invoice_no')
+                            ->label('Commercial Invoice No. (فاتورة المورد)')
+                            ->helperText('Supplier commercial invoice'),
 
                         Forms\Components\TextInput::make('freight_invoice_no')
                             ->label('Freight Invoice No.'),

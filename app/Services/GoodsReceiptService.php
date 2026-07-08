@@ -158,6 +158,11 @@ class GoodsReceiptService
                 $lineRows[] = [
                     'sap_goods_receipt_id' => $receipt->id,
                     'line_num'             => $ln['LineNum'] ?? null,
+                    // Source-doc link (BaseType 22 = Purchase Order/OPOR). Already present
+                    // in DocumentLines — no $select change needed. Enables GRPO→PO joins.
+                    'base_entry'           => $ln['BaseEntry'] ?? null,
+                    'base_line'            => $ln['BaseLine'] ?? null,
+                    'base_type'            => $ln['BaseType'] ?? null,
                     'item_code'            => $itemCode,
                     'quantity'             => (float) ($ln['Quantity'] ?? 0),
                     'inventory_quantity'   => (float) ($ln['InventoryQuantity'] ?? $ln['Quantity'] ?? 0),

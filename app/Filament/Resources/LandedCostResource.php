@@ -112,9 +112,12 @@ class LandedCostResource extends Resource
                             ->default('draft'),
 
                         Forms\Components\Select::make('pricing_status')
+                            ->label('Prices Updated? (تحديث الأسعار)')
                             ->options([
                                 'pending' => '⏳ Pending',
-                                'ready' => '✅ Priced',
+                                'ready'   => '✅ Priced',
+                                'done'    => '✅ Done',
+                                'no_need' => '➖ No Need',
                             ])
                             ->default('pending'),
 
@@ -256,7 +259,8 @@ class LandedCostResource extends Resource
                 Tables\Columns\BadgeColumn::make('pricing_status')
                     ->colors([
                         'warning' => 'pending',
-                        'success' => 'ready',
+                        'success' => fn ($state) => in_array($state, ['ready', 'done']),
+                        'gray'    => 'no_need',
                     ]),
                 Tables\Columns\TextColumn::make('created_at')
                     ->date()
@@ -272,7 +276,9 @@ class LandedCostResource extends Resource
                 Tables\Filters\SelectFilter::make('pricing_status')
                     ->options([
                         'pending' => 'Pending',
-                        'ready' => 'Priced',
+                        'ready'   => 'Priced',
+                        'done'    => 'Done',
+                        'no_need' => 'No Need',
                     ]),
             ])
             ->actions([

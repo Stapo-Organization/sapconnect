@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Filament\Resources\ProductRegistrationResource\Pages;
+
+use App\Filament\Resources\ProductRegistrationResource;
+use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
+
+class EditProductRegistration extends EditRecord
+{
+    protected static string $resource = ProductRegistrationResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make(),
+        ];
+    }
+}

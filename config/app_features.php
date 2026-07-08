@@ -193,5 +193,17 @@ return [
             ],
         ],
 
+        'supply_chain' => [
+            'label'         => 'العمليات وسلسلة الإمداد',
+            'label_en'      => 'Operations & Supply Chain',
+            'icon'          => 'heroicon-o-clipboard-document-list',
+            'domain'        => 'admin',
+            'tab'           => false,
+            'default_roles' => ['Super Admin'],
+            'actions'       => [
+                'view' => 'عرض ملخص أوامر الشراء والشحنات والتسجيلات',
+            ],
+        ],
+
     ],
 ];

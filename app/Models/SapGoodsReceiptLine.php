@@ -16,6 +16,9 @@ class SapGoodsReceiptLine extends Model
     protected $fillable = [
         'sap_goods_receipt_id',
         'line_num',
+        'base_entry',
+        'base_line',
+        'base_type',
         'item_code',
         'quantity',
         'inventory_quantity',
@@ -41,5 +44,14 @@ class SapGoodsReceiptLine extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'item_code', 'item_code');
+    }
+
+    /**
+     * The Purchase Order this receipt line draws down (via SAP BaseEntry → DocEntry).
+     * Only meaningful when base_type = 22 (OPOR) and base_entry is populated.
+     */
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'base_entry', 'sap_doc_entry');
     }
 }
