@@ -14,6 +14,12 @@ class ListSapImports extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\Action::make('draft_invoices')
+                ->label('مسودات فواتير من تقرير مبيعات')
+                ->icon('heroicon-o-document-currency-dollar')
+                ->color('success')
+                ->visible(fn () => \App\Filament\Resources\DraftInvoiceImportResource::canViewAny())
+                ->url(fn () => \App\Filament\Resources\DraftInvoiceImportResource::getUrl()),
         ];
     }
 
