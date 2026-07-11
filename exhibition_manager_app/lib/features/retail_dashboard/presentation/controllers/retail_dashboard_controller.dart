@@ -6,8 +6,11 @@ import '../../data/retail_dashboard_repository.dart';
 /// State for the Retail Dashboard overview: period + sort filters, tri-state
 /// loading, safe-notify guard. Mirrors ShowroomPulseController's pattern.
 class RetailDashboardController extends ChangeNotifier {
-  RetailDashboardController({RetailDashboardRepository? repository})
-      : _repo = repository ?? RetailDashboardRepository();
+  RetailDashboardController({
+    RetailDashboardRepository? repository,
+    String initialChannel = 'total',
+  })  : _repo = repository ?? RetailDashboardRepository(),
+        _channel = initialChannel;
 
   final RetailDashboardRepository _repo;
 
@@ -18,6 +21,7 @@ class RetailDashboardController extends ChangeNotifier {
 
   String _period = 'month'; // today | week | month | custom
   String _sort = 'revenue'; // revenue | score | bleeding
+  String _channel; // total | retail | wholesale
   String? _from;
   String? _to;
 
@@ -26,6 +30,7 @@ class RetailDashboardController extends ChangeNotifier {
   RetailOverview? get data => _data;
   String get period => _period;
   String get sort => _sort;
+  String get channel => _channel;
 
   /// Branches sorted client-side by [_sort], descending — mirrors the backend's
   /// sort. The full branch set is already loaded, so re-sorting is instant with
@@ -61,13 +66,22 @@ class RetailDashboardController extends ChangeNotifier {
     _safeNotify();
   }
 
+  /// Switch the sales channel (total/retail/wholesale). The payload differs
+  /// per channel (branches vs customers), so this is a server refetch.
+  Future<void> setChannel(String channel) {
+    if (_channel == channel) return Future.value();
+    _channel = channel;
+    return _fetch(showSkeleton: true);
+  }
+
   Future<void> _fetch({required bool showSkeleton}) async {
     if (showSkeleton) {
       _loading = true;
       _hasError = false;
       _safeNotify();
     }
-    final result = await _repo.getOverview(period: _period, from: _from, to: _to, sort: _sort);
+    final result = await _repo.getOverview(
+        period: _period, from: _from, to: _to, sort: _sort, channel: _channel);
     if (_disposed) return;
     if (result.success && result.data != null) {
       _data = result.data;

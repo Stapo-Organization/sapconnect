@@ -502,6 +502,15 @@ class AppLocalizations {
       'rd_profit_note_actual': 'ربح فعلي من فواتير SAP (التكلفة وقت البيع)',
       'rd_ops_pending': 'مهام معلّقة',
       'rd_no_branches': 'لا توجد معارض',
+      'rd_channel_total': 'الإجمالي',
+      'rd_channel_retail': 'المعارض',
+      'rd_channel_wholesale': 'الجملة',
+      'rd_top_customers': 'كبار عملاء الجملة',
+      'rd_customers_count': 'عميل',
+      'rd_no_customers': 'لا يوجد عملاء جملة في هذه الفترة',
+      'rd_comparison_title': 'المعارض مقابل الجملة',
+      'rd_invoices_short': 'فاتورة',
+      'owner_total_sales_today': 'إجمالي مبيعات اليوم',
       'rd_no_data': 'لا توجد بيانات لهذه الفترة',
 
       // ─── Branch detail ───
@@ -1135,6 +1144,15 @@ class AppLocalizations {
       'rd_profit_note_actual': 'Actual profit from SAP invoices (cost at sale)',
       'rd_ops_pending': 'pending tasks',
       'rd_no_branches': 'No stores',
+      'rd_channel_total': 'Total',
+      'rd_channel_retail': 'Showrooms',
+      'rd_channel_wholesale': 'Wholesale',
+      'rd_top_customers': 'Top wholesale customers',
+      'rd_customers_count': 'customers',
+      'rd_no_customers': 'No wholesale customers this period',
+      'rd_comparison_title': 'Showrooms vs wholesale',
+      'rd_invoices_short': 'inv.',
+      'owner_total_sales_today': "Today's total sales",
       'rd_no_data': 'No data for this period',
 
       // ─── Branch detail ───

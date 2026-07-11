@@ -121,14 +121,105 @@ class RetailPeriod {
       RetailPeriod(key: '${j['key'] ?? 'month'}', from: '${j['from'] ?? ''}', to: '${j['to'] ?? ''}');
 }
 
+/// One channel's money block from `channel_totals` (header basis).
+class ChannelTotals {
+  final double net;
+  final double gross;
+  final double returns;
+  final double profit;
+  final int invoices;
+
+  const ChannelTotals({
+    this.net = 0,
+    this.gross = 0,
+    this.returns = 0,
+    this.profit = 0,
+    this.invoices = 0,
+  });
+
+  factory ChannelTotals.fromJson(Map<String, dynamic> j) => ChannelTotals(
+        net: _d(j['net']),
+        gross: _d(j['gross']),
+        returns: _d(j['returns']),
+        profit: _d(j['profit']),
+        invoices: _i(j['invoices']),
+      );
+}
+
+/// The retail/wholesale/total split — present whenever channel != retail
+/// (and on the owner-home total calls). Null on old servers → the UI falls
+/// back to the single-channel layout.
+class ChannelSplit {
+  final ChannelTotals retail;
+  final ChannelTotals wholesale;
+  final ChannelTotals total;
+
+  const ChannelSplit({required this.retail, required this.wholesale, required this.total});
+
+  factory ChannelSplit.fromJson(Map<String, dynamic> j) => ChannelSplit(
+        retail: ChannelTotals.fromJson(Map<String, dynamic>.from(j['retail'] as Map? ?? {})),
+        wholesale: ChannelTotals.fromJson(Map<String, dynamic>.from(j['wholesale'] as Map? ?? {})),
+        total: ChannelTotals.fromJson(Map<String, dynamic>.from(j['total'] as Map? ?? {})),
+      );
+
+  /// Wholesale's share of total net, 0..1 (guarded against zero totals).
+  double get wholesaleShare {
+    if (total.net <= 0) return 0;
+    return (wholesale.net / total.net).clamp(0.0, 1.0);
+  }
+
+  double get retailShare => total.net <= 0 ? 0 : (retail.net / total.net).clamp(0.0, 1.0);
+}
+
+/// One row of the wholesale customers leaderboard.
+class WholesaleCustomer {
+  final String cardCode;
+  final String name; // customers.card_name, falls back to the raw code
+  final double net;
+  final double gross;
+  final double returns;
+  final double profit;
+  final int invoices;
+  final int returnsCount;
+  final double? marginPct;
+
+  WholesaleCustomer({
+    required this.cardCode,
+    required this.name,
+    required this.net,
+    required this.gross,
+    required this.returns,
+    required this.profit,
+    required this.invoices,
+    required this.returnsCount,
+    this.marginPct,
+  });
+
+  factory WholesaleCustomer.fromJson(Map<String, dynamic> j) => WholesaleCustomer(
+        cardCode: '${j['card_code'] ?? ''}',
+        name: '${j['name'] ?? j['card_code'] ?? ''}',
+        net: _d(j['net']),
+        gross: _d(j['gross']),
+        returns: _d(j['returns']),
+        profit: _d(j['profit']),
+        invoices: _i(j['invoices']),
+        returnsCount: _i(j['returns_count']),
+        marginPct: j['margin_pct'] == null ? null : _d(j['margin_pct']),
+      );
+}
+
 class RetailOverview {
   final RetailPeriod period;
+  final String channel; // retail | wholesale | total
   final double totalNet;
   final double totalProfit;
   final int totalInvoices;
   final int branchesCount;
+  final int customersCount;
   final SalesProfitTrend trend;
   final List<BranchCard> branches;
+  final List<WholesaleCustomer> customers;
+  final ChannelSplit? channels; // null on old servers / retail-only responses
 
   RetailOverview({
     required this.period,
@@ -138,20 +229,32 @@ class RetailOverview {
     required this.branchesCount,
     required this.trend,
     required this.branches,
+    this.channel = 'retail',
+    this.customersCount = 0,
+    this.customers = const [],
+    this.channels,
   });
 
   factory RetailOverview.fromJson(Map<String, dynamic> j) {
     final totals = Map<String, dynamic>.from(j['totals'] as Map? ?? {});
     return RetailOverview(
       period: RetailPeriod.fromJson(Map<String, dynamic>.from(j['period'] as Map? ?? {})),
+      channel: '${j['channel'] ?? 'retail'}',
       totalNet: _d(totals['net']),
       totalProfit: _d(totals['profit']),
       totalInvoices: _i(totals['invoices']),
       branchesCount: _i(totals['branches']),
+      customersCount: _i(totals['customers']),
       trend: j['trend'] is Map ? SalesProfitTrend.fromJson(Map<String, dynamic>.from(j['trend'] as Map)) : SalesProfitTrend.empty(),
       branches: ((j['branches'] as List?) ?? [])
           .map((e) => BranchCard.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList(),
+      customers: ((j['customers'] as List?) ?? [])
+          .map((e) => WholesaleCustomer.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList(),
+      channels: j['channel_totals'] is Map
+          ? ChannelSplit.fromJson(Map<String, dynamic>.from(j['channel_totals'] as Map))
+          : null,
     );
   }
 }

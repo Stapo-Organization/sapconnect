@@ -25,6 +25,13 @@ class OwnerCommandSnapshot {
   final List<BranchCard> topBranches;
   final double maxNet;
 
+  // ─── تقسيم القنوات (معارض/جملة/إجمالي) — null على سيرفر قديم ───
+  final ChannelSplit? channelsToday;
+  final double? retailDelta;
+  final double? retailDeltaPct;
+  final double? wholesaleDelta;
+  final double? wholesaleDeltaPct;
+
   // ─── طابور القرارات ───
   final bool promosOk;
   final int promosPending;
@@ -53,6 +60,11 @@ class OwnerCommandSnapshot {
     required this.trend,
     required this.topBranches,
     required this.maxNet,
+    this.channelsToday,
+    this.retailDelta,
+    this.retailDeltaPct,
+    this.wholesaleDelta,
+    this.wholesaleDeltaPct,
     required this.promosOk,
     required this.promosPending,
     required this.distributionOk,
@@ -64,6 +76,9 @@ class OwnerCommandSnapshot {
     required this.engine,
     required this.containers,
   });
+
+  /// هل نملك تقسيم القنوات؟ (سيرفر مُحدَّث) — وإلا نعود لتخطيط الرقم الواحد.
+  bool get hasChannels => channelsToday != null;
 
   /// إجمالي ما ينتظر قرار المالك عبر كل المصادر.
   int get pendingDecisions =>

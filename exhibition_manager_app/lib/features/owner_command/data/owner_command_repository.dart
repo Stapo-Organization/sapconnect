@@ -26,8 +26,11 @@ class OwnerCommandRepository {
     final yesterday = _ymd(DateTime.now().subtract(const Duration(days: 1)));
 
     // أطلق كل النداءات معاً (تبقى في الطيران) ثم انتظر كلاً منها بحراسة مستقلة.
-    final fToday = _retail.getOverview(period: 'today', sort: 'revenue');
-    final fPrev = _retail.getOverview(period: 'custom', from: yesterday, to: yesterday);
+    // channel=total → الرقم البطل يصير «كل البيزنس» (معارض + جملة)، ويأتي معه
+    // تقسيم القنوات channel_totals في نفس النداء، بينما تبقى بطاقات الفروع
+    // وروافع المال (نزيف/محتجز) على أساس التجزئة كما هي.
+    final fToday = _retail.getOverview(period: 'today', sort: 'revenue', channel: 'total');
+    final fPrev = _retail.getOverview(period: 'custom', from: yesterday, to: yesterday, channel: 'total');
     final fPromos = _promos.getSummary();
     final fDist = _dist.getStatus();
     final fCont = _containers.getOverview(state: 'all');
@@ -40,9 +43,13 @@ class OwnerCommandRepository {
     } catch (_) {}
 
     double? prevNet;
+    ChannelSplit? prevChannels;
     try {
       final r = await fPrev;
-      if (r.success && r.data != null) prevNet = r.data!.totalNet;
+      if (r.success && r.data != null) {
+        prevNet = r.data!.totalNet;
+        prevChannels = r.data!.channels;
+      }
     } catch (_) {}
 
     bool promosOk = false;
@@ -103,6 +110,17 @@ class OwnerCommandRepository {
     final profit = today?.totalProfit ?? 0;
     final net = today?.totalNet ?? 0;
 
+    // دلتا كل قناة مقابل الأمس (إن توفّر التقسيم على الطرفين).
+    final ch = today?.channels;
+    double? retailDelta, retailDeltaPct, wholesaleDelta, wholesaleDeltaPct;
+    if (ch != null && prevChannels != null) {
+      retailDelta = ch.retail.net - prevChannels.retail.net;
+      retailDeltaPct = prevChannels.retail.net > 0 ? (retailDelta / prevChannels.retail.net) * 100 : null;
+      wholesaleDelta = ch.wholesale.net - prevChannels.wholesale.net;
+      wholesaleDeltaPct =
+          prevChannels.wholesale.net > 0 ? (wholesaleDelta / prevChannels.wholesale.net) * 100 : null;
+    }
+
     return OwnerCommandSnapshot(
       retailOk: retailOk,
       netSalesToday: net,
@@ -117,6 +135,11 @@ class OwnerCommandRepository {
       trend: today?.trend ?? SalesProfitTrend.empty(),
       topBranches: top,
       maxNet: maxNet,
+      channelsToday: ch,
+      retailDelta: retailDelta,
+      retailDeltaPct: retailDeltaPct,
+      wholesaleDelta: wholesaleDelta,
+      wholesaleDeltaPct: wholesaleDeltaPct,
       promosOk: promosOk,
       promosPending: promosPending,
       distributionOk: distOk,

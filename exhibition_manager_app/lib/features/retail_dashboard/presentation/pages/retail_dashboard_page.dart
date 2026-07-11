@@ -13,35 +13,60 @@ import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 
+import '../../data/models/retail_models.dart';
+import '../channel_tokens.dart';
 import '../controllers/retail_dashboard_controller.dart';
+import '../widgets/channel_comparison.dart';
 import '../widgets/leaderboard_row.dart';
 import '../widgets/sales_profit_chart.dart';
+import '../widgets/wholesale_customer_row.dart';
 import 'branch_detail_page.dart';
 
-/// Retail Dashboard (لوحة البيع بالتجزئة) — the owner's cross-branch leaderboard:
-/// a count-up sales total, period + sort filters, and exhibitions ranked by the
-/// chosen metric with a share-of-leader bar and pulse ring.
+/// Performance dashboard (الأداء) — the owner's whole-business view:
+/// a channel switcher (الإجمالي / المعارض / الجملة), a count-up sales total,
+/// period + sort filters, and the channel's natural drill-down — branches
+/// ranked with pulse rings for retail, top customers for wholesale, and a
+/// two-channel comparison for the total view.
 class RetailDashboardPage extends StatefulWidget {
   /// يُخفي زر الرجوع في الهيرو عند عرض الصفحة كتبويب (لا كصفحة مدفوعة)،
   /// مثل تبويب «الأداء» في شِل المالك.
   final bool showBack;
-  const RetailDashboardPage({super.key, this.showBack = true});
+
+  /// القناة الافتراضية عند أول فتح (الإجمالي ما لم يُطلب غيره).
+  final String initialChannel;
+
+  const RetailDashboardPage({
+    super.key,
+    this.showBack = true,
+    this.initialChannel = SalesChannel.total,
+  });
 
   @override
   State<RetailDashboardPage> createState() => _RetailDashboardPageState();
 }
 
 class _RetailDashboardPageState extends State<RetailDashboardPage> {
-  final RetailDashboardController _c = RetailDashboardController();
+  late final RetailDashboardController _c =
+      RetailDashboardController(initialChannel: widget.initialChannel);
 
   @override
   void initState() {
     super.initState();
     _c.load();
+    // Owner-home channel cells set an intent then switch to this tab; the page
+    // is kept alive inside the shell's IndexedStack, so listen — don't rebuild.
+    PerformanceChannelIntent.pending.addListener(_onChannelIntent);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onChannelIntent());
+  }
+
+  void _onChannelIntent() {
+    final channel = PerformanceChannelIntent.consume();
+    if (channel != null && mounted) _c.setChannel(channel);
   }
 
   @override
   void dispose() {
+    PerformanceChannelIntent.pending.removeListener(_onChannelIntent);
     _c.dispose();
     super.dispose();
   }
@@ -93,6 +118,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
                 padding: EdgeInsets.zero,
                 children: [
                   _hero(context),
+                  _channelSwitcher(context),
                   _filters(context),
                   ..._body(context),
                   const SizedBox(height: AppSpacing.xxl),
@@ -109,6 +135,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
   Widget _hero(BuildContext context) {
     final d = _c.data;
     final net = d?.totalNet ?? 0;
+    final channel = _c.channel;
     return GradientHeader(
       gradient: AppDomain.admin.gradient,
       leading: widget.showBack ? const BackButton(color: Colors.white) : null,
@@ -117,7 +144,8 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${context.tr('rd_net_sales')} · ${context.tr(_periodLabel)}',
+          Text(
+              '${context.tr('rd_net_sales')} · ${context.tr(SalesChannel.labelKey(channel))} · ${context.tr(_periodLabel)}',
               style: AppTypography.labelMedium.copyWith(color: Colors.white.withValues(alpha: 0.85))),
           const SizedBox(height: 2),
           TweenAnimationBuilder<double>(
@@ -141,9 +169,34 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
               if ((d?.totalProfit ?? 0) > 0)
                 _heroPill(Icons.savings_rounded, '${context.tr('rd_profit_short')} ${sarCompact(d!.totalProfit)}', highlight: true),
               _heroPill(Icons.receipt_long_rounded, '${intGrouped(d?.totalInvoices ?? 0)} ${context.tr('rd_invoices')}'),
-              _heroPill(Icons.storefront_rounded, '${d?.branchesCount ?? 0} ${context.tr('rd_branches_count')}'),
+              // The third pill is the channel's natural count: branches for
+              // retail, customers for wholesale, the split for total.
+              if (channel == SalesChannel.wholesale)
+                _heroPill(Icons.groups_rounded, '${d?.customersCount ?? 0} ${context.tr('rd_customers_count')}')
+              else if (channel == SalesChannel.total && d?.channels != null)
+                _heroPill(Icons.donut_large_rounded,
+                    '${context.tr('rd_channel_retail')} ${(d!.channels!.retailShare * 100).toStringAsFixed(0)}٪ · ${context.tr('rd_channel_wholesale')} ${(d.channels!.wholesaleShare * 100).toStringAsFixed(0)}٪')
+              else
+                _heroPill(Icons.storefront_rounded, '${d?.branchesCount ?? 0} ${context.tr('rd_branches_count')}'),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Channel switcher: الإجمالي / المعارض / الجملة ─────────────
+  Widget _channelSwitcher(BuildContext context) {
+    final selected = SalesChannel.order.indexOf(_c.channel);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, 0),
+      child: AppSegmentedControl(
+        activeColor: SalesChannel.color(_c.channel),
+        selectedIndex: selected < 0 ? 0 : selected,
+        onChanged: (i) => _c.setChannel(SalesChannel.order[i]),
+        items: [
+          for (final ch in SalesChannel.order)
+            SegmentItem(context.tr(SalesChannel.labelKey(ch)), icon: SalesChannel.icon(ch)),
         ],
       ),
     );
@@ -173,7 +226,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
 
   // ─── Filters: period + custom-range; then a labelled sort row ─
   Widget _filters(BuildContext context) {
-    final accent = AppDomain.admin.accent;
+    final accent = SalesChannel.color(_c.channel);
     final selected = _periods.indexOf(_c.period);
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.xs),
@@ -296,6 +349,23 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
     if (_c.hasError) {
       return [Padding(padding: const EdgeInsets.only(top: AppSpacing.huge), child: ErrorStateWidget(onRetry: _c.refresh))];
     }
+    return switch (_c.channel) {
+      SalesChannel.wholesale => _wholesaleBody(context),
+      SalesChannel.total => _totalBody(context),
+      _ => _retailBody(context),
+    };
+  }
+
+  Widget _chart(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, 0),
+        child: SalesProfitChart(
+          trend: _c.data!.trend,
+          salesColor: SalesChannel.color(_c.channel),
+        ),
+      );
+
+  // ─── المعارض: chart + branch leaderboard (the original body) ──
+  List<Widget> _retailBody(BuildContext context) {
     final branches = _c.sortedBranches;
     if (branches.isEmpty) {
       return [
@@ -305,17 +375,17 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
         ),
       ];
     }
+    return [
+      _chart(context),
+      const SizedBox(height: AppSpacing.base),
+      ..._branchLeaderboard(context, branches),
+    ];
+  }
+
+  List<Widget> _branchLeaderboard(BuildContext context, List<BranchCard> branches) {
     final maxNet = branches.map((b) => b.revenue.net).fold<double>(0, (a, b) => b > a ? b : a);
     return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, 0),
-        child: SalesProfitChart(
-          trend: _c.data!.trend,
-          salesColor: AppDomain.admin.accent,
-        ),
-      ),
-      const SizedBox(height: AppSpacing.base),
-      // Branch ranking — moved below the chart, with its own sort controls.
+      // Branch ranking — below the chart, with its own sort controls.
       Padding(
         padding: const EdgeInsets.fromLTRB(AppSpacing.base, 0, AppSpacing.base, AppSpacing.sm),
         child: Column(
@@ -345,6 +415,110 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
           ],
         ),
       ),
+    ];
+  }
+
+  // ─── الجملة: chart + top wholesale customers ──────────────────
+  List<Widget> _wholesaleBody(BuildContext context) {
+    final customers = _c.data?.customers ?? const <WholesaleCustomer>[];
+    if (customers.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.huge),
+          child: EmptyState(icon: Icons.groups_outlined, title: context.tr('rd_no_customers')),
+        ),
+      ];
+    }
+    final maxNet = customers.map((c) => c.net).fold<double>(0, (a, b) => b > a ? b : a);
+    return [
+      _chart(context),
+      const SizedBox(height: AppSpacing.base),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.base, 0, AppSpacing.base, AppSpacing.sm),
+        child: Row(
+          children: [
+            Container(
+              width: 4,
+              height: 18,
+              decoration: BoxDecoration(
+                color: AppColors.accentDark,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              context.tr('rd_top_customers'),
+              style: AppTypography.titleSmall.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${_c.data?.customersCount ?? customers.length} ${context.tr('rd_customers_count')}',
+              style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+        child: Column(
+          children: [
+            for (var i = 0; i < customers.length; i++)
+              WholesaleCustomerRow(customer: customers[i], rank: i + 1, maxNet: maxNet)
+                  .animate()
+                  .fadeIn(duration: 280.ms, delay: (i * 45).ms)
+                  .slideY(begin: 0.12, curve: Curves.easeOutCubic),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  // ─── الإجمالي: chart + channel comparison + retail leaderboard ─
+  List<Widget> _totalBody(BuildContext context) {
+    final branches = _c.sortedBranches;
+    final channels = _c.data?.channels;
+    return [
+      _chart(context),
+      if (channels != null) ...[
+        const SizedBox(height: AppSpacing.base),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.base, 0, AppSpacing.base, AppSpacing.sm),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.textPrimary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                context.tr('rd_comparison_title'),
+                style: AppTypography.titleSmall.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+          child: ChannelComparison(channels: channels, onOpenChannel: _c.setChannel)
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: 0.08, curve: Curves.easeOutCubic),
+        ),
+      ],
+      if (branches.isNotEmpty) ...[
+        const SizedBox(height: AppSpacing.lg),
+        ..._branchLeaderboard(context, branches),
+      ],
     ];
   }
 }

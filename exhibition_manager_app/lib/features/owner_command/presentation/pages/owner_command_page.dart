@@ -30,7 +30,11 @@ import '../widgets/decision_queue_card.dart';
 /// [OwnerCommandController] الذي يجمّع المصادر بالتوازي.
 class OwnerCommandPage extends StatefulWidget {
   final User user;
-  const OwnerCommandPage({super.key, required this.user});
+
+  /// يُستدعى عند ضغط خلية قناة في الهيرو — الشِل يفتح تبويب الأداء عليها.
+  final void Function(String channel)? onOpenPerformance;
+
+  const OwnerCommandPage({super.key, required this.user, this.onOpenPerformance});
 
   @override
   State<OwnerCommandPage> createState() => _OwnerCommandPageState();
@@ -80,6 +84,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
                     userName: widget.user.name,
                     snapshot: s,
                     loading: _c.loading,
+                    onOpenPerformance: widget.onOpenPerformance,
                   ),
                   if (_c.loading && s == null)
                     _loading()

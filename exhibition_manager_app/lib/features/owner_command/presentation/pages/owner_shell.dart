@@ -8,6 +8,7 @@ import 'package:exhibition_manager_app/core/localization/app_localizations.dart'
 import 'package:exhibition_manager_app/core/notifications/push_service.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 
+import 'package:exhibition_manager_app/features/retail_dashboard/presentation/channel_tokens.dart';
 import 'package:exhibition_manager_app/features/retail_dashboard/presentation/pages/retail_dashboard_page.dart';
 import 'package:exhibition_manager_app/features/stock_distribution/presentation/pages/stock_distribution_page.dart';
 import 'package:exhibition_manager_app/features/container_tracking/presentation/pages/container_tracking_page.dart';
@@ -89,7 +90,15 @@ class _OwnerShellState extends State<OwnerShell> with SingleTickerProviderStateM
     final user = widget.user;
     return [
       _OwnerTab(
-        page: OwnerCommandPage(user: user),
+        page: OwnerCommandPage(
+          user: user,
+          // خلية قناة في هيرو القيادة → تبويب الأداء على تلك القناة. النيّة عبر
+          // ValueNotifier لأن صفحة الأداء حيّة داخل IndexedStack (بُنيت مسبقاً).
+          onOpenPerformance: (channel) {
+            PerformanceChannelIntent.pending.value = channel;
+            _navigateToTab(1);
+          },
+        ),
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard_rounded,
         labelKey: 'owner_nav_command',

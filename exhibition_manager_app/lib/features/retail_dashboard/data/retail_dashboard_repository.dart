@@ -11,8 +11,10 @@ class RetailDashboardRepository {
     String? from,
     String? to,
     String sort = 'revenue',
+    String? channel, // retail | wholesale | total (null → server default: retail)
   }) async {
     final params = <String, String>{'period': period, 'sort': sort};
+    if (channel != null) params['channel'] = channel;
     if (period == 'custom' && from != null && to != null) {
       params['from'] = from;
       params['to'] = to;

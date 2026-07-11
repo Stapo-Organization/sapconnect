@@ -2,31 +2,40 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/gradient_header.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/theme_toggle_button.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/features/retail_dashboard/data/models/retail_models.dart';
+import 'package:exhibition_manager_app/features/retail_dashboard/presentation/channel_tokens.dart';
 import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
 import '../owner_theme.dart';
 import '../../data/models/owner_command_models.dart';
 
 /// هيرو «مركز القيادة» — **المخطّط المُدمَج**: تحية بالاسم + شارة المالك + مبدّل
-/// الوضع، ثم صافي مبيعات اليوم برقم تصاعدي (count-up) وشارة دلتا مقابل الأمس،
-/// يطفو فوق **مخطّط مبيعات مصغّر** (منطقة تعبئة + نقطة نهاية)، وتحته **خلايا
-/// حيوية** (الربح/الهامش/الفواتير). أبيض على تدرّج الهيرو → تباين عالٍ في الوضعين.
+/// الوضع، ثم **إجمالي مبيعات اليوم** (معارض + جملة) برقم تصاعدي وشارة دلتا،
+/// يطفو فوق مخطّط مبيعات مصغّر، ثم **شريط تقسيم القنوات** (أبيض = معارض،
+/// ذهبي = جملة) وخليتا قناة قابلتان للضغط تفتحان صفحة الأداء على تلك القناة،
+/// وتحتها الخلايا الحيوية (الربح/الهامش/الفواتير).
 class OwnerHero extends StatelessWidget {
   final String userName;
   final OwnerCommandSnapshot? snapshot;
   final bool loading;
+
+  /// يُستدعى عند ضغط خلية قناة — يفتح تبويب الأداء على تلك القناة.
+  final void Function(String channel)? onOpenPerformance;
 
   const OwnerHero({
     super.key,
     required this.userName,
     required this.snapshot,
     this.loading = false,
+    this.onOpenPerformance,
   });
 
   String _greetingKey() {
@@ -89,7 +98,7 @@ class OwnerHero extends StatelessWidget {
         Row(
           children: [
             Text(
-              context.tr('owner_net_sales_today'),
+              context.tr((s?.hasChannels ?? false) ? 'owner_total_sales_today' : 'owner_net_sales_today'),
               style: AppTypography.labelMedium.copyWith(
                 color: Colors.white.withValues(alpha: 0.85),
               ),
@@ -144,11 +153,156 @@ class OwnerHero extends StatelessWidget {
               child: CustomPaint(painter: _SparklinePainter(points, Colors.white)),
             ),
           ],
+          // تقسيم القنوات: شريط نِسَب + خليتا معارض/جملة قابلتان للضغط.
+          if (s!.hasChannels) ...[
+            const SizedBox(height: AppSpacing.md),
+            _channelSplitStrip(s.channelsToday!),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _channelCell(
+                    context,
+                    channel: SalesChannel.retail,
+                    swatch: Colors.white.withValues(alpha: 0.92),
+                    net: s.channelsToday!.retail.net,
+                    deltaPct: s.retailDeltaPct,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _channelCell(
+                    context,
+                    channel: SalesChannel.wholesale,
+                    swatch: AppColors.accent,
+                    net: s.channelsToday!.wholesale.net,
+                    deltaPct: s.wholesaleDeltaPct,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.base),
-          _vitals(context, s!),
+          _vitals(context, s),
         ],
       ],
     );
+  }
+
+  /// شريط نِسَب القنوات: أبيض = معارض، ذهبي = جملة — يتمدّد بحركة ناعمة.
+  Widget _channelSplitStrip(ChannelSplit ch) {
+    final retail = ch.retailShare;
+    final wholesale = ch.wholesaleShare;
+    if (retail <= 0 && wholesale <= 0) return const SizedBox.shrink();
+    return ClipRRect(
+      borderRadius: AppRadius.borderFull,
+      child: SizedBox(
+        height: 8,
+        width: double.infinity,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOutCubic,
+          builder: (_, v, _) => Row(
+            children: [
+              Expanded(
+                flex: ((retail * v) * 1000).round().clamp(1, 1000),
+                child: ColoredBox(color: Colors.white.withValues(alpha: 0.92)),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                flex: ((wholesale * v) * 1000).round().clamp(1, 1000),
+                child: ColoredBox(color: AppColors.accent),
+              ),
+              if (v < 1)
+                Expanded(
+                  flex: (((1 - (retail + wholesale) * v)) * 1000).round().clamp(0, 1000),
+                  child: ColoredBox(color: Colors.white.withValues(alpha: 0.10)),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// خلية قناة: مربّع لون + الاسم + الصافي + دلتا مصغّرة. الضغط يفتح الأداء.
+  Widget _channelCell(
+    BuildContext context, {
+    required String channel,
+    required Color swatch,
+    required double net,
+    double? deltaPct,
+  }) {
+    final up = (deltaPct ?? 0) >= 0;
+    final cell = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: AppRadius.borderMd,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(color: swatch, borderRadius: BorderRadius.circular(3)),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  context.tr(SalesChannel.labelKey(channel)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.72),
+                  ),
+                ),
+              ),
+              Icon(
+                AppLocalizations.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.55),
+              ),
+            ],
+          ),
+          const SizedBox(height: 3),
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  sarCompact(net),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.titleSmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (deltaPct != null) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '${up ? '▲' : '▼'} ${deltaPct.abs().toStringAsFixed(0)}٪',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: up ? OwnerTheme.positive : OwnerTheme.danger,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+    if (onOpenPerformance == null) return cell;
+    return Pressable(onTap: () => onOpenPerformance!(channel), child: cell);
   }
 
   // ─── خلايا حيوية (بدل الشرائح المسطّحة) ───
