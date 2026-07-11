@@ -32,18 +32,20 @@ class StoreExecutiveKPIWidget extends BaseWidget
         $endDate = Carbon::parse($endDate)->endOfDay();
         $cardCode = 'C0000001';
 
-        // 1. Invoices
+        // 1. Invoices (ex-VAT)
         $invoicesAgg = SapInvoice::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->where('sales_employee_code', $storeCode)
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select(DB::raw('COUNT(*) as count'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('COUNT(*) as count'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->first();
 
-        // 2. Returns
+        // 2. Returns (ex-VAT)
         $returnsAgg = SapCreditMemo::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->where('sales_employee_code', $storeCode)
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select(DB::raw('COUNT(*) as count'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('COUNT(*) as count'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->first();
 
         $grossSales = (float) ($invoicesAgg->total ?? 0);

@@ -33,6 +33,7 @@ class SyncCreditMemos extends Command
             
             while (true) {
                 $response = $sapClient->get('CreditNotes', [
+                    '$filter' => "Cancelled eq 'tNO'",
                     '$top' => 100,
                     '$skip' => $skip,
                     '$orderby' => 'DocEntry asc'
@@ -53,24 +54,28 @@ class SyncCreditMemos extends Command
                             'doc_date' => $memo['DocDate'] ?? null,
                             'sales_employee_code' => $memo['SalesPersonCode'] ?? null,
                             'doc_total' => $memo['DocTotal'] ?? 0,
+                            'cancelled' => 'N',
                         ]
                     );
+
+                    // Delete old lines and re-insert
+                    $sapMemo->lines()->delete();
 
                     if (isset($memo['DocumentLines']) && is_array($memo['DocumentLines'])) {
                         foreach ($memo['DocumentLines'] as $line) {
                             if (!empty($line['ItemCode'])) {
-                                SapCreditMemoLine::updateOrCreate(
-                                    [
-                                        'sap_credit_memo_id' => $sapMemo->id,
-                                        'item_code' => $line['ItemCode'],
-                                    ],
-                                    [
-                                        'warehouse_code' => $line['WarehouseCode'] ?? null,
-                                        'item_description' => $line['ItemDescription'] ?? null,
-                                        'quantity' => $line['Quantity'] ?? 0,
-                                        'price' => $line['Price'] ?? 0,
-                                    ]
-                                );
+                                SapCreditMemoLine::create([
+                                    'sap_credit_memo_id' => $sapMemo->id,
+                                    'line_num' => $line['LineNum'] ?? null,
+                                    'item_code' => $line['ItemCode'],
+                                    'warehouse_code' => $line['WarehouseCode'] ?? null,
+                                    'ocr_code' => $line['CostingCode'] ?? null,
+                                    'item_description' => $line['ItemDescription'] ?? null,
+                                    'quantity' => $line['Quantity'] ?? 0,
+                                    'price' => $line['Price'] ?? 0,
+                                    'line_revenue' => $line['LineTotal'] ?? null,
+                                    'gross_profit' => $line['GrossProfit'] ?? null,
+                                ]);
                             }
                         }
                     }

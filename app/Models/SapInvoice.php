@@ -16,6 +16,7 @@ class SapInvoice extends Model
         'doc_time',
         'sales_employee_code',
         'doc_total',
+        'cancelled',
     ];
 
     protected $casts = [

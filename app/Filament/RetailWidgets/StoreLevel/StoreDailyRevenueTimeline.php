@@ -40,31 +40,35 @@ class StoreDailyRevenueTimeline extends ChartWidget
         $cardCode = 'C0000001';
 
         $invoices = SapInvoice::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->where('sales_employee_code', $storeCode)
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
         $returns = SapCreditMemo::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->where('sales_employee_code', $storeCode)
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('date')
             ->get()
             ->keyBy('date');
 
-        // Historical Average Calculation
+        // Historical Average Calculation (ex-VAT)
         $historicalInvoices = SapInvoice::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->where('sales_employee_code', $storeCode)
-            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('date')
             ->get();
 
         $historicalReturns = SapCreditMemo::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->where('sales_employee_code', $storeCode)
-            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('date')
             ->get()
             ->keyBy('date');

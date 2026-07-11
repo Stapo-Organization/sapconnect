@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  *   php artisan sap:backfill-line-profit --from=2026-06-01
  *   php artisan sap:backfill-line-profit --days=35
  *
- * Read-only against SAP (SapClient->get). Idempotent (updateOrCreate).
+ * Read-only against SAP (SapClient->get). Idempotent (delete+re-insert lines).
  */
 class BackfillLineProfit extends Command
 {
@@ -48,21 +48,28 @@ class BackfillLineProfit extends Command
                     'doc_time' => $doc['DocTime'] ?? null,
                     'sales_employee_code' => $doc['SalesPersonCode'] ?? null,
                     'doc_total' => $doc['DocTotal'] ?? 0,
+                    'cancelled' => ($doc['Cancelled'] ?? '') === 'tYES' ? 'Y' : 'N',
                 ]
             );
+
+            // Delete old lines and re-insert to fix the key collision issue
+            $header->lines()->delete();
+
             foreach (($doc['DocumentLines'] ?? []) as $line) {
                 if (empty($line['ItemCode'])) {
                     continue;
                 }
-                SapInvoiceLine::updateOrCreate(
-                    ['sap_invoice_id' => $header->id, 'item_code' => $line['ItemCode'], 'warehouse_code' => $line['WarehouseCode'] ?? null],
-                    [
-                        'quantity' => $line['Quantity'] ?? 0,
-                        'line_revenue' => $line['LineTotal'] ?? null,
-                        'unit_cost' => $line['GrossBuyPrice'] ?? null,
-                        'gross_profit' => $line['GrossProfit'] ?? null,
-                    ]
-                );
+                SapInvoiceLine::create([
+                    'sap_invoice_id' => $header->id,
+                    'line_num' => $line['LineNum'] ?? null,
+                    'item_code' => $line['ItemCode'],
+                    'warehouse_code' => $line['WarehouseCode'] ?? null,
+                    'ocr_code' => $line['CostingCode'] ?? null,
+                    'quantity' => $line['Quantity'] ?? 0,
+                    'line_revenue' => $line['LineTotal'] ?? null,
+                    'unit_cost' => $line['GrossBuyPrice'] ?? null,
+                    'gross_profit' => $line['GrossProfit'] ?? null,
+                ]);
             }
         });
 
@@ -74,22 +81,28 @@ class BackfillLineProfit extends Command
                     'doc_date' => $doc['DocDate'] ?? null,
                     'sales_employee_code' => $doc['SalesPersonCode'] ?? null,
                     'doc_total' => $doc['DocTotal'] ?? 0,
+                    'cancelled' => ($doc['Cancelled'] ?? '') === 'tYES' ? 'Y' : 'N',
                 ]
             );
+
+            // Delete old lines and re-insert
+            $header->lines()->delete();
+
             foreach (($doc['DocumentLines'] ?? []) as $line) {
                 if (empty($line['ItemCode'])) {
                     continue;
                 }
-                SapCreditMemoLine::updateOrCreate(
-                    ['sap_credit_memo_id' => $header->id, 'item_code' => $line['ItemCode']],
-                    [
-                        'warehouse_code' => $line['WarehouseCode'] ?? null,
-                        'quantity' => $line['Quantity'] ?? 0,
-                        'price' => $line['Price'] ?? 0,
-                        'line_revenue' => $line['LineTotal'] ?? null,
-                        'gross_profit' => $line['GrossProfit'] ?? null,
-                    ]
-                );
+                SapCreditMemoLine::create([
+                    'sap_credit_memo_id' => $header->id,
+                    'line_num' => $line['LineNum'] ?? null,
+                    'item_code' => $line['ItemCode'],
+                    'warehouse_code' => $line['WarehouseCode'] ?? null,
+                    'ocr_code' => $line['CostingCode'] ?? null,
+                    'quantity' => $line['Quantity'] ?? 0,
+                    'price' => $line['Price'] ?? 0,
+                    'line_revenue' => $line['LineTotal'] ?? null,
+                    'gross_profit' => $line['GrossProfit'] ?? null,
+                ]);
             }
         });
 

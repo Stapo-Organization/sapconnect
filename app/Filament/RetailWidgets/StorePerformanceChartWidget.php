@@ -36,14 +36,16 @@ class StorePerformanceChartWidget extends ChartWidget
         $cardCode = 'C0000001';
 
         $invoicesByEmp = SapInvoice::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select('sales_employee_code', DB::raw('SUM(doc_total) as total'))
+            ->select('sales_employee_code', DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('sales_employee_code')
             ->get();
 
         $returnsByEmp = SapCreditMemo::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select('sales_employee_code', DB::raw('SUM(doc_total) as total'))
+            ->select('sales_employee_code', DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('sales_employee_code')
             ->get()
             ->keyBy('sales_employee_code');

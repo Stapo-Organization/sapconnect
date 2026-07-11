@@ -214,9 +214,9 @@ class BranchInsightsService
     {
         $rows = DB::select(
             "SELECT t.warehouse_code wc, SUM(t.doc_total) total, COUNT(*) cnt FROM (
-                SELECT h.id, MAX(h.doc_total) doc_total, MIN(l.warehouse_code) warehouse_code
+                SELECT h.id, MAX(h.doc_total / 1.15) doc_total, MIN(l.warehouse_code) warehouse_code
                 FROM {$headerTable} h JOIN {$lineTable} l ON l.{$fk} = h.id
-                WHERE h.card_code = ? AND h.doc_date BETWEEN ? AND ?
+                WHERE h.card_code = ? AND h.doc_date BETWEEN ? AND ? AND h.cancelled = 'N'
                 GROUP BY h.id
              ) t WHERE t.warehouse_code IS NOT NULL GROUP BY t.warehouse_code",
             [self::RETAIL_CARD, $start->toDateTimeString(), $end->toDateTimeString()]
@@ -259,16 +259,16 @@ class BranchInsightsService
         // ── Sales: one doc_total per invoice, bucketed. Overview = fast header-only
         //    scan; branch view de-dupes per invoice to attribute a warehouse. ──
         if ($wh === null) {
-            $salesSql = "SELECT {$hb} k, SUM(i.doc_total) v FROM sap_invoices i
-                WHERE {$card} AND i.doc_date BETWEEN ? AND ?{$timeGuard} GROUP BY k";
+            $salesSql = "SELECT {$hb} k, SUM(i.doc_total / 1.15) v FROM sap_invoices i
+                WHERE {$card} AND i.doc_date BETWEEN ? AND ? AND i.cancelled = 'N'{$timeGuard} GROUP BY k";
             $salesBind = $bind;
         } else {
             $tg = $granularity === 'hour' ? ' AND t.doc_time IS NOT NULL' : '';
             $tb = str_replace('i.', 't.', $hb);
             $salesSql = "SELECT {$tb} k, SUM(t.doc_total) v FROM (
-                    SELECT i.id, MAX(i.doc_total) doc_total, MAX(i.doc_date) doc_date, MAX(i.doc_time) doc_time, MIN(l.warehouse_code) warehouse_code
+                    SELECT i.id, MAX(i.doc_total / 1.15) doc_total, MAX(i.doc_date) doc_date, MAX(i.doc_time) doc_time, MIN(l.warehouse_code) warehouse_code
                     FROM sap_invoices i JOIN sap_invoice_lines l ON l.sap_invoice_id = i.id
-                    WHERE {$card} AND i.doc_date BETWEEN ? AND ?
+                    WHERE {$card} AND i.doc_date BETWEEN ? AND ? AND i.cancelled = 'N'
                     GROUP BY i.id
                 ) t WHERE t.warehouse_code = ?{$tg} GROUP BY k";
             $salesBind = array_merge($bind, [$wh]);
@@ -348,11 +348,11 @@ class BranchInsightsService
         $bucket = "CASE WHEN card_code = ? THEN 'retail' ELSE 'wholesale' END";
 
         $inv = collect(DB::select(
-            "SELECT {$bucket} ch, SUM(doc_total) gross, COUNT(*) invoices FROM sap_invoices
-             WHERE card_code IS NOT NULL AND doc_date BETWEEN ? AND ? GROUP BY ch", $bind))->keyBy('ch');
+            "SELECT {$bucket} ch, SUM(doc_total / 1.15) gross, COUNT(*) invoices FROM sap_invoices
+             WHERE card_code IS NOT NULL AND cancelled = 'N' AND doc_date BETWEEN ? AND ? GROUP BY ch", $bind))->keyBy('ch');
         $ret = collect(DB::select(
-            "SELECT {$bucket} ch, SUM(doc_total) r FROM sap_credit_memos
-             WHERE card_code IS NOT NULL AND doc_date BETWEEN ? AND ? GROUP BY ch", $bind))->keyBy('ch');
+            "SELECT {$bucket} ch, SUM(doc_total / 1.15) r FROM sap_credit_memos
+             WHERE card_code IS NOT NULL AND cancelled = 'N' AND doc_date BETWEEN ? AND ? GROUP BY ch", $bind))->keyBy('ch');
         $gp = collect(DB::select(
             "SELECT CASE WHEN i.card_code = ? THEN 'retail' ELSE 'wholesale' END ch, SUM(l.gross_profit) p
              FROM sap_invoice_lines l JOIN sap_invoices i ON i.id = l.sap_invoice_id
@@ -402,12 +402,12 @@ class BranchInsightsService
         $bind = array_merge($cardBind, [$start->toDateTimeString(), $end->toDateTimeString()]);
 
         $sales = collect(DB::select(
-            "SELECT i.card_code, SUM(i.doc_total) gross, COUNT(*) invoices FROM sap_invoices i
-             WHERE {$card} AND i.doc_date BETWEEN ? AND ? GROUP BY i.card_code", $bind))->keyBy('card_code');
+            "SELECT i.card_code, SUM(i.doc_total / 1.15) gross, COUNT(*) invoices FROM sap_invoices i
+             WHERE {$card} AND i.cancelled = 'N' AND i.doc_date BETWEEN ? AND ? GROUP BY i.card_code", $bind))->keyBy('card_code');
         [$mcard, $mBind] = $this->channelPredicate('wholesale', 'm');
         $memos = collect(DB::select(
-            "SELECT m.card_code, SUM(m.doc_total) r, COUNT(*) c FROM sap_credit_memos m
-             WHERE {$mcard} AND m.doc_date BETWEEN ? AND ? GROUP BY m.card_code",
+            "SELECT m.card_code, SUM(m.doc_total / 1.15) r, COUNT(*) c FROM sap_credit_memos m
+             WHERE {$mcard} AND m.cancelled = 'N' AND m.doc_date BETWEEN ? AND ? GROUP BY m.card_code",
             array_merge($mBind, [$start->toDateTimeString(), $end->toDateTimeString()])))->keyBy('card_code');
 
         // Merge → net per customer → top N.
@@ -579,9 +579,9 @@ class BranchInsightsService
     {
         $byDay = collect(DB::select(
             "SELECT DATE(t.doc_date) d, SUM(t.doc_total) total FROM (
-                SELECT i.id, MAX(i.doc_total) doc_total, MAX(i.doc_date) doc_date, MIN(l.warehouse_code) warehouse_code
+                SELECT i.id, MAX(i.doc_total / 1.15) doc_total, MAX(i.doc_date) doc_date, MIN(l.warehouse_code) warehouse_code
                 FROM sap_invoices i JOIN sap_invoice_lines l ON l.sap_invoice_id = i.id
-                WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ?
+                WHERE i.card_code = ? AND i.cancelled = 'N' AND i.doc_date BETWEEN ? AND ?
                 GROUP BY i.id
              ) t WHERE t.warehouse_code = ? GROUP BY DATE(t.doc_date)",
             [self::RETAIL_CARD, $start->toDateTimeString(), $end->toDateTimeString(), $warehouseCode]

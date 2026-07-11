@@ -8,6 +8,7 @@ use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\SapInvoice;
 use App\Models\SapCreditMemo;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class RetailExecutiveStatsWidget extends BaseWidget
 {
@@ -27,19 +28,18 @@ class RetailExecutiveStatsWidget extends BaseWidget
 
         $cardCode = 'C0000001';
 
-        // Base Queries
-        $invoicesQuery = SapInvoice::where('card_code', $cardCode)->whereBetween('doc_date', [$startDate, $endDate]);
-        $returnsQuery = SapCreditMemo::where('card_code', $cardCode)->whereBetween('doc_date', [$startDate, $endDate]);
+        // Base Queries — exclude cancelled documents (SAP CANCELED = 'N')
+        $invoicesQuery = SapInvoice::where('card_code', $cardCode)->where('cancelled', 'N')->whereBetween('doc_date', [$startDate, $endDate]);
+        $returnsQuery = SapCreditMemo::where('card_code', $cardCode)->where('cancelled', 'N')->whereBetween('doc_date', [$startDate, $endDate]);
 
-        // 1. Total Gross Sales
-        $grossSales = (float) $invoicesQuery->sum('doc_total');
+        // 1. Total Gross Sales (ex-VAT to match SAP LineTotal basis)
+        $grossSales = (float) $invoicesQuery->sum(DB::raw('doc_total / 1.15'));
         
-        // 2. Total Returns
-        $totalReturns = (float) $returnsQuery->sum('doc_total');
+        // 2. Total Returns (ex-VAT)
+        $totalReturns = (float) $returnsQuery->sum(DB::raw('doc_total / 1.15'));
 
-        // 3. Net Revenue
+        // 3. Net Revenue (already ex-VAT)
         $netRevenue = $grossSales - $totalReturns;
-        $netRevenueNoVat = $netRevenue / 1.15;
 
         // 4. Transactions (Total Invoices)
         $totalInvoices = $invoicesQuery->count();
@@ -52,7 +52,7 @@ class RetailExecutiveStatsWidget extends BaseWidget
 
         return [
             Stat::make('صافي الإيرادات (Net Revenue)', number_format($netRevenue, 2) . ' SAR')
-                ->description('بدون ضريبة: ' . number_format($netRevenueNoVat, 2) . ' | المبيعات ناقص المرتجعات')
+                ->description('بدون ضريبة — المبيعات ناقص المرتجعات')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
 

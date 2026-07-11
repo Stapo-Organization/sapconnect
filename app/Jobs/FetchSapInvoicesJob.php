@@ -48,7 +48,7 @@ class FetchSapInvoicesJob implements ShouldQueue
                 while (true) {
                     try {
                         $response = $sapClient->get('Invoices', [
-                            '$filter' => "DocDate eq '{$dateStr}'",
+                            '$filter' => "DocDate eq '{$dateStr}' and Cancelled eq 'tNO'",
                             '$top' => 50,
                             '$skip' => $daySkip,
                             '$orderby' => 'DocEntry desc',
@@ -76,22 +76,28 @@ class FetchSapInvoicesJob implements ShouldQueue
                                         'doc_date' => $inv['DocDate'] ?? null,
                                         'sales_employee_code' => $inv['SalesPersonCode'] ?? null,
                                         'doc_total' => $inv['DocTotal'] ?? 0,
+                                        'cancelled' => 'N',
                                     ]
                                 );
+
+                                // Delete old lines and re-insert to avoid losing
+                                // duplicate item+warehouse lines
+                                $sapInvoice->lines()->delete();
 
                                 if (isset($inv['DocumentLines']) && is_array($inv['DocumentLines'])) {
                                     foreach ($inv['DocumentLines'] as $line) {
                                         if (!empty($line['ItemCode'])) {
-                                            SapInvoiceLine::updateOrCreate(
-                                                [
-                                                    'sap_invoice_id' => $sapInvoice->id,
-                                                    'item_code' => $line['ItemCode'],
-                                                    'warehouse_code' => $line['WarehouseCode'] ?? null,
-                                                ],
-                                                [
-                                                    'quantity' => $line['Quantity'] ?? 0,
-                                                ]
-                                            );
+                                            SapInvoiceLine::create([
+                                                'sap_invoice_id' => $sapInvoice->id,
+                                                'line_num' => $line['LineNum'] ?? null,
+                                                'item_code' => $line['ItemCode'],
+                                                'warehouse_code' => $line['WarehouseCode'] ?? null,
+                                                'ocr_code' => $line['CostingCode'] ?? null,
+                                                'quantity' => $line['Quantity'] ?? 0,
+                                                'line_revenue' => $line['LineTotal'] ?? null,
+                                                'unit_cost' => $line['GrossBuyPrice'] ?? null,
+                                                'gross_profit' => $line['GrossProfit'] ?? null,
+                                            ]);
                                         }
                                     }
                                 }

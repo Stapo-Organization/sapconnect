@@ -27,17 +27,19 @@ class StoreSalesWidget extends BaseWidget
 
         $cardCode = 'C0000001';
 
-        // Get all retail invoices in date range grouped by employee code
+        // Get all retail invoices in date range grouped by employee code (ex-VAT)
         $invoicesByEmp = SapInvoice::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select('sales_employee_code', \Illuminate\Support\Facades\DB::raw('SUM(doc_total) as total'))
+            ->select('sales_employee_code', \Illuminate\Support\Facades\DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('sales_employee_code')
             ->get();
 
-        // Get all retail returns in date range grouped by employee code
+        // Get all retail returns in date range grouped by employee code (ex-VAT)
         $returnsByEmp = \App\Models\SapCreditMemo::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select('sales_employee_code', \Illuminate\Support\Facades\DB::raw('SUM(doc_total) as total'))
+            ->select('sales_employee_code', \Illuminate\Support\Facades\DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('sales_employee_code')
             ->get()
             ->keyBy('sales_employee_code');
@@ -80,7 +82,6 @@ class StoreSalesWidget extends BaseWidget
             
             $totalReturns = isset($returnsByEmp[$code]) ? $returnsByEmp[$code]->total : 0;
             $netSales = $totalSales - $totalReturns;
-            $netSalesNoVat = $netSales / 1.15;
 
             $storeName = $employeeNames[$code] ?? "Sales Employee: " . $code;
             
@@ -89,7 +90,7 @@ class StoreSalesWidget extends BaseWidget
             $storeName = str_replace('POS Cashier-', '', $storeName);
 
             $stats[] = Stat::make($storeName, number_format($netSales, 2) . ' SAR')
-                ->description("بدون ضريبة: " . number_format($netSalesNoVat, 2) . " | الإجمالي: " . number_format($totalSales, 2) . " | المرتجع: " . number_format($totalReturns, 2))
+                ->description("الإجمالي: " . number_format($totalSales, 2) . " | المرتجع: " . number_format($totalReturns, 2))
                 ->descriptionIcon('heroicon-m-receipt-refund')
                 ->color($netSales > 0 ? 'success' : 'danger')
                 ->url(url('/admin/store-dashboard/' . $code))

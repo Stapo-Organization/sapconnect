@@ -34,18 +34,20 @@ class RevenueTimelineChartWidget extends ChartWidget
 
         $cardCode = 'C0000001';
 
-        // Group invoices by Date
+        // Group invoices by Date (ex-VAT)
         $invoicesByDate = SapInvoice::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        // Group returns by Date
+        // Group returns by Date (ex-VAT)
         $returnsByDate = SapCreditMemo::where('card_code', $cardCode)
+            ->where('cancelled', 'N')
             ->whereBetween('doc_date', [$startDate, $endDate])
-            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total) as total'))
+            ->select(DB::raw('DATE(doc_date) as date'), DB::raw('SUM(doc_total / 1.15) as total'))
             ->groupBy('date')
             ->get()
             ->keyBy('date');

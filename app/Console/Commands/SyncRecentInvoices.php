@@ -36,7 +36,7 @@ class SyncRecentInvoices extends Command
             
             while (true) {
                 $response = $sapClient->get('Invoices', [
-                    '$filter' => "DocDate ge '{$startDate}'",
+                    '$filter' => "DocDate ge '{$startDate}' and Cancelled eq 'tNO'",
                     '$top' => 50,
                     '$skip' => $skip,
                     '$orderby' => 'DocEntry desc'
@@ -58,26 +58,30 @@ class SyncRecentInvoices extends Command
                             'doc_time' => $inv['DocTime'] ?? null,
                             'sales_employee_code' => $inv['SalesPersonCode'] ?? null,
                             'doc_total' => $inv['DocTotal'] ?? 0,
+                            'cancelled' => $inv['Cancelled'] === 'tYES' ? 'Y' : 'N',
                         ]
                     );
+
+                    // Delete old lines for this invoice and re-insert to avoid
+                    // the updateOrCreate key collision issue where same item+warehouse
+                    // appears multiple times in one invoice.
+                    $sapInvoice->lines()->delete();
 
                     if (isset($inv['DocumentLines']) && is_array($inv['DocumentLines'])) {
                         foreach ($inv['DocumentLines'] as $line) {
                             if (!empty($line['ItemCode'])) {
-                                SapInvoiceLine::updateOrCreate(
-                                    [
-                                        'sap_invoice_id' => $sapInvoice->id,
-                                        'item_code' => $line['ItemCode'],
-                                        'warehouse_code' => $line['WarehouseCode'] ?? null,
-                                    ],
-                                    [
-                                        'quantity' => $line['Quantity'] ?? 0,
-                                        // SAP actual economics (ex-VAT): real gross profit at posting.
-                                        'line_revenue' => $line['LineTotal'] ?? null,
-                                        'unit_cost' => $line['GrossBuyPrice'] ?? null,
-                                        'gross_profit' => $line['GrossProfit'] ?? null,
-                                    ]
-                                );
+                                SapInvoiceLine::create([
+                                    'sap_invoice_id' => $sapInvoice->id,
+                                    'line_num' => $line['LineNum'] ?? null,
+                                    'item_code' => $line['ItemCode'],
+                                    'quantity' => $line['Quantity'] ?? 0,
+                                    'warehouse_code' => $line['WarehouseCode'] ?? null,
+                                    'ocr_code' => $line['CostingCode'] ?? null,
+                                    // SAP actual economics (ex-VAT): real gross profit at posting.
+                                    'line_revenue' => $line['LineTotal'] ?? null,
+                                    'unit_cost' => $line['GrossBuyPrice'] ?? null,
+                                    'gross_profit' => $line['GrossProfit'] ?? null,
+                                ]);
                             }
                         }
                     }

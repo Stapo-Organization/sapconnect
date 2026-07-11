@@ -11,9 +11,11 @@ class SapInvoiceLine extends Model
 
     protected $fillable = [
         'sap_invoice_id',
+        'line_num',
         'item_code',
         'quantity',
         'warehouse_code',
+        'ocr_code',
         'line_revenue',
         'unit_cost',
         'gross_profit',
