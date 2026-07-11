@@ -27,7 +27,16 @@ class StockTransferController extends Controller
      */
     protected function getActiveDb(): string
     {
-        return config('sap.company_db', 'PPTC_V5_PROD');
+        // فلترة التحويلات يجب أن تطابق قاعدة **مزامنة التحويلات** (التي توسم بها
+        // كل صف)، لا config('sap.company_db') — فتلك قاعدة اتصال SAP الحيّة/هدف
+        // مستورد المسودات (TEST_RETAIL01 على الإنتاج)، بينما تُزامَن التحويلات من
+        // PPTC_V5_PROD. تضاربهما يُخفي كل التحويلات عن التطبيق (لكل الفروع).
+        $db = \App\Models\Automation::query()
+            ->where('code', 'like', 'sync_stock_transfers%')
+            ->orderByDesc('is_active')
+            ->value('sap_database');
+
+        return $db ?: config('sap.company_db', 'PPTC_V5_PROD');
     }
 
     /**
