@@ -31,63 +31,96 @@ class RetailDashboardController extends Controller
             $request->query('to'),
         );
 
-        $exhibitions = $this->insights->exhibitions();
-        $revenue = $this->insights->revenueByWarehouse($start, $end);
-        $actual = $this->insights->actualProfitByWarehouse($start, $end);
-        // The blended margin is only a fallback for warehouses that have no SAP
-        // actual-profit rows in the period. Computing it is the heaviest query in
-        // this endpoint, so skip it entirely when every branch already has actuals
-        // (the usual case for recent periods) and only pay for it when needed.
-        $needsBlend = collect($exhibitions)->keys()->contains(fn ($code) => ! isset($actual[$code]));
-        $margins = $needsBlend ? $this->insights->blendedMarginByWarehouse($start, $end) : [];
+        // Sales channel: retail (default — old app builds keep today's payload),
+        // wholesale (B2B customers), or total (both).
+        $channel = $request->query('channel');
+        $channel = in_array($channel, BranchInsightsService::CHANNELS, true) ? $channel : 'retail';
+
+        // Header-basis split. Computed only when the caller looks beyond retail:
+        // the owner home asks channel=total and rides this; pure-retail requests
+        // (including all legacy app builds) skip the extra scans entirely.
+        $channelTotals = $channel === 'retail' ? null : $this->insights->channelTotals($start, $end);
 
         $cards = [];
-        $totals = ['net' => 0.0, 'gross' => 0.0, 'returns' => 0.0, 'invoices' => 0, 'profit' => 0.0];
+        $customers = [];
+        $customersCount = 0;
 
-        foreach ($exhibitions as $code => $wh) {
-            $rev = $revenue[$code] ?? $this->insights->emptyRevenue();
-            $pulse = $this->insights->pulseRow($code);
-            $ops = $this->insights->opsCounts($code);
-            // Prefer SAP's actual gross profit; fall back to the blended estimate.
-            $profit = $actual[$code] ?? $this->insights->profitBlock($rev['net'], $margins[$code] ?? null);
+        if ($channel === 'wholesale') {
+            // Wholesale docs can span warehouses → branch attribution is
+            // meaningless; the natural drill-down is the customer leaderboard.
+            ['customers_count' => $customersCount, 'customers' => $customers] =
+                $this->insights->wholesaleCustomers($start, $end, 15);
+            $totals = $channelTotals['wholesale'];
+        } else {
+            $exhibitions = $this->insights->exhibitions();
+            $revenue = $this->insights->revenueByWarehouse($start, $end);
+            $actual = $this->insights->actualProfitByWarehouse($start, $end);
+            // The blended margin is only a fallback for warehouses that have no SAP
+            // actual-profit rows in the period. Computing it is the heaviest query in
+            // this endpoint, so skip it entirely when every branch already has actuals
+            // (the usual case for recent periods) and only pay for it when needed.
+            $needsBlend = collect($exhibitions)->keys()->contains(fn ($code) => ! isset($actual[$code]));
+            $margins = $needsBlend ? $this->insights->blendedMarginByWarehouse($start, $end) : [];
 
-            $totals['net'] += $rev['net'];
-            $totals['gross'] += $rev['gross'];
-            $totals['returns'] += $rev['returns'];
-            $totals['invoices'] += $rev['invoices'];
-            $totals['profit'] += $profit['profit'];
+            $retailTotals = ['net' => 0.0, 'gross' => 0.0, 'returns' => 0.0, 'invoices' => 0, 'profit' => 0.0];
 
-            $cards[] = [
-                'warehouse' => ['code' => $code, 'name' => $wh->warehouse_name],
-                'revenue' => $rev,
-                'profit' => $profit,
-                'score' => $pulse ? round((float) $pulse->score, 1) : null,
-                'rank' => $pulse && $pulse->rank !== null ? (int) $pulse->rank : null,
-                'total_branches' => $pulse && $pulse->total_branches !== null ? (int) $pulse->total_branches : null,
-                'bleeding_monthly_sar' => $pulse ? round((float) $pulse->bleeding_monthly_sar, 2) : 0.0,
-                'trapped_capital_sar' => $pulse ? round((float) $pulse->trapped_capital_sar, 2) : 0.0,
-                'ops' => $ops,
-                'ops_total' => $ops['quality_pending'] + $ops['counting_active'] + $ops['transfers_new'] + $ops['zooboxi_pending'],
-            ];
+            foreach ($exhibitions as $code => $wh) {
+                $rev = $revenue[$code] ?? $this->insights->emptyRevenue();
+                $pulse = $this->insights->pulseRow($code);
+                $ops = $this->insights->opsCounts($code);
+                // Prefer SAP's actual gross profit; fall back to the blended estimate.
+                $profit = $actual[$code] ?? $this->insights->profitBlock($rev['net'], $margins[$code] ?? null);
+
+                $retailTotals['net'] += $rev['net'];
+                $retailTotals['gross'] += $rev['gross'];
+                $retailTotals['returns'] += $rev['returns'];
+                $retailTotals['invoices'] += $rev['invoices'];
+                $retailTotals['profit'] += $profit['profit'];
+
+                $cards[] = [
+                    'warehouse' => ['code' => $code, 'name' => $wh->warehouse_name],
+                    'revenue' => $rev,
+                    'profit' => $profit,
+                    'score' => $pulse ? round((float) $pulse->score, 1) : null,
+                    'rank' => $pulse && $pulse->rank !== null ? (int) $pulse->rank : null,
+                    'total_branches' => $pulse && $pulse->total_branches !== null ? (int) $pulse->total_branches : null,
+                    'bleeding_monthly_sar' => $pulse ? round((float) $pulse->bleeding_monthly_sar, 2) : 0.0,
+                    'trapped_capital_sar' => $pulse ? round((float) $pulse->trapped_capital_sar, 2) : 0.0,
+                    'ops' => $ops,
+                    'ops_total' => $ops['quality_pending'] + $ops['counting_active'] + $ops['transfers_new'] + $ops['zooboxi_pending'],
+                ];
+            }
+
+            $cards = $this->sortCards($cards, $request->query('sort', 'revenue'));
+
+            // Retail keeps the branch-summed basis (hero == leaderboard, exactly
+            // as before); total uses the header basis so it always equals
+            // retail + wholesale of channel_totals.
+            $totals = $channel === 'retail'
+                ? array_map(fn ($v) => is_int($v) ? $v : round($v, 2), $retailTotals)
+                : $channelTotals['total'];
         }
 
-        $cards = $this->sortCards($cards, $request->query('sort', 'revenue'));
-
-        $trend = $this->insights->salesProfitTrend($start, $end, $period === 'today' ? 'hour' : ($period === 'year' ? 'month' : 'day'));
+        $trend = $this->insights->salesProfitTrend(
+            $start,
+            $end,
+            $period === 'today' ? 'hour' : ($period === 'year' ? 'month' : 'day'),
+            null,
+            $channel,
+        );
 
         return response()->json([
             'generated_at' => now()->toIso8601String(),
             'period' => ['key' => $period, 'from' => $start->toDateString(), 'to' => $end->toDateString()],
+            'channel' => $channel,
+            'channel_totals' => $channelTotals,
             'trend' => $trend,
-            'totals' => [
-                'net' => round($totals['net'], 2),
-                'gross' => round($totals['gross'], 2),
-                'returns' => round($totals['returns'], 2),
-                'invoices' => $totals['invoices'],
-                'profit' => round($totals['profit'], 2),
+            'totals' => array_merge($totals, [
                 'branches' => count($cards),
-            ],
+                'customers' => $customersCount,
+            ]),
             'branches' => $cards,
+            'customers' => $customers,
         ]);
     }
 

@@ -30,6 +30,28 @@ class BranchInsightsService
 {
     private const RETAIL_CARD = 'C0000001';
 
+    /** Sales channels the dashboards can slice by. */
+    public const CHANNELS = ['retail', 'wholesale', 'total'];
+
+    /**
+     * SQL predicate + bindings for a sales channel on a header table alias.
+     *   retail    → card_code = C0000001 (the showroom cash register)
+     *   wholesale → card_code <> C0000001 (any real B2B customer)
+     *   total     → card_code IS NOT NULL
+     * NULL card_code docs are excluded from every channel, so
+     * total ≡ retail + wholesale exactly.
+     *
+     * @return array{0: string, 1: array}
+     */
+    private function channelPredicate(string $channel, string $alias = 'i'): array
+    {
+        return match ($channel) {
+            'wholesale' => ["{$alias}.card_code <> ? AND {$alias}.card_code IS NOT NULL", [self::RETAIL_CARD]],
+            'total' => ["{$alias}.card_code IS NOT NULL", []],
+            default => ["{$alias}.card_code = ?", [self::RETAIL_CARD]],
+        };
+    }
+
     /**
      * A bleeding item whose NET available-to-sell (in_stock − committed) summed
      * across every warehouse is below this can't be fixed by moving stock around —
@@ -211,18 +233,20 @@ class BranchInsightsService
     /**
      * Combined sales + actual-profit time series (ex-VAT, from synced line
      * economics), bucketed by hour (today) or day (week/month). Optionally
-     * scoped to one warehouse. Continuous buckets — gaps filled with zero.
+     * scoped to one warehouse and/or a sales channel (retail/wholesale/total).
+     * Continuous buckets — gaps filled with zero.
      *
      * @return array{granularity:string, points: array<int, array{label:string, sales:float, profit:float}>}
      */
-    public function salesProfitTrend(Carbon $start, Carbon $end, string $granularity, ?string $warehouseCode = null): array
+    public function salesProfitTrend(Carbon $start, Carbon $end, string $granularity, ?string $warehouseCode = null, string $channel = 'retail'): array
     {
         // SALES come from the invoice HEADER total (doc_total) — present for every
         // month, and on the same basis as the net-sales KPI — so the whole year is
         // always visible, even for months whose line economics aren't enriched yet.
         // PROFIT comes from the enriched line data (gross_profit) where available.
         $wh = $warehouseCode;
-        $bind = [self::RETAIL_CARD, $start->toDateTimeString(), $end->toDateTimeString()];
+        [$card, $cardBind] = $this->channelPredicate($channel);
+        $bind = array_merge($cardBind, [$start->toDateTimeString(), $end->toDateTimeString()]);
 
         // Bucket expression for the (header-based) sales query and (line-based) profit query.
         [$hb, $lb] = match ($granularity) {
@@ -236,7 +260,7 @@ class BranchInsightsService
         //    scan; branch view de-dupes per invoice to attribute a warehouse. ──
         if ($wh === null) {
             $salesSql = "SELECT {$hb} k, SUM(i.doc_total) v FROM sap_invoices i
-                WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ?{$timeGuard} GROUP BY k";
+                WHERE {$card} AND i.doc_date BETWEEN ? AND ?{$timeGuard} GROUP BY k";
             $salesBind = $bind;
         } else {
             $tg = $granularity === 'hour' ? ' AND t.doc_time IS NOT NULL' : '';
@@ -244,7 +268,7 @@ class BranchInsightsService
             $salesSql = "SELECT {$tb} k, SUM(t.doc_total) v FROM (
                     SELECT i.id, MAX(i.doc_total) doc_total, MAX(i.doc_date) doc_date, MAX(i.doc_time) doc_time, MIN(l.warehouse_code) warehouse_code
                     FROM sap_invoices i JOIN sap_invoice_lines l ON l.sap_invoice_id = i.id
-                    WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ?
+                    WHERE {$card} AND i.doc_date BETWEEN ? AND ?
                     GROUP BY i.id
                 ) t WHERE t.warehouse_code = ?{$tg} GROUP BY k";
             $salesBind = array_merge($bind, [$wh]);
@@ -254,7 +278,7 @@ class BranchInsightsService
         // ── Profit: summed line gross_profit (where enriched), bucketed. ──
         $profitSql = "SELECT {$lb} k, SUM(l.gross_profit) v
             FROM sap_invoice_lines l JOIN sap_invoices i ON i.id = l.sap_invoice_id
-            WHERE i.card_code = ? AND i.doc_date BETWEEN ? AND ? AND l.gross_profit IS NOT NULL"
+            WHERE {$card} AND i.doc_date BETWEEN ? AND ? AND l.gross_profit IS NOT NULL"
             . ($wh !== null ? ' AND l.warehouse_code = ?' : '') . $timeGuard . " GROUP BY k";
         $profitBind = $wh !== null ? array_merge($bind, [$wh]) : $bind;
         $profitRows = collect(DB::select($profitSql, $profitBind))->keyBy('k');
@@ -304,6 +328,143 @@ class BranchInsightsService
             $guard++;
         }
         return ['granularity' => 'day', 'points' => $points];
+    }
+
+    /**
+     * Retail vs wholesale vs total money blocks over a period, on the HEADER
+     * basis (doc_total): gross & invoice count from sap_invoices, returns from
+     * sap_credit_memos, profit from the enriched line gross_profit net of
+     * credit-memo lines. Four grouped scans total, all index-backed.
+     *
+     * Note: the retail block here is header-based and can differ slightly from
+     * the branch-summed retail totals (docs with no lines / NULL-warehouse
+     * lines aren't attributable to a branch) — that gap is deliberate.
+     *
+     * @return array<string, array{gross:float, returns:float, net:float, invoices:int, profit:float}>
+     */
+    public function channelTotals(Carbon $start, Carbon $end): array
+    {
+        $bind = [self::RETAIL_CARD, $start->toDateTimeString(), $end->toDateTimeString()];
+        $bucket = "CASE WHEN card_code = ? THEN 'retail' ELSE 'wholesale' END";
+
+        $inv = collect(DB::select(
+            "SELECT {$bucket} ch, SUM(doc_total) gross, COUNT(*) invoices FROM sap_invoices
+             WHERE card_code IS NOT NULL AND doc_date BETWEEN ? AND ? GROUP BY ch", $bind))->keyBy('ch');
+        $ret = collect(DB::select(
+            "SELECT {$bucket} ch, SUM(doc_total) r FROM sap_credit_memos
+             WHERE card_code IS NOT NULL AND doc_date BETWEEN ? AND ? GROUP BY ch", $bind))->keyBy('ch');
+        $gp = collect(DB::select(
+            "SELECT CASE WHEN i.card_code = ? THEN 'retail' ELSE 'wholesale' END ch, SUM(l.gross_profit) p
+             FROM sap_invoice_lines l JOIN sap_invoices i ON i.id = l.sap_invoice_id
+             WHERE i.card_code IS NOT NULL AND i.doc_date BETWEEN ? AND ? AND l.gross_profit IS NOT NULL
+             GROUP BY ch", $bind))->keyBy('ch');
+        $gpRet = collect(DB::select(
+            "SELECT CASE WHEN m.card_code = ? THEN 'retail' ELSE 'wholesale' END ch, SUM(l.gross_profit) p
+             FROM sap_credit_memo_lines l JOIN sap_credit_memos m ON m.id = l.sap_credit_memo_id
+             WHERE m.card_code IS NOT NULL AND m.doc_date BETWEEN ? AND ? AND l.gross_profit IS NOT NULL
+             GROUP BY ch", $bind))->keyBy('ch');
+
+        $out = [];
+        foreach (['retail', 'wholesale'] as $ch) {
+            $gross = (float) ($inv[$ch]->gross ?? 0);
+            $returns = (float) ($ret[$ch]->r ?? 0);
+            $out[$ch] = [
+                'gross' => round($gross, 2),
+                'returns' => round($returns, 2),
+                'net' => round($gross - $returns, 2),
+                'invoices' => (int) ($inv[$ch]->invoices ?? 0),
+                'profit' => round((float) ($gp[$ch]->p ?? 0) - (float) ($gpRet[$ch]->p ?? 0), 2),
+            ];
+        }
+        $out['total'] = [
+            'gross' => round($out['retail']['gross'] + $out['wholesale']['gross'], 2),
+            'returns' => round($out['retail']['returns'] + $out['wholesale']['returns'], 2),
+            'net' => round($out['retail']['net'] + $out['wholesale']['net'], 2),
+            'invoices' => $out['retail']['invoices'] + $out['wholesale']['invoices'],
+            'profit' => round($out['retail']['profit'] + $out['wholesale']['profit'], 2),
+        ];
+        return $out;
+    }
+
+    /**
+     * Top wholesale customers by net sales (invoices − credit memos, header
+     * doc_total) over a period — the wholesale channel's natural leaderboard
+     * (branch attribution is meaningless for multi-warehouse B2B docs).
+     * Profit/margin come from enriched lines, fetched only for the top codes.
+     * Names resolve via customers.card_name; the sync covers only portal
+     * customers, so falling back to the raw card_code is expected.
+     *
+     * @return array{customers_count:int, customers: array<int, array<string, mixed>>}
+     */
+    public function wholesaleCustomers(Carbon $start, Carbon $end, int $limit = 15): array
+    {
+        [$card, $cardBind] = $this->channelPredicate('wholesale');
+        $bind = array_merge($cardBind, [$start->toDateTimeString(), $end->toDateTimeString()]);
+
+        $sales = collect(DB::select(
+            "SELECT i.card_code, SUM(i.doc_total) gross, COUNT(*) invoices FROM sap_invoices i
+             WHERE {$card} AND i.doc_date BETWEEN ? AND ? GROUP BY i.card_code", $bind))->keyBy('card_code');
+        [$mcard, $mBind] = $this->channelPredicate('wholesale', 'm');
+        $memos = collect(DB::select(
+            "SELECT m.card_code, SUM(m.doc_total) r, COUNT(*) c FROM sap_credit_memos m
+             WHERE {$mcard} AND m.doc_date BETWEEN ? AND ? GROUP BY m.card_code",
+            array_merge($mBind, [$start->toDateTimeString(), $end->toDateTimeString()])))->keyBy('card_code');
+
+        // Merge → net per customer → top N.
+        $rows = [];
+        foreach ($sales as $code => $s) {
+            $returns = (float) ($memos[$code]->r ?? 0);
+            $rows[$code] = [
+                'card_code' => $code,
+                'gross' => (float) $s->gross,
+                'returns' => $returns,
+                'net' => (float) $s->gross - $returns,
+                'invoices' => (int) $s->invoices,
+                'returns_count' => (int) ($memos[$code]->c ?? 0),
+            ];
+        }
+        foreach ($memos as $code => $m) {
+            if (!isset($rows[$code])) {
+                $rows[$code] = [
+                    'card_code' => $code, 'gross' => 0.0, 'returns' => (float) $m->r,
+                    'net' => -(float) $m->r, 'invoices' => 0, 'returns_count' => (int) $m->c,
+                ];
+            }
+        }
+        $customersCount = count($rows);
+        usort($rows, fn ($a, $b) => $b['net'] <=> $a['net']);
+        $top = array_slice($rows, 0, $limit);
+        $codes = array_column($top, 'card_code');
+
+        // Line economics + names only for the visible customers.
+        $econ = empty($codes) ? collect() : collect(DB::select(
+            "SELECT i.card_code, SUM(l.gross_profit) p, SUM(l.line_revenue) rev
+             FROM sap_invoice_lines l JOIN sap_invoices i ON i.id = l.sap_invoice_id
+             WHERE i.card_code IN (" . implode(',', array_fill(0, count($codes), '?')) . ")
+               AND i.doc_date BETWEEN ? AND ? AND l.gross_profit IS NOT NULL
+             GROUP BY i.card_code",
+            array_merge($codes, [$start->toDateTimeString(), $end->toDateTimeString()])))->keyBy('card_code');
+        $names = empty($codes) ? collect() : DB::table('customers')
+            ->whereIn('card_code', $codes)->pluck('card_name', 'card_code');
+
+        $customers = array_map(function ($r) use ($econ, $names) {
+            $e = $econ[$r['card_code']] ?? null;
+            $profit = $e ? (float) $e->p : 0.0;
+            $rev = $e ? (float) $e->rev : 0.0;
+            return [
+                'card_code' => $r['card_code'],
+                'name' => ($names[$r['card_code']] ?? null) ?: $r['card_code'],
+                'gross' => round($r['gross'], 2),
+                'returns' => round($r['returns'], 2),
+                'net' => round($r['net'], 2),
+                'invoices' => $r['invoices'],
+                'returns_count' => $r['returns_count'],
+                'profit' => round($profit, 2),
+                'margin_pct' => $rev > 0 ? round($profit / $rev * 100, 1) : null,
+            ];
+        }, $top);
+
+        return ['customers_count' => $customersCount, 'customers' => $customers];
     }
 
     /** Saudi VAT rate — net invoice totals (doc_total) include 15% VAT. */
