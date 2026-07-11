@@ -168,7 +168,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
             runSpacing: AppSpacing.xs,
             children: [
               if ((d?.totalProfit ?? 0) > 0)
-                _heroPill(Icons.savings_rounded, '${context.tr('rd_profit_short')} ${sarCompact(d!.totalProfit)}', highlight: true),
+                _heroPill(Icons.account_balance_wallet_rounded, '${context.tr('rd_profit_short')} ${sarCompact(d!.totalProfit)}', highlight: true),
               _heroPill(Icons.receipt_long_rounded, '${intGrouped(d?.totalInvoices ?? 0)} ${context.tr('rd_invoices')}'),
               // The third pill is the channel's natural count: branches for
               // retail, customers for wholesale, the live split donut for total.

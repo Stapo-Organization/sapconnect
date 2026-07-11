@@ -145,13 +145,14 @@ class OwnerHero extends StatelessWidget {
               ),
             ),
           ),
-          // مخطّط مبيعات مصغّر مُدمَج تحت الرقم مباشرةً.
+          // مخطّط مبيعات مصغّر مُدمَج تحت الرقم مباشرةً — نقطة نهايته تنبض
+          // كإشارة بثّ حيّ: المبيعات تحدث الآن.
           if (points.length >= 2) ...[
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               height: 46,
               width: double.infinity,
-              child: CustomPaint(painter: _SparklinePainter(points, Colors.white)),
+              child: _LiveSparkline(points: points, color: Colors.white),
             ),
           ],
           // تقسيم القنوات: شريط نِسَب + خليتا معارض/جملة قابلتان للضغط.
@@ -335,6 +336,7 @@ class OwnerHero extends StatelessWidget {
         Expanded(
           child: _vitalCell(
             context,
+            icon: Icons.account_balance_wallet_rounded,
             label: context.tr('owner_kpi_profit'),
             value: sarCompact(s.totalProfit),
             positive: s.totalProfit > 0,
@@ -344,6 +346,7 @@ class OwnerHero extends StatelessWidget {
         Expanded(
           child: _vitalCell(
             context,
+            icon: Icons.percent_rounded,
             label: context.tr('owner_kpi_margin'),
             value: s.marginPct != null ? pctLabel(s.marginPct!) : '—',
           ),
@@ -352,6 +355,7 @@ class OwnerHero extends StatelessWidget {
         Expanded(
           child: _vitalCell(
             context,
+            icon: Icons.receipt_long_rounded,
             label: context.tr('rd_total_invoices'),
             value: intGrouped(s.totalInvoices),
           ),
@@ -362,6 +366,7 @@ class OwnerHero extends StatelessWidget {
 
   Widget _vitalCell(
     BuildContext context, {
+    required IconData icon,
     required String label,
     required String value,
     bool positive = false,
@@ -377,13 +382,21 @@ class OwnerHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.labelSmall.copyWith(
-              color: Colors.white.withValues(alpha: 0.72),
-            ),
+          Row(
+            children: [
+              Icon(icon, size: 12, color: Colors.white.withValues(alpha: 0.55)),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.72),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 3),
           Row(
@@ -437,12 +450,55 @@ class OwnerHero extends StatelessWidget {
   }
 }
 
+/// مخطّط مبيعات حيّ: يغلّف [_SparklinePainter] بحلقة نبض تجعل نقطة النهاية
+/// تُصدر هالة تتمدّد وتتلاشى — «بثّ مباشر» للمبيعات. يحترم تقليل الحركة.
+class _LiveSparkline extends StatefulWidget {
+  final List<double> points;
+  final Color color;
+  const _LiveSparkline({required this.points, required this.color});
+
+  @override
+  State<_LiveSparkline> createState() => _LiveSparklineState();
+}
+
+class _LiveSparklineState extends State<_LiveSparkline>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1700),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduce) {
+      return CustomPaint(painter: _SparklinePainter(widget.points, widget.color));
+    }
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, _) => CustomPaint(
+          painter: _SparklinePainter(widget.points, widget.color, pulse: _c.value),
+        ),
+      ),
+    );
+  }
+}
+
 /// مخطّط مساحي صغير أملس (بيزييه رباعي عبر نقاط المنتصف) + تعبئة متدرّجة + نقطة
 /// نهاية بارزة. أبيض شفّاف ليعمل فوق تدرّج الهيرو في الوضعين الفاتح والداكن.
+/// [pulse] (٠..١) يرسم هالة نبض متمدّدة متلاشية حول نقطة النهاية.
 class _SparklinePainter extends CustomPainter {
   final List<double> values;
   final Color color;
-  const _SparklinePainter(this.values, this.color);
+  final double? pulse;
+  const _SparklinePainter(this.values, this.color, {this.pulse});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -496,9 +552,22 @@ class _SparklinePainter extends CustomPainter {
 
     canvas.drawCircle(pts.last, 5.5, Paint()..color = color.withValues(alpha: 0.25));
     canvas.drawCircle(pts.last, 3.2, Paint()..color = color);
+
+    // هالة النبض: تتمدّد من النقطة وتتلاشى، ثم تولد من جديد.
+    final p = pulse;
+    if (p != null) {
+      canvas.drawCircle(
+        pts.last,
+        5.5 + 9.0 * p,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..color = color.withValues(alpha: (1 - p) * 0.45),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(_SparklinePainter old) =>
-      old.values != values || old.color != color;
+      old.values != values || old.color != color || old.pulse != pulse;
 }

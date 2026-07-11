@@ -32,34 +32,53 @@ class OwnerKpiTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = Container(
       width: width,
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: OwnerTheme.surface,
         borderRadius: AppRadius.borderLg,
         border: Border.all(color: OwnerTheme.hairline),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GlowIconChip(icon: icon, color: accent, size: 34, iconSize: 18, borderRadius: AppRadius.borderMd),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.titleMedium.copyWith(
-              color: OwnerTheme.textHi,
-              fontWeight: FontWeight.w900,
+      // علامة مائية شبحية: الأيقونة نفسها مكبَّرة وباهتة خلف المحتوى — تعطي
+      // كل مؤشّر شخصيته من بعيد دون أن تزاحم الرقم.
+      child: ClipRRect(
+        borderRadius: AppRadius.borderLg,
+        child: Stack(
+          children: [
+            PositionedDirectional(
+              end: -14,
+              bottom: -16,
+              child: Transform.rotate(
+                angle: -0.30,
+                child: Icon(icon, size: 74, color: accent.withValues(alpha: 0.08)),
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.labelSmall.copyWith(color: OwnerTheme.textMuted),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GlowIconChip(icon: icon, color: accent, size: 34, iconSize: 18, borderRadius: AppRadius.borderMd),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.titleMedium.copyWith(
+                      color: OwnerTheme.textHi,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.labelSmall.copyWith(color: OwnerTheme.textMuted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (onTap == null) return card;

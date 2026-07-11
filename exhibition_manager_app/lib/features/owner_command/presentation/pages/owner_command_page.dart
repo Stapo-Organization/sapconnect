@@ -146,7 +146,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
 
       // نبض الشبكة (روافع المال) — يظهر فقط حين تتوفّر بيانات البيع.
       if (s.retailOk) ...[
-        _sectionTitle(context, 'owner_section_pulse'),
+        _sectionTitle(context, 'owner_section_pulse', Icons.monitor_heart_rounded),
         _kpiRow(context, s),
       ],
 
@@ -158,7 +158,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
 
       // المبيعات والأرباح
       if (s.retailOk && s.trend.points.isNotEmpty) ...[
-        _sectionTitle(context, 'owner_section_trend'),
+        _sectionTitle(context, 'owner_section_trend', Icons.insights_rounded),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
           child: SalesProfitChart(trend: s.trend, salesColor: AppDomain.admin.accent),
@@ -167,7 +167,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
 
       // ترتيب الفروع
       if (s.retailOk && s.topBranches.isNotEmpty) ...[
-        _sectionTitle(context, 'owner_section_leaderboard'),
+        _sectionTitle(context, 'owner_section_leaderboard', Icons.emoji_events_rounded),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
           child: Column(
@@ -188,7 +188,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
       ],
 
       // الشحن + المحرّك
-      _sectionTitle(context, 'owner_section_ops'),
+      _sectionTitle(context, 'owner_section_ops', Icons.precision_manufacturing_rounded),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
         child: Column(
@@ -202,16 +202,18 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
     ];
   }
 
-  Widget _sectionTitle(BuildContext context, String key) => Padding(
+  /// رأس قسم بأيقونة ذهبية متوهّجة تنبض للظهور — بدل شرطة اللون الصامتة.
+  Widget _sectionTitle(BuildContext context, String key, IconData icon) => Padding(
         padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.lg, AppSpacing.base, AppSpacing.sm),
         child: Row(
           children: [
-            Container(
-              width: 4,
-              height: 16,
-              decoration: BoxDecoration(
+            PopIn(
+              child: GlowIconChip(
+                icon: icon,
                 color: OwnerTheme.accent,
-                borderRadius: BorderRadius.circular(2),
+                size: 26,
+                iconSize: 15,
+                borderRadius: AppRadius.borderSm,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -230,7 +232,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
   Widget _kpiRow(BuildContext context, OwnerCommandSnapshot s) {
     final tiles = <Widget>[
       OwnerKpiTile(
-        icon: Icons.savings_rounded,
+        icon: Icons.account_balance_wallet_rounded,
         label: context.tr('owner_kpi_profit'),
         value: sarCompact(s.totalProfit),
         accent: OwnerTheme.positive,
