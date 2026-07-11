@@ -10,6 +10,7 @@ import 'package:exhibition_manager_app/core/design_system/widgets/app_card.dart'
 import 'package:exhibition_manager_app/core/design_system/widgets/gradient_header.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/progress_ring.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
 import '../../data/models/pulse_overview.dart';
 import '../controllers/showroom_pulse_controller.dart';
@@ -57,7 +58,10 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
       _busy.remove(item.itemCode);
       if (res.success) _transferRequested.add(item.itemCode);
     });
-    _toast(res.success ? (res.message ?? 'تم رفع طلب التحويل للمالك') : (res.error ?? 'تعذّر رفع الطلب'),
+    _toast(
+        res.success
+            ? (res.message ?? context.tr('sp_transfer_submitted'))
+            : (res.error ?? context.tr('sp_transfer_failed')),
         ok: res.success);
   }
 
@@ -70,7 +74,10 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
       _busy.remove(item.itemCode);
       if (res.success) _discountSuggested.add(item.itemCode);
     });
-    _toast(res.success ? (res.message ?? 'تم رفع اقتراح الخصم للمالك') : (res.error ?? 'تعذّر رفع الاقتراح'),
+    _toast(
+        res.success
+            ? (res.message ?? context.tr('sp_discount_submitted'))
+            : (res.error ?? context.tr('sp_discount_failed')),
         ok: res.success);
   }
 
@@ -158,7 +165,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
         IconButton(
           onPressed: _controller.refresh,
           icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-          tooltip: 'تحديث',
+          tooltip: context.tr('update'),
         ),
       ],
       child: Column(
@@ -208,7 +215,10 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
                     const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 18),
                     const SizedBox(width: 6),
                     Text(
-                      'المركز ${score.rank} من ${score.totalBranches} فرع',
+                      context
+                          .tr('sp_rank_of_branches')
+                          .replaceAll('{rank}', '${score.rank}')
+                          .replaceAll('{total}', '${score.totalBranches}'),
                       style: AppTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
                     ),
                   ],
@@ -236,7 +246,9 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
           Icon(up ? Icons.trending_up_rounded : Icons.trending_down_rounded, color: color, size: 16),
           const SizedBox(width: 5),
           Text(
-            '${up ? '+' : ''}${trend.toStringAsFixed(0)} هذا الأسبوع',
+            context
+                .tr('sp_trend_this_week')
+                .replaceAll('{n}', '${up ? '+' : ''}${trend.toStringAsFixed(0)}'),
             style: AppTypography.labelSmall.copyWith(color: Colors.white),
           ),
         ],
@@ -246,7 +258,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
 
   Widget _scorePlaceholder() {
     return Text(
-      'تُحتسب بيانات النبض يومياً — ستظهر هنا قريباً.',
+      context.tr('sp_score_placeholder'),
       style: AppTypography.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.9)),
     );
   }
@@ -295,8 +307,8 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
     final valueText = !hasValue
         ? '—'
         : (v.key == 'basket_size' && v.raw != null
-            ? '${v.raw!.toStringAsFixed(1)} صنف/فاتورة'
-            : '${pct.round()}%');
+            ? context.tr('sp_items_per_invoice').replaceAll('{n}', v.raw!.toStringAsFixed(1))
+            : pctLabel(pct));
 
     return Row(
       children: [
@@ -333,9 +345,11 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
   Widget _bleedingSection(BleedingLever lever) {
     return _leverScaffold(
       color: kBleedingColor,
-      title: 'أوقف النزيف',
-      total: lever.totalMonthlySar > 0 ? 'معرّض للضياع ${sar(lever.totalMonthlySar)}/شهر' : null,
-      emptyText: 'لا أصناف معرّضة للنفاد الآن 👏',
+      title: context.tr('bd_bleeding_title'),
+      total: lever.totalMonthlySar > 0
+          ? context.tr('sp_at_risk_per_month').replaceAll('{amount}', sar(lever.totalMonthlySar))
+          : null,
+      emptyText: context.tr('sp_no_bleeding_now'),
       isEmpty: lever.items.isEmpty,
       children: lever.items
           .map((item) => bleedingCard(
@@ -347,7 +361,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
               ))
           .toList(),
       showAllCount: lever.totalCount > lever.items.length ? lever.totalCount : null,
-      onShowAll: () => _openLever(type: 'bleeding', title: 'أوقف النزيف', color: kBleedingColor),
+      onShowAll: () => _openLever(type: 'bleeding', title: context.tr('bd_bleeding_title'), color: kBleedingColor),
     );
   }
 
@@ -356,9 +370,11 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
   Widget _trappedSection(TrappedLever lever) {
     return _leverScaffold(
       color: kTrappedColor,
-      title: 'حرّر فلوسك',
-      total: lever.totalSar > 0 ? '${sar(lever.totalSar)} رأس مال راكد' : null,
-      emptyText: 'لا رأس مال راكد يُذكر 👍',
+      title: context.tr('sp_lever_trapped_title'),
+      total: lever.totalSar > 0
+          ? context.tr('sp_idle_capital_total').replaceAll('{amount}', sar(lever.totalSar))
+          : null,
+      emptyText: context.tr('sp_no_trapped_now'),
       isEmpty: lever.items.isEmpty,
       children: lever.items
           .map((item) => trappedCard(
@@ -370,7 +386,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
               ))
           .toList(),
       showAllCount: lever.totalCount > lever.items.length ? lever.totalCount : null,
-      onShowAll: () => _openLever(type: 'trapped', title: 'حرّر فلوسك', color: kTrappedColor),
+      onShowAll: () => _openLever(type: 'trapped', title: context.tr('sp_lever_trapped_title'), color: kTrappedColor),
     );
   }
 
@@ -380,9 +396,9 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
     final total = _controller.data?.basketTotalCount ?? pairs.length;
     return _leverScaffold(
       color: kBasketColor,
-      title: 'كبّر السلة',
+      title: context.tr('sp_lever_basket_title'),
       total: null,
-      emptyText: 'لا توجد اقتراحات عرض بين براندات مختلفة حالياً.',
+      emptyText: context.tr('sp_no_basket_now'),
       isEmpty: pairs.isEmpty,
       children: pairs
           .map((p) => basketCard(p, onOpenItem: (ref) => _openProduct(ref.code, ref.name)))
@@ -440,7 +456,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('إظهار الكل ($showAllCount)',
+                    Text(context.tr('sp_show_all_n').replaceAll('{n}', '$showAllCount'),
                         style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
                     Icon(Icons.chevron_left_rounded, size: 18, color: color),
                   ],
@@ -473,10 +489,10 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
           children: [
             Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.textTertiary),
             const SizedBox(height: AppSpacing.md),
-            Text('تعذّر تحميل نبض المعرض', style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary)),
+            Text(context.tr('sp_load_error'), style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary)),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: 'إعادة المحاولة',
+              label: context.tr('retry'),
               icon: Icons.refresh_rounded,
               expand: false,
               onPressed: _controller.refresh,

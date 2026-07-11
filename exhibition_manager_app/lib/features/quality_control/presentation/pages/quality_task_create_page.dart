@@ -7,6 +7,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/date_names.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 
 import '../../data/models/quality_admin_models.dart';
@@ -307,14 +308,13 @@ class _QualityTaskCreatePageState extends State<QualityTaskCreatePage> {
   }
 
   Widget _daysOfWeek(BuildContext context) {
-    const labels = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     return Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
       children: List.generate(7, (d) {
         final selected = _days.contains(d);
         return PillChip(
-          label: labels[d],
+          label: weekdayNameSundayFirst(d),
           selected: selected,
           color: _accent,
           onTap: () => setState(() => selected ? _days.remove(d) : _days.add(d)),

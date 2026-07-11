@@ -59,7 +59,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     setState(() {
       _loading = false;
       _data = res.data;
-      _error = res.success ? null : (res.error ?? 'تعذّر تحميل المنتج');
+      _error = res.success ? null : (res.error ?? AppLocalizations.translate('ps_load_failed'));
     });
   }
 
@@ -75,7 +75,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           foregroundColor: Colors.white,
           elevation: 0,
           title: Text(
-            'تفاصيل المنتج',
+            context.tr('ps_detail_title'),
             style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
           ),
         ),
@@ -129,13 +129,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Text('مقترح التحويل الذكي',
+                child: Text(context.tr('ps_smart_transfer_title'),
                     style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text('متوفر بمستودعات أخرى — انقله إلى ${s.first.targetName} بدل طلبه من المورد.',
+          Text(context.tr('ps_smart_transfer_sub').replaceAll('{name}', s.first.targetName),
               style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: AppSpacing.md),
           for (var i = 0; i < s.length; i++) ...[
@@ -149,8 +149,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _suggestionRow(TransferSuggestion s) {
     final ctx = <String>[
-      'متوفر بالمصدر ${fmtQty(s.sourceAvailable ?? 0)}',
-      if (s.targetAds != null && s.targetAds! > 0) 'يبيع ${s.targetAds!.toStringAsFixed(1)}/يوم',
+      context.tr('ps_available_at_source').replaceAll('{n}', fmtQty(s.sourceAvailable ?? 0)),
+      if (s.targetAds != null && s.targetAds! > 0)
+        context.tr('ps_sells_per_day').replaceAll('{n}', s.targetAds!.toStringAsFixed(1)),
     ].join(' · ');
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -159,9 +160,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _fromTo('من', s.sourceName, AppColors.textPrimary),
+              _fromTo(context.tr('from'), s.sourceName, AppColors.textPrimary),
               const SizedBox(height: 3),
-              _fromTo('إلى', s.targetName, _transferAccent),
+              _fromTo(context.tr('to'), s.targetName, _transferAccent),
               const SizedBox(height: 5),
               Text(ctx, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
             ],
@@ -172,7 +173,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           children: [
             Text(fmtQty(s.quantity),
                 style: AppTypography.titleMedium.copyWith(color: _transferAccent, fontWeight: FontWeight.w900)),
-            Text('وحدة', style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
+            Text(context.tr('bd_units'), style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
           ],
         ),
       ],
@@ -265,7 +266,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            'إجمالي المخزون في كل المستودعات',
+            context.tr('ps_total_stock_all_warehouses'),
             style: AppTypography.labelMedium.copyWith(color: Colors.white.withValues(alpha: 0.85)),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -273,11 +274,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           // المتاح = المخزون − المحجوز + القادم (straight from SAP).
           Row(
             children: [
-              _heroStat('المحجوز', fmtQty(d.totalCommitted)),
+              _heroStat(context.tr('ps_committed'), fmtQty(d.totalCommitted)),
               const SizedBox(width: AppSpacing.sm),
-              _heroStat('القادم', fmtQty(d.totalOrdered)),
+              _heroStat(context.tr('ps_incoming'), fmtQty(d.totalOrdered)),
               const SizedBox(width: AppSpacing.sm),
-              _heroStat('المتاح', fmtQty(d.totalAvailable), emphasize: true),
+              _heroStat(context.tr('ps_available'), fmtQty(d.totalAvailable), emphasize: true),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -285,10 +286,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: [
-              _glassPill(Icons.store_mall_directory_rounded, 'متوفر في ${d.warehouseCount} معرض'),
+              _glassPill(Icons.store_mall_directory_rounded,
+                  context.tr('ps_available_in_n_showrooms').replaceAll('{n}', '${d.warehouseCount}')),
               if (d.retailPrice != null && d.retailPrice! > 0)
-                _glassPill(Icons.sell_outlined, 'سعر البيع ${_price(d.retailPrice!)}'),
-              if (d.uom != null && d.uom!.isNotEmpty) _glassPill(Icons.straighten_rounded, 'الوحدة ${d.uom}'),
+                _glassPill(Icons.sell_outlined, context.tr('ps_retail_price').replaceAll('{n}', _price(d.retailPrice!))),
+              if (d.uom != null && d.uom!.isNotEmpty)
+                _glassPill(Icons.straighten_rounded, context.tr('ps_uom_label').replaceAll('{n}', d.uom!)),
               if (d.brand != null && d.brand!.isNotEmpty) _glassPill(Icons.label_outline_rounded, d.brand!),
             ],
           ),
@@ -387,7 +390,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                'الكميات في المستودعات والمعارض',
+                context.tr('ps_stock_section_title'),
                 style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800),
               ),
             ),
@@ -436,11 +439,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   String _emptyText() {
     switch (_filter) {
       case _StockFilter.mine:
-        return 'هذا المنتج غير متوفر في معارضك.';
+        return context.tr('ps_no_stock_in_my_showrooms');
       case _StockFilter.withStock:
-        return 'لا يوجد مخزون متاح حالياً في أي مستودع.';
+        return context.tr('ps_no_stock_any_warehouse');
       case _StockFilter.all:
-        return 'لا يوجد سجل مخزون لهذا المنتج.';
+        return context.tr('ps_no_stock_record');
     }
   }
 
@@ -451,9 +454,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
       children: [
-        _chip('فيها مخزون ($withStock)', _StockFilter.withStock),
-        if (mine.isNotEmpty) _chip('معارضي ($mineCount)', _StockFilter.mine),
-        _chip('الكل (${d.warehouses.length})', _StockFilter.all),
+        _chip(context.tr('ps_filter_with_stock').replaceAll('{n}', '$withStock'), _StockFilter.withStock),
+        if (mine.isNotEmpty) _chip(context.tr('ps_filter_mine').replaceAll('{n}', '$mineCount'), _StockFilter.mine),
+        _chip('${context.tr('all')} (${d.warehouses.length})', _StockFilter.all),
       ],
     );
   }
@@ -491,12 +494,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.textTertiary),
             const SizedBox(height: AppSpacing.md),
             Text(
-              _error ?? 'تعذّر تحميل المنتج',
+              _error ?? context.tr('ps_load_failed'),
               textAlign: TextAlign.center,
               style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary),
             ),
             const SizedBox(height: AppSpacing.lg),
-            AppButton(label: 'إعادة المحاولة', icon: Icons.refresh_rounded, expand: false, onPressed: _load),
+            AppButton(label: context.tr('retry'), icon: Icons.refresh_rounded, expand: false, onPressed: _load),
           ],
         ),
       ),

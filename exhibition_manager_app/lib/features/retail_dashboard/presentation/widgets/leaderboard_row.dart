@@ -172,7 +172,7 @@ class LeaderboardRow extends StatelessWidget {
           const SizedBox(width: 5),
           Container(width: 3, height: 3, decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
           const SizedBox(width: 5),
-          Text('${p.marginPct!.toStringAsFixed(0)}٪',
+          Text(pctLabel(p.marginPct!),
               style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
         ],
       ),

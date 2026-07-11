@@ -65,14 +65,16 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('إكمال الجرد'),
-          content: Text('سيتم إكمال سجل الجرد هذا بإجمالي ${_session!.lines.length} صنف و ${_session!.totalCountedQty.toInt()} قطعة. لا يمكن التراجع بعد الإكمال.'),
+          title: Text(context.tr('complete_count')),
+          content: Text(context.tr('ic_complete_confirm')
+              .replaceAll('{items}', '${_session!.lines.length}')
+              .replaceAll('{qty}', '${_session!.totalCountedQty.toInt()}')),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.tr('cancel'))),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-              child: const Text('إكمال الجرد'),
+              child: Text(context.tr('complete_count')),
             ),
           ],
         ),
@@ -88,7 +90,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
           }
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('✅ تم إكمال الجرد بنجاح')),
+              SnackBar(content: Text(context.tr('ic_count_completed_snack'))),
             );
           }
         }
@@ -103,14 +105,14 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('إلغاء الجرد'),
-          content: const Text('هل أنت متأكد من إلغاء سجل الجرد هذا؟ لا يمكن التراجع.'),
+          title: Text(context.tr('ic_cancel_count')),
+          content: Text(context.tr('ic_cancel_count_confirm')),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('لا')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.tr('ic_no'))),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              child: const Text('نعم، إلغاء الجرد'),
+              child: Text(context.tr('ic_yes_cancel_count')),
             ),
           ],
         ),
@@ -122,7 +124,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
       if (mounted) {
         if (result.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم إلغاء سجل الجرد')),
+            SnackBar(content: Text(context.tr('ic_count_cancelled_snack'))),
           );
         }
         _loadSession();
@@ -144,18 +146,18 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
             autofocus: true,
             textAlign: TextAlign.center,
             style: AppTypography.titleLarge,
-            decoration: const InputDecoration(
-              labelText: 'الكمية',
+            decoration: InputDecoration(
+              labelText: context.tr('quantity'),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.tr('cancel'))),
             ElevatedButton(
               onPressed: () {
                 final qty = double.tryParse(controller.text);
                 Navigator.pop(ctx, qty);
               },
-              child: const Text('تحديث'),
+              child: Text(context.tr('update')),
             ),
           ],
         ),
@@ -174,14 +176,15 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('حذف المنتج'),
-          content: Text('هل تريد حذف "${line.getLocalizedName(AppLocalizations.isArabic)}" من سجل الجرد؟'),
+          title: Text(context.tr('ic_delete_product')),
+          content: Text(context.tr('ic_delete_product_confirm')
+              .replaceAll('{name}', line.getLocalizedName(AppLocalizations.isArabic))),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.tr('cancel'))),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              child: const Text('حذف'),
+              child: Text(context.tr('delete')),
             ),
           ],
         ),
@@ -201,7 +204,9 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: MuntajatAppBar(
-          title: _session != null ? 'جرد #${_session!.id}' : 'تفاصيل الجرد',
+          title: _session != null
+              ? context.tr('ic_count_number').replaceAll('{n}', '${_session!.id}')
+              : context.tr('ic_count_details'),
           actions: [
             if (_session != null && _session!.isInProgress)
               PopupMenuButton<String>(
@@ -216,7 +221,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
                       children: [
                         Icon(Icons.cancel_outlined, color: AppColors.error),
                         SizedBox(width: 8),
-                        Text('إلغاء الجرد'),
+                        Text(context.tr('ic_cancel_count')),
                       ],
                     ),
                   ),
@@ -227,7 +232,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _session == null
-                ? const Center(child: Text('لم يتم العثور على سجل الجرد'))
+                ? Center(child: Text(context.tr('ic_session_not_found')))
                 : RefreshIndicator(
                     onRefresh: _loadSession,
                     child: ListView(
@@ -242,7 +247,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: AppSpacing.base),
                             child: AppButton(
-                              label: 'عرض تقرير الفروقات',
+                              label: context.tr('ic_view_variance_report'),
                               icon: Icons.analytics_outlined,
                               variant: AppButtonVariant.tonal,
                               onPressed: () => Navigator.push(
@@ -259,7 +264,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: AppSpacing.base),
                             child: AppButton(
-                              label: 'سكان باركود',
+                              label: context.tr('ic_scan_barcode'),
                               icon: Icons.qr_code_scanner_rounded,
                               color: AppColors.accent,
                               gradient: AppColors.goldGradient,
@@ -300,7 +305,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.base),
                   child: AppButton(
-                    label: 'إكمال الجرد',
+                    label: context.tr('complete_count'),
                     icon: Icons.check_circle_rounded,
                     color: AppColors.success,
                     onPressed: _session!.lines.isNotEmpty ? _completeCounting : null,
@@ -359,11 +364,11 @@ class _SessionHeader extends StatelessWidget {
             ],
           ),
           const Divider(height: AppSpacing.xl),
-          _InfoRow('المستودع', session.warehouseName ?? session.warehouseCode),
-          _InfoRow('عدد الأصناف', '${session.lines.length}'),
-          _InfoRow('إجمالي الكميات', '${session.totalCountedQty.toInt()}'),
+          _InfoRow(context.tr('ic_warehouse'), session.warehouseName ?? session.warehouseCode),
+          _InfoRow(context.tr('ic_items_count'), '${session.lines.length}'),
+          _InfoRow(context.tr('ic_total_quantities'), '${session.totalCountedQty.toInt()}'),
           if (session.notes != null && session.notes!.isNotEmpty)
-            _InfoRow('ملاحظات', session.notes!),
+            _InfoRow(context.tr('ic_notes'), session.notes!),
         ],
       ),
     );

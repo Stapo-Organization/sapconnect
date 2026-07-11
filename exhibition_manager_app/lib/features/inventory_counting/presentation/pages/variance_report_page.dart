@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 /// Variance Report Page — shows variance analysis after completing a counting session
 class VarianceReportPage extends StatefulWidget {
@@ -36,7 +37,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         if (result.success) {
           _reportData = result.report;
         } else {
-          _error = result.error ?? 'فشل في تحميل التقرير';
+          _error = result.error ?? AppLocalizations.translate('ic_report_load_failed');
         }
       });
     }
@@ -49,7 +50,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       child: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
         appBar: AppBar(
-          title: const Text('📊 تقرير الفروقات'),
+          title: Text(context.tr('ic_variance_report_title')),
           backgroundColor: const Color(0xFF1E293B),
           foregroundColor: Colors.white,
           elevation: 0,
@@ -73,8 +74,8 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
   Widget _buildReport() {
     final report = _reportData?['report'];
     if (report == null)
-      return const Center(
-        child: Text('لا توجد بيانات', style: TextStyle(color: Colors.white70)),
+      return Center(
+        child: Text(context.tr('ic_no_data'), style: const TextStyle(color: Colors.white70)),
       );
 
     final summary = report['summary'] as Map<String, dynamic>? ?? {};
@@ -110,7 +111,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                '⚠️ الفروقات (${discrepancies.length})',
+                context.tr('ic_discrepancies_n').replaceAll('{n}', '${discrepancies.length}'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -154,7 +155,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'نوع الجرد: ${report['counting_type'] == 'cycle' ? 'جرد دوري' : 'جرد كامل'}',
+            context.tr('ic_count_type_label').replaceAll(
+                '{type}',
+                report['counting_type'] == 'cycle'
+                    ? context.tr('cycle_count')
+                    : context.tr('ic_full_count_type')),
             style: const TextStyle(color: Colors.white60, fontSize: 14),
           ),
           const SizedBox(height: 8),
@@ -163,7 +168,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               const Icon(Icons.inventory_2, color: Colors.tealAccent, size: 18),
               const SizedBox(width: 6),
               Text(
-                '${summary['total_lines'] ?? 0} منتج مجرود',
+                context.tr('ic_products_counted_n').replaceAll('{n}', '${summary['total_lines'] ?? 0}'),
                 style: const TextStyle(
                   color: Colors.tealAccent,
                   fontSize: 16,
@@ -181,24 +186,24 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Row(
       children: [
         Expanded(
-          child: _statCard('✅ مطابق', '${summary['match'] ?? 0}', Colors.green),
+          child: _statCard('✅ ${context.tr('ic_variance_match')}', '${summary['match'] ?? 0}', Colors.green),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _statCard(
-            '⚡ ضمن التسامح',
+            '⚡ ${context.tr('ic_variance_within_tolerance')}',
             '${summary['within_tolerance'] ?? 0}',
             Colors.amber,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: _statCard('📈 زيادة', '${summary['over'] ?? 0}', Colors.blue),
+          child: _statCard('📈 ${context.tr('ic_variance_over')}', '${summary['over'] ?? 0}', Colors.blue),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _statCard(
-            '📉 نقص',
+            '📉 ${context.tr('ic_variance_short')}',
             '${summary['short'] ?? 0}',
             Colors.redAccent,
           ),
@@ -267,9 +272,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'نسبة دقة المخزون',
-                  style: TextStyle(color: Colors.white60, fontSize: 13),
+                Text(
+                  context.tr('ic_stock_accuracy'),
+                  style: const TextStyle(color: Colors.white60, fontSize: 13),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -287,11 +292,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'الكمية المجرودة: ${summary['total_counted_qty'] ?? 0}',
+                context.tr('ic_counted_qty_label').replaceAll('{n}', '${summary['total_counted_qty'] ?? 0}'),
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
               Text(
-                'الكمية النظامية: ${summary['total_system_qty'] ?? 0}',
+                context.tr('ic_system_qty_label').replaceAll('{n}', '${summary['total_system_qty'] ?? 0}'),
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ],
@@ -321,9 +326,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'منتجات لم تُجرد',
-                  style: TextStyle(
+                Text(
+                  context.tr('ic_uncounted_products'),
+                  style: const TextStyle(
                     color: Colors.orange,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -331,7 +336,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$count منتج في المخزون لم يتم جرده — قرار إداري',
+                  context.tr('ic_uncounted_products_note').replaceAll('{n}', '$count'),
                   style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
               ],
@@ -446,7 +451,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               ),
               const SizedBox(height: 2),
               Text(
-                'نظام: ${(d['system_quantity'] ?? 0).toDouble().toStringAsFixed(0)} | جرد: ${(d['counted_quantity'] ?? 0).toDouble().toStringAsFixed(0)}',
+                context.tr('ic_system_vs_counted')
+                    .replaceAll('{sys}', (d['system_quantity'] ?? 0).toDouble().toStringAsFixed(0))
+                    .replaceAll('{counted}', (d['counted_quantity'] ?? 0).toDouble().toStringAsFixed(0)),
                 style: const TextStyle(color: Colors.white38, fontSize: 10),
               ),
             ],
@@ -464,22 +471,22 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.green.withOpacity(0.3)),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.check_circle, color: Colors.green, size: 48),
-          SizedBox(height: 12),
+          const Icon(Icons.check_circle, color: Colors.green, size: 48),
+          const SizedBox(height: 12),
           Text(
-            '🎉 لا توجد فروقات!',
-            style: TextStyle(
+            context.tr('ic_no_discrepancies'),
+            style: const TextStyle(
               color: Colors.green,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            'جميع المنتجات المجرودة مطابقة أو ضمن نسبة التسامح',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            context.tr('ic_no_discrepancies_sub'),
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
             textAlign: TextAlign.center,
           ),
         ],

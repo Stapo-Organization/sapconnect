@@ -70,9 +70,6 @@ class _SalesProfitChartState extends State<SalesProfitChart> with SingleTickerPr
     final maxVal = pts.fold<double>(0, (a, p) => p.sales > a ? p.sales : a);
     final hasData = pts.isNotEmpty && maxVal > 0;
 
-    // Readout target: the scrubbed bucket, else the latest one.
-    final idx = hasData ? (_selected ?? pts.length - 1) : 0;
-
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
@@ -88,7 +85,7 @@ class _SalesProfitChartState extends State<SalesProfitChart> with SingleTickerPr
           ),
           if (hasData) ...[
             const SizedBox(height: AppSpacing.sm),
-            _readout(context, pts[idx]),
+            _readout(context, pts),
           ],
           const SizedBox(height: AppSpacing.sm),
           if (!hasData)
@@ -142,20 +139,39 @@ class _SalesProfitChartState extends State<SalesProfitChart> with SingleTickerPr
     );
   }
 
-  Widget _readout(BuildContext context, TrendBucket b) {
-    final margin = b.sales > 0 ? (b.profit / b.sales * 100) : 0.0;
+  /// Build the readout row. When scrubbing ([_selected] != null), show that
+  /// bucket's values. Otherwise show the cumulative total for the period.
+  Widget _readout(BuildContext context, List<TrendBucket> pts) {
+    final double sales;
+    final double profit;
+    final String label;
+
+    if (_selected != null && _selected! >= 0 && _selected! < pts.length) {
+      // Scrubbing → show the selected bucket
+      final b = pts[_selected!];
+      sales = b.sales;
+      profit = b.profit;
+      label = _fmtLabel(b.label);
+    } else {
+      // Default → cumulative total
+      sales = pts.fold<double>(0, (sum, b) => sum + b.sales);
+      profit = pts.fold<double>(0, (sum, b) => sum + b.profit);
+      label = context.tr('rd_total');
+    }
+
+    final margin = sales > 0 ? (profit / sales * 100) : 0.0;
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
           decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: AppRadius.borderFull),
-          child: Text(_fmtLabel(b.label),
+          child: Text(label,
               style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
         ),
         const Spacer(),
-        _readoutMetric(context.tr('rd_sort_revenue'), sarCompact(b.sales), widget.salesColor),
+        _readoutMetric(context.tr('rd_sort_revenue'), sarCompact(sales), widget.salesColor),
         const SizedBox(width: AppSpacing.base),
-        _readoutMetric('${context.tr('rd_sort_profit')} · ${margin.toStringAsFixed(0)}٪', sarCompact(b.profit), _profitColor),
+        _readoutMetric('${context.tr('rd_sort_profit')} · ${pctLabel(margin)}', sarCompact(profit), _profitColor),
       ],
     );
   }

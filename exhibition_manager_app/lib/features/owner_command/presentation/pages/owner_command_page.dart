@@ -237,7 +237,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
       OwnerKpiTile(
         icon: Icons.percent_rounded,
         label: context.tr('owner_kpi_margin'),
-        value: s.marginPct != null ? '${s.marginPct!.toStringAsFixed(0)}٪' : '—',
+        value: s.marginPct != null ? pctLabel(s.marginPct!) : '—',
         accent: OwnerTheme.info,
       ),
       OwnerKpiTile(

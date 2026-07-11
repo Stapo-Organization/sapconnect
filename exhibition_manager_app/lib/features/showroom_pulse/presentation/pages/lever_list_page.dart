@@ -86,7 +86,10 @@ class _LeverListPageState extends State<LeverListPage> {
       _busy.remove(item.itemCode);
       if (res.success) _transferRequested.add(item.itemCode);
     });
-    _toast(res.success ? (res.message ?? 'تم رفع طلب التحويل للمالك') : (res.error ?? 'تعذّر رفع الطلب'),
+    _toast(
+        res.success
+            ? (res.message ?? context.tr('sp_transfer_submitted'))
+            : (res.error ?? context.tr('sp_transfer_failed')),
         ok: res.success);
   }
 
@@ -99,7 +102,10 @@ class _LeverListPageState extends State<LeverListPage> {
       _busy.remove(item.itemCode);
       if (res.success) _discountSuggested.add(item.itemCode);
     });
-    _toast(res.success ? (res.message ?? 'تم رفع اقتراح الخصم للمالك') : (res.error ?? 'تعذّر رفع الاقتراح'),
+    _toast(
+        res.success
+            ? (res.message ?? context.tr('sp_discount_submitted'))
+            : (res.error ?? context.tr('sp_discount_failed')),
         ok: res.success);
   }
 
@@ -149,7 +155,10 @@ class _LeverListPageState extends State<LeverListPage> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                                 child: Text(
-                                  '$count صنف · ${widget.warehouseName}',
+                                  context
+                                      .tr('sp_items_count_wh')
+                                      .replaceAll('{n}', '$count')
+                                      .replaceAll('{name}', widget.warehouseName),
                                   style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary),
                                 ),
                               );
@@ -183,7 +192,7 @@ class _LeverListPageState extends State<LeverListPage> {
   Widget _emptyState() {
     return Center(
       child: Text(
-        _isBleeding ? 'لا أصناف معرّضة للنفاد 👏' : 'لا رأس مال راكد 👍',
+        _isBleeding ? context.tr('sp_no_bleeding_list') : context.tr('sp_no_trapped_list'),
         style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
       ),
     );
@@ -196,9 +205,9 @@ class _LeverListPageState extends State<LeverListPage> {
         children: [
           Icon(Icons.cloud_off_rounded, size: 44, color: AppColors.textTertiary),
           const SizedBox(height: AppSpacing.md),
-          Text('تعذّر تحميل القائمة', style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary)),
+          Text(context.tr('sp_list_load_error'), style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.md),
-          AppButton(label: 'إعادة المحاولة', icon: Icons.refresh_rounded, expand: false, onPressed: _load),
+          AppButton(label: context.tr('retry'), icon: Icons.refresh_rounded, expand: false, onPressed: _load),
         ],
       ),
     );

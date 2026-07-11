@@ -5,6 +5,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/features/gamification/data/gamification_repository.dart';
@@ -180,7 +181,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
 
   Widget _statCard({required IconData icon, required Color color, required String value, required String label}) {
     // Soften "nothing yet" zeros so a fresh account reads as encouraging, not empty.
-    final isZero = value == '0' || value == '0%' || value == '٠' || value == '٠%';
+    final isZero = value == '0' || value == '0%' || value == '0$pctSign';
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.base, horizontal: AppSpacing.sm),
       child: Column(

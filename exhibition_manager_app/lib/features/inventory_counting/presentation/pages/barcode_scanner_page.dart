@@ -703,7 +703,7 @@ class _ProductSheet extends StatelessWidget {
                   children: [
                     Text(product.getLocalizedName(AppLocalizations.isArabic), style: AppTypography.titleMedium, maxLines: 2, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: AppSpacing.xs),
-                    Text('الباركود: ${product.pieceBarcode ?? "—"}',
+                    Text('${context.tr('ic_barcode_label')}: ${product.pieceBarcode ?? "—"}',
                         style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
                     Text('SAP: ${product.itemCode}',
                         style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
@@ -722,7 +722,7 @@ class _ProductSheet extends StatelessWidget {
           // Quantity input
           Row(
             children: [
-              Text('الكمية:', style: AppTypography.labelLarge),
+              Text('${context.tr('quantity')}:', style: AppTypography.labelLarge),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: TextField(
@@ -747,7 +747,7 @@ class _ProductSheet extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: isUpdate ? AppColors.warning : AppColors.primary,
               ),
-              child: Text(isUpdate ? 'تحديث الكمية' : 'إضافة'),
+              child: Text(isUpdate ? context.tr('update_quantity') : context.tr('add')),
             ),
           ),
         ],

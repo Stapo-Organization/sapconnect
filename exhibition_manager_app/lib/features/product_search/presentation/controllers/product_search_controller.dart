@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+
 import '../../data/models/product_models.dart';
 import '../../data/product_search_repository.dart';
 
@@ -65,7 +67,7 @@ class ProductSearchController extends ChangeNotifier {
       _error = null;
     } else {
       _results = const [];
-      _error = res.error ?? 'تعذّر البحث';
+      _error = res.error ?? AppLocalizations.translate('ps_search_failed');
     }
     notifyListeners();
   }

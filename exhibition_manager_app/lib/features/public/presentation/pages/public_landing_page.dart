@@ -22,6 +22,7 @@ import 'package:exhibition_manager_app/features/public/presentation/pages/brand_
 import 'package:exhibition_manager_app/features/public/presentation/pages/news_detail_page.dart';
 import 'package:exhibition_manager_app/features/public/presentation/widgets/brand_logo.dart';
 import 'package:exhibition_manager_app/features/public/presentation/widgets/hero_decor.dart';
+import 'package:exhibition_manager_app/shared/utils/date_names.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_logo.dart';
 
 /// Public, pre-login landing screen of the Muntajat HUB app.
@@ -732,21 +733,10 @@ class _NewsCard extends StatelessWidget {
   final VoidCallback onTap;
   const _NewsCard({required this.item, required this.onTap});
 
-  static const List<String> _arMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-  ];
-  static const List<String> _enMonths = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   String? get _dateLabel {
     final d = item.publishedAt;
     if (d == null) return null;
-    return AppLocalizations.isArabic
-        ? '${d.day} ${_arMonths[d.month - 1]}'
-        : '${d.day} ${_enMonths[d.month - 1]}';
+    return '${d.day} ${monthName(d.month, short: true)}';
   }
 
   @override

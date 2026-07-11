@@ -99,8 +99,8 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
         child: AlertDialog(
           title: Text(isSend ? context.tr('confirm_send') : context.tr('confirm_receive')),
           content: Text(isSend
-              ? 'هل أنت متأكد من تأكيد إرسال هذا التحويل؟'
-              : 'هل أنت متأكد من تأكيد استلام هذا التحويل؟'),
+              ? context.tr('st_confirm_send_message')
+              : context.tr('st_confirm_receive_message')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.tr('cancel'))),
             ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(context.tr('confirm_send').split(' ').first)),
@@ -115,7 +115,7 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result.success
-            ? (isSend ? 'تم تأكيد الإرسال بنجاح' : 'تم تأكيد الاستلام بنجاح')
+            ? (isSend ? context.tr('st_send_confirmed') : context.tr('st_receive_confirmed'))
             : result.error ?? context.tr('unexpected_error'))),
       );
       _loadTransfer();
@@ -130,7 +130,9 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: MuntajatAppBar(
-          title: t != null ? 'تحويل #${t.docNum}' : context.tr('stock_transfers'),
+          title: t != null
+              ? context.tr('st_transfer_number').replaceAll('{n}', '${t.docNum}')
+              : context.tr('stock_transfers'),
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())

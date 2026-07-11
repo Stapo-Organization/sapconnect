@@ -266,13 +266,13 @@ class _BranchItemsPageState extends State<BranchItemsPage> {
     switch (widget.type) {
       case BranchItemsType.bleeding:
         final t = items.fold<double>(0, (a, m) => a + (double.tryParse('${m['lost_revenue_monthly'] ?? 0}') ?? 0));
-        return (sarCompact(t), AppLocalizations.isArabic ? 'صنف' : 'items');
+        return (sarCompact(t), AppLocalizations.translate('items'));
       case BranchItemsType.trapped:
         final t = items.fold<double>(0, (a, m) => a + (double.tryParse('${m['capital_at_risk_sar'] ?? 0}') ?? 0));
-        return (sarCompact(t), AppLocalizations.isArabic ? 'صنف' : 'items');
+        return (sarCompact(t), AppLocalizations.translate('items'));
       case BranchItemsType.top:
         final t = items.fold<double>(0, (a, m) => a + (double.tryParse('${m['units'] ?? 0}') ?? 0));
-        return (unitsLabel(t), AppLocalizations.isArabic ? 'صنف' : 'items');
+        return (unitsLabel(t), AppLocalizations.translate('items'));
     }
   }
 

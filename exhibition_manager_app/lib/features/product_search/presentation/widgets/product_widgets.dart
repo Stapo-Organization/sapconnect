@@ -5,22 +5,15 @@ import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
 import '../../data/models/product_models.dart';
 
 const Color kProductAccent = Color(0xFF4C5FD5); // cobalt-indigo (AppDomain.productSearch)
 
-/// Integer quantity with an Arabic thousands separator (Western digits).
-String fmtQty(num v) {
-  final neg = v < 0;
-  final s = v.round().abs().toString();
-  final b = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) b.write('٬');
-    b.write(s[i]);
-  }
-  return '${neg ? '-' : ''}$b';
-}
+/// Integer quantity, grouped with the locale-aware thousands separator.
+String fmtQty(num v) => intGrouped(v);
 
 /// Rounded product thumbnail with a graceful fallback icon.
 Widget productThumb(String? url, {double size = 56, Color? accent}) {
@@ -93,7 +86,7 @@ class ProductHitTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            _stockPill(inStock),
+            _stockPill(context, inStock),
           ],
         ),
       ),
@@ -131,7 +124,7 @@ class ProductHitTile extends StatelessWidget {
     return Row(children: parts);
   }
 
-  Widget _stockPill(bool inStock) {
+  Widget _stockPill(BuildContext context, bool inStock) {
     final c = inStock ? AppColors.success : AppColors.error;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -140,10 +133,10 @@ class ProductHitTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            inStock ? fmtQty(hit.totalStock) : 'نفد',
+            inStock ? fmtQty(hit.totalStock) : context.tr('ps_out_of_stock'),
             style: AppTypography.titleSmall.copyWith(color: c, fontWeight: FontWeight.w800),
           ),
-          Text('المخزون العام', style: AppTypography.labelSmall.copyWith(color: c.withValues(alpha: 0.85), fontSize: 9)),
+          Text(context.tr('ps_network_stock'), style: AppTypography.labelSmall.copyWith(color: c.withValues(alpha: 0.85), fontSize: 9)),
         ],
       ),
     );
@@ -199,7 +192,7 @@ class WarehouseStockTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(color: kProductAccent.withValues(alpha: 0.12), borderRadius: AppRadius.borderFull),
-                  child: Text('معرضك', style: AppTypography.labelSmall.copyWith(color: kProductAccent, fontWeight: FontWeight.w700)),
+                  child: Text(context.tr('ps_your_showroom'), style: AppTypography.labelSmall.copyWith(color: kProductAccent, fontWeight: FontWeight.w700)),
                 ),
               ],
             ],
@@ -208,13 +201,13 @@ class WarehouseStockTile extends StatelessWidget {
           // ── Metrics strip: المخزون · المحجوز · القادم · المتاح ──
           Row(
             children: [
-              _metric('المخزون', row.inStock, AppColors.textPrimary),
+              _metric(context.tr('ps_stock'), row.inStock, AppColors.textPrimary),
               _vsep(),
-              _metric('المحجوز', row.committed, row.committed > 0 ? AppColors.warning : AppColors.textTertiary),
+              _metric(context.tr('ps_committed'), row.committed, row.committed > 0 ? AppColors.warning : AppColors.textTertiary),
               _vsep(),
-              _metric('القادم', row.ordered, row.ordered > 0 ? AppColors.info : AppColors.textTertiary),
+              _metric(context.tr('ps_incoming'), row.ordered, row.ordered > 0 ? AppColors.info : AppColors.textTertiary),
               _vsep(),
-              _metric('المتاح', row.available, _availColor(row.available), emphasize: true),
+              _metric(context.tr('ps_available'), row.available, _availColor(row.available), emphasize: true),
             ],
           ),
         ],

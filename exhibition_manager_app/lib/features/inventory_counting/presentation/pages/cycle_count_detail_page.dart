@@ -154,9 +154,9 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
         child: AlertDialog(
           title: Text(context.tr('complete_count')),
           content: Text(
-            isArabic
-                ? 'تم عدّ ${p.countedTargets} من ${p.totalTargets} صنف. سيتم إكمال المهمة الآن.'
-                : 'Counted ${p.countedTargets} of ${p.totalTargets}. The task will be completed now.',
+            context.tr('ic_cycle_complete_confirm')
+                .replaceAll('{counted}', '${p.countedTargets}')
+                .replaceAll('{total}', '${p.totalTargets}'),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.tr('cancel'))),

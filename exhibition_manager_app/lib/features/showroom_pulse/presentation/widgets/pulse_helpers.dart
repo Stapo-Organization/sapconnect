@@ -2,39 +2,30 @@ import 'package:flutter/material.dart';
 
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
 const Color kBleedingColor = Color(0xFFE5484D); // 🔴 أوقف النزيف
 const Color kTrappedColor = Color(0xFFE0A012); // 🟡 حرّر فلوسك
 const Color kBasketColor = Color(0xFF12A150); // 🟢 كبّر السلة
 
-/// SAR with Arabic thousands separator (Western digits).
-String sar(num v) {
-  final s = v.round().abs().toString();
-  final b = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) b.write('٬');
-    b.write(s[i]);
-  }
-  return '${b.toString()} \u{E900}';
-}
+/// SAR amount — locale-aware grouping via the shared formatter.
+String sar(num v) => sarAmount(v);
 
 String scoreLabel(double s) {
-  if (s >= 85) return 'ممتاز';
-  if (s >= 70) return 'جيد';
-  if (s >= 50) return 'متوسط';
-  return 'يحتاج انتباه';
+  if (s >= 85) return AppLocalizations.translate('sp_score_excellent');
+  if (s >= 70) return AppLocalizations.translate('sp_score_good');
+  if (s >= 50) return AppLocalizations.translate('sp_score_average');
+  return AppLocalizations.translate('sp_score_needs_attention');
 }
 
 String vitalLabel(String key) {
   switch (key) {
     case 'hero_availability':
-      return 'توفر الأبطال';
     case 'capital_efficiency':
-      return 'كفاءة رأس المال';
     case 'basket_size':
-      return 'حجم السلة';
     case 'count_accuracy':
-      return 'دقة الجرد';
+      return AppLocalizations.translate('vital_$key');
     default:
       return key;
   }
@@ -50,15 +41,15 @@ Color vitalColor(double pct, bool hasValue) {
 String healthLabel(String h) {
   switch (h) {
     case 'stockout':
-      return 'نفد';
+      return AppLocalizations.translate('sp_health_stockout');
     case 'starved':
-      return 'ينفد باستمرار';
+      return AppLocalizations.translate('sp_health_starved');
     case 'low':
-      return 'على وشك النفاد';
+      return AppLocalizations.translate('sp_health_low');
     case 'overstock':
-      return 'فائض راكد';
+      return AppLocalizations.translate('sp_health_overstock');
     case 'dead':
-      return 'راكد';
+      return AppLocalizations.translate('health_dead');
     default:
       return h;
   }

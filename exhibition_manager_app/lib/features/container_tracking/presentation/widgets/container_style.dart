@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
-import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/date_names.dart';
 
 /// Shared visual language for the container board: the server-derived
 /// `state_color` key → a concrete accent, plus a light RTL-friendly date format.
@@ -21,18 +21,9 @@ Color containerStateColor(String key) {
   }
 }
 
-const _arMonths = [
-  '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-];
-const _enMonths = [
-  '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
-
 /// "12 يونيو" / "12 Jun" — short, no year (year shown only when not current).
 String shortDate(DateTime? d, {bool withYear = false}) {
   if (d == null) return '—';
-  final months = AppLocalizations.isArabic ? _arMonths : _enMonths;
-  final base = '${d.day} ${months[d.month]}';
+  final base = '${d.day} ${monthName(d.month, short: true)}';
   return withYear ? '$base ${d.year}' : base;
 }

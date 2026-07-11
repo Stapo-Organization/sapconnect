@@ -19,7 +19,7 @@ class RetailDashboardController extends ChangeNotifier {
   RetailOverview? _data;
   bool _disposed = false;
 
-  String _period = 'month'; // today | week | month | custom
+  String _period = 'today'; // today | week | month | custom
   String _sort = 'revenue'; // revenue | score | bleeding
   String _channel; // total | retail | wholesale
   String? _from;

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import '../storage/secure_storage.dart';
 
 /// API Client — HTTP wrapper with auth token management
@@ -46,7 +47,8 @@ class ApiClient {
       return _handleResponse(response);
     } catch (e) {
       debugPrint('❌ GET Error: $e');
-      return ApiResult.error('خطأ في الاتصال: $e');
+      return ApiResult.error(
+          AppLocalizations.translate('net_connection_error').replaceAll('{e}', '$e'));
     }
   }
 
@@ -63,7 +65,8 @@ class ApiClient {
       return _handleResponse(response);
     } catch (e) {
       debugPrint('❌ POST Error: $e');
-      return ApiResult.error('خطأ في الاتصال: $e');
+      return ApiResult.error(
+          AppLocalizations.translate('net_connection_error').replaceAll('{e}', '$e'));
     }
   }
 
@@ -80,7 +83,8 @@ class ApiClient {
       return _handleResponse(response);
     } catch (e) {
       debugPrint('❌ PUT Error: $e');
-      return ApiResult.error('خطأ في الاتصال: $e');
+      return ApiResult.error(
+          AppLocalizations.translate('net_connection_error').replaceAll('{e}', '$e'));
     }
   }
 
@@ -93,7 +97,8 @@ class ApiClient {
       return _handleResponse(response);
     } catch (e) {
       debugPrint('❌ DELETE Error: $e');
-      return ApiResult.error('خطأ في الاتصال: $e');
+      return ApiResult.error(
+          AppLocalizations.translate('net_connection_error').replaceAll('{e}', '$e'));
     }
   }
 
@@ -120,7 +125,8 @@ class ApiClient {
       return _handleResponse(response);
     } catch (e) {
       debugPrint('❌ POST(multipart) Error: $e');
-      return ApiResult.error('خطأ في رفع الملف: $e');
+      return ApiResult.error(
+          AppLocalizations.translate('net_upload_error').replaceAll('{e}', '$e'));
     }
   }
 
@@ -140,28 +146,28 @@ class ApiClient {
         clearToken();
         SecureStorage.deleteToken();
         return ApiResult.error(
-          body['message'] ?? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.',
+          body['message'] ?? AppLocalizations.translate('net_session_expired'),
           statusCode: 401,
         );
       case 403:
         return ApiResult.error(
-          body['message'] ?? 'غير مصرح لك بهذا الإجراء.',
+          body['message'] ?? AppLocalizations.translate('net_forbidden'),
           statusCode: 403,
         );
       case 404:
         return ApiResult.error(
-          body['message'] ?? 'العنصر غير موجود.',
+          body['message'] ?? AppLocalizations.translate('net_not_found'),
           statusCode: 404,
         );
       case 422:
         return ApiResult.error(
-          body['message'] ?? 'بيانات غير صالحة.',
+          body['message'] ?? AppLocalizations.translate('net_invalid_data'),
           statusCode: 422,
           errors: body['errors'],
         );
       default:
         return ApiResult.error(
-          body['message'] ?? 'حدث خطأ غير متوقع.',
+          body['message'] ?? AppLocalizations.translate('unexpected_error'),
           statusCode: response.statusCode,
         );
     }

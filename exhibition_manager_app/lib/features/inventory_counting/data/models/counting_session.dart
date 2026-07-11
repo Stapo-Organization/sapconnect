@@ -1,3 +1,5 @@
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+
 /// Counting Session model
 class CountingSession {
   final int id;
@@ -65,11 +67,11 @@ class CountingSession {
   String get statusLabel {
     switch (status) {
       case 'in_progress':
-        return 'جاري الجرد';
+        return AppLocalizations.translate('counting_in_progress');
       case 'completed':
-        return 'مكتمل';
+        return AppLocalizations.translate('status_completed');
       case 'cancelled':
-        return 'ملغي';
+        return AppLocalizations.translate('status_cancelled');
       default:
         return status;
     }
@@ -78,20 +80,20 @@ class CountingSession {
   String get countingTypeLabel {
     switch (countingType) {
       case 'cycle':
-        return 'جرد دوري';
+        return AppLocalizations.translate('cycle_count');
       default:
-        return 'جرد سنوي';
+        return AppLocalizations.translate('full_count');
     }
   }
 
   String get priorityLabel {
     switch (priority) {
       case 'high':
-        return 'عالي';
+        return AppLocalizations.translate('ic_priority_high');
       case 'low':
-        return 'منخفض';
+        return AppLocalizations.translate('ic_priority_low');
       default:
-        return 'متوسط';
+        return AppLocalizations.translate('ic_priority_medium');
     }
   }
 }
@@ -166,12 +168,12 @@ class CountingLine {
 
   String get varianceStatusLabel {
     switch (varianceStatus) {
-      case 'match': return 'مطابق';
-      case 'within_tolerance': return 'ضمن التسامح';
-      case 'over': return 'زيادة';
-      case 'short': return 'نقص';
-      case 'not_in_system': return 'غير موجود بالنظام';
-      default: return 'لم يُجرد';
+      case 'match': return AppLocalizations.translate('ic_variance_match');
+      case 'within_tolerance': return AppLocalizations.translate('ic_variance_within_tolerance');
+      case 'over': return AppLocalizations.translate('ic_variance_over');
+      case 'short': return AppLocalizations.translate('ic_variance_short');
+      case 'not_in_system': return AppLocalizations.translate('ic_variance_not_in_system');
+      default: return AppLocalizations.translate('ic_variance_uncounted');
     }
   }
 }

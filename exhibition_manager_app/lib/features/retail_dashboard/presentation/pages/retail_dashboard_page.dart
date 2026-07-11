@@ -17,6 +17,7 @@ import '../../data/models/retail_models.dart';
 import '../channel_tokens.dart';
 import '../controllers/retail_dashboard_controller.dart';
 import '../widgets/channel_comparison.dart';
+import '../widgets/channel_switcher.dart';
 import '../widgets/leaderboard_row.dart';
 import '../widgets/sales_profit_chart.dart';
 import '../widgets/wholesale_customer_row.dart';
@@ -79,7 +80,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
       context: context,
       firstDate: DateTime(now.year - 2),
       lastDate: now,
-      locale: const Locale('ar'),
+      locale: Locale(AppLocalizations.currentLanguage),
     );
     if (range != null) {
       final f = range.start.toIso8601String().split('T').first;
@@ -170,12 +171,11 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
                 _heroPill(Icons.savings_rounded, '${context.tr('rd_profit_short')} ${sarCompact(d!.totalProfit)}', highlight: true),
               _heroPill(Icons.receipt_long_rounded, '${intGrouped(d?.totalInvoices ?? 0)} ${context.tr('rd_invoices')}'),
               // The third pill is the channel's natural count: branches for
-              // retail, customers for wholesale, the split for total.
+              // retail, customers for wholesale, the live split donut for total.
               if (channel == SalesChannel.wholesale)
                 _heroPill(Icons.groups_rounded, '${d?.customersCount ?? 0} ${context.tr('rd_customers_count')}')
               else if (channel == SalesChannel.total && d?.channels != null)
-                _heroPill(Icons.donut_large_rounded,
-                    '${context.tr('rd_channel_retail')} ${(d!.channels!.retailShare * 100).toStringAsFixed(0)}٪ · ${context.tr('rd_channel_wholesale')} ${(d.channels!.wholesaleShare * 100).toStringAsFixed(0)}٪')
+                _splitPill(context, d!.channels!)
               else
                 _heroPill(Icons.storefront_rounded, '${d?.branchesCount ?? 0} ${context.tr('rd_branches_count')}'),
             ],
@@ -187,16 +187,41 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
 
   // ─── Channel switcher: الإجمالي / المعارض / الجملة ─────────────
   Widget _channelSwitcher(BuildContext context) {
-    final selected = SalesChannel.order.indexOf(_c.channel);
+    final ch = _c.data?.channels;
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, 0),
-      child: AppSegmentedControl(
-        activeColor: SalesChannel.color(_c.channel),
-        selectedIndex: selected < 0 ? 0 : selected,
-        onChanged: (i) => _c.setChannel(SalesChannel.order[i]),
-        items: [
-          for (final ch in SalesChannel.order)
-            SegmentItem(context.tr(SalesChannel.labelKey(ch)), icon: SalesChannel.icon(ch)),
+      child: ChannelSwitcher(
+        selected: _c.channel,
+        onChanged: _c.setChannel,
+        shares: ch != null ? (ch.retailShare, ch.wholesaleShare) : null,
+      ),
+    );
+  }
+
+  /// شريحة «الإجمالي» في الهيرو: دونات حيّة بحصّتَي القناتين + النِّسَب.
+  Widget _splitPill(BuildContext context, ChannelSplit ch) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: AppRadius.borderFull,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SplitDonut(
+            size: 13,
+            strokeWidth: 2.6,
+            shares: (ch.retailShare, ch.wholesaleShare),
+            retailColor: Colors.white,
+            wholesaleColor: AppColors.accent,
+            trackColor: Colors.white.withValues(alpha: 0.25),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '${context.tr('rd_channel_retail')} ${pctLabel(ch.retailShare * 100)} · ${context.tr('rd_channel_wholesale')} ${pctLabel(ch.wholesaleShare * 100)}',
+            style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );

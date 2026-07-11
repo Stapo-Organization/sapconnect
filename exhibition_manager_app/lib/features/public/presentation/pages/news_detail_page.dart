@@ -12,6 +12,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/features/public/data/public_repository.dart';
+import 'package:exhibition_manager_app/shared/utils/date_names.dart';
 import 'package:exhibition_manager_app/shared/widgets/full_screen_image_viewer.dart';
 
 /// Public news article page — the full story behind a landing news card.
@@ -21,21 +22,10 @@ class NewsDetailPage extends StatelessWidget {
   final NewsItem item;
   const NewsDetailPage({super.key, required this.item});
 
-  static const List<String> _arMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
-  ];
-  static const List<String> _enMonths = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   String? get _dateLabel {
     final d = item.publishedAt;
     if (d == null) return null;
-    return AppLocalizations.isArabic
-        ? '${d.day} ${_arMonths[d.month - 1]} ${d.year}'
-        : '${d.day} ${_enMonths[d.month - 1]} ${d.year}';
+    return '${d.day} ${monthName(d.month, short: true)} ${d.year}';
   }
 
   Future<void> _openLink() async {

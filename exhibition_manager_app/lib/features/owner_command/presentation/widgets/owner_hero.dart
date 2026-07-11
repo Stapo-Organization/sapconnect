@@ -47,7 +47,8 @@ class OwnerHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final greeting = '${context.tr(_greetingKey())}، $userName';
+    final comma = AppLocalizations.isArabic ? '،' : ',';
+    final greeting = '${context.tr(_greetingKey())}$comma $userName';
     return GradientHeader(
       gradient: OwnerTheme.heroGradient,
       title: greeting,
@@ -165,7 +166,9 @@ class OwnerHero extends StatelessWidget {
                     context,
                     channel: SalesChannel.retail,
                     swatch: Colors.white.withValues(alpha: 0.92),
+                    iconColor: const Color(0xFF243041),
                     net: s.channelsToday!.retail.net,
+                    share: s.channelsToday!.retailShare,
                     deltaPct: s.retailDeltaPct,
                   ),
                 ),
@@ -175,7 +178,9 @@ class OwnerHero extends StatelessWidget {
                     context,
                     channel: SalesChannel.wholesale,
                     swatch: AppColors.accent,
+                    iconColor: Colors.white,
                     net: s.channelsToday!.wholesale.net,
+                    share: s.channelsToday!.wholesaleShare,
                     deltaPct: s.wholesaleDeltaPct,
                   ),
                 ),
@@ -226,12 +231,15 @@ class OwnerHero extends StatelessWidget {
     );
   }
 
-  /// خلية قناة: مربّع لون + الاسم + الصافي + دلتا مصغّرة. الضغط يفتح الأداء.
+  /// خلية قناة: أيقونة القناة في مربّع بلونها + الاسم + حصّتها + الصافي بعدّاد
+  /// تصاعدي + دلتا مصغّرة. الضغط يفتح الأداء على تلك القناة.
   Widget _channelCell(
     BuildContext context, {
     required String channel,
     required Color swatch,
+    required Color iconColor,
     required double net,
+    required double share,
     double? deltaPct,
   }) {
     final up = (deltaPct ?? 0) >= 0;
@@ -249,11 +257,12 @@ class OwnerHero extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(color: swatch, borderRadius: BorderRadius.circular(3)),
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(color: swatch, borderRadius: BorderRadius.circular(5)),
+                child: Icon(SalesChannel.icon(channel), size: 11, color: iconColor),
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   context.tr(SalesChannel.labelKey(channel)),
@@ -264,6 +273,15 @@ class OwnerHero extends StatelessWidget {
                   ),
                 ),
               ),
+              if (share > 0)
+                Text(
+                  pctLabel(share * 100),
+                  style: AppTypography.labelSmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.55),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                  ),
+                ),
               Icon(
                 AppLocalizations.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
                 size: 14,
@@ -275,20 +293,25 @@ class OwnerHero extends StatelessWidget {
           Row(
             children: [
               Flexible(
-                child: Text(
-                  sarCompact(net),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.titleSmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: net),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, _) => Text(
+                    sarCompact(v),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.titleSmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
               if (deltaPct != null) ...[
                 const SizedBox(width: 6),
                 Text(
-                  '${up ? '▲' : '▼'} ${deltaPct.abs().toStringAsFixed(0)}٪',
+                  '${up ? '▲' : '▼'} ${pctLabel(deltaPct.abs())}',
                   style: AppTypography.labelSmall.copyWith(
                     color: up ? OwnerTheme.positive : OwnerTheme.danger,
                     fontWeight: FontWeight.w800,
@@ -322,7 +345,7 @@ class OwnerHero extends StatelessWidget {
           child: _vitalCell(
             context,
             label: context.tr('owner_kpi_margin'),
-            value: s.marginPct != null ? '${s.marginPct!.toStringAsFixed(0)}٪' : '—',
+            value: s.marginPct != null ? pctLabel(s.marginPct!) : '—',
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -393,7 +416,7 @@ class OwnerHero extends StatelessWidget {
     final up = delta >= 0;
     final pct = s.netSalesDeltaPct;
     final label = pct != null
-        ? '${up ? '▲' : '▼'} ${pct.abs().toStringAsFixed(0)}٪'
+        ? '${up ? '▲' : '▼'} ${pctLabel(pct.abs())}'
         : '${up ? '+' : '−'} ${sarCompact(delta.abs())}';
     final color = up ? OwnerTheme.positive : OwnerTheme.danger;
     return Container(

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/design_system/theme/app_theme.dart';
 import 'core/design_system/theme/theme_controller.dart';
 import 'core/localization/app_localizations.dart';
@@ -97,6 +98,14 @@ class _MuntajatExhibitionAppState extends State<MuntajatExhibitionApp>
           navigatorKey: PushService.navigatorKey,
           theme: AppTheme.theme,
           locale: currentLocale,
+          // بدونها تظهر عناصر ماتيريال (منتقي التاريخ، مربعات الحوار) إنجليزية
+          // حتى في الوضع العربي — الآن كل لغة تعمل كاملة في عناصر النظام أيضاً.
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('ar'), Locale('en')],
           builder: (context, child) {
             // LocaleScope sits above the Navigator so every route (even ones
             // already pushed) that reads text via context.tr rebuilds when the

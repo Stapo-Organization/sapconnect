@@ -39,7 +39,7 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
   bool _loading = true; // first full-page load
   bool _periodLoading = false; // re-fetch triggered by a period change
   bool _hasError = false;
-  String _period = 'month';
+  String _period = 'today';
 
   static const _periods = ['today', 'week', 'month', 'year'];
 
@@ -234,7 +234,7 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(color: AppColors.success, borderRadius: AppRadius.borderFull),
-                      child: Text('${context.tr('rd_margin')} ${d.profit.marginPct!.toStringAsFixed(0)}٪',
+                      child: Text('${context.tr('rd_margin')} ${pctLabel(d.profit.marginPct!)}',
                           style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
                     ),
                   ],

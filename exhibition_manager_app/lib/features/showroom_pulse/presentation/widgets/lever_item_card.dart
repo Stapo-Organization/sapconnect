@@ -4,6 +4,8 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
 import '../../data/models/pulse_overview.dart';
 import 'pulse_helpers.dart';
@@ -219,12 +221,19 @@ Widget bleedingCard(
   final hasLoss = item.lostRevenueMonthly > 0;
   final heroValue = hasLoss
       ? sar(item.lostRevenueMonthly)
-      : (item.daysOfCover != null ? 'يكفي ${item.daysOfCover!.round()} يوم' : 'مخزون منخفض');
-  final heroLabel = hasLoss ? 'خسارة شهرية متوقعة' : 'تغطية المخزون';
+      : (item.daysOfCover != null
+          ? AppLocalizations.translate('sp_covers_n_days')
+              .replaceAll('{n}', '${item.daysOfCover!.round()}')
+          : AppLocalizations.translate('sp_low_stock'));
+  final heroLabel = hasLoss
+      ? AppLocalizations.translate('sp_expected_monthly_loss')
+      : AppLocalizations.translate('sp_stock_cover');
   final stats = <String>[
-    if (item.velocity > 0) 'يبيع ${item.velocity.toStringAsFixed(1)}/يوم',
-    'في الفرع ${item.currentStock.round()}',
-    'المخزون العام ${item.totalStock.round()}',
+    if (item.velocity > 0)
+      AppLocalizations.translate('sp_sells_per_day')
+          .replaceAll('{n}', item.velocity.toStringAsFixed(1)),
+    AppLocalizations.translate('sp_in_branch').replaceAll('{n}', '${item.currentStock.round()}'),
+    AppLocalizations.translate('sp_total_stock').replaceAll('{n}', '${item.totalStock.round()}'),
   ].join('  ·  ');
 
   return LeverItemCard(
@@ -240,13 +249,13 @@ Widget bleedingCard(
     onOpenProduct: onOpenProduct,
     action: requested
         ? _compactBtn(
-            label: 'تم الرفع',
+            label: AppLocalizations.translate('sp_submitted'),
             icon: Icons.check_rounded,
             fg: AppColors.success,
             bg: AppColors.success.withValues(alpha: 0.12),
           )
         : _compactBtn(
-            label: 'اطلب تحويل',
+            label: AppLocalizations.translate('sp_request_transfer'),
             icon: Icons.local_shipping_outlined,
             fg: Colors.white,
             bg: AppColors.primary,
@@ -300,7 +309,8 @@ Widget basketCard(BasketPair pair, {void Function(WarehouseRef ref)? onOpenItem}
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                'يُشترى معاً في ${(pair.confidence * 100).round()}% من الفواتير — اعرضهم جنب بعض',
+                AppLocalizations.translate('sp_bought_together')
+                    .replaceAll('{pct}', pctLabel(pair.confidence * 100)),
                 style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, height: 1.3),
               ),
             ),
@@ -337,13 +347,16 @@ Widget _basketPairChip(WarehouseRef ref, {VoidCallback? onTap}) {
 
 /// "يكفي …" coverage label from days-of-cover (years / months / days).
 String _coverLabel(double? days) {
-  if (days == null || days <= 0) return 'طويلاً';
+  if (days == null || days <= 0) return AppLocalizations.translate('sp_cover_long');
   if (days >= 365) {
     final y = days / 365;
-    return '${y >= 10 ? y.toStringAsFixed(0) : y.toStringAsFixed(1)} سنة';
+    return AppLocalizations.translate('sp_cover_years')
+        .replaceAll('{n}', y >= 10 ? y.toStringAsFixed(0) : y.toStringAsFixed(1));
   }
-  if (days >= 60) return '${(days / 30).round()} شهر';
-  return '${days.round()} يوم';
+  if (days >= 60) {
+    return AppLocalizations.translate('sp_cover_months').replaceAll('{n}', '${(days / 30).round()}');
+  }
+  return AppLocalizations.translate('sp_cover_days').replaceAll('{n}', '${days.round()}');
 }
 
 /// Percent with up to one decimal (Western digits).
@@ -364,11 +377,14 @@ Widget trappedCard(
   // reserved for orders, so they're not idle. Excess is the available surplus.
   final isDead = item.healthStatus == 'dead' || item.velocity <= 0;
   final stats = isDead
-      ? 'بدون مبيعات · ${item.available.round()} حبة متاحة مجمّدة'
-      : 'يكفي ${_coverLabel(item.coverAvailable)} بمعدل البيع · فائض ${item.excessUnits.round()} حبة';
+      ? AppLocalizations.translate('sp_dead_stats').replaceAll('{n}', '${item.available.round()}')
+      : AppLocalizations.translate('sp_trapped_stats')
+          .replaceAll('{cover}', _coverLabel(item.coverAvailable))
+          .replaceAll('{n}', '${item.excessUnits.round()}');
   final heroLabel = item.valueRatioPct > 0
-      ? '${_pct(item.valueRatioPct)}٪ من فلوسك المحبوسة'
-      : 'رأس مال محبوس';
+      ? AppLocalizations.translate('sp_pct_of_trapped_cash')
+          .replaceAll('{pct}', '${_pct(item.valueRatioPct)}$pctSign')
+      : AppLocalizations.translate('sp_trapped_capital');
 
   return LeverItemCard(
     imageUrl: item.imageUrl,
@@ -383,13 +399,13 @@ Widget trappedCard(
     onOpenProduct: onOpenProduct,
     action: suggested
         ? _compactBtn(
-            label: 'تم الرفع',
+            label: AppLocalizations.translate('sp_submitted'),
             icon: Icons.check_rounded,
             fg: AppColors.success,
             bg: AppColors.success.withValues(alpha: 0.12),
           )
         : _compactBtn(
-            label: 'اقترح خصم',
+            label: AppLocalizations.translate('sp_suggest_discount'),
             icon: Icons.sell_outlined,
             fg: kTrappedColor,
             borderColor: kTrappedColor.withValues(alpha: 0.5),

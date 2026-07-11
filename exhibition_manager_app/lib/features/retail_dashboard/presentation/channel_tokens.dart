@@ -28,11 +28,18 @@ class SalesChannel {
 
   static String labelKey(String channel) => 'rd_channel_$channel';
 
+  /// الجملة = باليت بضاعة (أيقونة B2B مميّزة — الشحن محجوز لتبويب اللوجستيات).
   static IconData icon(String channel) => switch (channel) {
-        wholesale => Icons.local_shipping_rounded,
+        wholesale => Icons.pallet,
         retail => Icons.storefront_rounded,
         _ => Icons.donut_large_rounded,
       };
+
+  /// Soft identity gradient for chips/washes (light→transparent of the fill).
+  static List<Color> wash(String channel) {
+    final c = fill(channel);
+    return [c.withValues(alpha: 0.14), c.withValues(alpha: 0.02)];
+  }
 }
 
 /// إشارة «افتح صفحة الأداء على قناة معيّنة» بين تبويبات شِل المالك.

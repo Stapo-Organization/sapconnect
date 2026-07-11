@@ -95,7 +95,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
             cursorColor: Colors.white,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'ابحث بالاسم أو كود ساب أو الباركود',
+              hintText: context.tr('ps_search_hint'),
               hintStyle: AppTypography.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.7)),
             ),
             onChanged: _controller.onQuery,
@@ -107,7 +107,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                   ? const SizedBox.shrink()
                   : IconButton(
                       icon: const Icon(Icons.close_rounded),
-                      tooltip: 'مسح',
+                      tooltip: context.tr('ps_clear'),
                       onPressed: () {
                         _field.clear();
                         _controller.clear();
@@ -117,7 +117,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
             ),
             IconButton(
               icon: const Icon(Icons.qr_code_scanner_rounded),
-              tooltip: 'مسح باركود',
+              tooltip: context.tr('scan_to_count'),
               onPressed: _onScan,
             ),
             const SizedBox(width: 4),
@@ -137,12 +137,12 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
       if (_controller.loading) return const Center(child: CircularProgressIndicator(color: _accent));
       return _hint(
         icon: Icons.search_rounded,
-        title: 'ابحث عن أي منتج',
-        subtitle: 'اكتب اسم المنتج أو كود ساب أو الباركود لعرض الكميات في كل المعارض والمستودعات',
+        title: context.tr('ps_search_prompt_title'),
+        subtitle: context.tr('ps_search_prompt_subtitle'),
         action: OutlinedButton.icon(
           onPressed: _onScan,
           icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
-          label: const Text('امسح الباركود'),
+          label: Text(context.tr('ps_scan_barcode_btn')),
           style: OutlinedButton.styleFrom(
             foregroundColor: _accent,
             side: const BorderSide(color: _accent, width: 1.4),
@@ -157,7 +157,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
     if (_controller.hasError && _controller.results.isEmpty) {
       return _hint(
         icon: Icons.cloud_off_rounded,
-        title: 'تعذّر البحث',
+        title: context.tr('ps_search_failed'),
         subtitle: _controller.error ?? '',
       );
     }
@@ -165,8 +165,8 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
     if (!_controller.loading && _controller.results.isEmpty) {
       return _hint(
         icon: Icons.inventory_2_outlined,
-        title: 'لا توجد نتائج',
-        subtitle: 'جرّب اسماً أو كوداً آخر',
+        title: context.tr('no_results'),
+        subtitle: context.tr('ps_try_another_query'),
       );
     }
 
@@ -185,7 +185,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Text(
-                    '${results.length} نتيجة',
+                    context.tr('ps_results_count').replaceAll('{n}', '${results.length}'),
                     style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary),
                   ),
                 );

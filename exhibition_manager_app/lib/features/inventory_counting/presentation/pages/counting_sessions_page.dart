@@ -161,7 +161,7 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
       ).then((_) => _loadSessions());
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.error ?? 'حدث خطأ في إنشاء سجل الجرد')),
+        SnackBar(content: Text(result.error ?? context.tr('ic_create_session_error'))),
       );
     }
   }

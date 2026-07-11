@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 import 'notifications_repository.dart';
 
@@ -32,12 +33,12 @@ class PushService {
   /// البارد وللعودة من الخلفية) ويستهلكه عبر consumePendingType().
   final ValueNotifier<String?> pendingType = ValueNotifier<String?>(null);
 
-  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
-    'high_importance_channel',
-    'تنبيهات مدير المعرض',
-    description: 'إشعارات تحويلات المخزون والجرد والمهام',
-    importance: Importance.high,
-  );
+  static AndroidNotificationChannel get _channel => AndroidNotificationChannel(
+        'high_importance_channel',
+        AppLocalizations.translate('notif_channel_name'),
+        description: AppLocalizations.translate('notif_channel_description'),
+        importance: Importance.high,
+      );
 
   /// تُستدعى مرة في main() بعد Firebase.initializeApp().
   Future<void> init() async {

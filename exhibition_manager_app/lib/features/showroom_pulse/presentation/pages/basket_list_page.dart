@@ -64,7 +64,7 @@ class _BasketListPageState extends State<BasketListPage> {
           foregroundColor: Colors.white,
           elevation: 0,
           title: Text(
-            'كبّر السلة',
+            context.tr('sp_lever_basket_title'),
             style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
           ),
         ),
@@ -86,7 +86,10 @@ class _BasketListPageState extends State<BasketListPage> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                                 child: Text(
-                                  '${_pairs.length} اقتراح عرض · ${widget.warehouseName}',
+                                  context
+                                      .tr('sp_pairs_count_wh')
+                                      .replaceAll('{n}', '${_pairs.length}')
+                                      .replaceAll('{name}', widget.warehouseName),
                                   style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary),
                                 ),
                               );
@@ -110,7 +113,7 @@ class _BasketListPageState extends State<BasketListPage> {
   Widget _emptyState() {
     return Center(
       child: Text(
-        'لا توجد اقتراحات عرض بين براندات مختلفة لهذا الفرع.',
+        context.tr('sp_no_basket_branch'),
         textAlign: TextAlign.center,
         style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
       ),
@@ -124,9 +127,9 @@ class _BasketListPageState extends State<BasketListPage> {
         children: [
           Icon(Icons.cloud_off_rounded, size: 44, color: AppColors.textTertiary),
           const SizedBox(height: AppSpacing.md),
-          Text('تعذّر تحميل القائمة', style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary)),
+          Text(context.tr('sp_list_load_error'), style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.md),
-          AppButton(label: 'إعادة المحاولة', icon: Icons.refresh_rounded, expand: false, onPressed: _load),
+          AppButton(label: context.tr('retry'), icon: Icons.refresh_rounded, expand: false, onPressed: _load),
         ],
       ),
     );

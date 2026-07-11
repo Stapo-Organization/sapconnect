@@ -68,18 +68,34 @@ class WholesaleCustomerRow extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 7),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: share),
-                    duration: const Duration(milliseconds: 650),
-                    curve: Curves.easeOutCubic,
-                    builder: (_, v, _) => LinearProgressIndicator(
-                      value: v,
-                      minHeight: 7,
-                      backgroundColor: AppColors.borderLight,
-                      valueColor: AlwaysStoppedAnimation(AppColors.accent.withValues(alpha: 0.85)),
-                    ),
+                // شريط الحصّة من صدارة القائمة — تعبئة ذهبية متدرّجة بأطراف دائرية.
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: share),
+                  duration: const Duration(milliseconds: 650),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, _) => Stack(
+                    children: [
+                      Container(
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: AppColors.borderLight,
+                          borderRadius: AppRadius.borderFull,
+                        ),
+                      ),
+                      FractionallySizedBox(
+                        widthFactor: v.clamp(0.02, 1.0),
+                        child: Container(
+                          height: 7,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [
+                              AppColors.accent,
+                              AppColors.accentDark,
+                            ]),
+                            borderRadius: AppRadius.borderFull,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 7),
@@ -105,12 +121,33 @@ class WholesaleCustomerRow extends StatelessWidget {
 
   Widget _rankMedal() {
     final top3 = rank <= 3;
-    return Container(
+    final medal = Container(
       width: 34,
       height: 34,
       decoration: BoxDecoration(
-        color: top3 ? _rankColor : _rankColor.withValues(alpha: 0.12),
+        // ميدالية متدرّجة بلمعة قطرية للثلاثي الأول؛ حلقة خافتة لمن بعدهم.
+        gradient: top3
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color.lerp(_rankColor, Colors.white, 0.28)!,
+                  _rankColor,
+                  Color.lerp(_rankColor, Colors.black, 0.18)!,
+                ],
+              )
+            : null,
+        color: top3 ? null : _rankColor.withValues(alpha: 0.12),
         shape: BoxShape.circle,
+        boxShadow: top3
+            ? [
+                BoxShadow(
+                  color: _rankColor.withValues(alpha: 0.45),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       alignment: Alignment.center,
       child: Text(
@@ -120,6 +157,22 @@ class WholesaleCustomerRow extends StatelessWidget {
           fontWeight: FontWeight.w800,
         ),
       ),
+    );
+    if (rank != 1) return medal;
+    // تاج صغير يعتلي ميدالية المتصدّر.
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        medal,
+        PositionedDirectional(
+          top: -7,
+          end: -4,
+          child: Transform.rotate(
+            angle: 0.5,
+            child: Icon(Icons.workspace_premium_rounded, size: 15, color: _gold),
+          ),
+        ),
+      ],
     );
   }
 
@@ -145,7 +198,7 @@ class WholesaleCustomerRow extends StatelessWidget {
           const SizedBox(width: 5),
           Container(width: 3, height: 3, decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
           const SizedBox(width: 5),
-          Text('${customer.marginPct!.toStringAsFixed(0)}٪',
+          Text(pctLabel(customer.marginPct!),
               style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
         ],
       ),

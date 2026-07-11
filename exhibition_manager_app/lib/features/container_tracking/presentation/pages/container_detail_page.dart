@@ -8,6 +8,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
+import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 
@@ -123,7 +124,7 @@ class _ContainerDetailPageState extends State<ContainerDetailPage> {
                       style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Text('${context.tr('ct_progress')} ${card.progressPercent}٪',
+                Text('${context.tr('ct_progress')} ${pctLabel(card.progressPercent)}',
                     style: AppTypography.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.9))),
               ],
             ),
@@ -299,7 +300,7 @@ class _ContainerDetailPageState extends State<ContainerDetailPage> {
                       style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w700)),
                   if (e.location.isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text([e.location, e.country].where((s) => s.isNotEmpty).join('، '),
+                    Text([e.location, e.country].where((s) => s.isNotEmpty).join(AppLocalizations.isArabic ? '، ' : ', '),
                         style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
                   ],
                   if (e.date != null) ...[

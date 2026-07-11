@@ -100,7 +100,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                     ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
                     const SizedBox(height: AppSpacing.base),
                     Text(
-                      isArabic ? 'أحسنت! 🎉' : 'Well done! 🎉',
+                      context.tr('gam_well_done'),
                       style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -108,14 +108,14 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                       '+$points',
                       style: AppTypography.displayLarge.copyWith(color: AppColors.accentDark),
                     ).animate().fadeIn().slideY(begin: 0.3, end: 0),
-                    Text(isArabic ? 'نقطة' : 'points',
+                    Text(context.tr('gam_points'),
                         style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
                     if (levelUp) ...[
                       const SizedBox(height: AppSpacing.md),
                       _banner(
                         icon: Icons.trending_up_rounded,
                         color: AppColors.primary,
-                        text: isArabic ? 'ترقّيت للمستوى $level! 🚀' : 'Level up — Level $level! 🚀',
+                        text: context.tr('gam_level_up').replaceAll('{level}', '$level'),
                       ),
                     ],
                     if (streak is int && streak >= 2) ...[
@@ -123,12 +123,12 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                       _banner(
                         icon: Icons.local_fire_department_rounded,
                         color: AppColors.warning,
-                        text: isArabic ? 'سلسلة $streak أسابيع 🔥' : '$streak-week streak 🔥',
+                        text: context.tr('gam_streak_weeks').replaceAll('{streak}', '$streak'),
                       ),
                     ],
                     if (badges.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.lg),
-                      Text(isArabic ? 'أوسمة جديدة' : 'New badges',
+                      Text(context.tr('gam_new_badges'),
                           style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary)),
                       const SizedBox(height: AppSpacing.sm),
                       Wrap(
@@ -144,7 +144,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                     ],
                     const SizedBox(height: AppSpacing.xl),
                     AppButton(
-                      label: isArabic ? 'متابعة' : 'Continue',
+                      label: context.tr('gam_continue'),
                       onPressed: () => Navigator.of(context).pop(),
                       icon: Icons.check_rounded,
                       gradient: AppColors.successGradient,

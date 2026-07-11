@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
+import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 /// Minimal full-screen barcode scanner for product lookup. Unlike the counting
 /// scanner, this one does one thing: on a detected code it pops with the raw
@@ -44,7 +45,7 @@ class _ProductScannerPageState extends State<ProductScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: AppLocalizations.isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: Colors.black,
         body: Stack(
@@ -59,7 +60,7 @@ class _ProductScannerPageState extends State<ProductScannerPage> {
                   children: [
                     _circleBtn(Icons.close_rounded, () => Navigator.of(context).pop()),
                     Text(
-                      'امسح باركود المنتج',
+                      context.tr('ps_scan_product_barcode'),
                       style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
                     ),
                     _circleBtn(_flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded, () {
@@ -75,7 +76,7 @@ class _ProductScannerPageState extends State<ProductScannerPage> {
               left: AppSpacing.xl,
               right: AppSpacing.xl,
               child: Text(
-                'وجّه الكاميرا نحو الباركود',
+                context.tr('ps_point_camera_at_barcode'),
                 textAlign: TextAlign.center,
                 style: AppTypography.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.85)),
               ),
