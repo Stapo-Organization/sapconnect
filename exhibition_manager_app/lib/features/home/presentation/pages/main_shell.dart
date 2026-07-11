@@ -158,12 +158,10 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
     ];
   }
 
-  /// The admin hub appears if the user can reach any of its tools.
-  bool _canSeeAdmin(User user) =>
-      user.can(Ability.retailDashboardView) ||
-      user.can(Ability.qualityAdminView) ||
-      user.can(Ability.stockDistributionView) ||
-      user.can(Ability.containerTrackingView);
+  /// تبويب «الإدارة» حصري لتجربة المالك (Super Admin). نفس حارس توجيه الشِل
+  /// [User.isOwnerExperience] — لا [User.can] التي تسمح بكل شيء حين تغيب
+  /// abilities، فيظهر التبويب خطأً لمدير الفرع.
+  bool _canSeeAdmin(User user) => user.isOwnerExperience;
 
   @override
   void dispose() {

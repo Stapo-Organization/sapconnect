@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:exhibition_manager_app/core/permissions/app_abilities.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'package:exhibition_manager_app/features/home/presentation/pages/main_shell.dart';
 
@@ -11,15 +10,10 @@ import 'presentation/pages/owner_shell.dart';
 class OwnerRouting {
   OwnerRouting._();
 
-  /// يُعتبر مالكاً إذا كان Super Admin، أو (احتياطاً عند payload ناقص بلا
-  /// roles مثل دخول OTP) يملك أي قدرة إدارية حصرية. نفس مجموعة قدرات
-  /// MainShell._canSeeAdmin، فلا يتراجع المالك للتجربة العادية بصمت.
-  static bool isOwner(User u) =>
-      u.isSuperAdmin ||
-      u.can(Ability.retailDashboardView) ||
-      u.can(Ability.qualityAdminView) ||
-      u.can(Ability.stockDistributionView) ||
-      u.can(Ability.containerTrackingView);
+  /// مصدر الحقيقة الوحيد لتوجيه المالك: [User.isOwnerExperience] (المالك =
+  /// Super Admin، مع خطة بديلة عبر القدرات لحمولة OTP بلا أدوار فقط). لا نعتمد
+  /// على [User.can] هنا لأنها تسمح بكل شيء حين لا يرسل الباكند abilities.
+  static bool isOwner(User u) => u.isOwnerExperience;
 
   static Widget shellFor(User u) =>
       isOwner(u) ? OwnerShell(user: u) : MainShell(user: u);

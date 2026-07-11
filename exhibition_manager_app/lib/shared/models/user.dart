@@ -1,3 +1,5 @@
+import 'package:exhibition_manager_app/core/permissions/app_abilities.dart';
+
 /// User model for the Exhibition Manager App
 class User {
   final int id;
@@ -70,6 +72,22 @@ class User {
 
   bool get isSuperAdmin => roles.contains('Super Admin');
   bool get isBranchManager => roles.contains('Branch Manager');
+
+  /// هل يحصل هذا المستخدم على تجربة المالك (شِل «مركز القيادة» + بوابة الإدارة)؟
+  ///
+  /// المالك = دور **Super Admin** حصراً. القدرات تُستخدم كخطة بديلة فقط لحمولة
+  /// **بلا أدوار** (دخول OTP قديم) وبشرط أن الباكند أرسل القدرات فعلاً. هذا
+  /// الحارس ضروري: [can] تسمح بكل شيء حين لا تصل abilities (باكند لا ينشر نظام
+  /// الصلاحيات بعد)، فلو اعتمدنا عليها لتوجّه **كل** مستخدم — ومنهم مدير الفرع —
+  /// إلى واجهة المالك الفارغة.
+  bool get isOwnerExperience {
+    if (isSuperAdmin) return true;
+    if (roles.isNotEmpty || !abilitiesProvided) return false;
+    return abilities.contains(Ability.retailDashboardView) ||
+        abilities.contains(Ability.qualityAdminView) ||
+        abilities.contains(Ability.stockDistributionView) ||
+        abilities.contains(Ability.containerTrackingView);
+  }
 
   /// هل يملك المستخدم القدرة المحددة؟ مثال: can('stock_transfer.confirm_receive').
   /// توافق خلفي: لو الباكند لم يرسل abilities، اسمح بكل شيء.
