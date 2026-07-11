@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
@@ -165,7 +166,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.inventory_2, color: Colors.tealAccent, size: 18),
+              const Icon(Icons.inventory_2_rounded, color: Colors.tealAccent, size: 18),
               const SizedBox(width: 6),
               Text(
                 context.tr('ic_products_counted_n').replaceAll('{n}', '${summary['total_lines'] ?? 0}'),
@@ -260,10 +261,10 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         children: [
           Icon(
             accuracy >= 98
-                ? Icons.check_circle
+                ? Icons.check_circle_rounded
                 : accuracy >= 95
-                ? Icons.warning
-                : Icons.error,
+                ? Icons.warning_rounded
+                : Icons.error_rounded,
             color: color,
             size: 40,
           ),
@@ -356,7 +357,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         : status == 'over'
         ? Colors.blue
         : Colors.amber;
-    final icon = status == 'short' ? Icons.trending_down : Icons.trending_up;
+    final icon = status == 'short' ? Icons.trending_down_rounded : Icons.trending_up_rounded;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -386,7 +387,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 height: 50,
                 color: Colors.grey[800],
                 child: const Icon(
-                  Icons.image_not_supported,
+                  Icons.image_not_supported_rounded,
                   color: Colors.grey,
                   size: 24,
                 ),
@@ -473,7 +474,10 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       ),
       child: Column(
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 48),
+          // بطل حالة النجاح — يطفو بهدوء (الحلقة المستمرة الوحيدة في الشاشة).
+          const FloatingIcon(
+            child: Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
+          ),
           const SizedBox(height: 12),
           Text(
             context.tr('ic_no_discrepancies'),

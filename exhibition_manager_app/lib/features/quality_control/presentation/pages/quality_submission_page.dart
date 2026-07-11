@@ -107,6 +107,7 @@ class _QualitySubmissionPageState extends State<QualitySubmissionPage> {
         : t.isOverdue
             ? (AppColors.error, 'qa_overdue', Icons.warning_amber_rounded)
             : (AppColors.warning, 'qa_pending', Icons.schedule_rounded);
+    final statusBadge = StatusBadge(label: context.tr(statusKey), color: statusColor, icon: statusIcon);
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +117,8 @@ class _QualitySubmissionPageState extends State<QualitySubmissionPage> {
               Expanded(
                 child: Text(t.title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
               ),
-              StatusBadge(label: context.tr(statusKey), color: statusColor, icon: statusIcon),
+              // شارة «متأخرة» تهتز مرة واحدة للفت النظر.
+              if (!t.isSubmitted && t.isOverdue) WiggleIcon(child: statusBadge) else statusBadge,
             ],
           ),
           if (t.description != null && t.description!.isNotEmpty) ...[

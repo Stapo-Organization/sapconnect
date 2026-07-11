@@ -571,7 +571,7 @@ class _TargetTile extends StatelessWidget {
                 width: 50,
                 height: 50,
                 color: AppColors.surfaceVariant,
-                child: Icon(Icons.image_not_supported, size: 22, color: AppColors.textTertiary),
+                child: Icon(Icons.image_not_supported_rounded, size: 22, color: AppColors.textTertiary),
               ),
             ),
           ),

@@ -280,6 +280,7 @@ class _HomePageState extends State<HomePage> {
         label: context.tr('cycle_count'),
         value: m?.countingTasks.length ?? 0,
         domain: AppDomain.counting,
+        index: tiles.length,
         onTap: () => widget.onNavigateToDomain?.call(AppDomain.counting),
       ));
     }
@@ -290,6 +291,7 @@ class _HomePageState extends State<HomePage> {
         value: m?.qcDue ?? 0,
         overdue: m?.qcOverdue ?? 0,
         domain: AppDomain.quality,
+        index: tiles.length,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const QualityTasksPage()),
@@ -302,6 +304,7 @@ class _HomePageState extends State<HomePage> {
         label: context.tr('transfers_pending_send'),
         value: m?.pendingSend ?? 0,
         domain: AppDomain.transfers,
+        index: tiles.length,
         onTap: () => widget.onNavigateToDomain?.call(AppDomain.transfers),
       ));
       tiles.add(_GlanceTile(
@@ -309,6 +312,7 @@ class _HomePageState extends State<HomePage> {
         label: context.tr('transfers_pending_receive'),
         value: m?.pendingReceive ?? 0,
         domain: AppDomain.transfers,
+        index: tiles.length,
         onTap: () => widget.onNavigateToDomain?.call(AppDomain.transfers),
       ));
     }
@@ -318,6 +322,7 @@ class _HomePageState extends State<HomePage> {
         label: context.tr('zooboxi_urgent_orders'),
         value: m?.zbCount ?? 0,
         domain: AppDomain.zooboxi,
+        index: tiles.length,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ZooboxiOrdersPage()),
@@ -330,6 +335,7 @@ class _HomePageState extends State<HomePage> {
         label: context.tr('promotions'),
         value: m?.promoPending ?? 0,
         domain: AppDomain.promotions,
+        index: tiles.length,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PromotionsPage()),
@@ -673,6 +679,9 @@ class _GlanceTile extends StatelessWidget {
   final AppDomain domain;
   final VoidCallback onTap;
 
+  /// Position in the grid — staggers the icon chip's pop-in wave.
+  final int index;
+
   const _GlanceTile({
     required this.icon,
     required this.label,
@@ -680,6 +689,7 @@ class _GlanceTile extends StatelessWidget {
     required this.domain,
     required this.onTap,
     this.overdue = 0,
+    this.index = 0,
   });
 
   @override
@@ -703,12 +713,15 @@ class _GlanceTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: domain.soft, borderRadius: AppRadius.borderMd),
-                  child: Icon(icon, color: accent, size: 22),
+                PopIn(
+                  delay: Duration(milliseconds: 60 * index.clamp(0, 10)),
+                  child: GlowIconChip(
+                    icon: icon,
+                    color: accent,
+                    size: 40,
+                    iconSize: 22,
+                    borderRadius: AppRadius.borderMd,
+                  ),
                 ),
                 const Spacer(),
                 if (overdue > 0)

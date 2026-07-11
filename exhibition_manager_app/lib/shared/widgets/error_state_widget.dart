@@ -3,6 +3,7 @@ import '../../core/design_system/tokens/colors.dart';
 import '../../core/design_system/tokens/typography.dart';
 import '../../core/design_system/tokens/spacing.dart';
 import '../../core/design_system/tokens/radius.dart';
+import '../../core/design_system/widgets/animated_icons.dart';
 import '../../core/localization/app_localizations.dart';
 
 /// Reusable error state widget with retry capability.
@@ -31,16 +32,22 @@ class ErrorStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 64,
-                color: AppColors.error.withValues(alpha: 0.6),
+            // تدخل بنبضة ثم تهتز اهتزازة تنبيهية متضائلة — خطأ يلفت لا يزعج.
+            PopIn(
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: WiggleIcon(
+                  delay: const Duration(milliseconds: 350),
+                  child: Icon(
+                    icon,
+                    size: 64,
+                    color: AppColors.error.withValues(alpha: 0.6),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),

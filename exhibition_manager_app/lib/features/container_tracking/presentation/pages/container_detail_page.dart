@@ -168,7 +168,13 @@ class _ContainerDetailPageState extends State<ContainerDetailPage> {
             children: [
               Row(
                 children: [
-                  Icon(icon, size: 18, color: AppDomain.containerTracking.accent),
+                  GlowIconChip(
+                    icon: icon,
+                    color: AppDomain.containerTracking.accent,
+                    size: 30,
+                    iconSize: 16,
+                    borderRadius: AppRadius.borderSm,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(title, style: AppTypography.titleSmall),
                 ],
@@ -235,7 +241,7 @@ class _ContainerDetailPageState extends State<ContainerDetailPage> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.circle, size: 7, color: color),
+                    Icon(Icons.circle_rounded, size: 7, color: color),
                     const SizedBox(width: AppSpacing.sm),
                     Text(shortDate(e.eta, withYear: true),
                         style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w700)),

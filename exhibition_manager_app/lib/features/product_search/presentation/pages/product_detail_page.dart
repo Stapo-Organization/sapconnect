@@ -4,6 +4,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_button.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
@@ -120,12 +121,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         children: [
           Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: _transferAccent.withValues(alpha: 0.16), borderRadius: AppRadius.borderMd),
-                child: const Icon(Icons.swap_horiz_rounded, color: _transferAccent, size: 20),
+              GlowIconChip(
+                icon: Icons.swap_horiz_rounded,
+                color: _transferAccent,
+                size: 34,
+                iconSize: 20,
+                borderRadius: AppRadius.borderMd,
+                pulseGlow: true, // key decision card — the single loop on this screen
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(

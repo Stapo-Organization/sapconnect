@@ -4,6 +4,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 import '../controllers/product_search_controller.dart';
@@ -137,6 +138,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
       if (_controller.loading) return const Center(child: CircularProgressIndicator(color: _accent));
       return _hint(
         icon: Icons.search_rounded,
+        float: true, // screen hero — the only continuous loop on this screen
         title: context.tr('ps_search_prompt_title'),
         subtitle: context.tr('ps_search_prompt_subtitle'),
         action: OutlinedButton.icon(
@@ -191,7 +193,10 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                 );
               }
               final hit = results[i - 1];
-              return ProductHitTile(hit: hit, onTap: () => _openDetail(hit.itemCode, hit.name));
+              return PopIn(
+                delay: Duration(milliseconds: 60 * (i - 1).clamp(0, 10)),
+                child: ProductHitTile(hit: hit, onTap: () => _openDetail(hit.itemCode, hit.name)),
+              );
             },
           ),
         ),
@@ -199,20 +204,21 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
     );
   }
 
-  Widget _hint({required IconData icon, required String title, required String subtitle, Widget? action}) {
+  Widget _hint({required IconData icon, required String title, required String subtitle, Widget? action, bool float = false}) {
+    final iconChip = Container(
+      width: 78,
+      height: 78,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: AppDomain.productSearch.soft, shape: BoxShape.circle),
+      child: Icon(icon, size: 38, color: _accent),
+    );
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 78,
-              height: 78,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: AppDomain.productSearch.soft, shape: BoxShape.circle),
-              child: Icon(icon, size: 38, color: _accent),
-            ),
+            float ? FloatingIcon(child: iconChip) : iconChip,
             const SizedBox(height: AppSpacing.lg),
             Text(
               title,

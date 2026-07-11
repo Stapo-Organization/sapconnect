@@ -587,10 +587,12 @@ class _PromotionDetailPageState extends State<PromotionDetailPage> {
         children: [
           Row(
             children: [
-              Container(
-                width: 34, height: 34, alignment: Alignment.center,
-                decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: AppRadius.borderSm),
-                child: Icon(Icons.insights_rounded, color: accent, size: 18),
+              GlowIconChip(
+                icon: Icons.insights_rounded,
+                color: accent,
+                size: 34,
+                iconSize: 18,
+                borderRadius: AppRadius.borderSm,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(child: Text(context.tr('promo_why'), style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold))),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_button.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
@@ -94,13 +95,16 @@ class _BasketListPageState extends State<BasketListPage> {
                                 ),
                               );
                             }
-                            return basketCard(
-                              _pairs[i - 1],
-                              onOpenItem: (ref) => openProductDetail(
-                                context,
-                                ref.code,
-                                name: ref.name,
-                                myWarehouses: [widget.warehouse],
+                            return PopIn(
+                              delay: Duration(milliseconds: 60 * (i - 1).clamp(0, 10)),
+                              child: basketCard(
+                                _pairs[i - 1],
+                                onOpenItem: (ref) => openProductDetail(
+                                  context,
+                                  ref.code,
+                                  name: ref.name,
+                                  myWarehouses: [widget.warehouse],
+                                ),
                               ),
                             );
                           },

@@ -48,15 +48,12 @@ class ActionFeedItemCard extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.md),
             // Domain icon chip.
-            Container(
-              width: 42,
-              height: 42,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: item.appDomain.soft,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(item.icon, color: accent, size: 22),
+            GlowIconChip(
+              icon: item.icon,
+              color: accent,
+              size: 42,
+              iconSize: 22,
+              borderRadius: BorderRadius.circular(12),
             ),
             const SizedBox(width: AppSpacing.md),
             // Title + subtitle.

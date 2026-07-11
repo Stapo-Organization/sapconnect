@@ -196,7 +196,11 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
                 child: Text(t.title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
               ),
               if (t.isOverdue)
-                StatusBadge(label: context.tr('overdue_badge'), color: AppColors.error, icon: Icons.warning_amber_rounded),
+                // اهتزاز تنبيهي مرة واحدة عند الظهور — المهمة متأخرة.
+                WiggleIcon(
+                  child: StatusBadge(
+                      label: context.tr('overdue_badge'), color: AppColors.error, icon: Icons.warning_amber_rounded),
+                ),
             ],
           ),
           if (t.description != null && t.description!.isNotEmpty) ...[
@@ -379,7 +383,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
                   fit: BoxFit.cover,
                   errorWidget: (_, _, _) => Container(
                     width: 84, height: 84, color: AppColors.surfaceVariant,
-                    child: Icon(Icons.broken_image, color: AppColors.textTertiary),
+                    child: Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
                   ),
                 ),
               ),

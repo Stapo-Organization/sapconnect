@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_button.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
@@ -164,23 +165,30 @@ class _LeverListPageState extends State<LeverListPage> {
                               );
                             }
                             final idx = i - 1;
+                            final delay = Duration(milliseconds: 60 * idx.clamp(0, 10));
                             if (_isBleeding) {
                               final item = _bleeding[idx];
-                              return bleedingCard(
-                                item,
-                                busy: _busy.contains(item.itemCode),
-                                requested: _transferRequested.contains(item.itemCode),
-                                onRequest: () => _requestTransfer(item),
-                                onOpenProduct: () => _openProduct(item.itemCode, item.name),
+                              return PopIn(
+                                delay: delay,
+                                child: bleedingCard(
+                                  item,
+                                  busy: _busy.contains(item.itemCode),
+                                  requested: _transferRequested.contains(item.itemCode),
+                                  onRequest: () => _requestTransfer(item),
+                                  onOpenProduct: () => _openProduct(item.itemCode, item.name),
+                                ),
                               );
                             }
                             final item = _trapped[idx];
-                            return trappedCard(
-                              item,
-                              busy: _busy.contains(item.itemCode),
-                              suggested: _discountSuggested.contains(item.itemCode),
-                              onSuggest: () => _suggestDiscount(item),
-                              onOpenProduct: () => _openProduct(item.itemCode, item.name),
+                            return PopIn(
+                              delay: delay,
+                              child: trappedCard(
+                                item,
+                                busy: _busy.contains(item.itemCode),
+                                suggested: _discountSuggested.contains(item.itemCode),
+                                onSuggest: () => _suggestDiscount(item),
+                                onOpenProduct: () => _openProduct(item.itemCode, item.name),
+                              ),
                             );
                           },
                         ),

@@ -232,10 +232,10 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
                       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
                       decoration: InputDecoration(
                         hintText: context.tr('search_counting'),
-                        prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
+                        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textTertiary),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: Icon(Icons.clear, color: AppColors.textTertiary),
+                                icon: Icon(Icons.clear_rounded, color: AppColors.textTertiary),
                                 onPressed: () {
                                   _searchController.clear();
                                   _onSearchChanged('');
@@ -577,13 +577,12 @@ class _SessionCard extends StatelessWidget {
             // Warehouse info
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.xs + 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: AppRadius.borderSm,
-                  ),
-                  child: Icon(Icons.warehouse_outlined, size: 16, color: AppColors.textSecondary),
+                GlowIconChip(
+                  icon: Icons.warehouse_rounded,
+                  color: AppDomain.counting.accent,
+                  size: 28,
+                  iconSize: 16,
+                  borderRadius: AppRadius.borderSm,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -720,13 +719,12 @@ class _WarehousePickerSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: AppRadius.borderSm,
-                  ),
-                  child: Icon(Icons.inventory_2_rounded, color: AppColors.primary, size: 22),
+                GlowIconChip(
+                  icon: Icons.inventory_2_rounded,
+                  color: AppColors.primary,
+                  size: 38,
+                  iconSize: 22,
+                  borderRadius: AppRadius.borderSm,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -765,14 +763,12 @@ class _WarehousePickerSheet extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: AppRadius.borderMd,
-                        ),
-                        child: Icon(Icons.warehouse_outlined, color: AppColors.primary, size: 22),
+                      GlowIconChip(
+                        icon: Icons.warehouse_rounded,
+                        color: AppColors.primary,
+                        size: 44,
+                        iconSize: 22,
+                        borderRadius: AppRadius.borderMd,
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(

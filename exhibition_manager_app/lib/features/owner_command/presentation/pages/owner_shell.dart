@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/notifications/push_service.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
@@ -249,7 +250,8 @@ class _OwnerShellState extends State<OwnerShell> with SingleTickerProviderStateM
                   for (final t in _tabs)
                     NavigationDestination(
                       icon: Icon(t.icon),
-                      selectedIcon: Icon(t.selectedIcon),
+                      // نبضة زنبركية لحظة اختيار التبويب (تعاد مع كل اختيار).
+                      selectedIcon: AnimatedNavIcon(icon: t.selectedIcon),
                       label: context.tr(t.labelKey),
                     ),
                 ],

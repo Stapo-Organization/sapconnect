@@ -164,7 +164,11 @@ class _TransferDetailPageState extends State<TransferDetailPage> {
                           ],
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        ...t.lines.map((line) => _LineCard(line: line)),
+                        for (var i = 0; i < t.lines.length; i++)
+                          PopIn(
+                            delay: Duration(milliseconds: 60 * i.clamp(0, 10)),
+                            child: _LineCard(line: t.lines[i]),
+                          ),
                         const SizedBox(height: AppSpacing.xxl),
                       ],
                     ),
@@ -340,10 +344,12 @@ class _WarehousePath extends StatelessWidget {
         Expanded(child: _node(context, context.tr('from'), from)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), shape: BoxShape.circle),
-            child: Icon(Icons.west_rounded, color: accent, size: 16),
+          child: GlowIconChip(
+            icon: Icons.west_rounded,
+            color: accent,
+            size: 28,
+            iconSize: 16,
+            borderRadius: AppRadius.borderFull,
           ),
         ),
         Expanded(child: _node(context, context.tr('to'), to)),
@@ -430,7 +436,7 @@ class _LineCard extends StatelessWidget {
                     width: 52,
                     height: 52,
                     color: AppColors.surfaceVariant,
-                    child: Icon(Icons.image_not_supported, size: 22, color: AppColors.textTertiary),
+                    child: Icon(Icons.image_not_supported_rounded, size: 22, color: AppColors.textTertiary),
                   ),
                 ),
               ),

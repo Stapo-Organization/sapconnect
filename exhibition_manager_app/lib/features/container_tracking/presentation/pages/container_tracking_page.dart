@@ -109,18 +109,26 @@ class _ContainerTrackingPageState extends State<ContainerTrackingPage> {
         runSpacing: AppSpacing.xs,
         children: [
           if ((s?.attention ?? 0) > 0)
-            _heroPill(Icons.warning_amber_rounded, '${s!.attention} ${context.tr('ct_attention')}', highlight: true),
+            _heroPill(Icons.warning_amber_rounded, '${s!.attention} ${context.tr('ct_attention')}',
+                highlight: true, wiggle: true),
           if (s?.nearestLabel != null)
             _heroPill(Icons.anchor_rounded,
                 '${context.tr('ct_nearest')} · ${s!.nearestLabel}${s.nearestLane != null ? ' · ${s.nearestLane}' : ''}'),
           _heroPill(Icons.directions_boat_rounded,
-              '${s?.counts.inTransit ?? 0} ${context.tr('ct_in_transit_count')}'),
+              '${s?.counts.inTransit ?? 0} ${context.tr('ct_in_transit_count')}',
+              float: true),
         ],
       ),
     );
   }
 
-  Widget _heroPill(IconData icon, String label, {bool highlight = false}) => Container(
+  Widget _heroPill(IconData icon, String label,
+      {bool highlight = false, bool float = false, bool wiggle = false}) {
+    Widget iconWidget = Icon(icon, size: 13, color: highlight ? AppColors.error : Colors.white);
+    // سفينة البطل تطفو كأنها على الماء — الحلقة المستمرة الوحيدة في الشاشة.
+    if (float) iconWidget = FloatingIcon(amplitude: 1.6, child: iconWidget);
+    if (wiggle) iconWidget = WiggleIcon(child: iconWidget);
+    return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: highlight ? Colors.white : Colors.white.withValues(alpha: 0.18),
@@ -129,7 +137,7 @@ class _ContainerTrackingPageState extends State<ContainerTrackingPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 13, color: highlight ? AppColors.error : Colors.white),
+            iconWidget,
             const SizedBox(width: 5),
             Text(label,
                 style: AppTypography.labelSmall.copyWith(
@@ -139,6 +147,7 @@ class _ContainerTrackingPageState extends State<ContainerTrackingPage> {
           ],
         ),
       );
+  }
 
   Widget _search(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.xs),

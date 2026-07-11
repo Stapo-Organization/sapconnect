@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
 
 import '../owner_theme.dart';
@@ -40,14 +41,7 @@ class OwnerKpiTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.18),
-              borderRadius: AppRadius.borderMd,
-            ),
-            child: Icon(icon, size: 18, color: accent),
-          ),
+          GlowIconChip(icon: icon, color: accent, size: 34, iconSize: 18, borderRadius: AppRadius.borderMd),
           const SizedBox(height: AppSpacing.md),
           Text(
             value,

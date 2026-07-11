@@ -50,15 +50,12 @@ class QualityTaskCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.10),
-                borderRadius: AppRadius.borderMd,
-              ),
-              child: Icon(_proofIcon, color: accent, size: 24),
+            GlowIconChip(
+              icon: _proofIcon,
+              color: accent,
+              size: 46,
+              iconSize: 24,
+              borderRadius: AppRadius.borderMd,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -98,7 +95,11 @@ class QualityTaskCard extends StatelessWidget {
             if (task.isSubmitted)
               StatusBadge(label: context.tr('status_submitted'), color: AppColors.success, icon: Icons.check_rounded)
             else if (task.isOverdue)
-              StatusBadge(label: context.tr('overdue_badge'), color: AppColors.error, icon: Icons.warning_amber_rounded)
+              // اهتزاز تنبيهي مرة واحدة عند الظهور — المهمة متأخرة.
+              WiggleIcon(
+                child: StatusBadge(
+                    label: context.tr('overdue_badge'), color: AppColors.error, icon: Icons.warning_amber_rounded),
+              )
             else
               Icon(Icons.chevron_left_rounded, color: AppColors.textTertiary),
           ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
@@ -52,7 +53,14 @@ class DecisionQueueCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.bolt_rounded, size: 18, color: OwnerTheme.accent),
+              // البرق يهتز اهتزازة تنبيهية عند وجود قرارات معلّقة.
+              if (total > 0)
+                WiggleIcon(
+                  delay: const Duration(milliseconds: 500),
+                  child: Icon(Icons.bolt_rounded, size: 18, color: OwnerTheme.accent),
+                )
+              else
+                Icon(Icons.bolt_rounded, size: 18, color: OwnerTheme.accent),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
@@ -70,7 +78,13 @@ class DecisionQueueCard extends StatelessWidget {
           if (active.isEmpty)
             _allClear(context)
           else
-            ...List.generate(active.length, (i) => _row(context, active[i], i == active.length - 1)),
+            ...List.generate(
+              active.length,
+              (i) => PopIn(
+                delay: Duration(milliseconds: 60 * i),
+                child: _row(context, active[i], i == active.length - 1),
+              ),
+            ),
         ],
       ),
     );
@@ -104,14 +118,7 @@ class DecisionQueueCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: item.color.withValues(alpha: 0.18),
-                borderRadius: AppRadius.borderSm,
-              ),
-              child: Icon(item.icon, size: 16, color: item.color),
-            ),
+            GlowIconChip(icon: item.icon, color: item.color, size: 30, iconSize: 16, borderRadius: AppRadius.borderSm),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
@@ -156,7 +163,10 @@ class DecisionQueueCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(Icons.verified_rounded, size: 30, color: OwnerTheme.positive),
+            // «كل شيء تمام» تتنفّس بهدوء — إشارة حيّة مطمئنة.
+            BreathingIcon(
+              child: Icon(Icons.verified_rounded, size: 30, color: OwnerTheme.positive),
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               context.tr('owner_queue_clear'),

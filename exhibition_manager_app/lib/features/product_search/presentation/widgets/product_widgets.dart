@@ -4,6 +4,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/utils/number_format.dart';
@@ -166,15 +167,12 @@ class WarehouseStockTile extends StatelessWidget {
           // ── Header: warehouse identity ──
           Row(
             children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: (has ? kProductAccent : AppColors.textTertiary).withValues(alpha: 0.10),
-                  borderRadius: AppRadius.borderMd,
-                ),
-                child: Icon(Icons.store_mall_directory_rounded, size: 17, color: has ? kProductAccent : AppColors.textTertiary),
+              GlowIconChip(
+                icon: Icons.store_mall_directory_rounded,
+                color: has ? kProductAccent : AppColors.textTertiary,
+                size: 32,
+                iconSize: 17,
+                borderRadius: AppRadius.borderMd,
               ),
               const SizedBox(width: AppSpacing.sm),
               Flexible(

@@ -5,6 +5,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_button.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_card.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/gradient_header.dart';
@@ -184,24 +185,29 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
   Widget _scoreRow(PulseScore score) {
     return Row(
       children: [
-        ProgressRing(
-          percent: score.value,
-          size: 104,
-          stroke: 10,
-          color: Colors.white,
-          trackColor: Colors.white.withValues(alpha: 0.22),
-          center: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                score.value.round().toString(),
-                style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
-              ),
-              Text(
-                scoreLabel(score.value),
-                style: AppTypography.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.9)),
-              ),
-            ],
+        // نبض المعرض حرفيًا: عدّاد النقاط يتنفّس كنبضة قلب — لمسة التوقيع.
+        BreathingIcon(
+          maxScale: 1.10,
+          period: const Duration(milliseconds: 1200),
+          child: ProgressRing(
+            percent: score.value,
+            size: 104,
+            stroke: 10,
+            color: Colors.white,
+            trackColor: Colors.white.withValues(alpha: 0.22),
+            center: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  score.value.round().toString(),
+                  style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  scoreLabel(score.value),
+                  style: AppTypography.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.lg),
@@ -345,6 +351,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
   Widget _bleedingSection(BleedingLever lever) {
     return _leverScaffold(
       color: kBleedingColor,
+      icon: Icons.water_drop_rounded,
       title: context.tr('bd_bleeding_title'),
       total: lever.totalMonthlySar > 0
           ? context.tr('sp_at_risk_per_month').replaceAll('{amount}', sar(lever.totalMonthlySar))
@@ -370,6 +377,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
   Widget _trappedSection(TrappedLever lever) {
     return _leverScaffold(
       color: kTrappedColor,
+      icon: Icons.lock_open_rounded,
       title: context.tr('sp_lever_trapped_title'),
       total: lever.totalSar > 0
           ? context.tr('sp_idle_capital_total').replaceAll('{amount}', sar(lever.totalSar))
@@ -396,6 +404,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
     final total = _controller.data?.basketTotalCount ?? pairs.length;
     return _leverScaffold(
       color: kBasketColor,
+      icon: Icons.shopping_basket_rounded,
       title: context.tr('sp_lever_basket_title'),
       total: null,
       emptyText: context.tr('sp_no_basket_now'),
@@ -428,6 +437,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
 
   Widget _leverScaffold({
     required Color color,
+    required IconData icon,
     required String title,
     required String? total,
     required String emptyText,
@@ -441,7 +451,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
       children: [
         Row(
           children: [
-            Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            GlowIconChip(icon: icon, color: color, size: 30, iconSize: 17),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
@@ -467,7 +477,8 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
         if (total != null) ...[
           const SizedBox(height: 2),
           Padding(
-            padding: const EdgeInsetsDirectional.only(start: 18),
+            // aligns the total under the title text (chip 30 + gap 8).
+            padding: const EdgeInsetsDirectional.only(start: 38),
             child: Text(total, style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -475,7 +486,12 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
         if (isEmpty)
           AppCard(child: Text(emptyText, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)))
         else
-          ...children,
+          // دخول متتابع: كل بطاقة تدخل كموجة (لا حلقات مستمرة على الصفوف).
+          for (var i = 0; i < children.length; i++)
+            PopIn(
+              delay: Duration(milliseconds: 60 * i.clamp(0, 10)),
+              child: children[i],
+            ),
       ],
     );
   }

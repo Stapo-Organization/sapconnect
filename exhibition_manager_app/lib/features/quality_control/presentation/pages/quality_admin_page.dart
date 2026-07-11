@@ -156,7 +156,11 @@ class _QualityAdminPageState extends State<QualityAdminPage> {
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(AppSpacing.base, 0, AppSpacing.base, AppSpacing.massive),
         itemCount: _templates.length,
-        itemBuilder: (_, i) => _templateCard(context, _templates[i]),
+        // دخول متتابع للبطاقات (لا حلقات مستمرة على الصفوف).
+        itemBuilder: (_, i) => PopIn(
+          delay: Duration(milliseconds: 60 * i.clamp(0, 10)),
+          child: _templateCard(context, _templates[i]),
+        ),
       ),
     );
   }
@@ -252,7 +256,11 @@ class _QualityAdminPageState extends State<QualityAdminPage> {
                           child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(AppSpacing.base, 0, AppSpacing.base, AppSpacing.xxl),
                             itemCount: _instances.length,
-                            itemBuilder: (_, i) => _instanceCard(context, _instances[i]),
+                            // دخول متتابع للبطاقات (لا حلقات مستمرة على الصفوف).
+                            itemBuilder: (_, i) => PopIn(
+                              delay: Duration(milliseconds: 60 * i.clamp(0, 10)),
+                              child: _instanceCard(context, _instances[i]),
+                            ),
                           ),
                         ),
         ),

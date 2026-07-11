@@ -106,21 +106,24 @@ class _AchievementsPageState extends State<AchievementsPage> {
       subtitle: p.levelLabel,
       child: Row(
         children: [
-          ProgressRing(
-            percent: p.levelProgress * 100,
-            size: 96,
-            stroke: 9,
-            color: AppColors.accent,
-            trackColor: Colors.white.withValues(alpha: 0.25),
-            center: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${p.level}',
-                    style: AppTypography.headlineMedium.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.w900)),
-                Text(context.tr('level'),
-                    style: AppTypography.labelSmall.copyWith(color: Colors.white70)),
-              ],
+          // Level ring = the screen hero — the single continuous loop here.
+          BreathingIcon(
+            child: ProgressRing(
+              percent: p.levelProgress * 100,
+              size: 96,
+              stroke: 9,
+              color: AppColors.accent,
+              trackColor: Colors.white.withValues(alpha: 0.25),
+              center: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${p.level}',
+                      style: AppTypography.headlineMedium.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.w900)),
+                  Text(context.tr('level'),
+                      style: AppTypography.labelSmall.copyWith(color: Colors.white70)),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.lg),
@@ -304,7 +307,17 @@ class _AchievementsPageState extends State<AchievementsPage> {
             crossAxisSpacing: AppSpacing.sm,
             childAspectRatio: 0.78,
           ),
-          itemBuilder: (context, i) => _badgeTile(_badges[i], isArabic),
+          itemBuilder: (context, i) {
+            final badge = _badges[i];
+            final tile = _badgeTile(badge, isArabic);
+            // Earned badges pop in as a wave; locked ones stay static so the
+            // celebration reads on achievements, not on padlocks.
+            if (!badge.earned) return tile;
+            return PopIn(
+              delay: Duration(milliseconds: 60 * i.clamp(0, 10)),
+              child: tile,
+            );
+          },
         ),
       ],
     );

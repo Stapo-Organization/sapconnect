@@ -65,7 +65,7 @@ class CountingLineCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 color: AppColors.surfaceVariant,
-                child: Icon(Icons.image_not_supported, size: 24, color: AppColors.textTertiary),
+                child: Icon(Icons.image_not_supported_rounded, size: 24, color: AppColors.textTertiary),
               ),
             ),
           ),

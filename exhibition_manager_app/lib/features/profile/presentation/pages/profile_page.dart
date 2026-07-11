@@ -350,11 +350,13 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.warehouse_outlined,
               title: context.tr('warehouses'),
               value: user.warehouseCodes.isNotEmpty ? user.warehouseCodes.join(' • ') : '—',
+              index: 1,
             ),
             _InfoTile(
               icon: Icons.shield_outlined,
               title: context.tr('roles'),
               value: user.roles.isNotEmpty ? user.roles.join(' • ') : '—',
+              index: 2,
             ),
 
             const SizedBox(height: AppSpacing.xxl),
@@ -407,7 +409,15 @@ class _InfoTile extends StatelessWidget {
   final String title;
   final String value;
 
-  const _InfoTile({required this.icon, required this.title, required this.value});
+  /// Position in the tile list — staggers the icon chip's pop-in wave.
+  final int index;
+
+  const _InfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    this.index = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -422,13 +432,15 @@ class _InfoTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xs + 2),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: AppRadius.borderSm,
+          PopIn(
+            delay: Duration(milliseconds: 60 * index.clamp(0, 10)),
+            child: GlowIconChip(
+              icon: icon,
+              color: AppDomain.profile.accent,
+              size: 32,
+              iconSize: 18,
+              borderRadius: AppRadius.borderMd,
             ),
-            child: Icon(icon, color: AppDomain.profile.accent, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

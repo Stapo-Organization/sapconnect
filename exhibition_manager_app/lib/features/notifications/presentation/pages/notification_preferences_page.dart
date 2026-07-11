@@ -4,6 +4,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/notifications/notifications_repository.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
@@ -213,8 +214,10 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_off_outlined,
-                size: 56, color: AppColors.textTertiary),
+            FloatingIcon(
+              child: Icon(Icons.notifications_off_outlined,
+                  size: 56, color: AppColors.textTertiary),
+            ),
             const SizedBox(height: AppSpacing.base),
             Text(
               context.tr('notifications_empty'),

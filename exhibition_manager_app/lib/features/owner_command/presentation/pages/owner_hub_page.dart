@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/gradient_header.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
@@ -85,14 +86,7 @@ class OwnerHubPage extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: e.color.withValues(alpha: 0.18),
-                borderRadius: AppRadius.borderLg,
-              ),
-              child: Icon(e.icon, size: 24, color: e.color),
-            ),
+            GlowIconChip(icon: e.icon, color: e.color, size: 48, iconSize: 24),
             const SizedBox(width: AppSpacing.base),
             Expanded(
               child: Column(

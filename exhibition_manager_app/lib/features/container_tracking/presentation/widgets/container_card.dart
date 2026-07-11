@@ -4,6 +4,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_card.dart';
 
 import '../../data/models/container_models.dart';
@@ -139,7 +140,8 @@ class ContainerCardTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.update_rounded, size: 12, color: AppColors.error),
+                  // اهتزاز تنبيهي واحد عند الظهور — الشحنة غيّرت موعدها (تأخير).
+                  WiggleIcon(child: Icon(Icons.update_rounded, size: 12, color: AppColors.error)),
                   const SizedBox(width: 3),
                   Text('${c.etaChangeCount}',
                       style: AppTypography.labelSmall.copyWith(color: AppColors.error, fontWeight: FontWeight.w800)),

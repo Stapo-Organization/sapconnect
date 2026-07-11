@@ -5,6 +5,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
@@ -266,7 +267,8 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
         itemCount: tiles.length,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-        itemBuilder: (_, i) => tiles[i],
+        // موجة دخول: كل مؤشّر ينبض للظهور بعد سابقه.
+        itemBuilder: (_, i) => PopIn(delay: Duration(milliseconds: 60 * i), child: tiles[i]),
       ),
     );
   }
@@ -324,13 +326,12 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: AppDomain.stockDistribution.accent.withValues(alpha: 0.18),
-                borderRadius: AppRadius.borderMd,
-              ),
-              child: Icon(Icons.hub_rounded, size: 18, color: AppDomain.stockDistribution.accent),
+            GlowIconChip(
+              icon: Icons.hub_rounded,
+              color: AppDomain.stockDistribution.accent,
+              size: 36,
+              iconSize: 18,
+              borderRadius: AppRadius.borderMd,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -352,11 +353,23 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
                 ],
               ),
             ),
-            Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
-            ),
+            // نقطة الحالة تتنفّس ما دام المحرّك يعمل — إشارة «حيّ» صادقة.
+            if (running)
+              BreathingIcon(
+                maxScale: 1.35,
+                period: const Duration(milliseconds: 1100),
+                child: Container(
+                  width: 9,
+                  height: 9,
+                  decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                ),
+              )
+            else
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+              ),
             const SizedBox(width: AppSpacing.sm),
             Icon(Icons.chevron_left_rounded, size: 20, color: OwnerTheme.textMuted),
           ],
@@ -381,13 +394,12 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: AppDomain.containerTracking.accent.withValues(alpha: 0.18),
-                borderRadius: AppRadius.borderMd,
-              ),
-              child: Icon(Icons.directions_boat_rounded, size: 18, color: AppDomain.containerTracking.accent),
+            GlowIconChip(
+              icon: Icons.directions_boat_rounded,
+              color: AppDomain.containerTracking.accent,
+              size: 36,
+              iconSize: 18,
+              borderRadius: AppRadius.borderMd,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -416,17 +428,20 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
               ),
             ),
             if (attention > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: OwnerTheme.caution.withValues(alpha: 0.20),
-                  borderRadius: AppRadius.borderFull,
-                ),
-                child: Text(
-                  '$attention',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: OwnerTheme.caution,
-                    fontWeight: FontWeight.w800,
+              WiggleIcon(
+                delay: const Duration(milliseconds: 700),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: OwnerTheme.caution.withValues(alpha: 0.20),
+                    borderRadius: AppRadius.borderFull,
+                  ),
+                  child: Text(
+                    '$attention',
+                    style: AppTypography.labelMedium.copyWith(
+                      color: OwnerTheme.caution,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),

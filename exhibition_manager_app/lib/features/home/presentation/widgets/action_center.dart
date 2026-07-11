@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
@@ -39,7 +40,9 @@ class ActionCenter extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.priority_high_rounded, color: AppColors.primary, size: 20),
+            WiggleIcon(
+              child: Icon(Icons.priority_high_rounded, color: AppColors.primary, size: 20),
+            ),
             const SizedBox(width: 6),
             Flexible(
               child: Text(

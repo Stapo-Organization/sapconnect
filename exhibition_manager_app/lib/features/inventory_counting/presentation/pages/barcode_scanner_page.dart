@@ -274,7 +274,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                   children: [
                     // Close button
                     _CircleButton(
-                      icon: Icons.close,
+                      icon: Icons.close_rounded,
                       onTap: () {
                         if (widget.mode != ScanMode.inventoryCounting && _scannedItems.isNotEmpty) {
                           Navigator.pop(context, _scannedItems);
@@ -295,7 +295,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                       children: [
                         // Flash toggle
                         _CircleButton(
-                          icon: _flashOn ? Icons.flash_on : Icons.flash_off,
+                          icon: _flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
                           onTap: () {
                             _cameraController.toggleTorch();
                             setState(() => _flashOn = !_flashOn);
@@ -344,7 +344,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: Colors.white),
+                      const Icon(Icons.error_outline_rounded, color: Colors.white),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
@@ -692,7 +692,7 @@ class _ProductSheet extends StatelessWidget {
                       color: AppColors.surfaceVariant,
                       borderRadius: AppRadius.borderMd,
                     ),
-                    child: Icon(Icons.image_not_supported, color: AppColors.textTertiary),
+                    child: Icon(Icons.image_not_supported_rounded, color: AppColors.textTertiary),
                   ),
                 ),
               ),
@@ -712,7 +712,7 @@ class _ProductSheet extends StatelessWidget {
               ),
               // Dismiss
               IconButton(
-                icon: Icon(Icons.close, color: AppColors.textTertiary),
+                icon: Icon(Icons.close_rounded, color: AppColors.textTertiary),
                 onPressed: onDismiss,
               ),
             ],

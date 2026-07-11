@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
 import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
+import 'animated_icons.dart';
 import 'app_button.dart';
 
-/// Friendly empty state with a soft circular icon, title, subtitle and
-/// optional CTA. Consistent across all list screens.
+/// Friendly empty state with a floating icon inside soft halo rings, title,
+/// subtitle and optional CTA. Consistent across all list screens.
 class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -33,19 +34,49 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [c.withValues(alpha: 0.10), c.withValues(alpha: 0.03)],
+            // أيقونة طافية داخل هالتين متحدتَي المركز — تدخل بنبضة ثم تطفو بهدوء.
+            PopIn(
+              child: SizedBox(
+                width: 152,
+                height: 152,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 152,
+                      height: 152,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: c.withValues(alpha: 0.07), width: 1.5),
+                      ),
+                    ),
+                    Container(
+                      width: 122,
+                      height: 122,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: c.withValues(alpha: 0.12), width: 1.5),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [c.withValues(alpha: 0.13), c.withValues(alpha: 0.04)],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: FloatingIcon(
+                        child: Icon(icon, size: 48, color: c.withValues(alpha: 0.60)),
+                      ),
+                    ),
+                  ],
                 ),
-                shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 56, color: c.withValues(alpha: 0.55)),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             Text(
               title,
               textAlign: TextAlign.center,

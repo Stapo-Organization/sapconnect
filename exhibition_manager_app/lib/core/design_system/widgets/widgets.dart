@@ -1,4 +1,5 @@
 // Barrel export for the modern design-system component kit.
+export 'animated_icons.dart';
 export 'app_button.dart';
 export 'app_card.dart';
 export 'bottom_sheet_scaffold.dart';

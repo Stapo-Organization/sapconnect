@@ -25,15 +25,17 @@ class AllClearCard extends StatelessWidget {
       borderColor: AppColors.warning.withValues(alpha: 0.20),
       child: Row(
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              gradient: AppColors.goldGradient,
-              shape: BoxShape.circle,
+          FloatingIcon(
+            child: Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: AppColors.goldGradient,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded, color: Colors.white, size: 26),
             ),
-            child: const Icon(Icons.check_rounded, color: Colors.white, size: 26),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

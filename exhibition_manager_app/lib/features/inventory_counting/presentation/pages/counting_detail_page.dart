@@ -210,7 +210,7 @@ class _CountingDetailPageState extends State<CountingDetailPage> {
           actions: [
             if (_session != null && _session!.isInProgress)
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
+                icon: const Icon(Icons.more_vert_rounded),
                 onSelected: (value) {
                   if (value == 'cancel') _cancelCounting();
                 },

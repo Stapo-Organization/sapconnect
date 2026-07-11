@@ -135,10 +135,10 @@ class _TransfersListPageState extends State<TransfersListPage> {
                       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
                       decoration: InputDecoration(
                         hintText: context.tr('search_transfers'),
-                        prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
+                        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textTertiary),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: Icon(Icons.clear, color: AppColors.textTertiary),
+                                icon: Icon(Icons.clear_rounded, color: AppColors.textTertiary),
                                 onPressed: () {
                                   _searchController.clear();
                                   setState(() {});
@@ -532,16 +532,12 @@ class _WarehousePath extends StatelessWidget {
           Expanded(child: _node(context, context.tr('from'), from, highlightTo ? false : true)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: AppColors.textTertiary.withValues(alpha: 0.18), blurRadius: 4, offset: const Offset(0, 1)),
-                ],
-              ),
-              child: Icon(isArabic ? Icons.west_rounded : Icons.east_rounded, color: accent, size: 15),
+            child: GlowIconChip(
+              icon: isArabic ? Icons.west_rounded : Icons.east_rounded,
+              color: accent,
+              size: 25,
+              iconSize: 15,
+              borderRadius: AppRadius.borderFull,
             ),
           ),
           Expanded(child: _node(context, context.tr('to'), to, highlightTo)),
@@ -584,15 +580,12 @@ class _ProductImageStack extends StatelessWidget {
   Widget build(BuildContext context) {
     if (imageUrls.isEmpty) {
       // No images yet — show a neutral item indicator.
-      return Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.surface, width: 2),
-        ),
-        child: Icon(Icons.inventory_2_rounded, size: 18, color: AppColors.textTertiary),
+      return GlowIconChip(
+        icon: Icons.inventory_2_rounded,
+        color: AppDomain.transfers.accent,
+        size: 40,
+        iconSize: 18,
+        borderRadius: AppRadius.borderFull,
       );
     }
 

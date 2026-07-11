@@ -229,7 +229,12 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
           child: EmptyState(icon: Icons.filter_alt_off_rounded, title: context.tr('sd_no_match')),
         )
       else
-        ...lanes.map((l) => _laneCard(context, l)),
+        // دخول متتابع نابض لبطاقات الاقتراحات (موجة واحدة عند الظهور).
+        for (var i = 0; i < lanes.length; i++)
+          PopIn(
+            delay: Duration(milliseconds: 60 * i.clamp(0, 10)),
+            child: _laneCard(context, lanes[i]),
+          ),
     ];
   }
 
@@ -419,12 +424,12 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
           // Route header: [type chip]  source → target        [units]
           Row(
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: accent.withValues(alpha: 0.13), borderRadius: AppRadius.borderMd),
-                child: Icon(typeIcon, color: accent, size: 19),
+              GlowIconChip(
+                icon: typeIcon,
+                color: accent,
+                size: 36,
+                iconSize: 19,
+                borderRadius: AppRadius.borderMd,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
