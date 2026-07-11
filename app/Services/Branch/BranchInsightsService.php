@@ -283,10 +283,55 @@ class BranchInsightsService
         $profitBind = $wh !== null ? array_merge($bind, [$wh]) : $bind;
         $profitRows = collect(DB::select($profitSql, $profitBind))->keyBy('k');
 
+        // ── Returns: credit memos netted off so the chart matches the net-sales
+        //    KPI. Memos carry no doc_time, so hourly buckets can't absorb them —
+        //    hourly returns ship unbucketed for the client to net in totals. ──
+        [$mCard, $mCardBind] = $this->channelPredicate($channel, 'm');
+        $mBind = array_merge($mCardBind, [$start->toDateTimeString(), $end->toDateTimeString()]);
+        $memoRows = collect();
+        $memoProfitRows = collect();
+        $returnsUnbucketed = 0.0;
+        $returnsProfitUnbucketed = 0.0;
+
+        $memoProfitSql = "SELECT %s SUM(l.gross_profit) v
+            FROM sap_credit_memo_lines l JOIN sap_credit_memos m ON m.id = l.sap_credit_memo_id
+            WHERE {$mCard} AND m.doc_date BETWEEN ? AND ? AND m.cancelled = 'N' AND l.gross_profit IS NOT NULL"
+            . ($wh !== null ? ' AND l.warehouse_code = ?' : '') . ' %s';
+        $memoProfitBind = $wh !== null ? array_merge($mBind, [$wh]) : $mBind;
+
+        if ($granularity === 'hour') {
+            if ($wh === null) {
+                $returnsUnbucketed = (float) (DB::selectOne("SELECT SUM(m.doc_total / 1.15) v FROM sap_credit_memos m
+                    WHERE {$mCard} AND m.doc_date BETWEEN ? AND ? AND m.cancelled = 'N'", $mBind)->v ?? 0);
+            } else {
+                $returnsUnbucketed = (float) (DB::selectOne("SELECT SUM(t.doc_total) v FROM (
+                        SELECT m.id, MAX(m.doc_total / 1.15) doc_total, MIN(l.warehouse_code) warehouse_code
+                        FROM sap_credit_memos m JOIN sap_credit_memo_lines l ON l.sap_credit_memo_id = m.id
+                        WHERE {$mCard} AND m.doc_date BETWEEN ? AND ? AND m.cancelled = 'N' GROUP BY m.id
+                    ) t WHERE t.warehouse_code = ?", array_merge($mBind, [$wh]))->v ?? 0);
+            }
+            $returnsProfitUnbucketed = (float) (DB::selectOne(sprintf($memoProfitSql, '', ''), $memoProfitBind)->v ?? 0);
+        } else {
+            $mb = str_replace('i.', 'm.', $hb);
+            if ($wh === null) {
+                $memoRows = collect(DB::select("SELECT {$mb} k, SUM(m.doc_total / 1.15) v FROM sap_credit_memos m
+                    WHERE {$mCard} AND m.doc_date BETWEEN ? AND ? AND m.cancelled = 'N' GROUP BY k", $mBind))->keyBy('k');
+            } else {
+                $tb = str_replace('i.', 't.', $hb);
+                $memoRows = collect(DB::select("SELECT {$tb} k, SUM(t.doc_total) v FROM (
+                        SELECT m.id, MAX(m.doc_total / 1.15) doc_total, MAX(m.doc_date) doc_date, MIN(l.warehouse_code) warehouse_code
+                        FROM sap_credit_memos m JOIN sap_credit_memo_lines l ON l.sap_credit_memo_id = m.id
+                        WHERE {$mCard} AND m.doc_date BETWEEN ? AND ? AND m.cancelled = 'N' GROUP BY m.id
+                    ) t WHERE t.warehouse_code = ? GROUP BY k", array_merge($mBind, [$wh])))->keyBy('k');
+            }
+            $lbm = str_replace('i.', 'm.', $lb);
+            $memoProfitRows = collect(DB::select(sprintf($memoProfitSql, "{$lbm} k,", 'GROUP BY k'), $memoProfitBind))->keyBy('k');
+        }
+
         $point = fn ($key, $label) => [
             'label' => $label,
-            'sales' => round((float) ($salesRows[$key]->v ?? 0), 2),
-            'profit' => round((float) ($profitRows[$key]->v ?? 0), 2),
+            'sales' => round((float) ($salesRows[$key]->v ?? 0) - (float) ($memoRows[$key]->v ?? 0), 2),
+            'profit' => round((float) ($profitRows[$key]->v ?? 0) - (float) ($memoProfitRows[$key]->v ?? 0), 2),
         ];
 
         if ($granularity === 'hour') {
@@ -300,7 +345,12 @@ class BranchInsightsService
             for ($h = $lo; $h <= $hi; $h++) {
                 $points[] = $point($h, sprintf('%02d:00', $h));
             }
-            return ['granularity' => 'hour', 'points' => $points];
+            return [
+                'granularity' => 'hour',
+                'points' => $points,
+                'returns' => round($returnsUnbucketed, 2),
+                'returns_profit' => round($returnsProfitUnbucketed, 2),
+            ];
         }
 
         if ($granularity === 'month') {
