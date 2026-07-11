@@ -354,13 +354,26 @@ class TrendBucket {
 class SalesProfitTrend {
   final String granularity;
   final List<TrendBucket> points;
-  SalesProfitTrend({required this.granularity, required this.points});
+
+  /// مرتجعات الفترة غير المُسلسلة زمنياً (تأتي فقط مع السلال الساعيّة، لأن
+  /// المرتجعات بلا وقت مستند) — تُخصم من إجمالي القراءة ليطابق صافي الهيرو.
+  final double returns;
+  final double returnsProfit;
+
+  SalesProfitTrend({
+    required this.granularity,
+    required this.points,
+    this.returns = 0,
+    this.returnsProfit = 0,
+  });
 
   factory SalesProfitTrend.fromJson(Map<String, dynamic> j) => SalesProfitTrend(
         granularity: '${j['granularity'] ?? 'day'}',
         points: ((j['points'] as List?) ?? [])
             .map((e) => TrendBucket.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
+        returns: (j['returns'] as num?)?.toDouble() ?? 0,
+        returnsProfit: (j['returns_profit'] as num?)?.toDouble() ?? 0,
       );
 
   static SalesProfitTrend empty() => SalesProfitTrend(granularity: 'day', points: []);

@@ -153,9 +153,10 @@ class _SalesProfitChartState extends State<SalesProfitChart> with SingleTickerPr
       profit = b.profit;
       label = _fmtLabel(b.label);
     } else {
-      // Default → cumulative total
-      sales = pts.fold<double>(0, (sum, b) => sum + b.sales);
-      profit = pts.fold<double>(0, (sum, b) => sum + b.profit);
+      // Default → cumulative NET total: hourly returns arrive unbucketed
+      // (memos carry no time), so net them here — matches the hero KPI.
+      sales = pts.fold<double>(0, (sum, b) => sum + b.sales) - widget.trend.returns;
+      profit = pts.fold<double>(0, (sum, b) => sum + b.profit) - widget.trend.returnsProfit;
       label = context.tr('rd_total');
     }
 
