@@ -1,0 +1,3 @@
+/* Arabic launcher name — shown when the device language is Arabic. */
+CFBundleDisplayName = "زوبوكسي";
+CFBundleName = "زوبوكسي";

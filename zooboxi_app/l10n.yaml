@@ -1,0 +1,8 @@
+arb-dir: lib/l10n
+# Arabic is the product's primary language, so it is the template the
+# generator derives placeholders and metadata from.
+template-arb-file: app_ar.arb
+output-localization-file: app_localizations.dart
+output-class: L
+nullable-getter: false
+untranslated-messages-file: untranslated_messages.txt

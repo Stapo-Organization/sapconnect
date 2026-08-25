@@ -1,0 +1,3 @@
+/* English launcher name. */
+CFBundleDisplayName = "Zooboxi";
+CFBundleName = "Zooboxi";

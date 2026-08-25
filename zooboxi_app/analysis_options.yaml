@@ -1,0 +1,29 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # An unused import or a dead local is a real defect in a codebase this
+    # size — treat it as one rather than as background noise.
+    unused_import: error
+    unused_local_variable: error
+    unused_element: error
+    # A missing `await` on a cart or checkout call is a bug that only shows up
+    # under a slow network, which is exactly when it matters.
+    unawaited_futures: error
+
+linter:
+  rules:
+    # RTL correctness is load-bearing: Arabic is the primary language, so
+    # left/right padding is almost always a mistake for start/end.
+    - use_decorated_box
+    - avoid_unnecessary_containers
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_locals
+    - unawaited_futures
+    - use_super_parameters
+    - sized_box_for_whitespace
+    - require_trailing_commas
+    # Deliberately NOT enabling avoid_redundant_argument_values: spelling out a
+    # default (`clamp(min: 1)`, `fallback: 0`) documents intent at the call
+    # site, and this codebase does that on purpose in the model layer.

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default (English) launcher label. The Arabic label lives in
+         values-ar/strings.xml, so a device set to Arabic shows زوبوكسي. -->
+    <string name="app_name">Zooboxi</string>
+</resources>
