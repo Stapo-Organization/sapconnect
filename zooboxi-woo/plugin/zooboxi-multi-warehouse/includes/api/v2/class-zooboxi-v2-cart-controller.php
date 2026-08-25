@@ -114,9 +114,16 @@ class Zooboxi_V2_Cart_Controller
         $expiration  = time() + self::GUEST_TTL;
         $expiring    = $expiration - HOUR_IN_SECONDS;
         $to_hash     = $customer_id . '|' . $expiration;
-        $hash        = hash_hmac('md5', $to_hash, wp_hash($to_hash));
 
-        $_COOKIE[self::session_cookie_name()] = $customer_id . '||' . $expiration . '||' . $expiring . '||' . $hash;
+        // WC 10 verifies with wp_verify_fast_hash() (WP 6.8+ BLAKE2b, '$generic$…');
+        // the HMAC-MD5 form is only the pre-6.8 fallback. Match whichever verifier
+        // this install will actually run, or the cookie is silently discarded.
+        $hash = function_exists('wp_fast_hash')
+            ? wp_fast_hash($to_hash)
+            : hash_hmac('md5', $to_hash, wp_hash($to_hash));
+
+        // Modern single-pipe cookie format (WC 10 writes this; '||' is legacy-only).
+        $_COOKIE[self::session_cookie_name()] = $customer_id . '|' . $expiration . '|' . $expiring . '|' . $hash;
         self::$expected_guest_key = $customer_id;
     }
 
@@ -433,9 +440,13 @@ class Zooboxi_V2_Cart_Controller
                 ? Zooboxi_Fulfillment::resolve($pid, max(1, $qty), $lat, $lng)
                 : null;
 
-            $max_reachable = $plan
+            // Cap like every other stock figure (an exact warehouse count is commercial
+            // information) — but never below the line's own qty, or the stepper would
+            // wrongly flag an already-valid line as over the limit.
+            $raw_reachable = $plan
                 ? (int) $plan['reachable_total']
                 : (($product->get_stock_quantity() === null) ? null : (int) $product->get_stock_quantity());
+            $max_reachable = $raw_reachable === null ? null : min(max($raw_reachable, 0), max(99, $qty));
 
             $items[] = [
                 'key'              => (string) $key,
