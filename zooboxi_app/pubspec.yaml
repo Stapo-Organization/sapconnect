@@ -46,6 +46,7 @@ dependencies:
   intl: any
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
@@ -64,3 +65,14 @@ flutter:
     - family: SaudiRiyal
       fonts:
         - asset: assets/fonts/SaudiRiyal.otf
+
+# Launcher icon: the brand submark (smiling delivery box + coral paw) rendered
+# full-bleed from docs/zooboxi-brand-kit/app-icon.svg. Regenerate after changing
+# the source: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: assets/brand/app_icon_1024.png
+  ios: true
+  remove_alpha_ios: true
+  android: true
+  adaptive_icon_background: "#3B8F8E"
+  adaptive_icon_foreground: assets/brand/app_icon_1024.png
