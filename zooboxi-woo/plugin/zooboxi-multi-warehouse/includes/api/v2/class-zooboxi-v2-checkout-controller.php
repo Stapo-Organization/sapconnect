@@ -95,6 +95,12 @@ class Zooboxi_V2_Checkout_Controller
             'amount'    => (float) $order->get_total(),
             'currency'  => $order->get_currency() ?: 'SAR',
             'reference' => (string) $order->get_id(),
+            // Native Apple Pay: flipped to 'yes' only once the whole chain is
+            // live (Apple merchant id + payment cert + MyFatoorah vendor
+            // activation + the app's entitlement). The app hides the button
+            // until then — no release needed on the day.
+            'apple_pay'   => get_option('zooboxi_apple_pay_native', 'no') === 'yes',
+            'merchant_id' => (string) get_option('zooboxi_apple_merchant_id', 'merchant.com.zooboxi.store'),
         ]);
     }
 
