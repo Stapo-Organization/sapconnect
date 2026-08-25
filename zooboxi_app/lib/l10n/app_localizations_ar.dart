@@ -54,6 +54,9 @@ class LAr extends L {
   String get actionContinue => 'متابعة';
 
   @override
+  String get actionOr => 'أو';
+
+  @override
   String get navHome => 'الرئيسية';
 
   @override
@@ -334,6 +337,28 @@ class LAr extends L {
   }
 
   @override
+  String get cardAdd => 'أضف';
+
+  @override
+  String get cardChooseOptions => 'اختر الخيارات';
+
+  @override
+  String get cardOutOfStock => 'غير متوفّر';
+
+  @override
+  String cardStockLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقي $count قطعة',
+      few: 'بقي $count قطع',
+      two: 'بقيت قطعتان',
+      one: 'بقيت قطعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get badgeHot => 'الأكثر طلبًا';
 
   @override
@@ -574,6 +599,64 @@ class LAr extends L {
   @override
   String get paymentSupportHint =>
       'إن تكرّر الأمر تواصل معنا وسنكمل طلبك يدويًا.';
+
+  @override
+  String get paymentAmountDue => 'المبلغ المستحق';
+
+  @override
+  String get paymentCardTitle => 'الدفع بالبطاقة';
+
+  @override
+  String paymentPayAmount(String amount) {
+    return 'ادفع $amount';
+  }
+
+  @override
+  String get paymentSecureNote =>
+      'بياناتك مشفّرة، ولا يحتفظ التطبيق ببيانات بطاقتك.';
+
+  @override
+  String get paymentPreparingCard => 'جارٍ تجهيز نموذج البطاقة…';
+
+  @override
+  String get paymentCardFailed => 'تعذّر إتمام الدفع بالبطاقة';
+
+  @override
+  String get paymentOtherMethods => 'طرق دفع أخرى (Apple Pay وسواها)';
+
+  @override
+  String get paymentHostedFallback =>
+      'الدفع بالبطاقة داخل التطبيق غير متاح الآن، سنكمل عبر صفحة الدفع الآمنة.';
+
+  @override
+  String get paymentSaveCard => 'احفظ البطاقة لعمليات الدفع القادمة';
+
+  @override
+  String get paymentUseAnotherCard => 'استخدام بطاقة أخرى';
+
+  @override
+  String get payCardHolder => 'الاسم على البطاقة';
+
+  @override
+  String get payCardHolderHint => 'الاسم كما يظهر على البطاقة';
+
+  @override
+  String get payCardNumber => 'رقم البطاقة';
+
+  @override
+  String get payCardNumberHint => '0000 0000 0000 0000';
+
+  @override
+  String get payCardExpiry => 'تاريخ الانتهاء';
+
+  @override
+  String get payCardExpiryHint => 'شهر / سنة';
+
+  @override
+  String get payCardCvv => 'رمز الأمان';
+
+  @override
+  String get payCardCvvHint => 'CVV';
 
   @override
   String get paymentViewOrder => 'عرض الطلب';

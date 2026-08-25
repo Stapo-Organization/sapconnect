@@ -20,6 +20,7 @@ class QtyStepper extends StatelessWidget {
     this.onRemove,
     this.busy = false,
     this.dense = false,
+    this.stretch = false,
   });
 
   final int value;
@@ -31,6 +32,11 @@ class QtyStepper extends StatelessWidget {
   final VoidCallback? onRemove;
   final bool busy;
   final bool dense;
+
+  /// Fills the width it is given, pushing the two buttons to the edges. Used
+  /// on a product card, where the stepper replaces a full-width add pill and
+  /// must occupy exactly the same footprint.
+  final bool stretch;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +55,9 @@ class QtyStepper extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(2),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: stretch ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment:
+            stretch ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
         children: [
           _StepButton(
             icon: atFloor && onRemove != null

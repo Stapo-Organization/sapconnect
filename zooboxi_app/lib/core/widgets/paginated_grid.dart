@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../motion/motion.dart';
 import 'error_state.dart';
 import 'product_card.dart';
+import 'product_card_metrics.dart';
 import 'skeleton.dart';
 
 /// Two-column infinite product grid.
@@ -159,13 +160,12 @@ class _PaginatedProductGridState extends State<PaginatedProductGrid> {
 
   List<Widget> _body() {
     if (_firstLoading) {
+      // The skeleton owns the padding rather than being wrapped in it, so the
+      // tile width it computes its height from is the one it is actually
+      // given — otherwise the placeholders come out taller than the cards
+      // that replace them, and the first page lands with a jump.
       return [
-        SliverPadding(
-          padding: widget.padding,
-          sliver: const SliverToBoxAdapter(
-            child: SkeletonProductGrid(padding: EdgeInsets.zero),
-          ),
-        ),
+        SliverToBoxAdapter(child: SkeletonProductGrid(padding: widget.padding)),
       ];
     }
 
@@ -193,11 +193,17 @@ class _PaginatedProductGridState extends State<PaginatedProductGrid> {
       SliverPadding(
         padding: widget.padding,
         sliver: SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          // The card computes its own height from its slots; asking for that
+          // exact extent is what keeps a long name or a big type size from
+          // pushing the add button out of the tile.
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 0.62,
+            mainAxisSpacing: ProductCardMetrics.gridSpacing,
+            crossAxisSpacing: ProductCardMetrics.gridSpacing,
+            mainAxisExtent: ProductCardMetrics.gridExtent(
+              context,
+              horizontalPadding: widget.padding.horizontal,
+            ),
           ),
           delegate: SliverChildBuilderDelegate(
             (context, index) {

@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../app/theme/zb_colors.dart';
 import '../../app/theme/zooboxi_tokens.dart';
+import 'product_card_metrics.dart';
 
 /// Wraps a skeleton layout in one shimmer sweep.
 ///
@@ -54,34 +55,56 @@ class SkeletonBox extends StatelessWidget {
   }
 }
 
-/// Placeholder in the exact shape of a product card, so the grid doesn't jump
-/// when the real cards land.
+/// Placeholder in the exact shape of a product card — same slots, same
+/// heights — so nothing jumps when the real cards land.
 class SkeletonProductCard extends StatelessWidget {
   const SkeletonProductCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+
     return Container(
       decoration: BoxDecoration(
-        color: context.cs.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        border: Border.all(color: context.cs.outlineVariant),
+        border: Border.all(color: cs.outlineVariant, width: ProductCardMetrics.border),
       ),
-      padding: const EdgeInsets.all(10),
-      child: const Column(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: SkeletonBox(width: double.infinity, height: double.infinity, radius: 12),
+          const AspectRatio(
+            aspectRatio: ProductCardMetrics.imageAspect,
+            child: SkeletonBox(width: double.infinity, height: double.infinity, radius: 0),
           ),
-          Gap.h12,
-          SkeletonBox(width: 60, height: 9),
-          Gap.h8,
-          SkeletonBox(width: double.infinity, height: 11),
-          Gap.h4,
-          SkeletonBox(width: 90, height: 11),
-          Gap.h12,
-          SkeletonBox(width: 74, height: 15, radius: 7),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(ProductCardMetrics.bodyPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SkeletonBox(width: 54, height: 9),
+                  const Spacer(),
+                  const SkeletonBox(width: double.infinity, height: 11),
+                  Gap.h4,
+                  const SkeletonBox(width: 96, height: 11),
+                  Gap.h8,
+                  const SkeletonBox(width: 78, height: 15, radius: 7),
+                  Gap.h8,
+                  SizedBox(
+                    height: ProductCardMetrics.footSlot(context),
+                    width: double.infinity,
+                    child: const SkeletonBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      radius: ZbTokens.rPill,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -106,11 +129,14 @@ class SkeletonProductGrid extends StatelessWidget {
         padding: padding,
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.62,
+          mainAxisSpacing: ProductCardMetrics.gridSpacing,
+          crossAxisSpacing: ProductCardMetrics.gridSpacing,
+          mainAxisExtent: ProductCardMetrics.gridExtent(
+            context,
+            horizontalPadding: padding.resolve(Directionality.of(context)).horizontal,
+          ),
         ),
         itemCount: count,
         itemBuilder: (_, _) => const SkeletonProductCard(),
@@ -121,7 +147,7 @@ class SkeletonProductGrid extends StatelessWidget {
 
 /// Skeleton for a horizontal rail: title line plus a few cards peeking in.
 class SkeletonRail extends StatelessWidget {
-  const SkeletonRail({super.key, this.cardWidth = 158});
+  const SkeletonRail({super.key, this.cardWidth = ProductCardMetrics.railCardWidth});
 
   final double cardWidth;
 
@@ -137,7 +163,7 @@ class SkeletonRail extends StatelessWidget {
           ),
           Gap.h12,
           SizedBox(
-            height: 260,
+            height: ProductCardMetrics.height(context, cardWidth),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsetsDirectional.only(start: 16, end: 16),

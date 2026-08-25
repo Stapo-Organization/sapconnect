@@ -43,6 +43,11 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_custom_tabs: ^2.2.0
 
+  # Payments — MyFatoorah's native SDK for the embedded card form (3-D Secure
+  # is handled inside the SDK). The hosted page stays as the fallback for
+  # Apple Pay and the wallets.
+  myfatoorah_flutter: ^3.3.2
+
   intl: any
 
 dev_dependencies:

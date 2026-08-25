@@ -20,11 +20,18 @@ class PaymentStatusView extends StatelessWidget {
     required this.onRetry,
     required this.onOpenOrder,
     this.message,
+    this.notice,
   });
 
   final PaymentPhase phase;
   final String orderNumber;
   final String? message;
+
+  /// Why the customer ended up here rather than on the in-app card form. Shown
+  /// once, above the status, because arriving somewhere unexpected without
+  /// being told why is how a checkout loses people.
+  final String? notice;
+
   final VoidCallback onRetry;
   final VoidCallback onOpenOrder;
 
@@ -39,8 +46,25 @@ class PaymentStatusView extends StatelessWidget {
       PaymentPhase.failed => (l.paymentFailedTitle, message ?? l.paymentFailedHint),
     };
 
+    final notice = this.notice;
+
     return Column(
       children: [
+        if (notice != null)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(ZbTokens.rMd),
+            ),
+            child: Text(
+              notice,
+              textAlign: TextAlign.center,
+              style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
         const Spacer(),
         _Mark(phase: phase),
         Gap.h24,

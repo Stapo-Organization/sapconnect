@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,21 +7,28 @@ import '../../app/theme/zooboxi_tokens.dart';
 import '../../features/catalog/data/product_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../analytics/events_buffer.dart';
+import '../utils/formatters.dart';
 import '../utils/haptics.dart';
 import 'badge_chip.dart';
 import 'delivery_chip.dart';
-import 'price_text.dart';
 import 'press_scale.dart';
-import 'qty_stepper.dart';
+import 'price_text.dart';
+import 'product_card_foot.dart';
+import 'product_card_metrics.dart';
 import 'wishlist_heart.dart';
 import 'zb_image.dart';
 
 /// The product card, used by every grid and rail in the app.
 ///
-/// The layout is deliberately fixed-height in its lower half so a grid of
-/// cards lines up: image square on top, then brand, a two-line name, price,
-/// delivery promise, and the add control. A card whose name wraps to one line
-/// still ends at the same baseline as its neighbour.
+/// Every row of cards lines up because the card is built from the fixed slots
+/// in [ProductCardMetrics] — brand, a name that is *always* two lines tall, a
+/// price line, an info line, and the add control — rather than from whatever
+/// its content measures. The parent asks the same class for its height, so the
+/// card and the box it is given are computed from one source and can never
+/// disagree by the pixel that shows an overflow stripe.
+///
+/// Text scaling is clamped here to the same ceiling the metrics assume, which
+/// is what makes that guarantee hold at 200% type as well as at 100%.
 class ProductCardView extends ConsumerWidget {
   const ProductCardView({
     super.key,
@@ -55,16 +60,22 @@ class ProductCardView extends ConsumerWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        border: Border.all(color: cs.outlineVariant),
+        border: Border.all(color: cs.outlineVariant, width: ProductCardMetrics.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Media(product: product, outOfStock: outOfStock),
-          Expanded(
+          // The body takes exactly what its slots need; the image takes what
+          // is left. If the box we were handed differs from the computed
+          // height by a pixel — a rounded grid extent, a scrollbar — that
+          // pixel lands on the artwork, where nobody can see it, instead of
+          // on a control, where it would clip.
+          Expanded(child: _Media(product: product, outOfStock: outOfStock)),
+          SizedBox(
+            height: ProductCardMetrics.bodyHeight(context),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              padding: const EdgeInsets.all(ProductCardMetrics.bodyPadding),
               child: _Body(product: product, onAdd: onAdd, outOfStock: outOfStock),
             ),
           ),
@@ -72,28 +83,30 @@ class ProductCardView extends ConsumerWidget {
       ),
     );
 
-    return Semantics(
-      button: true,
-      label: product.name,
-      child: PressScale(
-        borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        haptic: Haptics.light,
-        onTap: () {
-          ref.track(ZbEvent(
-            type: ZbEvents.view,
-            itemCode: product.itemCode,
-            zone: zone,
-          ));
-          context.push('/product/${product.id}', extra: product);
-        },
-        child: outOfStock
-            ? Opacity(opacity: 0.72, child: card)
-            : card,
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: ProductCardMetrics.maxTextScale,
+      child: Semantics(
+        button: true,
+        label: product.name,
+        child: PressScale(
+          borderRadius: BorderRadius.circular(ZbTokens.rLg),
+          haptic: Haptics.light,
+          onTap: () {
+            ref.track(ZbEvent(
+              type: ZbEvents.view,
+              itemCode: product.itemCode,
+              zone: zone,
+            ));
+            context.push('/product/${product.id}', extra: product);
+          },
+          child: card,
+        ),
       ),
     );
   }
 }
 
+/// The image block and everything that floats over it.
 class _Media extends StatelessWidget {
   const _Media({required this.product, required this.outOfStock});
 
@@ -103,15 +116,25 @@ class _Media extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    final cs = context.cs;
     final badge = product.badge;
     final discount = product.discountPercent;
 
-    return AspectRatio(
-      aspectRatio: 1,
+    final image = ZbImage(url: product.image, padding: const EdgeInsets.all(10));
+
+    return DecoratedBox(
+      // A hairline under the image gives the card structure in light mode,
+      // where the near-white image ground and the white body would otherwise
+      // melt into one another.
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+      ),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          ZbImage(url: product.image, padding: const EdgeInsets.all(10)),
+          // Sold out reads as "dimmed", not as "broken": the art stays
+          // recognisable, it just stops competing with what is buyable.
+          outOfStock ? Opacity(opacity: 0.4, child: image) : image,
 
           // Badge and discount stack in the top-start corner, away from the
           // heart so a long badge never collides with it.
@@ -133,22 +156,27 @@ class _Media extends StatelessWidget {
           PositionedDirectional(
             top: 4,
             end: 4,
-            child: WishlistHeart(productId: product.id, seeded: product.wishlisted),
+            child: WishlistHeart(
+              productId: product.id,
+              seeded: product.wishlisted,
+              size: 32,
+            ),
           ),
 
           if (outOfStock)
-            PositionedDirectional(
-              bottom: 8,
-              start: 8,
+            Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: context.cs.inverseSurface.withValues(alpha: 0.86),
-                  borderRadius: BorderRadius.circular(999),
+                  color: cs.inverseSurface.withValues(alpha: 0.88),
+                  borderRadius: BorderRadius.circular(ZbTokens.rPill),
                 ),
                 child: Text(
-                  l.pdpOutOfStock,
-                  style: context.tt.labelSmall?.copyWith(color: context.cs.onInverseSurface),
+                  l.cardOutOfStock,
+                  style: context.tt.labelSmall?.copyWith(
+                    color: cs.onInverseSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
@@ -158,7 +186,8 @@ class _Media extends StatelessWidget {
   }
 }
 
-class _Body extends StatefulWidget {
+/// The slot stack under the image.
+class _Body extends StatelessWidget {
   const _Body({required this.product, required this.onAdd, required this.outOfStock});
 
   final ProductCard product;
@@ -166,92 +195,192 @@ class _Body extends StatefulWidget {
   final bool outOfStock;
 
   @override
-  State<_Body> createState() => _BodyState();
-}
-
-class _BodyState extends State<_Body> {
-  bool _busy = false;
-
-  Future<void> _add() async {
-    final onAdd = widget.onAdd;
-    if (onAdd == null || _busy) return;
-
-    // A variable product can't be added blind — the customer has to pick a
-    // flavour or size first, so send them to the page instead of guessing.
-    if (widget.product.isVariable) {
-      unawaited(context.push('/product/${widget.product.id}', extra: widget.product));
-      return;
-    }
-
-    setState(() => _busy = true);
-    try {
-      await onAdd(widget.product);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final product = widget.product;
     final cs = context.cs;
     final brand = product.brand?.name;
-    final chip = product.deliveryChip;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (brand != null && brand.isNotEmpty)
-          Text(
-            brand,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: context.tt.labelSmall?.copyWith(
-              color: cs.onSurfaceVariant,
-              letterSpacing: 0.2,
-            ),
-          ),
-        const SizedBox(height: 2),
-        // Fixed two lines: the grid stays aligned whether a name wraps or not.
+        // The brand slot is reserved whether or not there is a brand: an
+        // unbranded card must still end where its neighbour does.
         SizedBox(
-          height: (context.tt.bodySmall?.fontSize ?? 12) * 1.5 * 2,
+          height: ProductCardMetrics.brandSlot(context),
+          width: double.infinity,
+          child: brand == null || brand.isEmpty
+              ? null
+              : Text(
+                  brand,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.tt.labelSmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+        ),
+        const SizedBox(height: ProductCardMetrics.gapBrandName),
+        SizedBox(
+          height: ProductCardMetrics.nameSlot(context),
+          width: double.infinity,
           child: Text(
             product.name,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: context.tt.bodySmall?.copyWith(
+            style: context.tt.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: cs.onSurface,
             ),
           ),
         ),
+        const SizedBox(height: ProductCardMetrics.gapNamePrice),
+        // Any rounding slack between the computed height and the box we were
+        // actually given lands here, so it never squeezes a slot.
         const Spacer(),
-        if (chip != null) ...[
-          DeliveryChipView(chip: chip, compact: true),
-          const SizedBox(height: 8),
-        ],
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: PriceText(
-                price: product.price,
-                regularPrice: product.regularPrice,
-                onSale: product.onSale,
-                priceFrom: product.priceFrom,
-                style: context.tt.titleSmall,
-              ),
-            ),
-            if (widget.onAdd != null)
-              AddButton(
-                onTap: _add,
-                enabled: !widget.outOfStock,
-                busy: _busy,
-              ),
-          ],
-        ),
+        _PriceLine(product: product),
+        const SizedBox(height: ProductCardMetrics.gapPriceChip),
+        _InfoLine(product: product),
+        const SizedBox(height: ProductCardMetrics.gapChipFoot),
+        ProductCardFoot(product: product, onAdd: onAdd, outOfStock: outOfStock),
       ],
     );
   }
 }
 
+/// Price, "starts from" prefix and the struck-through original — one line,
+/// scaled down rather than wrapped, because a price that wraps stops being a
+/// price and becomes two numbers.
+class _PriceLine extends StatelessWidget {
+  const _PriceLine({required this.product});
+
+  final ProductCard product;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final locale = Localizations.localeOf(context).languageCode;
+    final regular = product.regularPrice;
+    final showCompare = product.onSale && regular != null && regular > product.price;
+
+    final priceStyle = (context.tt.titleMedium ?? const TextStyle()).copyWith(
+      fontWeight: FontWeight.w800,
+      color: cs.onSurface,
+    );
+
+    return SizedBox(
+      height: ProductCardMetrics.priceSlot(context),
+      width: double.infinity,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: AlignmentDirectional.centerStart,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (product.priceFrom) ...[
+              Text(
+                l.priceFrom,
+                style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
+              Gap.w4,
+            ],
+            Text.rich(_money(product.price, priceStyle, locale), maxLines: 1),
+            if (showCompare) ...[
+              Gap.w6,
+              Text.rich(
+                _money(
+                  regular,
+                  (context.tt.bodySmall ?? const TextStyle()).copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: cs.onSurfaceVariant,
+                  ),
+                  locale,
+                ),
+                maxLines: 1,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The Riyal glyph carries more optical weight than the digits at the same
+  /// point size, so it is nudged down to sit level — the same treatment
+  /// [PriceText] gives it on every other surface.
+  TextSpan _money(double value, TextStyle style, String locale) => TextSpan(
+    style: style,
+    children: [
+      TextSpan(text: Fmt.number(value, locale: locale)),
+      const TextSpan(text: ' '),
+      TextSpan(
+        text: riyalSymbol,
+        style: style.copyWith(fontSize: (style.fontSize ?? 15) * 0.86),
+      ),
+    ],
+  );
+}
+
+/// One line of signal: how fast it reaches you, or how little is left.
+///
+/// Scarcity wins when both are true. "Only 3 left" moves a basket in a way a
+/// delivery promise does not, and two chips on a card this size is clutter.
+class _InfoLine extends StatelessWidget {
+  const _InfoLine({required this.product});
+
+  final ProductCard product;
+
+  static const int _scarcityThreshold = 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final qty = product.stockQty;
+    final scarce = product.inStock && qty != null && qty > 0 && qty <= _scarcityThreshold;
+    final chip = product.deliveryChip;
+
+    return SizedBox(
+      height: ProductCardMetrics.chipSlot(context),
+      width: double.infinity,
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: scarce
+            ? _Scarcity(count: qty)
+            : (chip == null
+                  ? const SizedBox.shrink()
+                  : DeliveryChipView(chip: chip, compact: true)),
+      ),
+    );
+  }
+}
+
+class _Scarcity extends StatelessWidget {
+  const _Scarcity({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final amber = context.zb.warning;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: amber, shape: BoxShape.circle),
+        ),
+        Gap.w6,
+        Flexible(
+          child: Text(
+            L.of(context).cardStockLeft(count),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.tt.labelSmall?.copyWith(color: amber, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  }
+}

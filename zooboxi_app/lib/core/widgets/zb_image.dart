@@ -14,6 +14,7 @@ class ZbImage extends StatelessWidget {
     this.radius,
     this.backgroundColor,
     this.padding,
+    this.fallback,
   });
 
   final String? url;
@@ -22,16 +23,24 @@ class ZbImage extends StatelessWidget {
   final Color? backgroundColor;
   final EdgeInsetsGeometry? padding;
 
+  /// Shown instead of the paw when there is no image, or when the one there is
+  /// fails to load. Categories pass their emoji here: a cat is a better
+  /// stand-in for a cat than a generic mark is.
+  final Widget? fallback;
+
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
     final background = backgroundColor ??
         (context.isDark ? cs.surfaceContainerHigh : cs.surfaceContainerLow);
 
+    Widget missing() =>
+        fallback ?? _Placeholder(background: background);
+
     Widget image;
     final source = url;
     if (source == null || source.isEmpty) {
-      image = _Placeholder(background: background);
+      image = missing();
     } else {
       image = CachedNetworkImage(
         imageUrl: source,
@@ -39,7 +48,7 @@ class ZbImage extends StatelessWidget {
         fadeInDuration: const Duration(milliseconds: 220),
         fadeOutDuration: const Duration(milliseconds: 120),
         placeholder: (_, _) => _Placeholder(background: background, faded: true),
-        errorWidget: (_, _, _) => _Placeholder(background: background),
+        errorWidget: (_, _, _) => missing(),
       );
     }
 

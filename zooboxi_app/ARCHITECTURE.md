@@ -86,7 +86,8 @@ lib/
     analytics/events_buffer.dart
     motion/motion.dart         durations, curves, page transitions
     utils/                     formatters · haptics · debouncer · error_text
-    widgets/                   the shared kit (see below)
+    widgets/                   the shared kit (product card + metrics, chips,
+                               steppers, skeletons, images)
 
   features/<feature>/
     data/                      models + repository, providers at the file bottom
@@ -106,6 +107,14 @@ Conventions:
 - Every user-visible string goes through `L.of(context)`. There are no Arabic
   or English literals in widget code.
 - Padding is `EdgeInsetsDirectional` / `PositionedDirectional` throughout.
+- **Nothing guesses a `childAspectRatio`.** `core/widgets/product_card_metrics.dart`
+  is the product card's size contract: the card is built from fixed slots —
+  brand, a name that is *always* two lines tall, price, one info line, one
+  control — and every grid, rail and skeleton asks that same class for the
+  `mainAxisExtent` it should hand a card. The guess is what used to clip the
+  add button off the bottom of the tile. The OS text scale is honoured up to
+  1.3× and clamped there in both the arithmetic and the card itself, so the
+  number computed and the pixels painted can never disagree.
 
 ---
 
@@ -190,37 +199,54 @@ search (debounced suggest, recent chips, barcode scanner) · product page
 panel, FBT + substitutes rails, pinned add-to-cart bar) · cart (steppers,
 swipe-delete, shipment cards, animated free-shipping bar, coupon, totals) ·
 **checkout** (address → review → payment on one screen, map-pin address
-editor, `cart_changed` review moment) · **payment** (hosted page in a custom
-tab + status polling) · **order success** · **orders** (list + detail with the
+editor, `cart_changed` review moment) · **payment** (native MyFatoorah card
+form with in-app 3-D Secure, plus the hosted page in a custom tab for the
+wallets) · **order success** · **orders** (list + detail with the
 fulfilment timeline, tracking and reorder) · **address book** · **buy-again** ·
 wishlist · auth sheet · account settings (language + theme switch both live).
 
 **Stubbed but navigable:** support.
 
 **Not started (later phases):** push notifications, brand boutique pages,
-personal home slots, native payment SDK.
+personal home slots.
 
 Checkout is **auth-gated at the cart's CTA**, exactly like the web store: the
 sheet is raised there rather than mid-flow, because discovering you need an
 account three steps in — with an address half typed — is the worst place to
 learn it.
 
-`features/payment/data/payment_service.dart` is transport only: request the
-gateway URL, open a custom tab, read `GET /orders/{id}/status` once. The
-*waiting* — its timer, its 40-poll budget, its cancellation — belongs to
-`PaymentScreen`, because a poll that outlives the widget that started it is a
-leak with a network bill attached. Polling starts the instant the tab launches
-(a wallet can settle while it is still on screen) and again immediately on app
-resume.
+`features/payment/data/payment_service.dart` is transport only. Two routes,
+one authority:
+
+- **Card** — `POST /payments/config` returns the SDK token, the amount and the
+  `reference` the payment must carry. `MFCardPaymentView` draws the fields as a
+  native platform view and runs 3-D Secure in-app, then hands back an invoice
+  id, which `POST /payments/verify` checks against the order the server priced.
+- **Hosted** — the gateway's page in a custom tab (not a WebView: Apple Pay and
+  mada's challenge need the real browser context), watched via
+  `GET /orders/{id}/status`.
+
+An invoice id is a *claim*. Until the server says paid, nothing is paid — which
+is why the card route ends in a verification loop rather than in a success
+screen, and why `already_paid` is treated as success wherever it appears.
+
+`NativePaymentFlow` owns the SDK bring-up (once per credential set — `MFSDK.init`
+is process-wide) and the verification retry, and is disposed by the screen. The
+hosted *waiting* — its timer, its 40-poll budget, its cancellation — belongs to
+`PaymentScreen` for the same reason: a poll that outlives the widget that
+started it is a leak with a network bill attached. Polling starts the instant
+the tab launches (a wallet can settle while it is still on screen) and again
+immediately on app resume.
 
 ---
 
 ## Deliberate omissions
 
-- **No payment SDK, no card fields.** Phase 1 uses the gateway's hosted page in
-  a custom tab (not a WebView — Apple Pay and mada 3-D Secure need the real
-  browser context). No merchant key ever enters the app, which also keeps PCI
-  scope off the mobile build.
+- **No card data in Dart.** The card fields belong to MyFatoorah's own native
+  view; the app never sees a PAN, and holds no merchant key — the per-payment
+  token comes from the server and opens one session against one invoice. That
+  is what keeps PCI scope off the mobile build while still looking native.
+  Wallets stay on the hosted page, because Apple Pay needs the real browser.
 - **No Firebase.** Push lands in phase 2.
 - **HTML descriptions are stripped, not rendered.** `_Description` on the
   product page decodes entities and drops tags. A real renderer can drop in
@@ -239,7 +265,9 @@ resume.
 `knownRegions`). Portrait only on iPhone. Usage strings for camera (scanner)
 and location, both in Arabic.
 
-**Android** — `minSdk 24` (clears mobile_scanner's own 23), label from
+**Android** — `minSdk 26` (MyFatoorah's Android SDK declares 26, and a lower
+value fails the manifest merge outright; it also clears Flutter's own floor of
+24 and mobile_scanner's 23), label from
 `@string/app_name` with `values-ar/strings.xml` supplying `زوبوكسي`.
 Permissions: `INTERNET` (needed in the main manifest for release builds),
 coarse + fine location. `CAMERA` comes from the mobile_scanner plugin's own

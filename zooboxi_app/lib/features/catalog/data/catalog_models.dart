@@ -128,18 +128,32 @@ class Campaign {
 /// One circle in the "shop by pet" strip.
 @immutable
 class AnimalNavItem {
-  const AnimalNavItem({required this.id, required this.slug, required this.name, this.image});
+  const AnimalNavItem({
+    required this.id,
+    required this.slug,
+    required this.name,
+    this.image,
+    this.icon,
+  });
 
   final int id;
   final String slug;
   final String name;
+
+  /// Commissioned artwork. Preferred whenever it exists.
   final String? image;
+
+  /// Emoji the server ships alongside the artwork (🐱, 🐶). It is the fallback
+  /// for a category whose photo is missing or fails to load — a recognisable
+  /// animal beats a generic placeholder glyph.
+  final String? icon;
 
   factory AnimalNavItem.fromJson(Map<String, dynamic> json) => AnimalNavItem(
         id: asInt(json['id']),
         slug: asString(json['slug']),
         name: asString(json['name']),
         image: asStringOrNull(json['image']),
+        icon: asStringOrNull(json['icon']),
       );
 }
 
@@ -219,6 +233,7 @@ class CategoryNode {
     required this.slug,
     required this.name,
     this.image,
+    this.icon,
     this.count = 0,
     this.children = const [],
   });
@@ -226,7 +241,15 @@ class CategoryNode {
   final int id;
   final String slug;
   final String name;
+
+  /// Category artwork. The four animal roots carry a photographic tile; the
+  /// children carry the illustrated set.
   final String? image;
+
+  /// Emoji fallback for a node whose artwork is missing or fails to load. The
+  /// server sends `""` for most children; `asStringOrNull` folds that to null.
+  final String? icon;
+
   final int count;
   final List<CategoryNode> children;
 
@@ -237,6 +260,7 @@ class CategoryNode {
         slug: asString(json['slug']),
         name: asString(json['name']),
         image: asStringOrNull(json['image']),
+        icon: asStringOrNull(json['icon']),
         count: asInt(json['count']),
         children: asMapList(json['children']).map(CategoryNode.fromJson).toList(),
       );

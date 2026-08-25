@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/product_card.dart';
+import '../../../core/widgets/product_card_metrics.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
@@ -75,11 +76,11 @@ class _List extends ConsumerWidget {
           return GridView.builder(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
             physics: const AlwaysScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.62,
+              mainAxisSpacing: ProductCardMetrics.gridSpacing,
+              crossAxisSpacing: ProductCardMetrics.gridSpacing,
+              mainAxisExtent: ProductCardMetrics.gridExtent(context),
             ),
             itemCount: visible.length,
             itemBuilder: (context, index) => ProductCardView(

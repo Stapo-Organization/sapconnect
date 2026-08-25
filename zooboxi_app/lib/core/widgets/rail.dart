@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/catalog/data/product_models.dart';
 import '../motion/motion.dart';
 import 'product_card.dart';
+import 'product_card_metrics.dart';
 import 'section_header.dart';
 
 /// A horizontal strip of product cards under a title.
@@ -20,7 +21,7 @@ class ProductRailView extends ConsumerWidget {
     this.subtitle,
     this.onSeeAll,
     this.onAdd,
-    this.cardWidth = 158,
+    this.cardWidth = ProductCardMetrics.railCardWidth,
     this.zone,
     this.animate = true,
   });
@@ -45,7 +46,9 @@ class ProductRailView extends ConsumerWidget {
         SectionHeader(title: title, subtitle: subtitle, onSeeAll: onSeeAll),
         const SizedBox(height: 12),
         SizedBox(
-          height: cardWidth * 1.72,
+          // Same slot math as the grid, so a rail card and a grid card are
+          // literally the same card at the same size.
+          height: ProductCardMetrics.height(context, cardWidth),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsetsDirectional.only(start: 16, end: 16),

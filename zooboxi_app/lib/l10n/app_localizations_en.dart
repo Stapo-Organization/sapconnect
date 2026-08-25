@@ -54,6 +54,9 @@ class LEn extends L {
   String get actionContinue => 'Continue';
 
   @override
+  String get actionOr => 'or';
+
+  @override
   String get navHome => 'Home';
 
   @override
@@ -326,6 +329,26 @@ class LEn extends L {
   }
 
   @override
+  String get cardAdd => 'Add';
+
+  @override
+  String get cardChooseOptions => 'Choose options';
+
+  @override
+  String get cardOutOfStock => 'Out of stock';
+
+  @override
+  String cardStockLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Only $count left',
+      one: '1 left',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get badgeHot => 'Best seller';
 
   @override
@@ -569,6 +592,65 @@ class LEn extends L {
   @override
   String get paymentSupportHint =>
       'If it keeps failing, contact us and we\'ll finish the order for you.';
+
+  @override
+  String get paymentAmountDue => 'Amount due';
+
+  @override
+  String get paymentCardTitle => 'Pay by card';
+
+  @override
+  String paymentPayAmount(String amount) {
+    return 'Pay $amount';
+  }
+
+  @override
+  String get paymentSecureNote =>
+      'Your details are encrypted — the app never stores your card.';
+
+  @override
+  String get paymentPreparingCard => 'Preparing the card form…';
+
+  @override
+  String get paymentCardFailed => 'The card payment couldn\'t be completed';
+
+  @override
+  String get paymentOtherMethods =>
+      'Other payment methods (Apple Pay and more)';
+
+  @override
+  String get paymentHostedFallback =>
+      'In-app card payment isn\'t available right now — continuing on the secure payment page.';
+
+  @override
+  String get paymentSaveCard => 'Save this card for next time';
+
+  @override
+  String get paymentUseAnotherCard => 'Use another card';
+
+  @override
+  String get payCardHolder => 'Cardholder name';
+
+  @override
+  String get payCardHolderHint => 'Name as printed on the card';
+
+  @override
+  String get payCardNumber => 'Card number';
+
+  @override
+  String get payCardNumberHint => '0000 0000 0000 0000';
+
+  @override
+  String get payCardExpiry => 'Expiry date';
+
+  @override
+  String get payCardExpiryHint => 'MM / YY';
+
+  @override
+  String get payCardCvv => 'Security code';
+
+  @override
+  String get payCardCvvHint => 'CVV';
 
   @override
   String get paymentViewOrder => 'View order';

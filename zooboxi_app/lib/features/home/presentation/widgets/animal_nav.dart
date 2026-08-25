@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/motion/motion.dart';
+import '../../../../core/widgets/category_art.dart';
 import '../../../../core/widgets/press_scale.dart';
-import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 
@@ -71,8 +71,6 @@ class _AnimalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.cs;
-
     return SizedBox(
       width: 72,
       child: PressScale(
@@ -85,21 +83,7 @@ class _AnimalTile extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Container(
-              width: 66,
-              height: 66,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-                border: Border.all(color: cs.primary.withValues(alpha: 0.18), width: 1.5),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: ZbImage(
-                url: item.image,
-                fit: BoxFit.cover,
-                backgroundColor: Colors.transparent,
-              ),
-            ),
+            CategoryArt(image: item.image, icon: item.icon, size: 66),
             Gap.h8,
             Text(
               item.name,

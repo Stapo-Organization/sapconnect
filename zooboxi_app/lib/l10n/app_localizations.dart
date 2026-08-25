@@ -187,6 +187,12 @@ abstract class L {
   /// **'متابعة'**
   String get actionContinue;
 
+  /// No description provided for @actionOr.
+  ///
+  /// In ar, this message translates to:
+  /// **'أو'**
+  String get actionOr;
+
   /// No description provided for @navHome.
   ///
   /// In ar, this message translates to:
@@ -643,6 +649,30 @@ abstract class L {
   /// **'خصم {percent}٪'**
   String priceOff(int percent);
 
+  /// No description provided for @cardAdd.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف'**
+  String get cardAdd;
+
+  /// No description provided for @cardChooseOptions.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الخيارات'**
+  String get cardChooseOptions;
+
+  /// No description provided for @cardOutOfStock.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير متوفّر'**
+  String get cardOutOfStock;
+
+  /// No description provided for @cardStockLeft.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{بقيت قطعة واحدة} =2{بقيت قطعتان} few{بقي {count} قطع} other{بقي {count} قطعة}}'**
+  String cardStockLeft(int count);
+
   /// No description provided for @badgeHot.
   ///
   /// In ar, this message translates to:
@@ -1068,6 +1098,114 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'إن تكرّر الأمر تواصل معنا وسنكمل طلبك يدويًا.'**
   String get paymentSupportHint;
+
+  /// No description provided for @paymentAmountDue.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المستحق'**
+  String get paymentAmountDue;
+
+  /// No description provided for @paymentCardTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع بالبطاقة'**
+  String get paymentCardTitle;
+
+  /// No description provided for @paymentPayAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'ادفع {amount}'**
+  String paymentPayAmount(String amount);
+
+  /// No description provided for @paymentSecureNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'بياناتك مشفّرة، ولا يحتفظ التطبيق ببيانات بطاقتك.'**
+  String get paymentSecureNote;
+
+  /// No description provided for @paymentPreparingCard.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تجهيز نموذج البطاقة…'**
+  String get paymentPreparingCard;
+
+  /// No description provided for @paymentCardFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إتمام الدفع بالبطاقة'**
+  String get paymentCardFailed;
+
+  /// No description provided for @paymentOtherMethods.
+  ///
+  /// In ar, this message translates to:
+  /// **'طرق دفع أخرى (Apple Pay وسواها)'**
+  String get paymentOtherMethods;
+
+  /// No description provided for @paymentHostedFallback.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع بالبطاقة داخل التطبيق غير متاح الآن، سنكمل عبر صفحة الدفع الآمنة.'**
+  String get paymentHostedFallback;
+
+  /// No description provided for @paymentSaveCard.
+  ///
+  /// In ar, this message translates to:
+  /// **'احفظ البطاقة لعمليات الدفع القادمة'**
+  String get paymentSaveCard;
+
+  /// No description provided for @paymentUseAnotherCard.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدام بطاقة أخرى'**
+  String get paymentUseAnotherCard;
+
+  /// No description provided for @payCardHolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم على البطاقة'**
+  String get payCardHolder;
+
+  /// No description provided for @payCardHolderHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم كما يظهر على البطاقة'**
+  String get payCardHolderHint;
+
+  /// No description provided for @payCardNumber.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم البطاقة'**
+  String get payCardNumber;
+
+  /// No description provided for @payCardNumberHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'0000 0000 0000 0000'**
+  String get payCardNumberHint;
+
+  /// No description provided for @payCardExpiry.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ الانتهاء'**
+  String get payCardExpiry;
+
+  /// No description provided for @payCardExpiryHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'شهر / سنة'**
+  String get payCardExpiryHint;
+
+  /// No description provided for @payCardCvv.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز الأمان'**
+  String get payCardCvv;
+
+  /// No description provided for @payCardCvvHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'CVV'**
+  String get payCardCvvHint;
 
   /// No description provided for @paymentViewOrder.
   ///
