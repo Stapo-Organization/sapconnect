@@ -1872,6 +1872,12 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'اختياري'**
   String get commonOptional;
+
+  /// No description provided for @paymentOrCard.
+  ///
+  /// In ar, this message translates to:
+  /// **'أو ادفع بالبطاقة'**
+  String get paymentOrCard;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

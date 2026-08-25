@@ -1,9 +1,9 @@
 {
   "@@locale": "ar",
-
   "appName": "زوبوكسي",
-  "@appName": {"description": "App display name"},
-
+  "@appName": {
+    "description": "App display name"
+  },
   "actionOk": "حسنًا",
   "actionCancel": "إلغاء",
   "actionRetry": "إعادة المحاولة",
@@ -19,12 +19,10 @@
   "actionShare": "مشاركة",
   "actionContinue": "متابعة",
   "actionOr": "أو",
-
   "navHome": "الرئيسية",
   "navCategories": "الأقسام",
   "navCart": "السلة",
   "navAccount": "حسابي",
-
   "errTitle": "تعذّر إتمام العملية",
   "errNetwork": "لا يوجد اتصال بالإنترنت. تحقّق من الشبكة وحاول مجددًا.",
   "errTimeout": "استغرق الطلب وقتًا أطول من اللازم. حاول مجددًا.",
@@ -33,7 +31,6 @@
   "errValidation": "تحقّق من البيانات المُدخلة.",
   "errUnauthorized": "انتهت الجلسة. سجّل الدخول للمتابعة.",
   "errUnknown": "حدث خطأ غير متوقّع.",
-
   "onboardTitle": "كل ما يحتاجه صديقك الأليف",
   "onboardSubtitle": "حدّد موقعك لنعرض لك المتوفّر فعليًا قربك ووقت التوصيل الحقيقي.",
   "onboardUseLocation": "استخدام موقعي الحالي",
@@ -42,42 +39,47 @@
   "onboardLocating": "جارٍ تحديد موقعك…",
   "onboardLocationDenied": "لم نحصل على إذن الموقع. يمكنك اختيار مدينتك يدويًا.",
   "onboardLocationFailed": "تعذّر تحديد الموقع. اختر مدينتك يدويًا.",
-
   "citiesTitle": "اختر مدينتك",
   "citiesSearchHint": "ابحث عن مدينة",
   "citiesEmpty": "لا توجد مدن مطابقة",
-
   "locationSheetTitle": "التوصيل إلى",
   "locationDeliverTo": "التوصيل إلى",
   "locationChoose": "حدّد موقعك",
   "locationChange": "تغيير",
   "locationUnknownCity": "غير محدّد",
-
   "tierExpress": "توصيل سريع",
   "tierSameDay": "توصيل اليوم",
   "tierShipping": "شحن",
   "tierPickup": "استلام من الفرع",
-
   "homeAnimalNav": "تسوّق حسب حيوانك",
   "homeBrands": "أبرز العلامات",
   "homeGreeting": "أهلًا بك 👋",
-
   "categoriesTitle": "الأقسام",
   "categoriesEmpty": "لا توجد أقسام حاليًا",
-
   "listingFilters": "تصفية",
   "listingSort": "ترتيب",
   "listingSortTitle": "ترتيب النتائج",
   "listingFiltersTitle": "تصفية النتائج",
   "listingPriceRange": "نطاق السعر",
   "listingResults": "{count, plural, =0{لا توجد نتائج} =1{نتيجة واحدة} =2{نتيجتان} few{{count} نتائج} many{{count} نتيجة} other{{count} نتيجة}}",
-  "@listingResults": {"placeholders": {"count": {"type": "int"}}},
+  "@listingResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "listingEmpty": "لا توجد منتجات مطابقة",
   "listingEmptyHint": "جرّب تخفيف عوامل التصفية أو تغيير المدينة.",
   "listingClearFilters": "مسح التصفية",
   "listingFiltersActive": "{count, plural, =1{مُطبَّق فلتر واحد} =2{مُطبَّق فلتران} few{مُطبَّق {count} فلاتر} other{مُطبَّق {count} فلترًا}}",
-  "@listingFiltersActive": {"placeholders": {"count": {"type": "int"}}},
-
+  "@listingFiltersActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchTitle": "البحث",
   "searchHint": "ابحث عن منتج أو ماركة أو باركود",
   "searchRecent": "عمليات بحث سابقة",
@@ -89,7 +91,6 @@
   "scanHint": "وجّه الكاميرا نحو الباركود على العبوة",
   "scanNotFound": "لم نعثر على منتج بهذا الباركود",
   "scanPermission": "نحتاج إذن الكاميرا لمسح الباركود",
-
   "pdpAddToCart": "أضف إلى السلة",
   "pdpOutOfStock": "غير متوفّر حاليًا",
   "pdpQuantity": "الكمية",
@@ -101,31 +102,57 @@
   "pdpVariantsHint": "اختر الخيار المناسب",
   "pdpSelectVariant": "اختر خيارًا أولًا",
   "pdpReachable": "{count, plural, =0{لا تصل إليك قطع} =1{تصلك قطعة واحدة} =2{تصلك قطعتان} few{تصلك {count} قطع} other{تصلك {count} قطعة}}",
-  "@pdpReachable": {"placeholders": {"count": {"type": "int"}}},
+  "@pdpReachable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pdpStockUnits": "{count, plural, =0{نفدت} =1{قطعة واحدة} =2{قطعتان} few{{count} قطع} other{{count} قطعة}}",
-  "@pdpStockUnits": {"placeholders": {"count": {"type": "int"}}},
+  "@pdpStockUnits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pdpMaxQty": "الحد الأقصى المتاح {count}",
-  "@pdpMaxQty": {"placeholders": {"count": {"type": "int"}}},
+  "@pdpMaxQty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pdpAddedToCart": "أُضيف إلى السلة",
   "pdpLangFallback": "بعض التفاصيل معروضة بالعربية",
-
   "priceFrom": "يبدأ من",
   "priceWas": "بدلًا من",
   "priceOff": "خصم {percent}٪",
-  "@priceOff": {"placeholders": {"percent": {"type": "int"}}},
-
+  "@priceOff": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "cardAdd": "أضف",
   "cardChooseOptions": "اختر الخيارات",
   "cardOutOfStock": "غير متوفّر",
   "cardStockLeft": "{count, plural, =1{بقيت قطعة واحدة} =2{بقيت قطعتان} few{بقي {count} قطع} other{بقي {count} قطعة}}",
-  "@cardStockLeft": {"placeholders": {"count": {"type": "int"}}},
-
+  "@cardStockLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "badgeHot": "الأكثر طلبًا",
   "badgeTrending": "رائج الآن",
   "badgeNew": "جديد",
   "badgeLowStock": "الكمية محدودة",
   "badgeBackInStock": "عاد للتوفّر",
-
   "cartTitle": "السلة",
   "cartEmpty": "سلتك فارغة",
   "cartEmptyHint": "أضف ما يحتاجه صديقك الأليف وسنوصله إليك.",
@@ -144,17 +171,40 @@
   "cartShipments": "شحنات طلبك",
   "cartShipmentsHint": "نقسّم طلبك حسب أسرع مصدر متاح لكل منتج.",
   "cartFreeShippingRemaining": "أضف {amount} لتحصل على توصيل مجاني",
-  "@cartFreeShippingRemaining": {"placeholders": {"amount": {"type": "String"}}},
+  "@cartFreeShippingRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "cartFreeShippingQualified": "توصيلك مجاني 🎉",
   "cartItemRemoved": "أُزيل المنتج من السلة",
   "cartUpdateFailed": "تعذّر تحديث السلة",
   "cartItems": "{count, plural, =0{لا منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} other{{count} منتجًا}}",
-  "@cartItems": {"placeholders": {"count": {"type": "int"}}},
+  "@cartItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cartLineQty": "الكمية {qty}",
-  "@cartLineQty": {"placeholders": {"qty": {"type": "int"}}},
+  "@cartLineQty": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
   "cartShortfall": "{count, plural, =1{قطعة واحدة تُشحن لاحقًا} =2{قطعتان تُشحنان لاحقًا} few{{count} قطع تُشحن لاحقًا} other{{count} قطعة تُشحن لاحقًا}}",
-  "@cartShortfall": {"placeholders": {"count": {"type": "int"}}},
-
+  "@cartShortfall": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checkoutTitle": "إتمام الطلب",
   "checkoutStepAddress": "العنوان",
   "checkoutStepReview": "المراجعة",
@@ -182,15 +232,19 @@
   "checkoutCartChangedHint": "راجع ما تغيّر ثم أكمل الطلب.",
   "checkoutCartChangedAction": "مراجعة الطلب",
   "checkoutSignInReason": "سجّل الدخول لإتمام طلبك",
-
   "successTitle": "تم استلام طلبك 🎉",
   "successSubtitle": "شكرًا لك! بدأنا تجهيز طلبك الآن.",
   "successOrderNumber": "رقم الطلب #{number}",
-  "@successOrderNumber": {"placeholders": {"number": {"type": "String"}}},
+  "@successOrderNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "successCodNote": "ادفع عند الاستلام",
   "successTrack": "تتبّع الطلب",
   "successKeepShopping": "مواصلة التسوّق",
-
   "paymentTitle": "الدفع",
   "paymentOpening": "جارٍ فتح صفحة الدفع…",
   "paymentWaiting": "أكمل الدفع في النافذة",
@@ -200,11 +254,16 @@
   "paymentFailedTitle": "لم يكتمل الدفع",
   "paymentFailedHint": "لم يصلنا تأكيد الدفع. طلبك محفوظ باسمك ويمكنك المحاولة مجددًا.",
   "paymentSupportHint": "إن تكرّر الأمر تواصل معنا وسنكمل طلبك يدويًا.",
-
   "paymentAmountDue": "المبلغ المستحق",
   "paymentCardTitle": "الدفع بالبطاقة",
   "paymentPayAmount": "ادفع {amount}",
-  "@paymentPayAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@paymentPayAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "paymentSecureNote": "بياناتك مشفّرة، ولا يحتفظ التطبيق ببيانات بطاقتك.",
   "paymentPreparingCard": "جارٍ تجهيز نموذج البطاقة…",
   "paymentCardFailed": "تعذّر إتمام الدفع بالبطاقة",
@@ -221,7 +280,6 @@
   "payCardCvv": "رمز الأمان",
   "payCardCvvHint": "CVV",
   "paymentViewOrder": "عرض الطلب",
-
   "ordersTitle": "طلباتي",
   "ordersEmpty": "لا توجد طلبات بعد",
   "ordersEmptyHint": "أول طلب لك سيظهر هنا مع تتبّع لحظي.",
@@ -242,10 +300,21 @@
   "orderPayNow": "إكمال الدفع",
   "orderReorder": "اطلبها مجددًا",
   "orderReorderAdded": "{count, plural, =1{أُضيف منتج واحد إلى السلة} =2{أُضيف منتجان إلى السلة} few{أُضيفت {count} منتجات إلى السلة} other{أُضيف {count} منتجًا إلى السلة}}",
-  "@orderReorderAdded": {"placeholders": {"count": {"type": "int"}}},
+  "@orderReorderAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "orderReorderMissing": "{count, plural, =1{منتج واحد غير متوفّر حاليًا} =2{منتجان غير متوفّرين حاليًا} few{{count} منتجات غير متوفّرة حاليًا} other{{count} منتجًا غير متوفّر حاليًا}}",
-  "@orderReorderMissing": {"placeholders": {"count": {"type": "int"}}},
-
+  "@orderReorderMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "addressesTitle": "عناويني",
   "addressesEmpty": "لا توجد عناوين محفوظة",
   "addressesEmptyHint": "احفظ عنوانك مرة واحدة، ونوصّل إليه في كل مرة.",
@@ -280,17 +349,14 @@
   "addressLineRequired": "أدخل تفاصيل العنوان",
   "addressCityRequired": "أدخل المدينة",
   "addressPinRequired": "حدّد الموقع على الخريطة",
-
   "buyAgainTitle": "مشترياتي",
   "buyAgainEmpty": "لا توجد مشتريات سابقة",
   "buyAgainEmptyHint": "بعد أول طلب ستجد هنا ما تشتريه عادةً بضغطة واحدة.",
-
   "wishlistTitle": "المفضّلة",
   "wishlistEmpty": "قائمة المفضّلة فارغة",
   "wishlistEmptyHint": "اضغط القلب على أي منتج لحفظه هنا.",
   "wishlistAdded": "أُضيف إلى المفضّلة",
   "wishlistRemoved": "أُزيل من المفضّلة",
-
   "accountTitle": "حسابي",
   "accountGuest": "زائر",
   "accountGuestHint": "سجّل الدخول لحفظ طلباتك ومفضّلتك",
@@ -304,7 +370,13 @@
   "accountSupport": "الدعم والمساعدة",
   "accountAbout": "عن التطبيق",
   "accountVersion": "الإصدار {version}",
-  "@accountVersion": {"placeholders": {"version": {"type": "String"}}},
+  "@accountVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "accountPreferences": "التفضيلات",
   "accountLanguage": "اللغة",
   "accountLanguageArabic": "العربية",
@@ -315,7 +387,6 @@
   "accountThemeSystem": "حسب النظام",
   "accountProfile": "الملف الشخصي",
   "accountSoon": "قريبًا",
-
   "authTitle": "تسجيل الدخول",
   "authSubtitle": "أدخل رقم جوالك وسنرسل لك رمز تحقق.",
   "authPhoneLabel": "رقم الجوال",
@@ -324,10 +395,22 @@
   "authSendCode": "إرسال الرمز",
   "authOtpTitle": "رمز التحقق",
   "authOtpSubtitle": "أرسلنا رمزًا مكوّنًا من 4 أرقام إلى {phone}",
-  "@authOtpSubtitle": {"placeholders": {"phone": {"type": "String"}}},
+  "@authOtpSubtitle": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "authVerify": "تأكيد",
   "authResendIn": "إعادة الإرسال خلال {seconds} ثانية",
-  "@authResendIn": {"placeholders": {"seconds": {"type": "int"}}},
+  "@authResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "authResend": "إعادة إرسال الرمز",
   "authChangeNumber": "تعديل الرقم",
   "authOtpInvalid": "رمز غير صحيح، حاول مجددًا",
@@ -340,7 +423,7 @@
   "authRequiredWishlist": "سجّل الدخول لحفظ منتجاتك المفضّلة",
   "authLoggedIn": "تم تسجيل الدخول",
   "authCartMerged": "دمجنا سلتك السابقة",
-
   "commonComingSoon": "قريبًا",
-  "commonOptional": "اختياري"
+  "commonOptional": "اختياري",
+  "paymentOrCard": "أو ادفع بالبطاقة"
 }

@@ -71,12 +71,14 @@ class ProductCardView extends ConsumerWidget {
           // height by a pixel — a rounded grid extent, a scrollbar — that
           // pixel lands on the artwork, where nobody can see it, instead of
           // on a control, where it would clip.
-          Expanded(child: _Media(product: product, outOfStock: outOfStock)),
+          Expanded(
+            child: _Media(product: product, onAdd: onAdd, outOfStock: outOfStock),
+          ),
           SizedBox(
             height: ProductCardMetrics.bodyHeight(context),
             child: Padding(
               padding: const EdgeInsets.all(ProductCardMetrics.bodyPadding),
-              child: _Body(product: product, onAdd: onAdd, outOfStock: outOfStock),
+              child: _Body(product: product),
             ),
           ),
         ],
@@ -108,9 +110,14 @@ class ProductCardView extends ConsumerWidget {
 
 /// The image block and everything that floats over it.
 class _Media extends StatelessWidget {
-  const _Media({required this.product, required this.outOfStock});
+  const _Media({
+    required this.product,
+    required this.onAdd,
+    required this.outOfStock,
+  });
 
   final ProductCard product;
+  final Future<void> Function(ProductCard product)? onAdd;
   final bool outOfStock;
 
   @override
@@ -180,6 +187,16 @@ class _Media extends StatelessWidget {
                 ),
               ),
             ),
+
+          // The add control lives ON the artwork (the owner's call — it keeps
+          // the body to pure information and the action where the eye already
+          // is). Bottom-end: clear of the badge stack and the OOS chip.
+          if (!outOfStock)
+            PositionedDirectional(
+              bottom: 6,
+              end: 6,
+              child: ProductCardAddOverlay(product: product, onAdd: onAdd),
+            ),
         ],
       ),
     );
@@ -188,11 +205,9 @@ class _Media extends StatelessWidget {
 
 /// The slot stack under the image.
 class _Body extends StatelessWidget {
-  const _Body({required this.product, required this.onAdd, required this.outOfStock});
+  const _Body({required this.product});
 
   final ProductCard product;
-  final Future<void> Function(ProductCard product)? onAdd;
-  final bool outOfStock;
 
   @override
   Widget build(BuildContext context) {
@@ -240,8 +255,6 @@ class _Body extends StatelessWidget {
         _PriceLine(product: product),
         const SizedBox(height: ProductCardMetrics.gapPriceChip),
         _InfoLine(product: product),
-        const SizedBox(height: ProductCardMetrics.gapChipFoot),
-        ProductCardFoot(product: product, onAdd: onAdd, outOfStock: outOfStock),
       ],
     );
   }

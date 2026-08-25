@@ -37,6 +37,7 @@ class PaymentConfig {
     required this.amount,
     required this.currency,
     required this.reference,
+    this.applePay = false,
   });
 
   /// `myfatoorah` today. Anything else means "no native path — use the page".
@@ -56,6 +57,11 @@ class PaymentConfig {
   /// The `customerReference` the payment must carry. The server verifies by it.
   final String reference;
 
+  /// True once the merchant's Apple Pay chain is live end to end (Apple
+  /// merchant id + certificate + MyFatoorah vendor activation + the app's
+  /// entitlement). Flipped server-side so no release is needed on the day.
+  final bool applePay;
+
   bool get isLive => environment.toLowerCase() == 'live';
   bool get supportsNativeCard => gateway.toLowerCase() == 'myfatoorah';
 
@@ -68,6 +74,7 @@ class PaymentConfig {
         amount: asDouble(json['amount']),
         currency: asString(json['currency'], fallback: 'SAR'),
         reference: asString(json['reference']),
+        applePay: asBool(json['apple_pay']),
       );
 }
 

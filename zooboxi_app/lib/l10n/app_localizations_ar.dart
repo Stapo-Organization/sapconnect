@@ -1018,4 +1018,7 @@ class LAr extends L {
 
   @override
   String get commonOptional => 'اختياري';
+
+  @override
+  String get paymentOrCard => 'أو ادفع بالبطاقة';
 }

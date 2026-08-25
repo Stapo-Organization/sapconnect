@@ -1,8 +1,6 @@
 {
   "@@locale": "en",
-
   "appName": "Zooboxi",
-
   "actionOk": "OK",
   "actionCancel": "Cancel",
   "actionRetry": "Try again",
@@ -18,12 +16,10 @@
   "actionShare": "Share",
   "actionContinue": "Continue",
   "actionOr": "or",
-
   "navHome": "Home",
   "navCategories": "Categories",
   "navCart": "Cart",
   "navAccount": "Account",
-
   "errTitle": "Something went wrong",
   "errNetwork": "No internet connection. Check your network and try again.",
   "errTimeout": "That took too long. Please try again.",
@@ -32,7 +28,6 @@
   "errValidation": "Please check the details you entered.",
   "errUnauthorized": "Your session expired. Sign in to continue.",
   "errUnknown": "An unexpected error occurred.",
-
   "onboardTitle": "Everything your pet needs",
   "onboardSubtitle": "Set your location so we show what's actually in stock near you — with real delivery times.",
   "onboardUseLocation": "Use my current location",
@@ -41,42 +36,47 @@
   "onboardLocating": "Finding your location…",
   "onboardLocationDenied": "Location permission wasn't granted. You can pick your city instead.",
   "onboardLocationFailed": "We couldn't detect your location. Pick your city instead.",
-
   "citiesTitle": "Choose your city",
   "citiesSearchHint": "Search for a city",
   "citiesEmpty": "No matching cities",
-
   "locationSheetTitle": "Deliver to",
   "locationDeliverTo": "Deliver to",
   "locationChoose": "Set your location",
   "locationChange": "Change",
   "locationUnknownCity": "Not set",
-
   "tierExpress": "Express",
   "tierSameDay": "Same day",
   "tierShipping": "Shipping",
   "tierPickup": "Store pickup",
-
   "homeAnimalNav": "Shop by pet",
   "homeBrands": "Featured brands",
   "homeGreeting": "Welcome 👋",
-
   "categoriesTitle": "Categories",
   "categoriesEmpty": "No categories yet",
-
   "listingFilters": "Filter",
   "listingSort": "Sort",
   "listingSortTitle": "Sort results",
   "listingFiltersTitle": "Filter results",
   "listingPriceRange": "Price range",
   "listingResults": "{count, plural, =0{No results} =1{1 result} other{{count} results}}",
-  "@listingResults": {"placeholders": {"count": {"type": "int"}}},
+  "@listingResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "listingEmpty": "No matching products",
   "listingEmptyHint": "Try relaxing your filters or changing the city.",
   "listingClearFilters": "Clear filters",
   "listingFiltersActive": "{count, plural, =1{1 filter applied} other{{count} filters applied}}",
-  "@listingFiltersActive": {"placeholders": {"count": {"type": "int"}}},
-
+  "@listingFiltersActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "searchTitle": "Search",
   "searchHint": "Search products, brands or a barcode",
   "searchRecent": "Recent searches",
@@ -88,7 +88,6 @@
   "scanHint": "Point the camera at the barcode on the pack",
   "scanNotFound": "No product matches that barcode",
   "scanPermission": "We need camera access to scan barcodes",
-
   "pdpAddToCart": "Add to cart",
   "pdpOutOfStock": "Out of stock",
   "pdpQuantity": "Quantity",
@@ -100,31 +99,57 @@
   "pdpVariantsHint": "Choose an option",
   "pdpSelectVariant": "Select an option first",
   "pdpReachable": "{count, plural, =0{None reach you} =1{1 unit reaches you} other{{count} units reach you}}",
-  "@pdpReachable": {"placeholders": {"count": {"type": "int"}}},
+  "@pdpReachable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pdpStockUnits": "{count, plural, =0{Out of stock} =1{1 unit} other{{count} units}}",
-  "@pdpStockUnits": {"placeholders": {"count": {"type": "int"}}},
+  "@pdpStockUnits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pdpMaxQty": "Maximum available: {count}",
-  "@pdpMaxQty": {"placeholders": {"count": {"type": "int"}}},
+  "@pdpMaxQty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pdpAddedToCart": "Added to cart",
   "pdpLangFallback": "Some details are shown in Arabic",
-
   "priceFrom": "From",
   "priceWas": "Was",
   "priceOff": "{percent}% off",
-  "@priceOff": {"placeholders": {"percent": {"type": "int"}}},
-
+  "@priceOff": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "cardAdd": "Add",
   "cardChooseOptions": "Choose options",
   "cardOutOfStock": "Out of stock",
   "cardStockLeft": "{count, plural, =1{1 left} other{Only {count} left}}",
-  "@cardStockLeft": {"placeholders": {"count": {"type": "int"}}},
-
+  "@cardStockLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "badgeHot": "Best seller",
   "badgeTrending": "Trending",
   "badgeNew": "New",
   "badgeLowStock": "Low stock",
   "badgeBackInStock": "Back in stock",
-
   "cartTitle": "Cart",
   "cartEmpty": "Your cart is empty",
   "cartEmptyHint": "Add what your pet needs and we'll bring it over.",
@@ -143,17 +168,40 @@
   "cartShipments": "Your shipments",
   "cartShipmentsHint": "We split your order by the fastest source available per item.",
   "cartFreeShippingRemaining": "Add {amount} for free delivery",
-  "@cartFreeShippingRemaining": {"placeholders": {"amount": {"type": "String"}}},
+  "@cartFreeShippingRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "cartFreeShippingQualified": "Your delivery is free 🎉",
   "cartItemRemoved": "Item removed from cart",
   "cartUpdateFailed": "Couldn't update the cart",
   "cartItems": "{count, plural, =0{No items} =1{1 item} other{{count} items}}",
-  "@cartItems": {"placeholders": {"count": {"type": "int"}}},
+  "@cartItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cartLineQty": "Qty {qty}",
-  "@cartLineQty": {"placeholders": {"qty": {"type": "int"}}},
+  "@cartLineQty": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
   "cartShortfall": "{count, plural, =1{1 unit ships later} other{{count} units ship later}}",
-  "@cartShortfall": {"placeholders": {"count": {"type": "int"}}},
-
+  "@cartShortfall": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checkoutTitle": "Checkout",
   "checkoutStepAddress": "Address",
   "checkoutStepReview": "Review",
@@ -181,15 +229,19 @@
   "checkoutCartChangedHint": "Review what changed, then finish your order.",
   "checkoutCartChangedAction": "Review order",
   "checkoutSignInReason": "Sign in to complete your order",
-
   "successTitle": "Order received 🎉",
   "successSubtitle": "Thank you! We've started preparing your order.",
   "successOrderNumber": "Order #{number}",
-  "@successOrderNumber": {"placeholders": {"number": {"type": "String"}}},
+  "@successOrderNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "successCodNote": "Pay on delivery",
   "successTrack": "Track order",
   "successKeepShopping": "Keep shopping",
-
   "paymentTitle": "Payment",
   "paymentOpening": "Opening the payment page…",
   "paymentWaiting": "Finish paying in the window",
@@ -201,7 +253,13 @@
   "paymentAmountDue": "Amount due",
   "paymentCardTitle": "Pay by card",
   "paymentPayAmount": "Pay {amount}",
-  "@paymentPayAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@paymentPayAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "paymentSecureNote": "Your details are encrypted — the app never stores your card.",
   "paymentPreparingCard": "Preparing the card form…",
   "paymentCardFailed": "The card payment couldn't be completed",
@@ -219,7 +277,6 @@
   "payCardCvvHint": "CVV",
   "paymentSupportHint": "If it keeps failing, contact us and we'll finish the order for you.",
   "paymentViewOrder": "View order",
-
   "ordersTitle": "My orders",
   "ordersEmpty": "No orders yet",
   "ordersEmptyHint": "Your first order will appear here with live tracking.",
@@ -240,10 +297,21 @@
   "orderPayNow": "Complete payment",
   "orderReorder": "Order again",
   "orderReorderAdded": "{count, plural, =1{1 item added to your cart} other{{count} items added to your cart}}",
-  "@orderReorderAdded": {"placeholders": {"count": {"type": "int"}}},
+  "@orderReorderAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "orderReorderMissing": "{count, plural, =1{1 item is unavailable} other{{count} items are unavailable}}",
-  "@orderReorderMissing": {"placeholders": {"count": {"type": "int"}}},
-
+  "@orderReorderMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "addressesTitle": "My addresses",
   "addressesEmpty": "No saved addresses",
   "addressesEmptyHint": "Save an address once, and we'll deliver there every time.",
@@ -278,17 +346,14 @@
   "addressLineRequired": "Enter the address details",
   "addressCityRequired": "Enter the city",
   "addressPinRequired": "Pick the location on the map",
-
   "buyAgainTitle": "Buy again",
   "buyAgainEmpty": "No past purchases yet",
   "buyAgainEmptyHint": "After your first order, what you usually buy lands here in one tap.",
-
   "wishlistTitle": "Wishlist",
   "wishlistEmpty": "Your wishlist is empty",
   "wishlistEmptyHint": "Tap the heart on any product to save it here.",
   "wishlistAdded": "Added to wishlist",
   "wishlistRemoved": "Removed from wishlist",
-
   "accountTitle": "Account",
   "accountGuest": "Guest",
   "accountGuestHint": "Sign in to keep your orders and wishlist",
@@ -302,7 +367,13 @@
   "accountSupport": "Help & support",
   "accountAbout": "About Zooboxi",
   "accountVersion": "Version {version}",
-  "@accountVersion": {"placeholders": {"version": {"type": "String"}}},
+  "@accountVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "accountPreferences": "Preferences",
   "accountLanguage": "Language",
   "accountLanguageArabic": "العربية",
@@ -313,7 +384,6 @@
   "accountThemeSystem": "System",
   "accountProfile": "Profile",
   "accountSoon": "Coming soon",
-
   "authTitle": "Sign in",
   "authSubtitle": "Enter your mobile number and we'll text you a code.",
   "authPhoneLabel": "Mobile number",
@@ -322,10 +392,22 @@
   "authSendCode": "Send code",
   "authOtpTitle": "Verification code",
   "authOtpSubtitle": "We sent a 4-digit code to {phone}",
-  "@authOtpSubtitle": {"placeholders": {"phone": {"type": "String"}}},
+  "@authOtpSubtitle": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "authVerify": "Verify",
   "authResendIn": "Resend in {seconds}s",
-  "@authResendIn": {"placeholders": {"seconds": {"type": "int"}}},
+  "@authResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "authResend": "Resend code",
   "authChangeNumber": "Change number",
   "authOtpInvalid": "Wrong code — try again",
@@ -338,7 +420,7 @@
   "authRequiredWishlist": "Sign in to save your favourite products",
   "authLoggedIn": "Signed in",
   "authCartMerged": "We merged your previous cart",
-
   "commonComingSoon": "Coming soon",
-  "commonOptional": "Optional"
+  "commonOptional": "Optional",
+  "paymentOrCard": "Or pay by card"
 }

@@ -71,36 +71,26 @@ class SkeletonProductCard extends StatelessWidget {
         border: Border.all(color: cs.outlineVariant, width: ProductCardMetrics.border),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AspectRatio(
+          AspectRatio(
             aspectRatio: ProductCardMetrics.imageAspect,
             child: SkeletonBox(width: double.infinity, height: double.infinity, radius: 0),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(ProductCardMetrics.bodyPadding),
+              padding: EdgeInsets.all(ProductCardMetrics.bodyPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SkeletonBox(width: 54, height: 9),
-                  const Spacer(),
-                  const SkeletonBox(width: double.infinity, height: 11),
+                  SkeletonBox(width: 54, height: 9),
+                  Spacer(),
+                  SkeletonBox(width: double.infinity, height: 11),
                   Gap.h4,
-                  const SkeletonBox(width: 96, height: 11),
+                  SkeletonBox(width: 96, height: 11),
                   Gap.h8,
-                  const SkeletonBox(width: 78, height: 15, radius: 7),
-                  Gap.h8,
-                  SizedBox(
-                    height: ProductCardMetrics.footSlot(context),
-                    width: double.infinity,
-                    child: const SkeletonBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      radius: ZbTokens.rPill,
-                    ),
-                  ),
+                  SkeletonBox(width: 78, height: 15, radius: 7),
                 ],
               ),
             ),

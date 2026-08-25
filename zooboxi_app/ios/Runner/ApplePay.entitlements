@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  Apple Pay entitlement — staged, NOT yet wired into the build.
+
+  Wire it only after the merchant chain exists, or automatic signing fails:
+    1. Apple Developer portal → Identifiers → Merchant IDs →
+       create `merchant.com.zooboxi.store`.
+    2. MyFatoorah vendor portal → Apple Pay (embedded) → download the CSR.
+    3. Apple portal → the merchant id → create a Payment Processing
+       Certificate with that CSR → upload the certificate back to MyFatoorah.
+    4. Set CODE_SIGN_ENTITLEMENTS = Runner/ApplePay.entitlements on the three
+       Runner build configurations, and flip the store option
+       `zooboxi_apple_pay_native` to `yes`.
+-->
+<dict>
+	<key>com.apple.developer.in-app-payments</key>
+	<array>
+		<string>merchant.com.zooboxi.store</string>
+	</array>
+</dict>
+</plist>

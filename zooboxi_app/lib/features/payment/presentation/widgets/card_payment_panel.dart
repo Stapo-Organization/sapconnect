@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfatoorah_flutter/MFUtils.dart' show getColorHexFromStr;
@@ -75,6 +76,16 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
   MFCardPaymentView? _cardView;
   MFInitiateSessionResponse? _session;
 
+  /// The native Apple Pay button — created once, armed per session. Each
+  /// arm's future resolves only after the customer acts on the sheet.
+  MFApplePayButton? _applePayButton;
+  int _applePayArmFailures = 0;
+  bool _applePayBroken = false;
+
+  /// Arms the sheet after the SAME sequence of arm calls it was created for —
+  /// a stale arm (superseded by a newer session) must not deliver results.
+  int _applePayArmSerial = 0;
+
   bool _loading = true;
   bool _paying = false;
   String? _sessionError;
@@ -84,6 +95,13 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
   /// failure *after* the card cleared can still be checked with the server.
   String? _pendingInvoice;
 
+  /// Apple Pay renders only when the whole chain is live: the server's flag
+  /// (merchant id + certificate + vendor activation) and an iOS device.
+  bool get _applePayEnabled =>
+      widget.config.applePay &&
+      !_applePayBroken &&
+      defaultTargetPlatform == TargetPlatform.iOS;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -91,6 +109,14 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
     // it on a theme change would only churn the native side for nothing.
     if (_cardView != null) return;
     _cardView = MFCardPaymentView(cardViewStyle: _style(context));
+    if (_applePayEnabled) {
+      _applePayButton = MFApplePayButton(
+        applePayStyle: MFApplePayStyle()
+          ..height = 46
+          ..borderRadius = 14
+          ..vendorName = 'Zooboxi',
+      );
+    }
     unawaited(_openSession());
   }
 
@@ -117,6 +143,7 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
         _session = session;
         _loading = false;
       });
+      _armApplePay(session);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -139,24 +166,14 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
       _pendingInvoice = null;
     });
 
-    final config = widget.config;
-    final request = MFExecutePaymentRequest(
-      sessionId: session.sessionId,
-      invoiceValue: config.amount,
-      displayCurrencyIso: config.currency,
-      // The server verifies the resulting invoice by this string, so a
-      // tampered amount or a foreign invoice simply fails to confirm.
-      customerReference:
-          config.reference.isEmpty ? '${config.orderId}' : config.reference,
-      language: _lang,
-    );
+    final request = _executeRequest(session);
 
     try {
       final response = await view.pay(
         request,
         _lang,
         (invoiceId) => _pendingInvoice = invoiceId,
-        currency: config.currency,
+        currency: widget.config.currency,
       );
       if (!mounted) return;
       setState(() => _paying = false);
@@ -189,6 +206,66 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
     unawaited(_openSession());
   }
 
+  /// One request shape for both forms. The server verifies the resulting
+  /// invoice by `customerReference`, so a tampered amount or a foreign
+  /// invoice simply fails to confirm.
+  MFExecutePaymentRequest _executeRequest(MFInitiateSessionResponse session) {
+    final config = widget.config;
+    return MFExecutePaymentRequest(
+      sessionId: session.sessionId,
+      invoiceValue: config.amount,
+      displayCurrencyIso: config.currency,
+      customerReference:
+          config.reference.isEmpty ? '${config.orderId}' : config.reference,
+      language: _lang,
+    );
+  }
+
+  /// Arms the Apple Pay sheet with [session]. The load future resolves only
+  /// after the customer acts — pays, cancels, or the SDK refuses outright.
+  /// A cancel (slow) re-arms the same session; a payment hands its invoice to
+  /// the screen and mints a fresh session; an *immediate* failure counts
+  /// toward hiding the button, because a vendor account without Apple Pay
+  /// configured would otherwise refuse in a loop forever.
+  void _armApplePay(MFInitiateSessionResponse session) {
+    final btn = _applePayButton;
+    if (btn == null || !_applePayEnabled) return;
+    final serial = ++_applePayArmSerial;
+    final clock = Stopwatch()..start();
+
+    unawaited(() async {
+      try {
+        final response = await btn.load(session, _executeRequest(session), _lang);
+        if (!mounted || serial != _applePayArmSerial) return;
+        _applePayArmFailures = 0;
+        final invoice = response.invoiceId?.toString();
+        if (invoice == null || invoice.isEmpty) {
+          _armApplePay(session);
+          return;
+        }
+        widget.onAttempt?.call();
+        widget.onResult(CardPaymentResult(invoiceId: invoice));
+        // The session is spent; a fresh one re-arms both forms.
+        unawaited(_openSession());
+      } catch (_) {
+        if (!mounted || serial != _applePayArmSerial) return;
+        final immediate = clock.elapsed < const Duration(seconds: 2);
+        if (immediate) {
+          _applePayArmFailures += 1;
+          if (_applePayArmFailures >= 2) {
+            // Not wired on the vendor side (or the entitlement is missing) —
+            // hide quietly. The card form is still right there.
+            setState(() => _applePayBroken = true);
+            return;
+          }
+        } else {
+          _applePayArmFailures = 0;
+        }
+        _armApplePay(session);
+      }
+    }());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -200,6 +277,24 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_applePayEnabled && _applePayButton != null && ready) ...[
+          SizedBox(height: 46, child: _applePayButton),
+          Gap.h16,
+          Row(
+            children: [
+              Expanded(child: Divider(color: cs.outlineVariant)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  l.paymentOrCard,
+                  style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ),
+              Expanded(child: Divider(color: cs.outlineVariant)),
+            ],
+          ),
+          Gap.h12,
+        ],
         Text(l.paymentCardTitle, style: context.tt.titleMedium),
         Gap.h12,
         Container(

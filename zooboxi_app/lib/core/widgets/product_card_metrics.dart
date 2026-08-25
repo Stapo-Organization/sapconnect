@@ -81,9 +81,7 @@ abstract final class ProductCardMetrics {
       gapNamePrice +
       priceSlot(context) +
       gapPriceChip +
-      chipSlot(context) +
-      gapChipFoot +
-      footSlot(context);
+      chipSlot(context);
 
   /// Convenience for a two-column grid at the app's standard padding.
   static double gridExtent(BuildContext context, {double horizontalPadding = 32}) =>
@@ -108,11 +106,8 @@ abstract final class ProductCardMetrics {
     return 6 + math.max(12.0, label);
   }
 
-  /// The add pill / quantity stepper.
-  static double footSlot(BuildContext context) {
-    final label = _line(context, Theme.of(context).textTheme.labelMedium, 12.5, 1.3);
-    return math.max(footFloor, label + 16);
-  }
+  // The add control floats on the artwork (owner's call), so the body has no
+  // foot slot — see ProductCardAddOverlay.
 
   /// One rendered line of [style]. Every style in the app sets an explicit
   /// `height` with `TextLeadingDistribution.even`, so a line box is exactly

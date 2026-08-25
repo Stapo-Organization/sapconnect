@@ -1012,4 +1012,7 @@ class LEn extends L {
 
   @override
   String get commonOptional => 'Optional';
+
+  @override
+  String get paymentOrCard => 'Or pay by card';
 }
