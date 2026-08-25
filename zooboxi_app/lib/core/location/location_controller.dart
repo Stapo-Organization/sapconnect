@@ -86,17 +86,27 @@ class ZbLocation {
 
   /// The headers that make the store's 44 location-aware classes work: the app
   /// is the cookie jar the web session normally provides.
+  ///
+  /// City/district are Arabic, and dart:io refuses to SEND a header whose value
+  /// isn't Latin-1 — every request would die on-device with what looks like a
+  /// network failure. So non-ASCII values travel percent-encoded; the server's
+  /// v2 bootstrap rawurldecode()s them before seeding the cookie jar.
   Map<String, String> headersMap() {
     final headers = <String, String>{};
     if (lat != null) headers['X-ZB-Lat'] = lat!.toStringAsFixed(6);
     if (lng != null) headers['X-ZB-Lng'] = lng!.toStringAsFixed(6);
-    if (city != null && city!.isNotEmpty) headers['X-ZB-City'] = city!;
-    if (district != null && district!.isNotEmpty) headers['X-ZB-District'] = district!;
+    if (city != null && city!.isNotEmpty) headers['X-ZB-City'] = _headerSafe(city!);
+    if (district != null && district!.isNotEmpty) {
+      headers['X-ZB-District'] = _headerSafe(district!);
+    }
     if (deliveryType != null && deliveryType!.isNotEmpty) {
       headers['X-ZB-Delivery-Type'] = deliveryType!;
     }
     return headers;
   }
+
+  static String _headerSafe(String value) =>
+      value.codeUnits.every((u) => u >= 0x20 && u < 0x7f) ? value : Uri.encodeComponent(value);
 }
 
 /// How the last location resolution went — drives the primer sheet's UI
