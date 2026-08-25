@@ -7,17 +7,15 @@ import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/press_scale.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/zb_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/order_models.dart';
 import '../data/orders_repository.dart';
+import 'widgets/order_status_pill.dart';
 
-/// Order history.
-///
-/// Phase-1 scope: the list is real (it reads `GET /orders`), the detail screen
-/// with the fulfilment timeline and tracking is the next drop. Rows are
-/// therefore not tappable yet rather than tapping into a blank page.
+/// Order history. Each row opens the full order — timeline, tracking, receipt.
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
 
@@ -68,92 +66,89 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final cs = context.cs;
-    final zb = context.zb;
     final locale = Localizations.localeOf(context).languageCode;
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(ZbTokens.rLg),
         border: Border.all(color: cs.outlineVariant),
       ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: PressScale(
+        onTap: () => context.push('/orders/${order.id}'),
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  '#${order.number}',
-                  style: context.tt.titleSmall,
-                  textDirection: TextDirection.ltr,
-                ),
-              ),
-              if (order.statusLabel != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: order.isPaid
-                        ? zb.success.withValues(alpha: 0.13)
-                        : cs.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(999),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '#${order.number}',
+                      style: context.tt.titleSmall,
+                      textDirection: TextDirection.ltr,
+                    ),
                   ),
-                  child: Text(
-                    order.statusLabel!,
-                    style: context.tt.labelSmall?.copyWith(
-                      color: order.isPaid ? zb.success : cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
+                  OrderStatusPill(order: order, compact: true),
+                ],
+              ),
+              if (order.date != null) ...[
+                Gap.h4,
+                Text(
+                  Fmt.dateFull(order.date!, locale),
+                  style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ],
+              if (order.itemsPreview.isNotEmpty) ...[
+                Gap.h12,
+                SizedBox(
+                  height: 48,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: order.itemsPreview.length,
+                    separatorBuilder: (_, _) => Gap.w8,
+                    itemBuilder: (context, index) => SizedBox(
+                      width: 48,
+                      child: ZbImage(
+                        url: order.itemsPreview[index].image,
+                        radius: BorderRadius.circular(ZbTokens.rXs),
+                        padding: const EdgeInsets.all(4),
+                      ),
                     ),
                   ),
                 ),
-            ],
-          ),
-          if (order.date != null) ...[
-            Gap.h4,
-            Text(
-              Fmt.dateFull(order.date!, locale),
-              style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-            ),
-          ],
-          if (order.itemsPreview.isNotEmpty) ...[
-            Gap.h12,
-            SizedBox(
-              height: 48,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: order.itemsPreview.length,
-                separatorBuilder: (_, _) => Gap.w8,
-                itemBuilder: (context, index) => SizedBox(
-                  width: 48,
-                  child: ZbImage(
-                    url: order.itemsPreview[index].image,
-                    radius: BorderRadius.circular(ZbTokens.rXs),
-                    padding: const EdgeInsets.all(4),
+              ],
+              Gap.h12,
+              Divider(height: 1, color: cs.outlineVariant),
+              Gap.h12,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      order.itemsCount > 0 ? l.cartItems(order.itemsCount) : l.cartTotal,
+                      style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
                   ),
-                ),
-              ),
-            ),
-          ],
-          Gap.h12,
-          Divider(height: 1, color: cs.outlineVariant),
-          Gap.h12,
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  L.of(context).cartTotal,
-                  style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ),
-              Text(
-                Fmt.price(order.total, locale: locale),
-                style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  Text(
+                    Fmt.price(order.total, locale: locale),
+                    style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  Gap.w4,
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: cs.onSurfaceVariant,
+                    textDirection: Directionality.of(context),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

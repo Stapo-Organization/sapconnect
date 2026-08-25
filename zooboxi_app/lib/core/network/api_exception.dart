@@ -26,6 +26,7 @@ class ApiException implements Exception {
     this.messageEn,
     this.statusCode,
     this.fieldErrors = const {},
+    this.data,
   });
 
   final ApiErrorType type;
@@ -37,6 +38,13 @@ class ApiException implements Exception {
   final String? messageEn;
   final int? statusCode;
   final Map<String, String> fieldErrors;
+
+  /// The failure envelope's own `data` payload.
+  ///
+  /// Some refusals carry the state the app needs to recover: `cart_changed`
+  /// at checkout ships the *fresh* cart so the review screen can re-render
+  /// what actually changed instead of asking the customer to go and look.
+  final dynamic data;
 
   bool get isAuthError => type == ApiErrorType.unauthorized;
 

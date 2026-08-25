@@ -449,11 +449,134 @@ class LAr extends L {
   String get checkoutTitle => 'إتمام الطلب';
 
   @override
-  String get checkoutSoon => 'قريبًا';
+  String get checkoutStepAddress => 'العنوان';
 
   @override
-  String get checkoutSoonHint =>
-      'الدفع وإتمام الطلب داخل التطبيق في الطريق. سلتك محفوظة.';
+  String get checkoutStepReview => 'المراجعة';
+
+  @override
+  String get checkoutStepPayment => 'الدفع';
+
+  @override
+  String get checkoutAddressTitle => 'أين نوصّل طلبك؟';
+
+  @override
+  String get checkoutAddressNew => 'عنوان جديد';
+
+  @override
+  String get checkoutAddressEmpty => 'لا توجد عناوين محفوظة';
+
+  @override
+  String get checkoutAddressEmptyHint => 'أضف عنوانك لنعرف أين نوصّل طلبك.';
+
+  @override
+  String get checkoutReviewTitle => 'راجع طلبك';
+
+  @override
+  String get checkoutDeliverTo => 'التوصيل إلى';
+
+  @override
+  String get checkoutChangeAddress => 'تغيير';
+
+  @override
+  String get checkoutItemsShow => 'عرض المنتجات';
+
+  @override
+  String get checkoutItemsHide => 'إخفاء المنتجات';
+
+  @override
+  String get checkoutPromiseTitle => 'موعد الوصول';
+
+  @override
+  String get checkoutPromiseSplit => 'طلبك يصلك على أكثر من شحنة';
+
+  @override
+  String get checkoutNotesLabel => 'ملاحظة للمندوب';
+
+  @override
+  String get checkoutNotesHint => 'مثال: اتصل قبل الوصول';
+
+  @override
+  String get checkoutPaymentTitle => 'كيف تحب الدفع؟';
+
+  @override
+  String get checkoutPaymentEmpty => 'لا توجد طريقة دفع متاحة الآن';
+
+  @override
+  String get checkoutPaymentEmptyHint => 'حدّث الصفحة أو حاول بعد قليل.';
+
+  @override
+  String get checkoutPlaceOrder => 'تأكيد الطلب';
+
+  @override
+  String get checkoutPayNow => 'المتابعة للدفع';
+
+  @override
+  String get checkoutPlacing => 'جارٍ تأكيد طلبك…';
+
+  @override
+  String get checkoutCartChangedTitle => 'قائمتك تغيّرت حسب عنوان التوصيل';
+
+  @override
+  String get checkoutCartChangedHint => 'راجع ما تغيّر ثم أكمل الطلب.';
+
+  @override
+  String get checkoutCartChangedAction => 'مراجعة الطلب';
+
+  @override
+  String get checkoutSignInReason => 'سجّل الدخول لإتمام طلبك';
+
+  @override
+  String get successTitle => 'تم استلام طلبك 🎉';
+
+  @override
+  String get successSubtitle => 'شكرًا لك! بدأنا تجهيز طلبك الآن.';
+
+  @override
+  String successOrderNumber(String number) {
+    return 'رقم الطلب #$number';
+  }
+
+  @override
+  String get successCodNote => 'ادفع عند الاستلام';
+
+  @override
+  String get successTrack => 'تتبّع الطلب';
+
+  @override
+  String get successKeepShopping => 'مواصلة التسوّق';
+
+  @override
+  String get paymentTitle => 'الدفع';
+
+  @override
+  String get paymentOpening => 'جارٍ فتح صفحة الدفع…';
+
+  @override
+  String get paymentWaiting => 'أكمل الدفع في النافذة';
+
+  @override
+  String get paymentWaitingHint => 'سنؤكّد طلبك تلقائيًا بمجرد اكتمال العملية.';
+
+  @override
+  String get paymentConfirming => 'جارٍ تأكيد الدفع…';
+
+  @override
+  String get paymentReopen => 'إعادة فتح صفحة الدفع';
+
+  @override
+  String get paymentFailedTitle => 'لم يكتمل الدفع';
+
+  @override
+  String get paymentFailedHint =>
+      'لم يصلنا تأكيد الدفع. طلبك محفوظ باسمك ويمكنك المحاولة مجددًا.';
+
+  @override
+  String get paymentSupportHint =>
+      'إن تكرّر الأمر تواصل معنا وسنكمل طلبك يدويًا.';
+
+  @override
+  String get paymentViewOrder => 'عرض الطلب';
 
   @override
   String get ordersTitle => 'طلباتي';
@@ -463,6 +586,193 @@ class LAr extends L {
 
   @override
   String get ordersEmptyHint => 'أول طلب لك سيظهر هنا مع تتبّع لحظي.';
+
+  @override
+  String get orderDetailTitle => 'تفاصيل الطلب';
+
+  @override
+  String get orderItemsTitle => 'المنتجات';
+
+  @override
+  String get orderTimelineTitle => 'مسار الطلب';
+
+  @override
+  String get orderAddressTitle => 'عنوان التوصيل';
+
+  @override
+  String get orderTrackingTitle => 'الشحنة';
+
+  @override
+  String get orderTrackingNumber => 'رقم التتبّع';
+
+  @override
+  String get orderTrackingCopied => 'نُسخ رقم التتبّع';
+
+  @override
+  String get orderTrackingOpen => 'تتبّع الشحنة';
+
+  @override
+  String get orderNotesTitle => 'ملاحظتك';
+
+  @override
+  String get orderPaymentMethod => 'طريقة الدفع';
+
+  @override
+  String get orderPaymentCod => 'الدفع عند الاستلام';
+
+  @override
+  String get orderPaymentOnline => 'دفع إلكتروني';
+
+  @override
+  String get orderPaid => 'مدفوع';
+
+  @override
+  String get orderUnpaid => 'بانتظار الدفع';
+
+  @override
+  String get orderPayNow => 'إكمال الدفع';
+
+  @override
+  String get orderReorder => 'اطلبها مجددًا';
+
+  @override
+  String orderReorderAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُضيف $count منتجًا إلى السلة',
+      few: 'أُضيفت $count منتجات إلى السلة',
+      two: 'أُضيف منتجان إلى السلة',
+      one: 'أُضيف منتج واحد إلى السلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String orderReorderMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجًا غير متوفّر حاليًا',
+      few: '$count منتجات غير متوفّرة حاليًا',
+      two: 'منتجان غير متوفّرين حاليًا',
+      one: 'منتج واحد غير متوفّر حاليًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addressesTitle => 'عناويني';
+
+  @override
+  String get addressesEmpty => 'لا توجد عناوين محفوظة';
+
+  @override
+  String get addressesEmptyHint =>
+      'احفظ عنوانك مرة واحدة، ونوصّل إليه في كل مرة.';
+
+  @override
+  String get addressAdd => 'إضافة عنوان';
+
+  @override
+  String get addressNewTitle => 'عنوان جديد';
+
+  @override
+  String get addressEditTitle => 'تعديل العنوان';
+
+  @override
+  String get addressPinTitle => 'حدّد موقع التوصيل';
+
+  @override
+  String get addressPinHint => 'حرّك الخريطة حتى يستقر المؤشّر على باب المنزل.';
+
+  @override
+  String get addressPinConfirm => 'تأكيد الموقع';
+
+  @override
+  String get addressPinChange => 'تعديل الموقع';
+
+  @override
+  String get addressPinUseGps => 'موقعي الحالي';
+
+  @override
+  String get addressResolving => 'جارٍ تحديد الحي…';
+
+  @override
+  String get addressLabelTitle => 'اسم العنوان';
+
+  @override
+  String get addressLabelHome => 'المنزل';
+
+  @override
+  String get addressLabelWork => 'العمل';
+
+  @override
+  String get addressLabelOther => 'آخر';
+
+  @override
+  String get addressNameLabel => 'اسم المستلم';
+
+  @override
+  String get addressPhoneLabel => 'رقم الجوال';
+
+  @override
+  String get addressCityLabel => 'المدينة';
+
+  @override
+  String get addressDistrictLabel => 'الحي';
+
+  @override
+  String get addressLineLabel => 'تفاصيل العنوان';
+
+  @override
+  String get addressLineHint => 'الشارع، رقم المبنى، أقرب معلم';
+
+  @override
+  String get addressSaveToggle => 'حفظ هذا العنوان في عناويني';
+
+  @override
+  String get addressSetDefault => 'تعيين كعنوان افتراضي';
+
+  @override
+  String get addressDefaultBadge => 'الافتراضي';
+
+  @override
+  String get addressDelete => 'حذف العنوان';
+
+  @override
+  String get addressDeleteConfirm => 'هل تريد حذف هذا العنوان؟';
+
+  @override
+  String get addressDeleted => 'حُذف العنوان';
+
+  @override
+  String get addressSaved => 'حُفظ العنوان';
+
+  @override
+  String get addressDefaultSet => 'أصبح هذا عنوانك الافتراضي';
+
+  @override
+  String get addressNameRequired => 'أدخل اسم المستلم';
+
+  @override
+  String get addressLineRequired => 'أدخل تفاصيل العنوان';
+
+  @override
+  String get addressCityRequired => 'أدخل المدينة';
+
+  @override
+  String get addressPinRequired => 'حدّد الموقع على الخريطة';
+
+  @override
+  String get buyAgainTitle => 'مشترياتي';
+
+  @override
+  String get buyAgainEmpty => 'لا توجد مشتريات سابقة';
+
+  @override
+  String get buyAgainEmptyHint =>
+      'بعد أول طلب ستجد هنا ما تشتريه عادةً بضغطة واحدة.';
 
   @override
   String get wishlistTitle => 'المفضّلة';
@@ -505,6 +815,9 @@ class LAr extends L {
 
   @override
   String get accountAddresses => 'عناويني';
+
+  @override
+  String get accountBuyAgain => 'مشترياتي · اطلبها مجددًا';
 
   @override
   String get accountSupport => 'الدعم والمساعدة';

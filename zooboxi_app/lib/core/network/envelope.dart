@@ -51,6 +51,9 @@ abstract final class Envelope {
       messageEn: en,
       statusCode: status,
       fieldErrors: fields,
+      // Kept, not dropped: a refusal can carry the state that fixes it —
+      // `cart_changed` returns the fresh cart the review screen must show.
+      data: body['data'],
     );
   }
 

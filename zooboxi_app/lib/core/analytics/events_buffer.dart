@@ -44,6 +44,8 @@ abstract final class ZbEvents {
   static const view = 'view';
   static const search = 'search';
   static const addToCart = 'add_to_cart';
+  static const beginCheckout = 'begin_checkout';
+  static const purchase = 'purchase';
   static const campaignClick = 'campaign_click';
 }
 

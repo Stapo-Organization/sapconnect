@@ -120,9 +120,12 @@ class Shipment {
   final bool free;
   final List<ShipmentLine> lines;
 
+  // The server calls the human title `label` (`tier_presentation()['name']`
+  // serialized as `label`); `name` is accepted as a fallback so an older
+  // build of the plugin still renders a title rather than the raw tier key.
   factory Shipment.fromJson(Map<String, dynamic> json) => Shipment(
         tier: asString(json['tier'], fallback: 'shipping'),
-        name: asStringOrNull(json['name']),
+        name: asStringOrNull(json['label']) ?? asStringOrNull(json['name']),
         icon: asStringOrNull(json['icon']),
         color: asStringOrNull(json['color']),
         dateLabel: asStringOrNull(json['date_label']),

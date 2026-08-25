@@ -4,13 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/session/session_controller.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/skeleton.dart';
+import '../../../core/widgets/totals_card.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/presentation/auth_sheet.dart';
 import '../data/cart_controller.dart';
 import '../data/cart_models.dart';
 import 'widgets/cart_line.dart';
@@ -135,7 +138,7 @@ class _Loaded extends ConsumerWidget {
                 Gap.h16,
                 CouponField(coupons: cart.coupons),
                 Gap.h20,
-                _Totals(totals: cart.totals, coupons: cart.coupons),
+                TotalsCard(totals: cart.totals),
               ],
             ),
           ),
@@ -146,95 +149,18 @@ class _Loaded extends ConsumerWidget {
   }
 }
 
-class _Totals extends StatelessWidget {
-  const _Totals({required this.totals, required this.coupons});
-
-  final CartTotals totals;
-  final List<CartCoupon> coupons;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final cs = context.cs;
-    final locale = Localizations.localeOf(context).languageCode;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        children: [
-          _row(context, l.cartSubtotal, Fmt.price(totals.subtotal, locale: locale)),
-          if (totals.discount > 0)
-            _row(
-              context,
-              l.cartDiscount,
-              '-${Fmt.price(totals.discount, locale: locale)}',
-              highlight: context.zb.sale,
-            ),
-          _row(
-            context,
-            l.cartShipping,
-            totals.shipping <= 0 ? l.cartFree : Fmt.price(totals.shipping, locale: locale),
-            highlight: totals.shipping <= 0 ? context.zb.success : null,
-          ),
-          if (totals.tax > 0)
-            _row(context, l.cartTax, Fmt.price(totals.tax, locale: locale)),
-          Divider(height: 20, color: cs.outlineVariant),
-          _row(
-            context,
-            l.cartTotal,
-            Fmt.price(totals.total, locale: locale),
-            bold: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(
-    BuildContext context,
-    String label,
-    String value, {
-    bool bold = false,
-    Color? highlight,
-  }) {
-    final style = bold ? context.tt.titleMedium : context.tt.bodyMedium;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: style?.copyWith(
-                color: bold ? context.cs.onSurface : context.cs.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Text(
-            value,
-            style: style?.copyWith(
-              color: highlight ?? context.cs.onSurface,
-              fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CheckoutBar extends StatelessWidget {
+/// The one door into checkout.
+///
+/// Sign-in is asked for *here* rather than inside the flow, because the web
+/// store gates guests the same way and because discovering you need an account
+/// three steps in — with an address half typed — is the worst place to learn it.
+class _CheckoutBar extends ConsumerWidget {
   const _CheckoutBar({required this.total});
 
   final double total;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
@@ -249,10 +175,7 @@ class _CheckoutBar extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: FilledButton(
-            onPressed: () {
-              Haptics.light();
-              context.push('/checkout');
-            },
+            onPressed: () => _startCheckout(context, ref),
             style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -268,6 +191,16 @@ class _CheckoutBar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _startCheckout(BuildContext context, WidgetRef ref) async {
+    Haptics.light();
+    if (!ref.read(sessionProvider).isAuthenticated) {
+      final signedIn =
+          await showAuthSheet(context, reason: L.of(context).checkoutSignInReason);
+      if (!signedIn || !context.mounted) return;
+    }
+    await context.push<void>('/checkout');
   }
 }
 

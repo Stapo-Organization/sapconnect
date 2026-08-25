@@ -439,11 +439,139 @@ class LEn extends L {
   String get checkoutTitle => 'Checkout';
 
   @override
-  String get checkoutSoon => 'Coming soon';
+  String get checkoutStepAddress => 'Address';
 
   @override
-  String get checkoutSoonHint =>
-      'In-app payment and checkout are on the way. Your cart is saved.';
+  String get checkoutStepReview => 'Review';
+
+  @override
+  String get checkoutStepPayment => 'Payment';
+
+  @override
+  String get checkoutAddressTitle => 'Where should we deliver?';
+
+  @override
+  String get checkoutAddressNew => 'New address';
+
+  @override
+  String get checkoutAddressEmpty => 'No saved addresses';
+
+  @override
+  String get checkoutAddressEmptyHint =>
+      'Add an address so we know where your order goes.';
+
+  @override
+  String get checkoutReviewTitle => 'Review your order';
+
+  @override
+  String get checkoutDeliverTo => 'Deliver to';
+
+  @override
+  String get checkoutChangeAddress => 'Change';
+
+  @override
+  String get checkoutItemsShow => 'Show items';
+
+  @override
+  String get checkoutItemsHide => 'Hide items';
+
+  @override
+  String get checkoutPromiseTitle => 'Arriving';
+
+  @override
+  String get checkoutPromiseSplit =>
+      'Your order arrives in more than one delivery';
+
+  @override
+  String get checkoutNotesLabel => 'Note for the driver';
+
+  @override
+  String get checkoutNotesHint => 'e.g. call before arriving';
+
+  @override
+  String get checkoutPaymentTitle => 'How would you like to pay?';
+
+  @override
+  String get checkoutPaymentEmpty => 'No payment method is available right now';
+
+  @override
+  String get checkoutPaymentEmptyHint => 'Refresh, or try again shortly.';
+
+  @override
+  String get checkoutPlaceOrder => 'Place order';
+
+  @override
+  String get checkoutPayNow => 'Continue to payment';
+
+  @override
+  String get checkoutPlacing => 'Placing your order…';
+
+  @override
+  String get checkoutCartChangedTitle => 'Your basket changed for this address';
+
+  @override
+  String get checkoutCartChangedHint =>
+      'Review what changed, then finish your order.';
+
+  @override
+  String get checkoutCartChangedAction => 'Review order';
+
+  @override
+  String get checkoutSignInReason => 'Sign in to complete your order';
+
+  @override
+  String get successTitle => 'Order received 🎉';
+
+  @override
+  String get successSubtitle =>
+      'Thank you! We\'ve started preparing your order.';
+
+  @override
+  String successOrderNumber(String number) {
+    return 'Order #$number';
+  }
+
+  @override
+  String get successCodNote => 'Pay on delivery';
+
+  @override
+  String get successTrack => 'Track order';
+
+  @override
+  String get successKeepShopping => 'Keep shopping';
+
+  @override
+  String get paymentTitle => 'Payment';
+
+  @override
+  String get paymentOpening => 'Opening the payment page…';
+
+  @override
+  String get paymentWaiting => 'Finish paying in the window';
+
+  @override
+  String get paymentWaitingHint =>
+      'We\'ll confirm your order automatically once it completes.';
+
+  @override
+  String get paymentConfirming => 'Confirming your payment…';
+
+  @override
+  String get paymentReopen => 'Reopen payment page';
+
+  @override
+  String get paymentFailedTitle => 'Payment didn\'t complete';
+
+  @override
+  String get paymentFailedHint =>
+      'We never got the confirmation. Your order is saved — you can try again.';
+
+  @override
+  String get paymentSupportHint =>
+      'If it keeps failing, contact us and we\'ll finish the order for you.';
+
+  @override
+  String get paymentViewOrder => 'View order';
 
   @override
   String get ordersTitle => 'My orders';
@@ -454,6 +582,189 @@ class LEn extends L {
   @override
   String get ordersEmptyHint =>
       'Your first order will appear here with live tracking.';
+
+  @override
+  String get orderDetailTitle => 'Order details';
+
+  @override
+  String get orderItemsTitle => 'Items';
+
+  @override
+  String get orderTimelineTitle => 'Progress';
+
+  @override
+  String get orderAddressTitle => 'Delivery address';
+
+  @override
+  String get orderTrackingTitle => 'Shipment';
+
+  @override
+  String get orderTrackingNumber => 'Tracking number';
+
+  @override
+  String get orderTrackingCopied => 'Tracking number copied';
+
+  @override
+  String get orderTrackingOpen => 'Track shipment';
+
+  @override
+  String get orderNotesTitle => 'Your note';
+
+  @override
+  String get orderPaymentMethod => 'Payment method';
+
+  @override
+  String get orderPaymentCod => 'Cash on delivery';
+
+  @override
+  String get orderPaymentOnline => 'Paid online';
+
+  @override
+  String get orderPaid => 'Paid';
+
+  @override
+  String get orderUnpaid => 'Awaiting payment';
+
+  @override
+  String get orderPayNow => 'Complete payment';
+
+  @override
+  String get orderReorder => 'Order again';
+
+  @override
+  String orderReorderAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items added to your cart',
+      one: '1 item added to your cart',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String orderReorderMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items are unavailable',
+      one: '1 item is unavailable',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addressesTitle => 'My addresses';
+
+  @override
+  String get addressesEmpty => 'No saved addresses';
+
+  @override
+  String get addressesEmptyHint =>
+      'Save an address once, and we\'ll deliver there every time.';
+
+  @override
+  String get addressAdd => 'Add address';
+
+  @override
+  String get addressNewTitle => 'New address';
+
+  @override
+  String get addressEditTitle => 'Edit address';
+
+  @override
+  String get addressPinTitle => 'Pick the delivery point';
+
+  @override
+  String get addressPinHint => 'Move the map until the pin sits on your door.';
+
+  @override
+  String get addressPinConfirm => 'Confirm location';
+
+  @override
+  String get addressPinChange => 'Change location';
+
+  @override
+  String get addressPinUseGps => 'My location';
+
+  @override
+  String get addressResolving => 'Finding the district…';
+
+  @override
+  String get addressLabelTitle => 'Address name';
+
+  @override
+  String get addressLabelHome => 'Home';
+
+  @override
+  String get addressLabelWork => 'Work';
+
+  @override
+  String get addressLabelOther => 'Other';
+
+  @override
+  String get addressNameLabel => 'Recipient name';
+
+  @override
+  String get addressPhoneLabel => 'Mobile number';
+
+  @override
+  String get addressCityLabel => 'City';
+
+  @override
+  String get addressDistrictLabel => 'District';
+
+  @override
+  String get addressLineLabel => 'Address details';
+
+  @override
+  String get addressLineHint => 'Street, building number, nearest landmark';
+
+  @override
+  String get addressSaveToggle => 'Save this address to my addresses';
+
+  @override
+  String get addressSetDefault => 'Set as default address';
+
+  @override
+  String get addressDefaultBadge => 'Default';
+
+  @override
+  String get addressDelete => 'Delete address';
+
+  @override
+  String get addressDeleteConfirm => 'Delete this address?';
+
+  @override
+  String get addressDeleted => 'Address deleted';
+
+  @override
+  String get addressSaved => 'Address saved';
+
+  @override
+  String get addressDefaultSet => 'This is now your default address';
+
+  @override
+  String get addressNameRequired => 'Enter the recipient\'s name';
+
+  @override
+  String get addressLineRequired => 'Enter the address details';
+
+  @override
+  String get addressCityRequired => 'Enter the city';
+
+  @override
+  String get addressPinRequired => 'Pick the location on the map';
+
+  @override
+  String get buyAgainTitle => 'Buy again';
+
+  @override
+  String get buyAgainEmpty => 'No past purchases yet';
+
+  @override
+  String get buyAgainEmptyHint =>
+      'After your first order, what you usually buy lands here in one tap.';
 
   @override
   String get wishlistTitle => 'Wishlist';
@@ -497,6 +808,9 @@ class LEn extends L {
 
   @override
   String get accountAddresses => 'My addresses';
+
+  @override
+  String get accountBuyAgain => 'Buy again';
 
   @override
   String get accountSupport => 'Help & support';

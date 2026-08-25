@@ -823,17 +823,257 @@ abstract class L {
   /// **'إتمام الطلب'**
   String get checkoutTitle;
 
-  /// No description provided for @checkoutSoon.
+  /// No description provided for @checkoutStepAddress.
   ///
   /// In ar, this message translates to:
-  /// **'قريبًا'**
-  String get checkoutSoon;
+  /// **'العنوان'**
+  String get checkoutStepAddress;
 
-  /// No description provided for @checkoutSoonHint.
+  /// No description provided for @checkoutStepReview.
   ///
   /// In ar, this message translates to:
-  /// **'الدفع وإتمام الطلب داخل التطبيق في الطريق. سلتك محفوظة.'**
-  String get checkoutSoonHint;
+  /// **'المراجعة'**
+  String get checkoutStepReview;
+
+  /// No description provided for @checkoutStepPayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع'**
+  String get checkoutStepPayment;
+
+  /// No description provided for @checkoutAddressTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أين نوصّل طلبك؟'**
+  String get checkoutAddressTitle;
+
+  /// No description provided for @checkoutAddressNew.
+  ///
+  /// In ar, this message translates to:
+  /// **'عنوان جديد'**
+  String get checkoutAddressNew;
+
+  /// No description provided for @checkoutAddressEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد عناوين محفوظة'**
+  String get checkoutAddressEmpty;
+
+  /// No description provided for @checkoutAddressEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف عنوانك لنعرف أين نوصّل طلبك.'**
+  String get checkoutAddressEmptyHint;
+
+  /// No description provided for @checkoutReviewTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'راجع طلبك'**
+  String get checkoutReviewTitle;
+
+  /// No description provided for @checkoutDeliverTo.
+  ///
+  /// In ar, this message translates to:
+  /// **'التوصيل إلى'**
+  String get checkoutDeliverTo;
+
+  /// No description provided for @checkoutChangeAddress.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير'**
+  String get checkoutChangeAddress;
+
+  /// No description provided for @checkoutItemsShow.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض المنتجات'**
+  String get checkoutItemsShow;
+
+  /// No description provided for @checkoutItemsHide.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء المنتجات'**
+  String get checkoutItemsHide;
+
+  /// No description provided for @checkoutPromiseTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'موعد الوصول'**
+  String get checkoutPromiseTitle;
+
+  /// No description provided for @checkoutPromiseSplit.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك يصلك على أكثر من شحنة'**
+  String get checkoutPromiseSplit;
+
+  /// No description provided for @checkoutNotesLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظة للمندوب'**
+  String get checkoutNotesLabel;
+
+  /// No description provided for @checkoutNotesHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: اتصل قبل الوصول'**
+  String get checkoutNotesHint;
+
+  /// No description provided for @checkoutPaymentTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيف تحب الدفع؟'**
+  String get checkoutPaymentTitle;
+
+  /// No description provided for @checkoutPaymentEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد طريقة دفع متاحة الآن'**
+  String get checkoutPaymentEmpty;
+
+  /// No description provided for @checkoutPaymentEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّث الصفحة أو حاول بعد قليل.'**
+  String get checkoutPaymentEmptyHint;
+
+  /// No description provided for @checkoutPlaceOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الطلب'**
+  String get checkoutPlaceOrder;
+
+  /// No description provided for @checkoutPayNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'المتابعة للدفع'**
+  String get checkoutPayNow;
+
+  /// No description provided for @checkoutPlacing.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تأكيد طلبك…'**
+  String get checkoutPlacing;
+
+  /// No description provided for @checkoutCartChangedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'قائمتك تغيّرت حسب عنوان التوصيل'**
+  String get checkoutCartChangedTitle;
+
+  /// No description provided for @checkoutCartChangedHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'راجع ما تغيّر ثم أكمل الطلب.'**
+  String get checkoutCartChangedHint;
+
+  /// No description provided for @checkoutCartChangedAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة الطلب'**
+  String get checkoutCartChangedAction;
+
+  /// No description provided for @checkoutSignInReason.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل الدخول لإتمام طلبك'**
+  String get checkoutSignInReason;
+
+  /// No description provided for @successTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم استلام طلبك 🎉'**
+  String get successTitle;
+
+  /// No description provided for @successSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'شكرًا لك! بدأنا تجهيز طلبك الآن.'**
+  String get successSubtitle;
+
+  /// No description provided for @successOrderNumber.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم الطلب #{number}'**
+  String successOrderNumber(String number);
+
+  /// No description provided for @successCodNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'ادفع عند الاستلام'**
+  String get successCodNote;
+
+  /// No description provided for @successTrack.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتبّع الطلب'**
+  String get successTrack;
+
+  /// No description provided for @successKeepShopping.
+  ///
+  /// In ar, this message translates to:
+  /// **'مواصلة التسوّق'**
+  String get successKeepShopping;
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentOpening.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ فتح صفحة الدفع…'**
+  String get paymentOpening;
+
+  /// No description provided for @paymentWaiting.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكمل الدفع في النافذة'**
+  String get paymentWaiting;
+
+  /// No description provided for @paymentWaitingHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنؤكّد طلبك تلقائيًا بمجرد اكتمال العملية.'**
+  String get paymentWaitingHint;
+
+  /// No description provided for @paymentConfirming.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تأكيد الدفع…'**
+  String get paymentConfirming;
+
+  /// No description provided for @paymentReopen.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة فتح صفحة الدفع'**
+  String get paymentReopen;
+
+  /// No description provided for @paymentFailedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يكتمل الدفع'**
+  String get paymentFailedTitle;
+
+  /// No description provided for @paymentFailedHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يصلنا تأكيد الدفع. طلبك محفوظ باسمك ويمكنك المحاولة مجددًا.'**
+  String get paymentFailedHint;
+
+  /// No description provided for @paymentSupportHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'إن تكرّر الأمر تواصل معنا وسنكمل طلبك يدويًا.'**
+  String get paymentSupportHint;
+
+  /// No description provided for @paymentViewOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض الطلب'**
+  String get paymentViewOrder;
 
   /// No description provided for @ordersTitle.
   ///
@@ -852,6 +1092,336 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'أول طلب لك سيظهر هنا مع تتبّع لحظي.'**
   String get ordersEmptyHint;
+
+  /// No description provided for @orderDetailTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل الطلب'**
+  String get orderDetailTitle;
+
+  /// No description provided for @orderItemsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'المنتجات'**
+  String get orderItemsTitle;
+
+  /// No description provided for @orderTimelineTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسار الطلب'**
+  String get orderTimelineTitle;
+
+  /// No description provided for @orderAddressTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عنوان التوصيل'**
+  String get orderAddressTitle;
+
+  /// No description provided for @orderTrackingTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشحنة'**
+  String get orderTrackingTitle;
+
+  /// No description provided for @orderTrackingNumber.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم التتبّع'**
+  String get orderTrackingNumber;
+
+  /// No description provided for @orderTrackingCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'نُسخ رقم التتبّع'**
+  String get orderTrackingCopied;
+
+  /// No description provided for @orderTrackingOpen.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتبّع الشحنة'**
+  String get orderTrackingOpen;
+
+  /// No description provided for @orderNotesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظتك'**
+  String get orderNotesTitle;
+
+  /// No description provided for @orderPaymentMethod.
+  ///
+  /// In ar, this message translates to:
+  /// **'طريقة الدفع'**
+  String get orderPaymentMethod;
+
+  /// No description provided for @orderPaymentCod.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع عند الاستلام'**
+  String get orderPaymentCod;
+
+  /// No description provided for @orderPaymentOnline.
+  ///
+  /// In ar, this message translates to:
+  /// **'دفع إلكتروني'**
+  String get orderPaymentOnline;
+
+  /// No description provided for @orderPaid.
+  ///
+  /// In ar, this message translates to:
+  /// **'مدفوع'**
+  String get orderPaid;
+
+  /// No description provided for @orderUnpaid.
+  ///
+  /// In ar, this message translates to:
+  /// **'بانتظار الدفع'**
+  String get orderUnpaid;
+
+  /// No description provided for @orderPayNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'إكمال الدفع'**
+  String get orderPayNow;
+
+  /// No description provided for @orderReorder.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلبها مجددًا'**
+  String get orderReorder;
+
+  /// No description provided for @orderReorderAdded.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{أُضيف منتج واحد إلى السلة} =2{أُضيف منتجان إلى السلة} few{أُضيفت {count} منتجات إلى السلة} other{أُضيف {count} منتجًا إلى السلة}}'**
+  String orderReorderAdded(int count);
+
+  /// No description provided for @orderReorderMissing.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{منتج واحد غير متوفّر حاليًا} =2{منتجان غير متوفّرين حاليًا} few{{count} منتجات غير متوفّرة حاليًا} other{{count} منتجًا غير متوفّر حاليًا}}'**
+  String orderReorderMissing(int count);
+
+  /// No description provided for @addressesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عناويني'**
+  String get addressesTitle;
+
+  /// No description provided for @addressesEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد عناوين محفوظة'**
+  String get addressesEmpty;
+
+  /// No description provided for @addressesEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'احفظ عنوانك مرة واحدة، ونوصّل إليه في كل مرة.'**
+  String get addressesEmptyHint;
+
+  /// No description provided for @addressAdd.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة عنوان'**
+  String get addressAdd;
+
+  /// No description provided for @addressNewTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عنوان جديد'**
+  String get addressNewTitle;
+
+  /// No description provided for @addressEditTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل العنوان'**
+  String get addressEditTitle;
+
+  /// No description provided for @addressPinTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّد موقع التوصيل'**
+  String get addressPinTitle;
+
+  /// No description provided for @addressPinHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'حرّك الخريطة حتى يستقر المؤشّر على باب المنزل.'**
+  String get addressPinHint;
+
+  /// No description provided for @addressPinConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الموقع'**
+  String get addressPinConfirm;
+
+  /// No description provided for @addressPinChange.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل الموقع'**
+  String get addressPinChange;
+
+  /// No description provided for @addressPinUseGps.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقعي الحالي'**
+  String get addressPinUseGps;
+
+  /// No description provided for @addressResolving.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تحديد الحي…'**
+  String get addressResolving;
+
+  /// No description provided for @addressLabelTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم العنوان'**
+  String get addressLabelTitle;
+
+  /// No description provided for @addressLabelHome.
+  ///
+  /// In ar, this message translates to:
+  /// **'المنزل'**
+  String get addressLabelHome;
+
+  /// No description provided for @addressLabelWork.
+  ///
+  /// In ar, this message translates to:
+  /// **'العمل'**
+  String get addressLabelWork;
+
+  /// No description provided for @addressLabelOther.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر'**
+  String get addressLabelOther;
+
+  /// No description provided for @addressNameLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم المستلم'**
+  String get addressNameLabel;
+
+  /// No description provided for @addressPhoneLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم الجوال'**
+  String get addressPhoneLabel;
+
+  /// No description provided for @addressCityLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'المدينة'**
+  String get addressCityLabel;
+
+  /// No description provided for @addressDistrictLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحي'**
+  String get addressDistrictLabel;
+
+  /// No description provided for @addressLineLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل العنوان'**
+  String get addressLineLabel;
+
+  /// No description provided for @addressLineHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشارع، رقم المبنى، أقرب معلم'**
+  String get addressLineHint;
+
+  /// No description provided for @addressSaveToggle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ هذا العنوان في عناويني'**
+  String get addressSaveToggle;
+
+  /// No description provided for @addressSetDefault.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين كعنوان افتراضي'**
+  String get addressSetDefault;
+
+  /// No description provided for @addressDefaultBadge.
+  ///
+  /// In ar, this message translates to:
+  /// **'الافتراضي'**
+  String get addressDefaultBadge;
+
+  /// No description provided for @addressDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف العنوان'**
+  String get addressDelete;
+
+  /// No description provided for @addressDeleteConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف هذا العنوان؟'**
+  String get addressDeleteConfirm;
+
+  /// No description provided for @addressDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'حُذف العنوان'**
+  String get addressDeleted;
+
+  /// No description provided for @addressSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'حُفظ العنوان'**
+  String get addressSaved;
+
+  /// No description provided for @addressDefaultSet.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصبح هذا عنوانك الافتراضي'**
+  String get addressDefaultSet;
+
+  /// No description provided for @addressNameRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل اسم المستلم'**
+  String get addressNameRequired;
+
+  /// No description provided for @addressLineRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل تفاصيل العنوان'**
+  String get addressLineRequired;
+
+  /// No description provided for @addressCityRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل المدينة'**
+  String get addressCityRequired;
+
+  /// No description provided for @addressPinRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّد الموقع على الخريطة'**
+  String get addressPinRequired;
+
+  /// No description provided for @buyAgainTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشترياتي'**
+  String get buyAgainTitle;
+
+  /// No description provided for @buyAgainEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد مشتريات سابقة'**
+  String get buyAgainEmpty;
+
+  /// No description provided for @buyAgainEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد أول طلب ستجد هنا ما تشتريه عادةً بضغطة واحدة.'**
+  String get buyAgainEmptyHint;
 
   /// No description provided for @wishlistTitle.
   ///
@@ -936,6 +1506,12 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'عناويني'**
   String get accountAddresses;
+
+  /// No description provided for @accountBuyAgain.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشترياتي · اطلبها مجددًا'**
+  String get accountBuyAgain;
 
   /// No description provided for @accountSupport.
   ///

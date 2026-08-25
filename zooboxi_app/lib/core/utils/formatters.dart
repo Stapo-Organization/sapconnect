@@ -99,6 +99,15 @@ abstract final class Fmt {
   static String dateTime(DateTime date, String locale) =>
       _latin(DateFormat.yMMMd(locale).add_jm().format(date.toLocal()));
 
+  /// "12 أغسطس · 10:14 ص" — the timeline stamp. The year is dropped because a
+  /// step of *this* order is always recent enough for it to be noise.
+  static String dayTime(DateTime date, String locale) {
+    final local = date.toLocal();
+    final day = _latin(DateFormat.MMMd(locale).format(local));
+    final time = _latin(DateFormat.jm(locale).format(local));
+    return '$day · $time';
+  }
+
   /// The weekday index the calendar week starts on. Saudi weeks start Sunday
   /// in both languages of this app.
   static const int firstDayOfWeek = DateTime.sunday;

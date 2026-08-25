@@ -116,6 +116,7 @@ Conventions:
 | `sessionProvider` | `Notifier<SessionState>` | `unknown → guest(guestId) → authenticated`. Guest is a first-class state. |
 | `locationProvider` | `Notifier<LocationState>` | Persisted; changing it clears the HTTP cache and bumps `catalogRevisionProvider`. |
 | `cartControllerProvider` | `AsyncNotifier<CartData>` | Server-authoritative. Optimistic qty with a 400 ms debounce, rollback on failure, notices drained by the cart screen. |
+| `addressesControllerProvider` | `AsyncNotifier<List<Address>>` | Server-authoritative. Every write returns the whole book, so "exactly one default" stays the server's rule. Empties on sign-out. |
 | `wishlistControllerProvider` | `Notifier<Set<int>>` | One shared id set so a heart tapped on Home is filled in Search too. |
 | `appSettingsProvider` | `Notifier<AppSettings>` | Language + theme. |
 | `catalogRevisionProvider` | `Notifier<int>` | Bumped on language/location change; every catalog provider watches it. |
@@ -188,18 +189,29 @@ search (debounced suggest, recent chips, barcode scanner) · product page
 (gallery with pinch-zoom, variation chips, delivery promise card, per-warehouse
 panel, FBT + substitutes rails, pinned add-to-cart bar) · cart (steppers,
 swipe-delete, shipment cards, animated free-shipping bar, coupon, totals) ·
+**checkout** (address → review → payment on one screen, map-pin address
+editor, `cart_changed` review moment) · **payment** (hosted page in a custom
+tab + status polling) · **order success** · **orders** (list + detail with the
+fulfilment timeline, tracking and reorder) · **address book** · **buy-again** ·
 wishlist · auth sheet · account settings (language + theme switch both live).
 
-**Stubbed but navigable:** checkout (`قريبًا` placeholder; the models,
-repository and `POST /checkout` call are written and ready) · orders (list is
-real, detail/timeline is not) · addresses · support.
+**Stubbed but navigable:** support.
 
 **Not started (later phases):** push notifications, brand boutique pages,
-personal home slots, order detail timeline, native payment SDK.
+personal home slots, native payment SDK.
 
-`features/payment/data/payment_service.dart` implements the hosted-payment
-handoff — request URL, open a custom tab, poll `GET /orders/{id}/status` — but
-nothing calls it yet, because checkout is the missing half.
+Checkout is **auth-gated at the cart's CTA**, exactly like the web store: the
+sheet is raised there rather than mid-flow, because discovering you need an
+account three steps in — with an address half typed — is the worst place to
+learn it.
+
+`features/payment/data/payment_service.dart` is transport only: request the
+gateway URL, open a custom tab, read `GET /orders/{id}/status` once. The
+*waiting* — its timer, its 40-poll budget, its cancellation — belongs to
+`PaymentScreen`, because a poll that outlives the widget that started it is a
+leak with a network bill attached. Polling starts the instant the tab launches
+(a wallet can settle while it is still on screen) and again immediately on app
+resume.
 
 ---
 

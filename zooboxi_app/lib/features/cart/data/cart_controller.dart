@@ -64,6 +64,22 @@ class CartController extends AsyncNotifier<CartData> {
     }
   }
 
+  /// Adopts a cart the server handed back outside the usual read path.
+  ///
+  /// `cart_changed` at checkout is the case: the refusal *carries* the freshly
+  /// re-priced basket, so taking it here saves a round trip and — more to the
+  /// point — guarantees the customer is shown exactly the cart the server
+  /// refused to charge for, not a second fetch that might differ again.
+  void applyServerCart(CartData cart) {
+    for (final timer in _pending.values) {
+      timer.cancel();
+    }
+    _pending.clear();
+    _targetQty.clear();
+    state = AsyncValue.data(cart);
+    _collect(cart.notices);
+  }
+
   /// Adds to the cart and returns the notices the server raised (usually
   /// empty). Throws [ApiException] so the caller can show the real reason.
   Future<List<CartNotice>> add({

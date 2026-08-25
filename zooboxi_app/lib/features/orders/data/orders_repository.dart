@@ -4,8 +4,10 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/envelope.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
-import '../../cart/data/cart_models.dart';
 import 'order_models.dart';
+
+/// The live state of a hosted payment, as the server sees it.
+typedef OrderPaymentStatus = ({String status, bool isPaid});
 
 class OrdersRepository {
   OrdersRepository(this._api);
@@ -18,9 +20,10 @@ class OrdersRepository {
   Future<OrderDetail> order(int id) async =>
       OrderDetail.fromJson(asMap(await _api.get('/orders/$id')));
 
-  /// Refills the cart from a past order and returns the new cart.
-  Future<CartData> reorder(int id) async =>
-      CartData.fromJson(asMap(await _api.post('/orders/$id/reorder')));
+  /// Refills the cart from a past order. The result carries the fresh cart
+  /// *and* the lines that could not be restocked.
+  Future<ReorderResult> reorder(int id) async =>
+      ReorderResult.fromJson(asMap(await _api.post('/orders/$id/reorder')));
 
   /// Hands back the hosted payment page URL. The order key gates it, so a
   /// guest who placed the order can pay without an account.
@@ -30,7 +33,7 @@ class OrdersRepository {
   }
 
   /// Polled while the customer is on the hosted payment page.
-  Future<({String status, bool isPaid})> paymentStatus(int orderId, String orderKey) async {
+  Future<OrderPaymentStatus> paymentStatus(int orderId, String orderKey) async {
     final data = asMap(await _api.get('/orders/$orderId/status', query: {'key': orderKey}));
     return (status: asString(data['status']), isPaid: asBool(data['is_paid']));
   }

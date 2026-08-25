@@ -50,6 +50,11 @@ class AccountScreen extends ConsumerWidget {
                 onTap: () => _requireAuth(context, ref, () => context.push('/orders')),
               ),
               SettingsTile(
+                icon: Icons.replay_rounded,
+                label: l.accountBuyAgain,
+                onTap: () => _requireAuth(context, ref, () => context.push('/buy-again')),
+              ),
+              SettingsTile(
                 icon: Icons.favorite_border_rounded,
                 label: l.accountWishlist,
                 onTap: () => context.push('/wishlist'),
@@ -57,8 +62,7 @@ class AccountScreen extends ConsumerWidget {
               SettingsTile(
                 icon: Icons.place_outlined,
                 label: l.accountAddresses,
-                trailingLabel: l.accountSoon,
-                onTap: () => _soon(context),
+                onTap: () => _requireAuth(context, ref, () => context.push('/addresses')),
               ),
             ],
           ),
