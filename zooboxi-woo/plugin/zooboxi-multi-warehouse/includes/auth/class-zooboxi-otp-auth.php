@@ -56,26 +56,45 @@ class Zooboxi_OTP_Auth
 
     /**
      * AJAX: Send OTP to phone number.
+     *
+     * Thin wrapper: the nonce check + JSON shape stay here (web popup unchanged),
+     * the actual work lives in send_otp() so the mobile API can reuse it verbatim.
      */
     public static function ajax_send_otp(): void
     {
         check_ajax_referer('zooboxi_nonce', 'nonce');
 
         $rawPhone = sanitize_text_field($_POST['phone'] ?? '');
+        $result   = self::send_otp($rawPhone, self::get_client_ip());
+
+        if (empty($result['success'])) {
+            wp_send_json_error($result['error']);
+        }
+        wp_send_json_success($result['data']);
+    }
+
+    /**
+     * Generate + store + SMS an OTP. Transport-agnostic (AJAX and REST both use it).
+     * Every rate limit, the otp_log row and the Taqnyat send are exactly as before.
+     *
+     * @return array{success:bool,error?:array,data?:array}
+     */
+    public static function send_otp(string $rawPhone, string $ip = ''): array
+    {
         $phone = self::format_saudi_phone($rawPhone);
 
         if (!$phone) {
-            wp_send_json_error(['message' => __('يرجى إدخال رقم جوال سعودي صالح', 'zooboxi')]);
+            return ['success' => false, 'error' => ['message' => __('يرجى إدخال رقم جوال سعودي صالح', 'zooboxi')]];
         }
 
-        $ip = self::get_client_ip();
+        $ip = $ip !== '' ? $ip : self::get_client_ip();
 
         // Rate limiting
         if (self::is_rate_limited($phone, $ip)) {
-            wp_send_json_error([
+            return ['success' => false, 'error' => [
                 'message' => __('تم تجاوز الحد المسموح. حاول مرة أخرى لاحقاً', 'zooboxi'),
                 'code'    => 'rate_limited',
-            ]);
+            ]];
         }
 
         // Generate OTP
@@ -103,22 +122,26 @@ class Zooboxi_OTP_Auth
 
         if (!$result['success']) {
             error_log('[Zooboxi OTP] Failed to send SMS to ' . $phone . ': ' . $result['message']);
-            wp_send_json_error(['message' => __('حدث خطأ في إرسال الرمز. حاول مرة أخرى', 'zooboxi')]);
+            return ['success' => false, 'error' => ['message' => __('حدث خطأ في إرسال الرمز. حاول مرة أخرى', 'zooboxi')]];
         }
 
         // Mask phone for display: 05XX XXX XX72
         $displayPhone = self::mask_phone($rawPhone);
 
-        wp_send_json_success([
+        return ['success' => true, 'data' => [
             'message'      => __('تم إرسال رمز التحقق', 'zooboxi'),
             'display_phone' => $displayPhone,
             'resend_after' => self::RESEND_SECS,
             'expires_in'   => self::OTP_EXPIRY_MINS * 60,
-        ]);
+        ]];
     }
 
     /**
      * AJAX: Verify OTP code.
+     *
+     * Thin wrapper: nonce + auth-cookie + the exact JSON payload stay here, so the web
+     * popup behaves identically; verify_otp() carries the logic for the mobile API,
+     * which issues a bearer token instead of a cookie.
      */
     public static function ajax_verify_otp(): void
     {
@@ -126,10 +149,39 @@ class Zooboxi_OTP_Auth
 
         $rawPhone = sanitize_text_field($_POST['phone'] ?? '');
         $otp = sanitize_text_field($_POST['otp'] ?? '');
-        $phone = self::format_saudi_phone($rawPhone);
+
+        $result = self::verify_otp($rawPhone, $otp);
+
+        if (empty($result['success'])) {
+            wp_send_json_error($result['error']);
+        }
+
+        $userId = (int) $result['user_id'];
+
+        // Log them in (web only — the REST caller deliberately skips this).
+        wp_set_current_user($userId);
+        wp_set_auth_cookie($userId, true);
+
+        $payload = $result['data'];
+        $payload['new_nonce'] = wp_create_nonce('zooboxi_nonce');
+
+        wp_send_json_success($payload);
+    }
+
+    /**
+     * Validate an OTP and resolve (or create) the customer account. Does NOT set an
+     * auth cookie — the caller decides how the session is carried.
+     *
+     * @return array{success:bool,error?:array,user_id?:int,is_new?:bool,name?:string,data?:array}
+     */
+    public static function verify_otp(string $rawPhone, string $otp): array
+    {
+        $rawPhone = sanitize_text_field($rawPhone);
+        $otp      = sanitize_text_field($otp);
+        $phone    = self::format_saudi_phone($rawPhone);
 
         if (!$phone || strlen($otp) !== self::OTP_LENGTH) {
-            wp_send_json_error(['message' => __('بيانات غير صالحة', 'zooboxi')]);
+            return ['success' => false, 'error' => ['message' => __('بيانات غير صالحة', 'zooboxi')]];
         }
 
         global $wpdb;
@@ -142,23 +194,23 @@ class Zooboxi_OTP_Auth
         ));
 
         if (!$record) {
-            wp_send_json_error(['message' => __('لا يوجد رمز تحقق. أعد الطلب', 'zooboxi'), 'code' => 'no_otp']);
+            return ['success' => false, 'error' => ['message' => __('لا يوجد رمز تحقق. أعد الطلب', 'zooboxi'), 'code' => 'no_otp']];
         }
 
         // Check if blocked (too many attempts)
         if ((int) $record->attempts >= self::MAX_ATTEMPTS) {
-            wp_send_json_error([
+            return ['success' => false, 'error' => [
                 'message' => sprintf(
                     __('تم حظرك مؤقتاً لمدة %d دقيقة', 'zooboxi'),
                     self::BLOCK_MINS
                 ),
                 'code' => 'blocked',
-            ]);
+            ]];
         }
 
         // Check expiry
         if (strtotime($record->expires_at) < time()) {
-            wp_send_json_error(['message' => __('انتهت صلاحية الرمز. اطلب رمزاً جديداً', 'zooboxi'), 'code' => 'expired']);
+            return ['success' => false, 'error' => ['message' => __('انتهت صلاحية الرمز. اطلب رمزاً جديداً', 'zooboxi'), 'code' => 'expired']];
         }
 
         // Verify OTP
@@ -167,11 +219,11 @@ class Zooboxi_OTP_Auth
             $wpdb->update($table, ['attempts' => $record->attempts + 1], ['id' => $record->id]);
             $remaining = self::MAX_ATTEMPTS - $record->attempts - 1;
 
-            wp_send_json_error([
+            return ['success' => false, 'error' => [
                 'message'   => sprintf(__('الرمز غير صحيح. متبقي %d محاولات', 'zooboxi'), max(0, $remaining)),
                 'code'      => 'wrong_otp',
                 'remaining' => max(0, $remaining),
-            ]);
+            ]];
         }
 
         // OTP is correct — mark as verified
@@ -181,49 +233,51 @@ class Zooboxi_OTP_Auth
         $user = self::find_user_by_phone($phone);
 
         if ($user) {
-            // Existing customer — log them in
-            wp_set_current_user($user->ID);
-            wp_set_auth_cookie($user->ID, true);
-
             $name = $user->first_name ?: $user->display_name;
 
-            wp_send_json_success([
-                'status'    => 'existing',
-                'message'   => sprintf(__('مرحباً %s! 🎉', 'zooboxi'), $name),
-                'name'      => $name,
-                'user_id'   => $user->ID,
-                'new_nonce' => wp_create_nonce('zooboxi_nonce'),
-            ]);
-        } else {
-            // New customer — create account
-            $username = 'zb_' . substr($phone, -9); // e.g., zb_500141072
-            $email = $username . '@zooboxi.local'; // placeholder — user can set later
-            $password = wp_generate_password(16, true, true);
-
-            $userId = wp_create_user($username, $password, $email);
-            if (is_wp_error($userId)) {
-                wp_send_json_error(['message' => __('حدث خطأ في إنشاء الحساب', 'zooboxi')]);
-            }
-
-            // Set role and phone
-            $user = new WP_User($userId);
-            $user->set_role('customer');
-
-            update_user_meta($userId, 'billing_phone', self::format_local_phone($phone));
-            update_user_meta($userId, 'zooboxi_phone_verified', 1);
-            update_user_meta($userId, 'zooboxi_registered_via', 'otp');
-
-            // Log them in
-            wp_set_current_user($userId);
-            wp_set_auth_cookie($userId, true);
-
-            wp_send_json_success([
-                'status'    => 'new',
-                'message'   => __('أهلاً بك في ZooBoxi! 🎉', 'zooboxi'),
-                'user_id'   => $userId,
-                'new_nonce' => wp_create_nonce('zooboxi_nonce'),
-            ]);
+            return [
+                'success' => true,
+                'user_id' => (int) $user->ID,
+                'is_new'  => false,
+                'name'    => $name,
+                'data'    => [
+                    'status'  => 'existing',
+                    'message' => sprintf(__('مرحباً %s! 🎉', 'zooboxi'), $name),
+                    'name'    => $name,
+                    'user_id' => $user->ID,
+                ],
+            ];
         }
+
+        // New customer — create account
+        $username = 'zb_' . substr($phone, -9); // e.g., zb_500141072
+        $email = $username . '@zooboxi.local'; // placeholder — user can set later
+        $password = wp_generate_password(16, true, true);
+
+        $userId = wp_create_user($username, $password, $email);
+        if (is_wp_error($userId)) {
+            return ['success' => false, 'error' => ['message' => __('حدث خطأ في إنشاء الحساب', 'zooboxi')]];
+        }
+
+        // Set role and phone
+        $newUser = new WP_User($userId);
+        $newUser->set_role('customer');
+
+        update_user_meta($userId, 'billing_phone', self::format_local_phone($phone));
+        update_user_meta($userId, 'zooboxi_phone_verified', 1);
+        update_user_meta($userId, 'zooboxi_registered_via', 'otp');
+
+        return [
+            'success' => true,
+            'user_id' => (int) $userId,
+            'is_new'  => true,
+            'name'    => '',
+            'data'    => [
+                'status'  => 'new',
+                'message' => __('أهلاً بك في ZooBoxi! 🎉', 'zooboxi'),
+                'user_id' => $userId,
+            ],
+        ];
     }
 
     /**
@@ -406,6 +460,15 @@ class Zooboxi_OTP_Auth
         }
 
         return false;
+    }
+
+    /**
+     * Public alias of get_client_ip() — lets the mobile API apply its own per-IP
+     * throttle on top of the shared limits without duplicating the header order.
+     */
+    public static function client_ip(): string
+    {
+        return self::get_client_ip();
     }
 
     /**

@@ -72,7 +72,7 @@ class Zooboxi_Smart_Shipments
                 return $packages;
             }
 
-            $groups = $this->build_tier_groups($contents, (float) $lat, (float) $lng);
+            $groups = self::build_tier_groups($contents, (float) $lat, (float) $lng);
             if (empty($groups)) {
                 return $packages;
             }
@@ -200,9 +200,12 @@ class Zooboxi_Smart_Shipments
      * shipping correctly per package. Any unreachable remainder falls into the shipping tier
      * (never dropped — packages always sum to the full cart quantity).
      *
+     * Public + static so the mobile API can project the SAME grouping into JSON without
+     * booting this class (whose constructor is the web feature flag). Pure function.
+     *
      * @return array<string, array{contents: array, cost: float, warehouse: string, lines: array}>
      */
-    private function build_tier_groups(array $contents, float $lat, float $lng): array
+    public static function build_tier_groups(array $contents, float $lat, float $lng): array
     {
         $order = [
             Zooboxi_Delivery_Engine::TYPE_EXPRESS  => 1,
@@ -294,7 +297,7 @@ class Zooboxi_Smart_Shipments
         }
 
         // Same source of truth as the actual shipping split (incl. intra-line splitting).
-        $groups = $this->build_tier_groups(WC()->cart->get_cart(), (float) $lat, (float) $lng);
+        $groups = self::build_tier_groups(WC()->cart->get_cart(), (float) $lat, (float) $lng);
         if (empty($groups)) {
             return;
         }

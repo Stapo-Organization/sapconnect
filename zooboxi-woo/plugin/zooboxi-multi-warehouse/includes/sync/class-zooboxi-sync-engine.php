@@ -173,6 +173,73 @@ class Zooboxi_Sync_Engine
         }
     }
 
+    /**
+     * Mirror an order's CURRENT delivery + payment status to sapconnect.
+     *
+     * push_order() was a one-shot at creation time, so every later transition
+     * (paid, preparing, جاهز للتسليم, delivered, cancelled) never reached the backend.
+     * This closes that gap. Deliberately short-timeout and non-retrying: it runs inside
+     * woocommerce_order_status_changed, which fires on the storefront and in wp-admin —
+     * a slow backend must never stall a status change. Failures are logged, not raised.
+     */
+    public function push_order_status(int $orderId, string $newStatus): bool
+    {
+        try {
+            $order = wc_get_order($orderId);
+            if (!$order || $this->api_token === '') {
+                return false;
+            }
+            // Only orders the backend already knows about are worth updating.
+            if (!$order->get_meta('_zooboxi_synced')) {
+                return false;
+            }
+
+            // The mirror's delivery_status vocabulary is the STAFF prep pipeline
+            // (pending/preparing/ready_for_pickup/out_for_delivery/delivered/cancelled)
+            // — Woo statuses must not stomp it. Only a real cancellation crosses over;
+            // everything else updates payment state only.
+            $woo = preg_replace('/^wc-/', '', $newStatus);
+            $body = [
+                'woo_order_id'   => $orderId,
+                'payment_status' => $order->is_paid() ? 'paid' : 'pending',
+                'paid_at'        => $order->get_date_paid() ? $order->get_date_paid()->date('Y-m-d H:i:s') : null,
+                'total'          => (float) $order->get_total(),
+            ];
+            if (in_array($woo, ['cancelled', 'refunded'], true)) {
+                $body['delivery_status'] = 'cancelled';
+            }
+
+            $response = wp_remote_request($this->api_base . '/orders/' . $orderId . '/status', [
+                'method'  => 'PUT',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->api_token,
+                    'Accept'        => 'application/json',
+                    'Content-Type'  => 'application/json',
+                ],
+                'body'    => wp_json_encode($body),
+                'timeout' => 8,
+            ]);
+
+            if (is_wp_error($response)) {
+                error_log('[Zooboxi] push_order_status failed for #' . $orderId . ': ' . $response->get_error_message());
+                return false;
+            }
+
+            $code = (int) wp_remote_retrieve_response_code($response);
+            if ($code < 200 || $code >= 300) {
+                error_log('[Zooboxi] push_order_status #' . $orderId . ' returned HTTP ' . $code);
+                return false;
+            }
+
+            $order->update_meta_data('_zooboxi_status_pushed_at', current_time('mysql'));
+            $order->save();
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi] push_order_status threw for #' . $orderId . ': ' . $e->getMessage());
+            return false;
+        }
+    }
+
     /* ── Private Helpers ──────────────────────────── */
 
     /**

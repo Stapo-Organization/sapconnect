@@ -87,6 +87,23 @@ class Zooboxi_Plugin
         // Brand boutique pages (/brand/<slug>/): backend sync + themed archive takeover.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/intelligence/class-zooboxi-brand-sync.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-brand-page.php';
+
+        // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:
+        // set option `zooboxi_v2_enabled` to anything but 'yes' to unload it entirely.
+        if (get_option('zooboxi_v2_enabled', 'yes') === 'yes') {
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-app-tokens.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-bootstrap.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-product-dto.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-auth-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-location-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-catalog-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-cart-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-checkout-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-orders-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-account-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-events-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-meta-controller.php';
+        }
     }
 
     /* ── Hooks ─────────────────────────────────────── */
@@ -155,6 +172,11 @@ class Zooboxi_Plugin
         new Zooboxi_Homepage();
         // Smart hero slider (front render is static; instance registers the admin panel).
         new Zooboxi_Hero_Slider();
+
+        // Mobile app API (zooboxi/v2) — same kill switch as its requires above.
+        if (get_option('zooboxi_v2_enabled', 'yes') === 'yes' && class_exists('Zooboxi_V2_Bootstrap')) {
+            new Zooboxi_V2_Bootstrap();
+        }
 
         // Init frontend components
         if (!is_admin()) {
@@ -451,8 +473,10 @@ class Zooboxi_Plugin
     {
         global $wpdb;
 
-        // Only apply to main product queries on frontend
-        if (is_admin() || !$query->is_main_query()) return $clauses;
+        // Only apply to main product queries on frontend. The mobile API's listing
+        // endpoint opts in explicitly via the `zooboxi_v2_listing` flag so the app gets
+        // the same in-stock-first order; no web query ever sets that flag.
+        if (is_admin() || (!$query->is_main_query() && !$query->get('zooboxi_v2_listing'))) return $clauses;
 
         // Check if this is a product query (shop, category, tag, brand, search)
         $pt = $query->get('post_type');

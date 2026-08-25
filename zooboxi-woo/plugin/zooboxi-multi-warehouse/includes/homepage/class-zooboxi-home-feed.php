@@ -154,12 +154,17 @@ class Zooboxi_Home_Feed
         ]);
     }
 
-    private function buyagain_html(int $uid): string
+    /**
+     * Product ids for the "اطلبها مجدداً" rail, straight from WooCommerce's own order
+     * records (no SAP call, no price mutation). Extracted so the mobile API's
+     * /account/buy-again endpoint returns exactly the same list the web rail renders.
+     *
+     * @return int[]
+     */
+    public static function buyagain_ids(int $uid, int $limit = 12): array
     {
-        $tkey   = 'zbhome_buyagain_' . $uid;
-        $cached = get_transient($tkey);
-        if ($cached !== false) {
-            return (string) $cached;
+        if ($uid <= 0) {
+            return [];
         }
 
         $orders = wc_get_orders([
@@ -183,7 +188,19 @@ class Zooboxi_Home_Feed
                 break;
             }
         }
-        $ids = array_slice($ids, 0, 12);
+
+        return array_slice($ids, 0, max(1, $limit));
+    }
+
+    private function buyagain_html(int $uid): string
+    {
+        $tkey   = 'zbhome_buyagain_' . $uid;
+        $cached = get_transient($tkey);
+        if ($cached !== false) {
+            return (string) $cached;
+        }
+
+        $ids = self::buyagain_ids($uid, 12);
 
         $html = empty($ids) ? '' : Zooboxi_Product_Rail::render([
             'ids'   => $ids,

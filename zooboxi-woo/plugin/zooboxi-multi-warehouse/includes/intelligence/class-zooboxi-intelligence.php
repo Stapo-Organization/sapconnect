@@ -191,7 +191,9 @@ class Zooboxi_Intelligence
     {
         global $wpdb;
 
-        if (is_admin() || !$query->is_main_query()) {
+        // The mobile API's listing endpoint opts in via `zooboxi_v2_listing` so the app
+        // inherits the same express-first tier; no web query ever sets that flag.
+        if (is_admin() || (!$query->is_main_query() && !$query->get('zooboxi_v2_listing'))) {
             return $clauses;
         }
         $pt = $query->get('post_type');
@@ -376,29 +378,76 @@ class Zooboxi_Intelligence
         <?php
     }
 
+    /** Event types the store is allowed to forward (shared by the beacon and the app). */
+    public const EVENT_TYPES = ['view', 'search', 'add_to_cart', 'begin_checkout', 'purchase', 'impression', 'click'];
+
+    /**
+     * AJAX beacon — a thin wrapper around forward_event() so the web beacon and the
+     * mobile /events endpoint validate and forward through exactly one code path.
+     */
     public function ajax_track(): void
     {
-        $type = isset($_POST['event_type']) ? sanitize_text_field(wp_unslash($_POST['event_type'])) : '';
-        $allowed = ['view', 'search', 'add_to_cart', 'begin_checkout', 'purchase', 'impression', 'click'];
-        if (!in_array($type, $allowed, true)) {
-            wp_die('', '', ['response' => 204]);
-        }
         $payload = null;
         if (!empty($_POST['payload'])) {
             $decoded = json_decode(wp_unslash($_POST['payload']), true);
             $payload = is_array($decoded) ? $decoded : null;
         }
-        // Server-side forward (keeps the API token out of the browser).
-        $this->api_post('/events', array_filter([
-            'event_type'   => $type,
-            'anon_id'      => isset($_POST['anon_id']) ? sanitize_text_field(wp_unslash($_POST['anon_id'])) : null,
-            'item_code'    => isset($_POST['item_code']) ? sanitize_text_field(wp_unslash($_POST['item_code'])) : null,
-            'query'        => isset($_POST['query']) ? sanitize_text_field(wp_unslash($_POST['query'])) : null,
-            'zone'         => isset($_POST['zone']) ? sanitize_text_field(wp_unslash($_POST['zone'])) : null,
-            'ab_variant'   => isset($_POST['ab_variant']) ? sanitize_text_field(wp_unslash($_POST['ab_variant'])) : null,
-            'payload'      => $payload,
-        ], fn ($v) => $v !== null));
 
-        wp_die('', '', ['response' => 202]);
+        $accepted = self::forward_event([
+            'event_type' => isset($_POST['event_type']) ? wp_unslash($_POST['event_type']) : '',
+            'anon_id'    => isset($_POST['anon_id']) ? wp_unslash($_POST['anon_id']) : null,
+            'item_code'  => isset($_POST['item_code']) ? wp_unslash($_POST['item_code']) : null,
+            'query'      => isset($_POST['query']) ? wp_unslash($_POST['query']) : null,
+            'zone'       => isset($_POST['zone']) ? wp_unslash($_POST['zone']) : null,
+            'ab_variant' => isset($_POST['ab_variant']) ? wp_unslash($_POST['ab_variant']) : null,
+            'payload'    => $payload,
+        ]);
+
+        wp_die('', '', ['response' => $accepted ? 202 : 204]);
+    }
+
+    /**
+     * Validate one capture event and forward it server-side (the API token never
+     * reaches a client). Same allowlist + field set the beacon has always sent;
+     * `customer_ref` is optional and only the authenticated mobile API sets it.
+     *
+     * @return bool false when the event type is not allowed (nothing was sent).
+     */
+    public static function forward_event(array $input): bool
+    {
+        $type = sanitize_text_field((string) ($input['event_type'] ?? ''));
+        if (!in_array($type, self::EVENT_TYPES, true)) {
+            return false;
+        }
+
+        $payload = isset($input['payload']) && is_array($input['payload']) ? $input['payload'] : null;
+
+        $body = array_filter([
+            'event_type'   => $type,
+            'anon_id'      => isset($input['anon_id']) ? sanitize_text_field((string) $input['anon_id']) : null,
+            'item_code'    => isset($input['item_code']) ? sanitize_text_field((string) $input['item_code']) : null,
+            'query'        => isset($input['query']) ? sanitize_text_field((string) $input['query']) : null,
+            'zone'         => isset($input['zone']) ? sanitize_text_field((string) $input['zone']) : null,
+            'ab_variant'   => isset($input['ab_variant']) ? sanitize_text_field((string) $input['ab_variant']) : null,
+            'customer_ref' => isset($input['customer_ref']) ? sanitize_text_field((string) $input['customer_ref']) : null,
+            'payload'      => $payload,
+        ], fn ($v) => $v !== null);
+
+        self::post_events($body);
+        return true;
+    }
+
+    /** Non-blocking POST to the intelligence API (same shape api_post() has always used). */
+    private static function post_events(array $body): void
+    {
+        $base  = rtrim((string) get_option('zooboxi_api_url', 'https://sapapi.muntajat.sa/api/woo'), '/');
+        $token = (string) get_option('zooboxi_api_token', '');
+
+        wp_remote_post($base . '/events', [
+            'headers'  => ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json'],
+            'body'     => wp_json_encode($body),
+            'timeout'  => 8,
+            'blocking' => false,
+        ]);
     }
 }
