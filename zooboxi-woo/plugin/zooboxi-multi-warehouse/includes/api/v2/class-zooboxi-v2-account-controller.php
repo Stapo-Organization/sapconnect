@@ -206,14 +206,53 @@ class Zooboxi_V2_Account_Controller
             return [];
         }
 
-        $out = [];
+        $out      = [];
+        $repaired = false;
         foreach ($raw as $a) {
             if (!is_array($a) || empty($a['id'])) {
                 continue;
             }
+            foreach (['label', 'name', 'city', 'district', 'address_line'] as $field) {
+                if (isset($a[$field]) && is_string($a[$field])) {
+                    $fixed = self::unmangle($a[$field]);
+                    if ($fixed !== $a[$field]) {
+                        $a[$field] = $fixed;
+                        $repaired  = true;
+                    }
+                }
+            }
             $out[] = self::normalise($a);
         }
+
+        // Rows written before the wp_slash fix lost their JSON escapes — once
+        // repaired, persist them clean so this path never runs again.
+        if ($repaired) {
+            update_user_meta(
+                $user_id,
+                self::ADDRESSES_META,
+                wp_slash(wp_json_encode(array_values($out), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+            );
+        }
         return $out;
+    }
+
+    /**
+     * Undo the damage update_user_meta's stripslashes did to early rows:
+     * `ا` lost its backslash and was stored as the literal text `u0627`.
+     * Only strings that are entirely such runs are rebuilt — a real word that
+     * merely contains "u1234" is left alone.
+     */
+    private static function unmangle(string $value): string
+    {
+        if ($value === '' || !preg_match('/^(?:u[0-9a-fA-F]{4}|[\s\d\p{P}])+$/u', $value)) {
+            return $value;
+        }
+        if (!preg_match('/u[0-9a-fA-F]{4}/', $value)) {
+            return $value;
+        }
+        $json    = '"' . preg_replace('/u([0-9a-fA-F]{4})/', '\\\\u$1', $value) . '"';
+        $decoded = json_decode($json);
+        return is_string($decoded) ? $decoded : $value;
     }
 
     public static function find_address(int $user_id, string $id): ?array
@@ -265,7 +304,14 @@ class Zooboxi_V2_Account_Controller
 
     private static function put_addresses(int $user_id, array $list): void
     {
-        update_user_meta($user_id, self::ADDRESSES_META, wp_json_encode(array_values($list)));
+        // UNESCAPED_UNICODE keeps the Arabic readable, and wp_slash compensates
+        // for the stripslashes the meta API applies — without it the JSON's
+        // backslashes are eaten and ا is stored as the literal "u0627".
+        update_user_meta(
+            $user_id,
+            self::ADDRESSES_META,
+            wp_slash(wp_json_encode(array_values($list), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+        );
         self::mirror_default_to_woocommerce($user_id, $list);
     }
 

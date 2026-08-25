@@ -148,27 +148,36 @@ class Zooboxi_V2_Catalog_Controller
         return $out;
     }
 
-    /** Top-level product categories (the "shop by animal" row). */
+    /**
+     * "تسوّق حسب أليفك" — the SAME four curated pets the website's homepage
+     * hardcodes (Zooboxi_Homepage::animal_nav), with their uploaded artwork.
+     * Resolved to live terms by name so ids/slugs always match this store.
+     */
     private function animal_nav(): array
     {
-        $terms = get_terms([
-            'taxonomy'   => 'product_cat',
-            'parent'     => 0,
-            'hide_empty' => true,
-            'orderby'    => 'count',
-            'order'      => 'DESC',
-            'number'     => 8,
-        ]);
-        if (is_wp_error($terms) || empty($terms)) {
-            return [];
-        }
+        // MAIN-tree root ids (the store also keeps a parallel "health criteria"
+        // tree whose roots carry the same names — a name lookup lands there and
+        // returns condition tags instead of the shopping subcategories).
+        $curated = [
+            [107, 'قطط', '/wp-content/uploads/zooboxi-assets/97125602-5f94-42eb-96da-186b483e1289.webp', '🐱'],
+            [114, 'كلاب', '/wp-content/uploads/zooboxi-assets/2f1e50b9-1fbf-4dcb-aa2b-14ebe0cec716.webp', '🐶'],
+            [202, 'طيور', '/wp-content/uploads/zooboxi-assets/307a4def-f718-4d79-ba2e-925454fa8faa.webp', '🦜'],
+            [194, 'حيوانات صغيرة', '/wp-content/uploads/zooboxi-assets/30a11991-15ae-4b19-9f1c-56d6994424a4.webp', '🐹'],
+        ];
 
         $out = [];
-        foreach ($terms as $t) {
-            if ($t->slug === 'uncategorized') {
+        foreach ($curated as [$id, $name, $image, $emoji]) {
+            $term = get_term($id, 'product_cat');
+            if (!$term || is_wp_error($term)) {
                 continue;
             }
-            $out[] = $this->term_dto($t, false);
+            $out[] = [
+                'id'    => (int) $term->term_id,
+                'slug'  => (string) $term->slug,
+                'name'  => $name,
+                'image' => home_url($image),
+                'icon'  => $emoji,
+            ];
         }
         return $out;
     }
@@ -218,6 +227,32 @@ class Zooboxi_V2_Catalog_Controller
         $parent = $request->get_param('parent');
         $parent = $parent === null ? 0 : absint($parent);
 
+        // The taxonomy's top level mixes the real shopping tree with ~80
+        // brand-mirror terms. The store browses BY PET — so the root of the
+        // app's tree is the same four animals the website navigates, each with
+        // its true subtree; the brand terms live on the brands surface instead.
+        if ($parent === 0) {
+            $out = [];
+            foreach ($this->animal_nav() as $animal) {
+                if (empty($animal['id'])) {
+                    continue;
+                }
+                $term = get_term((int) $animal['id'], 'product_cat');
+                if (!$term || is_wp_error($term)) {
+                    continue;
+                }
+                $dto          = $this->term_dto($term, true);
+                $dto['image'] = $animal['image'] ?: $dto['image'];
+                $dto['icon']  = $dto['icon'] !== '' ? $dto['icon'] : (string) $animal['icon'];
+                $out[]        = $dto;
+            }
+
+            return Zooboxi_V2_Bootstrap::ok([
+                'parent'     => 0,
+                'categories' => $out,
+            ], Zooboxi_V2_Bootstrap::TTL_CATEGORIES);
+        }
+
         $terms = get_terms([
             'taxonomy'   => 'product_cat',
             'parent'     => $parent,
@@ -261,11 +296,24 @@ class Zooboxi_V2_Catalog_Controller
             $img = wp_get_attachment_image_url($thumb, 'woocommerce_thumbnail') ?: null;
         }
 
+        // The website's curated iconography (theme map) — it returns image URLs
+        // for the categories it knows. Terms rarely carry WP thumbnails, so the
+        // map is the primary art source; anything non-URL would be an emoji.
+        $icon_art = function_exists('zooboxi_get_category_icon')
+            ? (string) zooboxi_get_category_icon($t)
+            : '';
+        $emoji = '';
+        if ($icon_art !== '' && !preg_match('#^https?://#', $icon_art)) {
+            $emoji    = $icon_art;
+            $icon_art = '';
+        }
+
         $dto = [
             'id'       => (int) $t->term_id,
             'slug'     => (string) $t->slug,
             'name'     => (string) $t->name,
-            'image'    => $img,
+            'image'    => $img ?: ($icon_art !== '' ? esc_url_raw($icon_art) : null),
+            'icon'     => $emoji,
             'count'    => (int) $t->count,
             'children' => [],
         ];
@@ -635,10 +683,29 @@ class Zooboxi_V2_Catalog_Controller
         if ($raw === null || $raw === '') {
             return null;
         }
-        $term = ctype_digit((string) $raw)
-            ? get_term(absint($raw), 'product_cat')
-            : get_term_by('slug', sanitize_title((string) $raw), 'product_cat');
+        if (ctype_digit((string) $raw)) {
+            $term = get_term(absint($raw), 'product_cat');
+            return ($term && !is_wp_error($term)) ? $term : null;
+        }
 
+        // Arabic slugs live percent-encoded in the DB while clients send them
+        // readable (or vice versa) — try every honest spelling, then the name.
+        $value = trim((string) $raw);
+        foreach (array_unique([
+            $value,
+            sanitize_title($value),
+            rawurldecode($value),
+            sanitize_title(rawurldecode($value)),
+        ]) as $candidate) {
+            if ($candidate === '') {
+                continue;
+            }
+            $term = get_term_by('slug', $candidate, 'product_cat');
+            if ($term && !is_wp_error($term)) {
+                return $term;
+            }
+        }
+        $term = get_term_by('name', rawurldecode($value), 'product_cat');
         return ($term && !is_wp_error($term)) ? $term : null;
     }
 
@@ -776,11 +843,22 @@ class Zooboxi_V2_Catalog_Controller
             $code    = preg_match('/(\d+)/', (string) $t->description, $m) ? $m[1] : '';
             $payload = ($code !== '' && isset($published[$code]) && is_array($published[$code])) ? $published[$code] : null;
 
+            // Same source the website's brand slider renders: the term's own
+            // thumbnail. The boutique payload's logo_url (often unset) only wins
+            // when it actually exists.
+            $logo = !empty($payload['logo_url']) ? esc_url_raw((string) $payload['logo_url']) : null;
+            if ($logo === null) {
+                $thumb = (int) get_term_meta((int) $t->term_id, 'thumbnail_id', true);
+                if ($thumb) {
+                    $logo = wp_get_attachment_image_url($thumb, 'medium') ?: null;
+                }
+            }
+
             $out[] = [
                 'code'      => $code,
                 'slug'      => (string) $t->slug,
                 'name'      => $payload['name'] ?? (string) $t->name,
-                'logo'      => !empty($payload['logo_url']) ? esc_url_raw((string) $payload['logo_url']) : null,
+                'logo'      => $logo,
                 'count'     => (int) $t->count,
                 'boutique'  => $payload !== null,
             ];

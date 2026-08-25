@@ -36,6 +36,139 @@ class Zooboxi_V2_Checkout_Controller
         Zooboxi_V2_Bootstrap::route('/checkout', 'POST', [$this, 'place']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/pay', 'POST', [$this, 'pay']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/status', 'GET', [$this, 'status']);
+        Zooboxi_V2_Bootstrap::route('/payments/config', 'POST', [$this, 'payment_config']);
+        Zooboxi_V2_Bootstrap::route('/payments/verify', 'POST', [$this, 'payment_verify']);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Native MyFatoorah SDK support
+       ══════════════════════════════════════════════════════════════ */
+
+    /** The gateway's own saved settings (same option the web checkout runs on). */
+    private function myfatoorah_settings(): array
+    {
+        $settings = get_option('woocommerce_myfatoorah_v2_settings', []);
+        return is_array($settings) ? $settings : [];
+    }
+
+    private function myfatoorah_api_base(array $settings): string
+    {
+        if (($settings['testMode'] ?? 'no') === 'yes') {
+            return 'https://apitest.myfatoorah.com';
+        }
+        // Saudi merchants live on the KSA cluster.
+        return ($settings['countryMode'] ?? 'SAU') === 'SAU'
+            ? 'https://api-sa.myfatoorah.com'
+            : 'https://api.myfatoorah.com';
+    }
+
+    /**
+     * POST /payments/config {order_id, key}
+     *
+     * Hands the app what the native MyFatoorah SDK needs for THIS order. Gated
+     * on a real, unpaid order (order_key or ownership) so the credential is
+     * only ever released against a live payment attempt — it is never compiled
+     * into the binary.
+     */
+    public function payment_config(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $order = $this->order_by_key($request, 'order_id');
+        if ($order === null) {
+            return Zooboxi_V2_Bootstrap::fail('order_not_found', __('الطلب غير موجود', 'zooboxi'), 'Order not found.', 404);
+        }
+        if ($order->is_paid()) {
+            return Zooboxi_V2_Bootstrap::fail('already_paid', __('تم دفع هذا الطلب', 'zooboxi'), 'This order is already paid.', 409);
+        }
+
+        $settings = $this->myfatoorah_settings();
+        $token    = (string) ($settings['apiKey'] ?? '');
+        if ($token === '' || ($settings['enabled'] ?? 'no') !== 'yes') {
+            return Zooboxi_V2_Bootstrap::fail('gateway_unavailable', __('بوابة الدفع غير متاحة حالياً', 'zooboxi'), 'The payment gateway is unavailable.', 503);
+        }
+
+        return Zooboxi_V2_Bootstrap::ok([
+            'gateway'   => 'myfatoorah',
+            'token'     => $token,
+            'country'   => (string) ($settings['countryMode'] ?? 'SAU'),
+            'env'       => ($settings['testMode'] ?? 'no') === 'yes' ? 'test' : 'live',
+            'order_id'  => $order->get_id(),
+            'amount'    => (float) $order->get_total(),
+            'currency'  => $order->get_currency() ?: 'SAR',
+            'reference' => (string) $order->get_id(),
+        ]);
+    }
+
+    /**
+     * POST /payments/verify {order_id, key, invoice_id}
+     *
+     * The server-authoritative confirmation: the app NEVER decides money moved.
+     * We ask MyFatoorah for the invoice, check it is Paid, belongs to this
+     * order and matches its total, and only then mark the order paid.
+     */
+    public function payment_verify(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $order = $this->order_by_key($request, 'order_id');
+        if ($order === null) {
+            return Zooboxi_V2_Bootstrap::fail('order_not_found', __('الطلب غير موجود', 'zooboxi'), 'Order not found.', 404);
+        }
+
+        if ($order->is_paid()) {
+            return Zooboxi_V2_Bootstrap::ok(['is_paid' => true, 'status' => $order->get_status()]);
+        }
+
+        $invoice_id = sanitize_text_field((string) $request->get_param('invoice_id'));
+        if ($invoice_id === '' || !preg_match('/^\d{1,20}$/', $invoice_id)) {
+            return Zooboxi_V2_Bootstrap::fail('invoice_required', __('بيانات الدفع غير مكتملة', 'zooboxi'), 'A MyFatoorah invoice id is required.', 422);
+        }
+
+        $settings = $this->myfatoorah_settings();
+        $token    = (string) ($settings['apiKey'] ?? '');
+        if ($token === '') {
+            return Zooboxi_V2_Bootstrap::fail('gateway_unavailable', __('بوابة الدفع غير متاحة حالياً', 'zooboxi'), 'The payment gateway is unavailable.', 503);
+        }
+
+        $response = wp_remote_post($this->myfatoorah_api_base($settings) . '/v2/GetPaymentStatus', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type'  => 'application/json',
+            ],
+            'body'    => wp_json_encode(['Key' => $invoice_id, 'KeyType' => 'InvoiceId']),
+            'timeout' => 15,
+        ]);
+        if (is_wp_error($response)) {
+            return Zooboxi_V2_Bootstrap::fail('verify_failed', __('تعذّر التحقق من الدفع. حاول بعد لحظات', 'zooboxi'), 'Could not verify the payment.', 502);
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $data = is_array($body) && isset($body['Data']) && is_array($body['Data']) ? $body['Data'] : null;
+        if ($data === null || empty($body['IsSuccess'])) {
+            return Zooboxi_V2_Bootstrap::fail('verify_failed', __('تعذّر التحقق من الدفع. حاول بعد لحظات', 'zooboxi'), 'Could not verify the payment.', 502);
+        }
+
+        $status    = (string) ($data['InvoiceStatus'] ?? '');
+        $reference = (string) ($data['CustomerReference'] ?? '');
+        $value     = (float) ($data['InvoiceValue'] ?? 0);
+
+        if ($reference !== (string) $order->get_id()) {
+            error_log('[Zooboxi v2] payment_verify: invoice ' . $invoice_id . ' reference mismatch (' . $reference . ' vs order ' . $order->get_id() . ')');
+            return Zooboxi_V2_Bootstrap::fail('verify_mismatch', __('بيانات الدفع لا تخص هذا الطلب', 'zooboxi'), 'That payment does not belong to this order.', 409);
+        }
+
+        if ($status !== 'Paid') {
+            return Zooboxi_V2_Bootstrap::ok(['is_paid' => false, 'status' => $status !== '' ? strtolower($status) : 'pending']);
+        }
+
+        if (abs($value - (float) $order->get_total()) > 0.05) {
+            error_log('[Zooboxi v2] payment_verify: invoice ' . $invoice_id . ' amount mismatch (' . $value . ' vs ' . $order->get_total() . ')');
+            return Zooboxi_V2_Bootstrap::fail('verify_mismatch', __('مبلغ الدفع لا يطابق الطلب', 'zooboxi'), 'The paid amount does not match the order.', 409);
+        }
+
+        // Reference, status and amount all line up — settle the order. The
+        // transaction id lets refunds in Woo admin find the MyFatoorah invoice.
+        $order->add_order_note(sprintf('MyFatoorah SDK payment verified — invoice %s', $invoice_id));
+        $order->payment_complete($invoice_id);
+
+        return Zooboxi_V2_Bootstrap::ok(['is_paid' => true, 'status' => $order->get_status()]);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -270,6 +403,11 @@ class Zooboxi_V2_Checkout_Controller
             return Zooboxi_V2_Bootstrap::fail('already_paid', __('تم دفع هذا الطلب', 'zooboxi'), 'This order is already paid.', 409);
         }
 
+        // The MyFatoorah plugin's process_payment() reaches for WC()->session /
+        // WC()->cart, which a bare REST request never booted — that null is the
+        // "Call to a member function get() on null" its logs showed. Boot them.
+        Zooboxi_V2_Cart_Controller::ensure_cart($request);
+
         $gateways = WC()->payment_gateways() ? WC()->payment_gateways()->get_available_payment_gateways() : [];
         $gateway  = $gateways[self::GATEWAY_MYFATOORAH] ?? null;
 
@@ -327,9 +465,9 @@ class Zooboxi_V2_Checkout_Controller
     }
 
     /** Order lookup gated on the order key (or ownership for a signed-in customer). */
-    private function order_by_key(\WP_REST_Request $request): ?\WC_Order
+    private function order_by_key(\WP_REST_Request $request, string $id_param = 'id'): ?\WC_Order
     {
-        $order = wc_get_order(absint($request->get_param('id')));
+        $order = wc_get_order(absint($request->get_param($id_param)));
         if (!($order instanceof \WC_Order)) {
             return null;
         }

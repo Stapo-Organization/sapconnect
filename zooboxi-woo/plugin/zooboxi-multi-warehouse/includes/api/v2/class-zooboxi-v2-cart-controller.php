@@ -545,7 +545,7 @@ class Zooboxi_V2_Cart_Controller
                 'relative_label' => (string) $pres['relative'],
                 'fee'            => $free_qualified ? 0.0 : self::tier_fee((string) $tier),
                 'free'           => $free_qualified,
-                'items'          => $lines,
+                'lines'          => $lines,
             ];
         }
         return $out;
