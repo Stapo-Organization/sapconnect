@@ -352,37 +352,71 @@ class WooSyncController extends Controller
     /**
      * PUT /api/woo/orders/{woo_order_id}/status
      *
-     * Update the delivery status of an existing order.
+     * Mirror a delivery and/or payment transition from the store. The store's plugin
+     * pushes payment state on every Woo status change (an app/MyFatoorah order is
+     * created pending and paid later), and maps only real cancellations onto
+     * delivery_status — the prep pipeline states stay owned by the branch staff flow.
      */
     public function updateOrderStatus(Request $request, int $wooOrderId): JsonResponse
     {
         $request->validate([
-            'delivery_status' => 'required|in:pending,preparing,ready_for_pickup,out_for_delivery,delivered,cancelled',
+            'delivery_status' => 'sometimes|in:pending,preparing,ready_for_pickup,out_for_delivery,delivered,cancelled',
+            'payment_status' => 'sometimes|in:pending,paid,refunded,failed',
+            'paid_at' => 'sometimes|nullable|date',
         ]);
+
+        if (!$request->filled('delivery_status') && !$request->filled('payment_status')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nothing to update: send delivery_status and/or payment_status.',
+            ], 422);
+        }
 
         $order = ZooboxiOrder::where('woo_order_id', $wooOrderId)->firstOrFail();
         $oldStatus = $order->delivery_status;
+        $oldPayment = $order->payment_status;
 
-        $order->update([
-            'delivery_status' => $request->delivery_status,
-        ]);
+        $updates = [];
+        if ($request->filled('delivery_status')) {
+            $updates['delivery_status'] = $request->delivery_status;
+        }
+        if ($request->filled('payment_status')) {
+            $updates['payment_status'] = $request->payment_status;
+        }
+        $order->update($updates);
 
-        // If cancelled and was paid, restore stock
-        if ($request->delivery_status === 'cancelled' && $order->payment_status === 'paid') {
-            $stockItems = $order->lines->map(fn($line) => [
-                'item_code' => $line->item_code,
-                'warehouse_code' => $line->warehouse_code,
-                'quantity' => $line->quantity,
-            ])->toArray();
+        $stockItems = fn() => $order->lines->map(fn($line) => [
+            'item_code' => $line->item_code,
+            'warehouse_code' => $line->warehouse_code,
+            'quantity' => $line->quantity,
+        ])->toArray();
 
-            $this->stockService->restoreStock($stockItems);
+        // Creation-time deduction only runs for orders that arrive already paid;
+        // a pending→paid transition settles the same debt exactly once.
+        $newPayment = $updates['payment_status'] ?? $oldPayment;
+        if ($newPayment === 'paid' && $oldPayment !== 'paid' && $oldStatus !== 'cancelled') {
+            try {
+                $this->stockService->deductStock($stockItems());
+            } catch (\RuntimeException $e) {
+                Log::warning('Zooboxi stock deduction warning (payment mirror): ' . $e->getMessage(), [
+                    'order_id' => $order->id,
+                ]);
+            }
+        }
+
+        // Restore only on the transition INTO cancelled (a repeated cancel push must
+        // never restore twice), and only when the money side had deducted.
+        $newStatus = $updates['delivery_status'] ?? $oldStatus;
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled' && $newPayment === 'paid') {
+            $this->stockService->restoreStock($stockItems());
         }
 
         return response()->json([
             'status' => 'updated',
             'woo_order_id' => $wooOrderId,
             'old_status' => $oldStatus,
-            'new_status' => $request->delivery_status,
+            'new_status' => $newStatus,
+            'payment_status' => $newPayment,
         ]);
     }
 
