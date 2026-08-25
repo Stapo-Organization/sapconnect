@@ -106,13 +106,58 @@
             el.classList.add('zb-home-slot--filled');
             initRails(el);
             observe(el);
+            // Let the shared cart layer wrap the foot row + sync steppers on injected cards.
+            if (window.zbxCards && window.zbxCards.refresh) { window.zbxCards.refresh(el); }
         });
 
         bindLoginCard();
         bindPromise();
+        dedupeShellRails();
     }
 
     function remove(el) { if (el && el.parentNode) { el.parentNode.removeChild(el); } }
+
+    /* ── cross-rail dedup ────────────────────────── */
+    // Products surfaced in the personalized rails (مختار لك / اطلبها مجدداً / مدينتك)
+    // shouldn't repeat in the global shell rails below. Remove the duplicates client-side
+    // (the shell is page-cached, so this can't be done server-side per visitor).
+    function pidOf(li) {
+        var m = (li.className || '').match(/(?:^|\s)post-(\d+)/);
+        return m ? m[1] : null;
+    }
+    function dedupeShellRails() {
+        var seen = {};
+        ['foryou', 'buyagain', 'incity'].forEach(function (k) {
+            var slot = document.querySelector('.zb-home [data-zb-feed="' + k + '"]');
+            if (!slot) { return; }
+            slot.querySelectorAll('li.product').forEach(function (li) {
+                var p = pidOf(li); if (p) { seen[p] = 1; }
+            });
+        });
+        if (!Object.keys(seen).length) { return; }
+        var removed = false;
+        document.querySelectorAll('.zb-home .zb-rail').forEach(function (rail) {
+            if (rail.closest('[data-zb-feed]')) { return; } // skip the personalized rails themselves
+            rail.querySelectorAll('li.product').forEach(function (li) {
+                var p = pidOf(li);
+                if (p && seen[p]) { li.parentNode && li.parentNode.removeChild(li); removed = true; }
+            });
+        });
+        // Let the rail arrow/fit logic recompute after card removal.
+        if (removed) { window.dispatchEvent(new Event('resize')); }
+        removeEmptyRails();
+    }
+
+    // Drop any rail whose products were all removed by dedup (e.g. "most wanted"
+    // fully overlapping the in-city rail) so no empty titled section is left behind.
+    function removeEmptyRails() {
+        document.querySelectorAll('.zb-home .zb-rail:not(.zb-rail--skel)').forEach(function (rail) {
+            if (!rail.querySelector('li.product')) {
+                var slot = rail.closest('.zb-home-slot');
+                remove(slot && !slot.querySelector('li.product') ? slot : rail);
+            }
+        });
+    }
 
     /* ── rails: arrows + click tracking ──────────── */
     // Move the delivery badge out of the image overlay to sit just above the product
@@ -132,7 +177,6 @@
     function initRails(scope) {
         (scope || document).querySelectorAll('.zb-rail:not(.zb-rail--bound)').forEach(function (rail) {
             rail.classList.add('zb-rail--bound');
-            relocateBadges(rail);
             var scroller = rail.querySelector('.zb-rail__scroller');
             var prev = rail.querySelector('.zb-rail__arrow--prev');
             var next = rail.querySelector('.zb-rail__arrow--next');
@@ -240,8 +284,107 @@
         });
     }
 
+    /* ── hero slider ─────────────────────────────── */
+    function initHero() {
+        var hero = document.querySelector('.zb-hero');
+        if (!hero || hero.dataset.bound) { return; }
+        hero.dataset.bound = '1';
+        var track = hero.querySelector('.zb-hero__track');
+        var slides = hero.querySelectorAll('.zb-hero__slide');
+        if (!track || slides.length === 0) { return; }
+
+        var dots = hero.querySelectorAll('.zb-hero__dot');
+        var n = slides.length, idx = 0, timer = null;
+        var delay = parseInt(hero.getAttribute('data-zb-autoplay') || '6000', 10);
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function go(i) {
+            idx = (i + n) % n;
+            track.style.transform = 'translateX(' + (-idx * 100) + '%)';
+            for (var d = 0; d < dots.length; d++) { dots[d].classList.toggle('is-active', d === idx); }
+            trackCampaign(slides[idx]);
+        }
+        function next() { go(idx + 1); }
+        function prev() { go(idx - 1); }
+        function start() { if (n > 1 && !reduce && !timer) { timer = setInterval(next, delay); } }
+        function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+        var seenCamp = {};
+        function trackCampaign(slide) {
+            if (!slide) { return; }
+            var cid = slide.getAttribute('data-zb-campaign');
+            if (cid && !seenCamp[cid]) {
+                seenCamp[cid] = 1;
+                beaconCampaign('impression', slide);
+            }
+        }
+        function beaconCampaign(type, slide) {
+            try {
+                var url = CFG.ajaxUrl; if (!url) { return; }
+                var body = new FormData();
+                body.append('action', 'zooboxi_track');
+                body.append('event_type', type);
+                body.append('anon_id', anonId());
+                body.append('zone', slide.getAttribute('data-zb-zone') || 'home:hero');
+                body.append('ab_variant', slide.getAttribute('data-zb-variant') || 'A');
+                body.append('item_code', slide.getAttribute('data-zb-item') || '');
+                body.append('payload', JSON.stringify({ campaign_id: parseInt(slide.getAttribute('data-zb-campaign') || '0', 10) }));
+                if (type === 'impression' && navigator.sendBeacon) { navigator.sendBeacon(url, body); }
+                else { fetch(url, { method: 'POST', body: body, keepalive: true, credentials: 'same-origin' }); }
+            } catch (e) {}
+        }
+
+        var nextBtn = hero.querySelector('.zb-hero__arrow--next');
+        var prevBtn = hero.querySelector('.zb-hero__arrow--prev');
+        if (nextBtn) { nextBtn.addEventListener('click', function (e) { e.preventDefault(); next(); stop(); start(); }); }
+        if (prevBtn) { prevBtn.addEventListener('click', function (e) { e.preventDefault(); prev(); stop(); start(); }); }
+        for (var d = 0; d < dots.length; d++) {
+            (function (di) { dots[di].addEventListener('click', function (e) { e.preventDefault(); go(di); stop(); start(); }); })(d);
+        }
+
+        // Click attribution for campaign slides.
+        for (var s = 0; s < slides.length; s++) {
+            slides[s].addEventListener('click', function () {
+                if (this.getAttribute('data-zb-campaign')) { beaconCampaign('click', this); }
+            });
+        }
+
+        // Touch swipe (RTL-aware via physical deltaX).
+        var x0 = null;
+        hero.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; stop(); }, { passive: true });
+        hero.addEventListener('touchend', function (e) {
+            if (x0 === null) { return; }
+            var dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); }
+            x0 = null; start();
+        }, { passive: true });
+
+        hero.addEventListener('mouseenter', stop);
+        hero.addEventListener('mouseleave', start);
+        document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+
+        go(0);
+        start();
+    }
+
+    /* ── brand HTML hero: scale the fixed 1600×600 stage to the slide width ── */
+    function scaleBrandHero() {
+        document.querySelectorAll('.zb-bh-wrap').forEach(function (wrap) {
+            var stage = wrap.querySelector('.zb-bh');
+            if (!stage) { return; }
+            var w = wrap.clientWidth;
+            if (w > 0) { stage.style.transform = 'scale(' + (w / 1600) + ')'; }
+        });
+    }
+    window.addEventListener('resize', scaleBrandHero);
+
     /* ── boot ────────────────────────────────────── */
     function boot() {
+        scaleBrandHero();
+        initHero();
+        // Re-scale once fonts/images settle (clientWidth can be 0 pre-layout).
+        setTimeout(scaleBrandHero, 60);
+        setTimeout(scaleBrandHero, 400);
         initRails(document); // shell rails are already in the DOM
         observe(document);
         hydrate();

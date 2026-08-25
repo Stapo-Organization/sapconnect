@@ -246,12 +246,14 @@ class Zooboxi_OTP_Popup
 
         .zbx-otp-phone-display { font-weight: 700; color: #333; direction: ltr; unicode-bidi: embed; }
 
-        /* Spinner */
+        /* Spinner — its OWN keyframes: zbx-otp-spin belongs to the translate-centered
+           button ::after; sharing it made this margin-centered spinner orbit/jump. */
         .zbx-otp-spinner {
             width: 36px; height: 36px; margin: 16px auto 0;
             border: 3px solid #e0e0e0; border-top-color: #429d9c;
-            border-radius: 50%; animation: zbx-otp-spin 0.7s linear infinite;
+            border-radius: 50%; animation: zbx-otp-spin-center 0.7s linear infinite;
         }
+        @keyframes zbx-otp-spin-center { to { transform: rotate(360deg); } }
 
         /* Mobile */
         @media (max-width: 480px) {

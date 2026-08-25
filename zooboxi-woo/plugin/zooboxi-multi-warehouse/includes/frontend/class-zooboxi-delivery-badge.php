@@ -144,7 +144,7 @@ class Zooboxi_Delivery_Badge
             <div class="zooboxi-delivery-info__header">
                 <div class="zooboxi-delivery-info__location">
                     <span>📍</span>
-                    <span><?php echo esc_html(sprintf(__('التوصيل إلى: %s', 'zooboxi'), $locationText)); ?></span>
+                    <span><?php echo esc_html(sprintf(__('التوصيل إلى: %s', 'zooboxi'), function_exists('zooboxi_city_ar') ? zooboxi_city_ar($locationText) : $locationText)); ?></span>
                 </div>
                 <a href="#" class="zooboxi-change-location zooboxi-delivery-info__change"><?php esc_html_e('تغيير', 'zooboxi'); ?></a>
             </div>

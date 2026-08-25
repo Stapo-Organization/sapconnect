@@ -3,10 +3,20 @@
  * Zooboxi Child Theme for Astra
  */
 
+// ═══════════ MODULES ═══════════
+require_once get_stylesheet_directory() . '/inc/zbx-account.php';
+require_once get_stylesheet_directory() . '/inc/zbx-wishlist.php';
+require_once get_stylesheet_directory() . '/inc/zbx-card.php';
+require_once get_stylesheet_directory() . '/inc/zbx-stock-order.php';
+
 // ═══════════ STYLES & SCRIPTS ═══════════
 add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style('zooboxi-child', get_stylesheet_uri(), ['astra-theme-css'], time());
-    wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&family=Tajawal:wght@400;500;600;700;800&display=swap', [], null);
+    wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;700;800&family=El+Messiri:wght@400;500;600;700&family=Tajawal:wght@400;500;600;700;800&display=swap', [], null);
+    wp_enqueue_script('zooboxi-delight', get_stylesheet_directory_uri() . '/js/zbx-delight.js', ['jquery'], time(), true);
+    if (function_exists('is_checkout') && is_checkout()) {
+        wp_enqueue_script('zooboxi-checkout', get_stylesheet_directory_uri() . '/js/zbx-checkout.js', ['jquery'], time(), true);
+    }
 });
 
 // ═══════════ TOAST NOTIFICATION AUTO-DISMISS ═══════════
@@ -66,7 +76,7 @@ function zooboxi_custom_exact_header() {
     $has_location = !empty($cookie_city);
     
     if ($has_location) {
-        $location_text = $cookie_city;
+        $location_text = function_exists('zooboxi_city_ar') ? zooboxi_city_ar($cookie_city) : $cookie_city;
         if (!empty($cookie_district)) {
             $location_text .= '، ' . $cookie_district;
         }
@@ -75,6 +85,7 @@ function zooboxi_custom_exact_header() {
     }
 
     $cart_count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0;
+    $fav_count  = function_exists('zooboxi_wishlist_count') ? zooboxi_wishlist_count() : 0;
     $upload_dir = wp_upload_dir();
     $logo_url = $upload_dir['baseurl'] . '/zooboxi-assets/ceb32bf7-abc5-4b15-b88f-9002f9eb27c9-200x.png';
 
@@ -114,6 +125,7 @@ function zooboxi_custom_exact_header() {
             <a href="' . home_url('/') . '" class="zbx-drawer-link">🏠 ' . __('الرئيسية', 'zooboxi') . '</a>
             <a href="' . wc_get_page_permalink('shop') . '" class="zbx-drawer-link">🛍️ ' . __('المتجر', 'zooboxi') . '</a>
             <a href="' . wc_get_page_permalink('myaccount') . '" class="zbx-drawer-link">👤 ' . __('حسابي', 'zooboxi') . '</a>
+            <a href="' . esc_url(function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url('wishlist') : wc_get_page_permalink('myaccount')) . '" class="zbx-drawer-link">💚 ' . __('المفضلة', 'zooboxi') . '</a>
             <a href="' . wc_get_cart_url() . '" class="zbx-drawer-link">🛒 ' . __('السلة', 'zooboxi') . '</a>
             <a href="' . wc_get_page_permalink('checkout') . '" class="zbx-drawer-link">💳 ' . __('إتمام الطلب', 'zooboxi') . '</a>';
     }
@@ -165,7 +177,9 @@ function zooboxi_custom_exact_header() {
                         </div>
                     </div>
 
-                    <a href="' . wc_get_page_permalink('myaccount') . '" class="icon-btn zbx-hide-mobile">' . $icon_heart . '</a>
+                    <a href="' . esc_url(function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url('wishlist') : wc_get_page_permalink('myaccount')) . '" class="icon-btn zbx-hide-mobile zbx-fav-link" title="' . esc_attr__('المفضلة', 'zooboxi') . '">' . $icon_heart . '
+                        <span class="count zbx-fav-count' . ($fav_count ? '' : ' is-empty') . '">' . esc_html($fav_count) . '</span>
+                    </a>
                     <a href="' . wc_get_page_permalink('myaccount') . '" class="icon-btn zbx-hide-mobile">' . $icon_user . '</a>
                     <a href="' . wc_get_cart_url() . '" class="icon-btn cart-btn">
                         ' . $icon_cart . '
@@ -299,100 +313,140 @@ add_action('wp_footer', function() {
     </script>";
 }, 100);
 
-// ═══════════ PRODUCT PAGE SWATCH BUTTONS ═══════════
-add_action('wp_footer', function() {
+// ═══════════ PRODUCT OPTIONS — CHOICE CARDS WITH PRICES ═══════════
+// Woo's <select> hides the one fact that decides the purchase: what each
+// option costs. Render real choice cards (label + price + stock) instead.
+add_action('wp_footer', function () {
     if (!is_product()) return;
     ?>
     <script>
-    jQuery(function($){
-        // Emoji map for common keywords
+    jQuery(function ($) {
         var emojiMap = {
+            'كرتون':'📦','صندوق':'📦','حبة':'🥫','حبات':'🥫','قطعة':'🥫','عبوة':'🥫','علبة':'🥫','كيس':'🛍️',
+            'carton':'📦','box':'📦','pack':'📦','piece':'🥫','pcs':'🥫',
             'صغير':'🐾','وسط':'🐕','كبير':'🦁','ضخم':'🐘',
-            'small':'🐾','medium':'🐕','large':'🦁','xlarge':'🐘',
-            'جرام':'⚖️','كيلو':'⚖️','kg':'⚖️','g':'⚖️',
-            'حبة':'📦','حبات':'📦','قطعة':'📦','عبوة':'📦','علبة':'📦',
-            'pack':'📦','pcs':'📦','piece':'📦','box':'📦',
-            'دجاج':'🍗','لحم':'🥩','سمك':'🐟','سلمون':'🐟','تونة':'🐟',
-            'chicken':'🍗','beef':'🥩','fish':'🐟','salmon':'🐟','tuna':'🐟',
-            'lamb':'🐑','turkey':'🦃','duck':'🦆','shrimp':'🦐',
-            'أحمر':'🔴','أزرق':'🔵','أخضر':'🟢','أسود':'⚫','أبيض':'⚪',
-            'أصفر':'🟡','وردي':'🩷','بنفسجي':'🟣','برتقالي':'🟠',
-            'red':'🔴','blue':'🔵','green':'🟢','black':'⚫','white':'⚪',
-            'yellow':'🟡','pink':'🩷','purple':'🟣','orange':'🟠','brown':'🟤'
+            'small':'🐾','medium':'🐕','large':'🦁',
+            'دجاج':'🍗','لحم':'🥩','سمك':'🐟','سلمون':'🐟','تونة':'🐟','جمبري':'🦐',
+            'chicken':'🍗','beef':'🥩','fish':'🐟','salmon':'🐟','tuna':'🐟'
         };
-
         function getEmoji(text) {
-            var lower = text.toLowerCase();
-            for (var key in emojiMap) {
-                if (lower.indexOf(key.toLowerCase()) !== -1) return emojiMap[key];
-            }
+            var lower = (text || '').toLowerCase();
+            for (var k in emojiMap) { if (lower.indexOf(k.toLowerCase()) !== -1) return emojiMap[k]; }
             return '🏷️';
         }
 
-        // Convert each select in the variation form
-        $('form.variations_form .variations select').each(function(){
+        var $form = $('form.variations_form');
+        if (!$form.length) return;
+
+        var variations = [];
+        try { variations = $form.data('product_variations') || JSON.parse($form.attr('data-product_variations') || '[]'); } catch (e) { variations = []; }
+        var $selects = $form.find('.variations select');
+        var singleAttribute = $selects.length === 1;
+
+        function infoFor(attrName, value) {
+            if (!singleAttribute || !variations || !variations.length) return null;
+            for (var i = 0; i < variations.length; i++) {
+                var a = variations[i].attributes || {};
+                if (String(a[attrName] || '').toLowerCase() === String(value).toLowerCase()) return variations[i];
+            }
+            return null;
+        }
+
+        $selects.each(function () {
             var $select = $(this);
-            // Skip if already converted
             if ($select.data('swatch-done')) return;
             $select.data('swatch-done', true);
-
-            // Hide the select
             $select.hide();
 
-            // Create swatch group
+            var attrName = $select.attr('name');
             var $group = $('<div class="zbx-swatch-group"></div>');
+            var count = 0;
 
-            $select.find('option').each(function(){
+            $select.find('option').each(function () {
                 var val = $(this).val();
-                if (!val) return; // skip empty "Choose an option"
+                if (!val) return;
+                count++;
                 var label = $(this).text();
-                var emoji = getEmoji(label);
-                var $btn = $('<button type="button" class="zbx-swatch-btn" data-value="'+val+'">'+
-                    '<span class="zbx-swatch-emoji">'+emoji+'</span>'+
-                    '<span class="zbx-swatch-label">'+label+'</span>'+
-                    '</button>');
+                var info = infoFor(attrName, val);
+                var priceHtml = info && info.price_html ? info.price_html : '';
+                var outOfStock = info ? (info.is_in_stock === false) : false;
+
+                var $btn = $('<button type="button" class="zbx-swatch-btn"></button>')
+                    .attr('data-value', val)
+                    .toggleClass('zbx-swatch-oos', outOfStock)
+                    .append($('<span class="zbx-swatch-emoji" aria-hidden="true"></span>').text(getEmoji(label)))
+                    .append($('<span class="zbx-swatch-body"></span>')
+                        .append($('<span class="zbx-swatch-label"></span>').text(label))
+                        .append(priceHtml ? $('<span class="zbx-swatch-price"></span>').html(priceHtml) : '')
+                        .append(outOfStock ? $('<span class="zbx-swatch-oos-note"></span>').text('غير متوفر') : ''));
                 $group.append($btn);
             });
 
-            // Insert after the select (or its parent td)
             var $parent = $select.closest('td.value');
-            if ($parent.length) {
-                $parent.append($group);
-            } else {
-                $select.after($group);
-            }
+            ($parent.length ? $parent : $select.parent()).append($group);
 
-            // Click handler
-            $group.on('click', '.zbx-swatch-btn', function(e){
+            $group.on('click', '.zbx-swatch-btn', function (e) {
                 e.preventDefault();
                 var $btn = $(this);
-                var val = $btn.data('value');
-
+                if ($btn.hasClass('zbx-swatch-oos')) return;
                 if ($btn.hasClass('zbx-swatch-active')) {
-                    // Deselect
                     $btn.removeClass('zbx-swatch-active');
                     $select.val('').trigger('change');
                 } else {
-                    // Select
                     $group.find('.zbx-swatch-btn').removeClass('zbx-swatch-active');
                     $btn.addClass('zbx-swatch-active');
-                    $select.val(val).trigger('change');
+                    $select.val($btn.attr('data-value')).trigger('change');
                 }
+                syncHint();
             });
 
-            // Sync: if WC changes the select externally, update swatches
-            $select.on('change', function(){
-                var currentVal = $(this).val();
+            $select.on('change', function () {
+                var v = $(this).val();
                 $group.find('.zbx-swatch-btn').removeClass('zbx-swatch-active');
-                if (currentVal) {
-                    $group.find('.zbx-swatch-btn[data-value="'+currentVal+'"]').addClass('zbx-swatch-active');
-                }
+                if (v) $group.find('.zbx-swatch-btn[data-value="' + v + '"]').addClass('zbx-swatch-active');
+                syncHint();
             });
+
+            // a single option is not a choice — pick it for the customer
+            if (count === 1) {
+                $group.find('.zbx-swatch-btn').first().trigger('click');
+            }
         });
+
+        // Tell the customer WHY the button is asleep
+        var $hint = $('<div class="zbx-choose-hint">👆 اختر أحد الخيارات بالأعلى لعرض السعر وإضافة المنتج</div>');
+        $form.find('.woocommerce-variation-add-to-cart, .single_variation_wrap').first().before($hint);
+
+        function syncHint() {
+            var chosen = true;
+            $selects.each(function () { if (!$(this).val()) chosen = false; });
+            $hint.toggle(!chosen);
+        }
+        syncHint();
+        $form.on('found_variation', function () { $hint.hide(); })
+             .on('reset_data', function () { syncHint(); });
     });
     </script>
     <?php
 }, 50);
+
+// ═══════════ PRODUCT PAGE CLEANUP ═══════════
+// Hide the SKU line when there is no SKU (it printed "رمز المنتج: غير محدد").
+add_filter('wc_product_sku_enabled', function ($enabled) {
+    if (!is_product()) return $enabled;
+    global $product;
+    return ($product instanceof WC_Product && $product->get_sku()) ? $enabled : false;
+});
+
+// A clearer label than the raw attribute name ("اختر").
+add_filter('woocommerce_attribute_label', function ($label, $name) {
+    if (get_locale() !== 'ar') return $label;
+    $n = strtolower((string) $name);
+    if ($n === 'pa_choose-opt' || trim((string) $label) === 'اختر') {
+        return 'اختر الخيار';
+    }
+    return $label;
+}, 10, 2);
 
 // ═══════════ STICKY HEADER SHADOW ═══════════
 add_action('wp_footer', function() {
@@ -483,18 +537,24 @@ add_action('woocommerce_before_cart_totals', function() {
     if (!WC()->cart) return;
     
     $cart_subtotal = WC()->cart->get_subtotal();
-    $free_shipping_threshold = 250;
+    // Single source of truth: read the same threshold the shipping methods use
+    // (Zooboxi plugin option), so the bar and the actual free-shipping never disagree.
+    $free_shipping_threshold = (float) get_option('zooboxi_free_shipping_min', 200);
     
-    echo '<div class="zooboxi-shipping-progress-wrapper" style="border: none; background: transparent; padding: 0; margin-bottom: 20px;">';
+    echo '<div class="zooboxi-shipping-progress-wrapper">';
     if ($cart_subtotal >= $free_shipping_threshold) {
-        echo '<div class="zooboxi-shipping-progress-msg" style="display: flex; align-items: center; color: #2db87b; font-weight: 600; font-size: 14px; gap: 8px; justify-content: flex-start; text-align: right;">';
-        echo '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="background: rgba(45,184,123,0.1); border-radius: 50%; padding: 2px; color: #2db87b;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-        echo 'حصلت على شحن مجاني';
+        echo '<div class="zooboxi-shipping-progress-msg zbx-ship-won">';
+        echo '<span class="zbx-ship-icon" aria-hidden="true">🎉</span>';
+        echo '<span>توصيلك <strong>مجاني</strong> على هذا الطلب</span>';
         echo '</div>';
+        echo '<div class="zooboxi-shipping-progress-bar is-full"><span style="width:100%"></span></div>';
     } else {
-        $remaining = $free_shipping_threshold - $cart_subtotal;
-        $percentage = ($cart_subtotal / $free_shipping_threshold) * 100;
-        echo '<div class="zooboxi-shipping-progress-msg">🚚 متبقي لك <strong>' . number_format($remaining, 2) . ' ر.س</strong> فقط للحصول على <strong>شحن مجاني</strong>!</div>';
+        $remaining   = $free_shipping_threshold - $cart_subtotal;
+        $percentage  = max(4, min(100, ($cart_subtotal / $free_shipping_threshold) * 100));
+        echo '<div class="zooboxi-shipping-progress-msg">';
+        echo '<span class="zbx-ship-icon" aria-hidden="true">🚚</span>';
+        echo '<span>أضف <strong>' . wc_price($remaining) . '</strong> ليصبح توصيلك مجانياً</span>';
+        echo '</div>';
         echo '<div class="zooboxi-shipping-progress-bar"><span style="width: ' . $percentage . '%;"></span></div>';
     }
     echo '</div>';
@@ -686,7 +746,7 @@ add_filter('woocommerce_add_to_cart_fragments', function($fragments) {
 
 // ═══════════ SHOP LOOP QUANTITY STEPPER ═══════════
 add_action('wp_footer', function() {
-    if (!is_shop() && !is_product_category() && !is_product_tag() && !is_search()) return;
+    if (!is_shop() && !is_product_category() && !is_product_tag() && !is_search() && !is_front_page() && !is_home()) return;
     
     // Pass current cart data to JS on page load
     $cart_data = [];
@@ -716,12 +776,34 @@ add_action('wp_footer', function() {
 
         // On page load: replace buttons for products already in cart
         // Only target buttons NOT inside thumbnail wrap (avoid Astra on-card quick button)
-        var mainBtnSelector = 'li.product > a.add_to_cart_button, .astra-shop-summary-wrap a.add_to_cart_button';
+        var mainBtnSelector = 'li.product a.add_to_cart_button';
 
-        function initSteppers() {
-            $(mainBtnSelector).each(function(){
+        // Group the price + the action control into one flex row (".zb-card-foot")
+        // so the circular icon sits beside the price (and the stepper takes its place
+        // on click). Idempotent — safe to re-run after hydration / fragment refresh.
+        function wrapFoot(scope) {
+            var $scope = scope ? $(scope) : $(document);
+            $scope.find('li.product .astra-shop-summary-wrap').each(function(){
+                var $s = $(this);
+                if ($s.children('.zb-card-foot').length) return;
+                var $price = $s.children('.price').first();
+                var $act = $s.children('a.add_to_cart_button, .zbx-qty-stepper').first();
+                if (!$act.length) $act = $s.children('a.button').first();
+                if (!$price.length && !$act.length) return;
+                var $foot = $('<div class="zb-card-foot"></div>');
+                $s.append($foot);
+                if ($price.length) $foot.append($price);
+                if ($act.length) $foot.append($act);
+            });
+        }
+
+        function initSteppers(scope) {
+            var $scope = scope ? $(scope) : $(document);
+            $scope.find(mainBtnSelector).each(function(){
                 var $btn = $(this);
                 if ($btn.closest('.astra-shop-thumbnail-wrap').length) return; // skip thumbnail buttons
+                if ($btn.hasClass('ast-on-card-button')) return; // skip Astra's duplicate on-card button
+                if ($btn.hasClass('product_type_variable') || $btn.hasClass('product_type_grouped')) return; // steppers are simple-only
                 var pid = $btn.data('product_id');
                 if (pid && cartData[pid] && cartData[pid].qty > 0) {
                     var $stepper = $(createStepper(pid, cartData[pid].qty));
@@ -730,7 +812,12 @@ add_action('wp_footer', function() {
                 }
             });
         }
-        initSteppers();
+
+        function refreshCards(scope) { wrapFoot(scope); initSteppers(scope); }
+        refreshCards(document);
+        // Expose so the homepage hydration (zooboxi-home.js) can re-run on injected rails.
+        window.zbxCards = { refresh: refreshCards };
+        $(document.body).on('wc_fragments_refreshed wc_fragments_loaded', function(){ refreshCards(document); });
 
         // After AJAX add to cart: replace button with stepper
         $(document.body).on('added_to_cart', function(e, fragments, cart_hash, $btn){
@@ -750,8 +837,7 @@ add_action('wp_footer', function() {
 
             // Find the MAIN button for this product (not thumbnail one)
             var $card = $btn.closest('li.product');
-            var $mainBtn = $card.children('a.add_to_cart_button[data-product_id="'+pid+'"]');
-            if (!$mainBtn.length) $mainBtn = $card.find('.astra-shop-summary-wrap a.add_to_cart_button[data-product_id="'+pid+'"]');
+            var $mainBtn = $card.find('a.add_to_cart_button[data-product_id="'+pid+'"]').not('.ast-on-card-button').first();
             if (!$mainBtn.length) $mainBtn = $btn; // fallback
 
             // Only replace if not inside thumbnail
@@ -1105,7 +1191,7 @@ function zooboxi_quick_view() {
 
 // Modal HTML + JS
 add_action('wp_footer', function() {
-    if (!is_shop() && !is_product_category() && !is_product_tag() && !is_search()) return;
+    if (!is_shop() && !is_product_category() && !is_product_tag() && !is_search() && !is_front_page() && !is_home()) return;
     ?>
     <!-- Quick View Modal -->
     <div id="zbx-quick-view-overlay" class="zbx-qv-overlay" style="display:none;">
@@ -1318,6 +1404,32 @@ add_action('wp_footer', function() {
     </script>
     <?php
 }, 98);
+
+// ═══════════ PRODUCT CARD BRAND LOGO CHIP (store-wide) ═══════════
+// Shows the product's brand logo in the top-end corner of every card.
+// Source: product_brand taxonomy → term meta thumbnail_id (4113/4330 products
+// have a brand; 73/86 brands have a logo → text-name chip is the fallback).
+add_action('woocommerce_before_shop_loop_item_title', 'zooboxi_card_brand_chip', 9);
+function zooboxi_card_brand_chip() {
+    global $product;
+    if (!($product instanceof WC_Product)) return;
+    static $cache = [];
+    $terms = get_the_terms($product->get_id(), 'product_brand');
+    if (empty($terms) || is_wp_error($terms)) return;
+    $t = $terms[0];
+    if (!array_key_exists($t->term_id, $cache)) {
+        $logo_id = get_term_meta($t->term_id, 'thumbnail_id', true);
+        // 'medium' (soft-crop) — NOT 'thumbnail': that size hard-crops to a 150×150
+        // square and beheads wide wordmark logos (Applaws → "pplaws").
+        $cache[$t->term_id] = $logo_id ? wp_get_attachment_image_url((int) $logo_id, 'medium') : '';
+    }
+    $logo = $cache[$t->term_id];
+    if ($logo) {
+        echo '<span class="zb-card-brand"><img src="' . esc_url($logo) . '" alt="' . esc_attr($t->name) . '" loading="lazy"></span>';
+    } else {
+        echo '<span class="zb-card-brand zb-card-brand--text">' . esc_html($t->name) . '</span>';
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // ██ SUBCATEGORY NAVIGATION + PROFESSIONAL FILTERS (Zooboxi v4.0)
@@ -2419,8 +2531,12 @@ add_action('wp_footer', function() {
 add_filter('astra_footer_copyright_section_1', '__return_empty_string');
 add_filter('astra_footer_copyright_section_2', '__return_empty_string');
 
-// Hide Astra footer via CSS and render custom one
+// Hide Astra footer via CSS and render our custom, on-brand footer.
 add_action('wp_footer', function() {
+    if (is_admin()) return;
+    $year = date('Y');
+    $acc  = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : '/my-account/';
+    $cart = function_exists('wc_get_cart_url') ? wc_get_cart_url() : '/cart/';
     ?>
     <style>
     /* Hide Astra default footer */
@@ -2430,234 +2546,262 @@ add_action('wp_footer', function() {
 
     /* ═══ Zooboxi Custom Footer ═══ */
     .zbx-footer {
-        background: linear-gradient(135deg, #f0f7f4 0%, #e8f4ef 50%, #f5f0e8 100%);
-        padding: 0 16px 100px;
+        --zf-teal: var(--z-primary, #429d9c);
+        --zf-teal-d: var(--z-primary-dark, #2d7a79);
+        --zf-coral: var(--z-icons, #d46856);
+        --zf-ink: var(--z-text, #2c3e2d);
+        --zf-muted: #6b7c6e;
+        background: linear-gradient(180deg, #f3faf8 0%, #eef6f1 60%, #f6f1ea 100%);
+        padding: 46px 16px 100px;
         font-family: 'Tajawal', sans-serif;
         direction: rtl;
     }
+    .zbx-footer * { box-sizing: border-box; }
     .zbx-footer-inner {
+        position: relative;
         max-width: 1200px;
         margin: 0 auto;
-        border: 2px solid #b8d8c8;
-        border-radius: 24px;
-        padding: 36px 32px 28px;
-        background: rgba(255,255,255,0.5);
-        backdrop-filter: blur(8px);
+        border: 1px solid rgba(66,157,156,0.18);
+        border-radius: 26px;
+        background: #fff;
+        box-shadow: 0 18px 50px rgba(44,62,45,0.07);
+        overflow: hidden;
     }
-
-    /* Top: Logo + Description + Registration Info */
-    .zbx-footer-top {
-        display: flex;
-        align-items: flex-start;
-        gap: 28px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-    }
-
-    .zbx-footer-brand {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        flex: 1;
-        min-width: 280px;
-    }
-    .zbx-footer-logo {
-        width: 80px;
-        height: 80px;
-        border-radius: 16px;
-        object-fit: contain;
-        flex-shrink: 0;
-    }
-    .zbx-footer-desc {
-        font-size: 14px;
-        color: #444;
-        line-height: 1.8;
-        font-weight: 500;
-    }
-
-    /* Registration cards */
-    .zbx-footer-registrations {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-        flex: 1;
-        justify-content: flex-end;
-        min-width: 280px;
-    }
-    .zbx-footer-reg-card {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        background: rgba(255,255,255,0.7);
-        border-radius: 14px;
-        border: 1px solid #e0e8e4;
-    }
-    .zbx-footer-reg-icon {
-        width: 42px;
-        height: 42px;
-        flex-shrink: 0;
-    }
-    .zbx-footer-reg-info {
-        text-align: center;
-    }
-    .zbx-footer-reg-label {
+    .zbx-footer-inner::before {
+        content: "";
         display: block;
-        font-size: 11px;
-        font-weight: 600;
-        color: #888;
-        margin-bottom: 2px;
+        height: 5px;
+        background: linear-gradient(90deg, var(--zf-teal), var(--zf-coral));
     }
-    .zbx-footer-reg-value {
-        display: block;
-        font-size: 14px;
-        font-weight: 700;
-        color: #333;
-        direction: ltr;
-        unicode-bidi: plaintext;
-    }
+    .zbx-footer-pad { padding: 36px 34px 26px; }
 
-    /* Divider */
-    .zbx-footer-divider {
-        height: 1px;
-        background: linear-gradient(to left, transparent, #c8ddd0, transparent);
-        margin: 20px 0;
-    }
-
-    /* Bottom: Links + Copyright + Payment */
-    .zbx-footer-bottom {
-        display: flex;
-        align-items: flex-start;
+    /* Top grid */
+    .zbx-footer-grid {
+        display: grid;
+        grid-template-columns: 1.7fr 1fr 1.1fr 1fr;
         gap: 32px;
-        flex-wrap: wrap;
     }
-
-    .zbx-footer-links {
-        flex: 1;
-        min-width: 200px;
+    .zbx-footer-col h4 {
+        font-family: 'El Messiri', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--zf-ink);
+        margin: 0 0 14px;
+        position: relative;
+        padding-bottom: 10px;
     }
-    .zbx-footer-links a {
+    .zbx-footer-col h4::after {
+        content: "";
+        position: absolute;
+        inset-inline-start: 0;
+        bottom: 0;
+        width: 34px;
+        height: 3px;
+        border-radius: 3px;
+        background: var(--zf-coral);
+    }
+    .zbx-footer-col a {
         display: block;
-        color: #444;
+        color: #4a5a4c;
         text-decoration: none;
         font-size: 14px;
         font-weight: 600;
-        padding: 6px 0;
-        transition: all 0.2s;
+        padding: 7px 0;
+        transition: color 0.2s ease, transform 0.2s ease;
     }
-    .zbx-footer-links a:hover {
-        color: #d46856;
-        padding-right: 8px;
-    }
+    .zbx-footer-col a:hover { color: var(--zf-coral); transform: translateX(-5px); }
 
-    .zbx-footer-meta {
-        flex: 1;
-        text-align: center;
-        min-width: 200px;
+    /* Brand column */
+    .zbx-footer-brand { display: flex; flex-direction: column; gap: 14px; max-width: 350px; }
+    .zbx-footer-logo-tile {
+        width: 84px; height: 84px; border-radius: 18px; background: #fff;
+        box-shadow: 0 6px 18px rgba(66,157,156,0.12);
+        display: inline-flex; align-items: center; justify-content: center; padding: 8px;
     }
-    .zbx-footer-copyright-text {
-        font-size: 13px;
-        color: #777;
-        font-weight: 600;
-        margin-bottom: 12px;
+    .zbx-footer-logo-tile img { width: 100%; height: 100%; object-fit: contain; }
+    .zbx-footer-desc { font-size: 14px; color: var(--zf-muted); line-height: 1.9; font-weight: 500; margin: 0; }
+    .zbx-footer-contact {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--zf-teal-d); font-weight: 700; font-size: 14px; text-decoration: none;
+        direction: ltr; unicode-bidi: plaintext; width: fit-content;
     }
-    .zbx-footer-payments {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
+    .zbx-footer-contact:hover { color: var(--zf-coral); }
+
+    /* Trust strip (registrations) */
+    .zbx-footer-trust {
+        display: flex; gap: 14px; flex-wrap: wrap;
+        margin-top: 28px; padding-top: 24px;
+        border-top: 1px dashed rgba(66,157,156,0.25);
     }
+    .zbx-footer-reg-card {
+        display: flex; align-items: center; gap: 11px;
+        padding: 12px 16px; background: #f7faf8;
+        border: 1px solid rgba(66,157,156,0.14); border-radius: 16px;
+        flex: 1; min-width: 210px; transition: all 0.25s ease;
+    }
+    .zbx-footer-reg-card:hover {
+        border-color: var(--zf-teal);
+        box-shadow: 0 8px 20px rgba(66,157,156,0.12);
+        transform: translateY(-2px);
+    }
+    .zbx-footer-reg-iconwrap {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: rgba(66,157,156,0.10);
+        display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .zbx-footer-reg-iconwrap img { width: 26px; height: 26px; }
+    .zbx-footer-reg-label { display: block; font-size: 11px; font-weight: 600; color: var(--zf-muted); margin-bottom: 3px; }
+    .zbx-footer-reg-value { display: block; font-size: 14px; font-weight: 800; color: var(--zf-ink); direction: ltr; unicode-bidi: plaintext; letter-spacing: 0.3px; }
+
+    /* Bottom bar */
+    .zbx-footer-bottom {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 18px; flex-wrap: wrap; margin-top: 22px; padding-top: 20px;
+        border-top: 1px solid #eef2ee;
+    }
+    .zbx-footer-copy { font-size: 13px; color: var(--zf-muted); font-weight: 700; }
+    .zbx-footer-made { font-size: 12.5px; color: var(--zf-muted); font-weight: 600; }
+    .zbx-footer-payments { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
     .zbx-footer-payments img {
-        height: 28px;
-        width: auto;
-        border-radius: 6px;
-        background: #fff;
-        padding: 4px 8px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        height: 30px; width: auto; border-radius: 7px; background: #fff;
+        padding: 4px 9px; border: 1px solid #eef2ee; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
 
-    /* Mobile responsive */
+    /* Responsive */
+    @media (max-width: 900px) {
+        .zbx-footer-grid { grid-template-columns: 1fr 1fr; gap: 26px; }
+        .zbx-footer-col--brand { grid-column: 1 / -1; }
+    }
+    /* Mobile: a deliberately tiny, simple footer (nav + drawer cover the rest). */
     @media (max-width: 768px) {
-        .zbx-footer { padding: 0 12px 120px; }
-        .zbx-footer-inner { padding: 24px 18px 20px; }
-        .zbx-footer-top { flex-direction: column; align-items: center; text-align: center; }
-        .zbx-footer-brand { flex-direction: column; text-align: center; }
-        .zbx-footer-registrations { justify-content: center; }
-        .zbx-footer-bottom { flex-direction: column; align-items: center; text-align: center; }
-        .zbx-footer-links { text-align: center; }
-        .zbx-footer-links a:hover { padding-right: 0; }
+        .zbx-footer { padding: 16px 12px 110px; background: #f3faf8; }
+        .zbx-footer-inner { border-radius: 16px; box-shadow: 0 8px 22px rgba(44,62,45,0.06); }
+        .zbx-footer-inner::before { height: 3px; }
+        .zbx-footer-pad { padding: 16px 16px 14px; }
+
+        .zbx-footer-grid { display: block; text-align: center; }
+        /* Shop + account columns are redundant on mobile (bottom nav + drawer). */
+        .zbx-footer-col--shop, .zbx-footer-col--account { display: none; }
+
+        /* Brand → just a small centered logo. */
+        .zbx-footer-col--brand { margin-bottom: 12px; }
+        .zbx-footer-brand { align-items: center; gap: 8px; max-width: none; }
+        .zbx-footer-logo-tile { width: 50px; height: 50px; border-radius: 12px; padding: 6px; margin: 0 auto; }
+        .zbx-footer-desc { display: none; }
+        .zbx-footer-contact { margin: 0 auto; font-size: 12px; }
+
+        /* Policies → one compact inline line with dot separators. */
+        .zbx-footer-col--help { display: block; }
+        .zbx-footer-col--help h4 { display: none; }
+        .zbx-footer-col--help a { display: inline; padding: 0; font-size: 12px; font-weight: 600; color: var(--zf-muted); }
+        .zbx-footer-col--help a::after { content: "•"; margin: 0 7px; color: #cbd6cd; }
+        .zbx-footer-col--help a:last-child::after { content: ""; margin: 0; }
+        .zbx-footer-col--help a:hover { color: var(--zf-coral); transform: none; }
+
+        /* Registrations → tiny borderless chips. */
+        .zbx-footer-trust { margin-top: 12px; padding-top: 10px; gap: 5px; justify-content: center; }
+        .zbx-footer-reg-card { flex: 0 1 auto; min-width: 0; padding: 4px 9px; gap: 4px; }
+        .zbx-footer-reg-card:hover { transform: none; box-shadow: none; }
+        .zbx-footer-reg-iconwrap { display: none; }
+        .zbx-footer-reg-info { display: flex; align-items: baseline; gap: 4px; }
+        .zbx-footer-reg-label { margin: 0; font-size: 9.5px; }
+        .zbx-footer-reg-value { font-size: 10px; font-weight: 700; }
+
+        /* Bottom → tiny, stacked. */
+        .zbx-footer-bottom { flex-direction: column; gap: 7px; margin-top: 12px; padding-top: 12px; text-align: center; }
+        .zbx-footer-payments { gap: 6px; }
+        .zbx-footer-payments img { height: 22px; padding: 3px 6px; }
+        .zbx-footer-copy { font-size: 11px; }
+        .zbx-footer-made { font-size: 10.5px; }
     }
     </style>
 
-    <div class="zbx-footer">
+    <footer class="zbx-footer">
         <div class="zbx-footer-inner">
-            <!-- Top: Brand + Registrations -->
-            <div class="zbx-footer-top">
-                <div class="zbx-footer-brand">
-                    <img src="https://store.zooboxi.com/wp-content/uploads/zooboxi-assets/ceb32bf7-abc5-4b15-b88f-9002f9eb27c9-200x.png" 
-                         alt="Zooboxi" class="zbx-footer-logo">
-                    <div class="zbx-footer-desc">
-                        Zooboxi متجرك الإلكتروني المتخصص في مستلزمات الحيوانات الأليفة 🐱🐶.
+            <div class="zbx-footer-pad">
+                <div class="zbx-footer-grid">
+                    <!-- Brand -->
+                    <div class="zbx-footer-col zbx-footer-col--brand">
+                        <div class="zbx-footer-brand">
+                            <span class="zbx-footer-logo-tile">
+                                <img src="https://store.zooboxi.com/wp-content/uploads/zooboxi-assets/ceb32bf7-abc5-4b15-b88f-9002f9eb27c9-200x.png" alt="Zooboxi">
+                            </span>
+                            <p class="zbx-footer-desc">
+                                Zooboxi متجرك الإلكتروني المتخصص في مستلزمات الحيوانات الأليفة 🐱🐶، بتوصيل سريع خلال ساعتين لأنحاء المملكة.
+                            </p>
+                            <a class="zbx-footer-contact" href="mailto:info@zooboxi.com">✉️ info@zooboxi.com</a>
+                        </div>
+                    </div>
+
+                    <!-- Shop by animal -->
+                    <div class="zbx-footer-col zbx-footer-col--shop">
+                        <h4>تسوّق حسب الحيوان</h4>
+                        <a href="/product-category/قطط/">🐱 قطط</a>
+                        <a href="/product-category/كلاب/">🐕 كلاب</a>
+                        <a href="/product-category/طيور/">🦜 طيور</a>
+                        <a href="/product-category/حيوانات-صغيرة/">🐹 حيوانات صغيرة</a>
+                        <a href="/shop/">كل المنتجات</a>
+                    </div>
+
+                    <!-- Customer service -->
+                    <div class="zbx-footer-col zbx-footer-col--help">
+                        <h4>خدمة العملاء</h4>
+                        <a href="/shipping-policy">خيارات الشحن والتوصيل</a>
+                        <a href="/return-policy">سياسة الاستبدال والإرجاع</a>
+                        <a href="/terms-conditions">الشروط والأحكام</a>
+                        <a href="/privacy-policy">سياسة الخصوصية</a>
+                    </div>
+
+                    <!-- Account -->
+                    <div class="zbx-footer-col zbx-footer-col--account">
+                        <h4>حسابك</h4>
+                        <a href="<?php echo esc_url($acc); ?>">👤 حسابي</a>
+                        <a href="<?php echo esc_url($cart); ?>">🛒 سلة التسوق</a>
+                        <a href="<?php echo esc_url($acc); ?>">📦 تتبّع طلباتي</a>
+                        <a href="mailto:info@zooboxi.com">💬 تواصل معنا</a>
                     </div>
                 </div>
 
-                <div class="zbx-footer-registrations">
-                    <!-- Tax Number -->
+                <!-- Trust / registrations -->
+                <div class="zbx-footer-trust">
                     <div class="zbx-footer-reg-card">
-                        <img src="/wp-content/uploads/zooboxi-assets/vat-icon.svg" alt="VAT" class="zbx-footer-reg-icon">
+                        <span class="zbx-footer-reg-iconwrap"><img src="/wp-content/uploads/zooboxi-assets/vat-icon.svg" alt="VAT"></span>
                         <div class="zbx-footer-reg-info">
                             <span class="zbx-footer-reg-label">الرقم الضريبي</span>
                             <span class="zbx-footer-reg-value">310160668400003</span>
                         </div>
                     </div>
-
-                    <!-- Business Platform -->
                     <div class="zbx-footer-reg-card">
-                        <img src="/wp-content/uploads/zooboxi-assets/business-icon.svg" alt="منصة الأعمال" class="zbx-footer-reg-icon">
+                        <span class="zbx-footer-reg-iconwrap"><img src="/wp-content/uploads/zooboxi-assets/business-icon.svg" alt="منصة الأعمال"></span>
                         <div class="zbx-footer-reg-info">
                             <span class="zbx-footer-reg-label">منصة الأعمال</span>
                             <span class="zbx-footer-reg-value">7012580143</span>
                         </div>
                     </div>
-
-                    <!-- Commercial Registration -->
                     <div class="zbx-footer-reg-card">
-                        <img src="/wp-content/uploads/zooboxi-assets/saudi-emblem.svg" alt="السجل التجاري" class="zbx-footer-reg-icon">
+                        <span class="zbx-footer-reg-iconwrap"><img src="/wp-content/uploads/zooboxi-assets/saudi-emblem.svg" alt="السجل التجاري"></span>
                         <div class="zbx-footer-reg-info">
                             <span class="zbx-footer-reg-label">السجل التجاري</span>
                             <span class="zbx-footer-reg-value">7009370755</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="zbx-footer-divider"></div>
-
-            <!-- Bottom: Links + Copyright + Payments -->
-            <div class="zbx-footer-bottom">
-                <div class="zbx-footer-links">
-                    <a href="/shipping-policy">خيارات الشحن والتوصيل</a>
-                    <a href="/terms-conditions">الشروط والأحكام</a>
-                    <a href="/return-policy">سياسة الإستبدال</a>
-                    <a href="/privacy-policy">سياسة الخصوصية</a>
-                </div>
-
-                <div class="zbx-footer-meta">
-                    <div class="zbx-footer-copyright-text">
-                        © ZooBoxi <?php echo date('Y'); ?>. جميع الحقوق محفوظة.
-                    </div>
+                <!-- Bottom bar -->
+                <div class="zbx-footer-bottom">
+                    <div class="zbx-footer-copy">© ZooBoxi <?php echo esc_html($year); ?> — جميع الحقوق محفوظة</div>
+                    <div class="zbx-footer-made">صُنع بحبّ في السعودية 🇸🇦</div>
                     <div class="zbx-footer-payments">
-                        <img src="/wp-content/uploads/zooboxi-assets/pay-tamara.svg" alt="Tamara">
-                        <img src="/wp-content/uploads/zooboxi-assets/pay-mastercard.svg" alt="Mastercard">
-                        <img src="/wp-content/uploads/zooboxi-assets/pay-visa.svg" alt="Visa">
-                        <img src="/wp-content/uploads/zooboxi-assets/pay-mada.svg" alt="mada">
-                        <img src="/wp-content/uploads/zooboxi-assets/pay-applepay.svg" alt="Apple Pay">
+                        <img src="/wp-content/uploads/zooboxi-assets/pay-mada.svg" alt="مدى" loading="lazy">
+                        <img src="/wp-content/uploads/zooboxi-assets/pay-applepay.svg" alt="Apple Pay" loading="lazy">
+                        <img src="/wp-content/uploads/zooboxi-assets/pay-stcpay.svg" alt="STC Pay" loading="lazy">
+                        <img src="/wp-content/uploads/zooboxi-assets/pay-visa.svg" alt="Visa" loading="lazy">
+                        <img src="/wp-content/uploads/zooboxi-assets/pay-mastercard.svg" alt="Mastercard" loading="lazy">
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </footer>
     <?php
 }, 5);
 
@@ -2784,3 +2928,518 @@ add_action('updated_post_meta', function ($meta_id, $post_id, $meta_key, $meta_v
     update_post_meta($post_id, '_zooboxi_sort_priority', $priority);
 }, 10, 4);
 
+
+
+// ═══════════ ARABIC CITY DISPLAY NAMES ═══════════
+// Google reverse-geocoding stores English city names in the location cookie
+// ("Riyadh"). Matching logic stays untouched — this maps DISPLAY ONLY.
+if (!function_exists('zooboxi_city_ar_map')) {
+    function zooboxi_city_ar_map(): array {
+        static $map = [
+            'riyadh' => 'الرياض', 'jeddah' => 'جدة', 'jiddah' => 'جدة',
+            'makkah' => 'مكة المكرمة', 'mecca' => 'مكة المكرمة',
+            'medina' => 'المدينة المنورة', 'madinah' => 'المدينة المنورة', 'al madinah' => 'المدينة المنورة',
+            'dammam' => 'الدمام', 'ad dammam' => 'الدمام', 'khobar' => 'الخبر', 'al khobar' => 'الخبر',
+            'dhahran' => 'الظهران', 'jubail' => 'الجبيل', 'al jubail' => 'الجبيل',
+            'qatif' => 'القطيف', 'hofuf' => 'الهفوف', 'al hofuf' => 'الهفوف',
+            'al ahsa' => 'الأحساء', 'hafar al batin' => 'حفر الباطن',
+            'taif' => 'الطائف', 'at taif' => 'الطائف', 'tabuk' => 'تبوك',
+            'buraydah' => 'بريدة', 'buraidah' => 'بريدة', 'unaizah' => 'عنيزة', 'unayzah' => 'عنيزة',
+            'hail' => 'حائل', "ha'il" => 'حائل', 'abha' => 'أبها',
+            'khamis mushait' => 'خميس مشيط', 'khamis mushayt' => 'خميس مشيط',
+            'najran' => 'نجران', 'jazan' => 'جازان', 'jizan' => 'جازان',
+            'yanbu' => 'ينبع', 'al kharj' => 'الخرج', 'al qassim' => 'القصيم',
+            'sakaka' => 'سكاكا', 'arar' => 'عرعر', 'al baha' => 'الباحة', 'al bahah' => 'الباحة',
+            // regions/provinces as Google reverse-geocoding returns them
+            'riyadh principality' => 'منطقة الرياض', 'riyadh province' => 'منطقة الرياض', 'riyadh region' => 'منطقة الرياض',
+            'makkah province' => 'منطقة مكة المكرمة', 'makkah region' => 'منطقة مكة المكرمة', 'mecca region' => 'منطقة مكة المكرمة',
+            'al madinah province' => 'منطقة المدينة المنورة', 'medina region' => 'منطقة المدينة المنورة', 'al madinah region' => 'منطقة المدينة المنورة',
+            'eastern province' => 'المنطقة الشرقية', 'eastern region' => 'المنطقة الشرقية', 'ash sharqiyah' => 'المنطقة الشرقية',
+            'al qassim province' => 'منطقة القصيم', 'qassim region' => 'منطقة القصيم', 'al qassim region' => 'منطقة القصيم',
+            'asir province' => 'منطقة عسير', 'asir region' => 'منطقة عسير', "'asir region" => 'منطقة عسير',
+            'tabuk province' => 'منطقة تبوك', 'tabuk region' => 'منطقة تبوك',
+            'hail province' => 'منطقة حائل', 'hail region' => 'منطقة حائل', "ha'il region" => 'منطقة حائل',
+            'northern borders province' => 'منطقة الحدود الشمالية', 'northern borders region' => 'منطقة الحدود الشمالية',
+            'jazan province' => 'منطقة جازان', 'jazan region' => 'منطقة جازان',
+            'najran province' => 'منطقة نجران', 'najran region' => 'منطقة نجران',
+            'al bahah province' => 'منطقة الباحة', 'al baha region' => 'منطقة الباحة',
+            'al jawf province' => 'منطقة الجوف', 'al jawf region' => 'منطقة الجوف',
+        ];
+        return $map;
+    }
+}
+if (!function_exists('zooboxi_city_ar')) {
+    function zooboxi_city_ar(string $city): string {
+        $map = zooboxi_city_ar_map();
+        $k = strtolower(trim($city));
+        return $map[$k] ?? $city;
+    }
+}
+
+// ═══════════ CART TOTALS: NO DOUBLE EMOJI ═══════════
+// The package heading already carries the tier emoji (🚀 شحنة التوصيل السريع);
+// the method chip inside repeats it — strip leading emojis from the chip label.
+add_filter('woocommerce_cart_shipping_method_full_label', function ($label, $method) {
+    $label = preg_replace('/^[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{FE0F}\x{200D}]+\s*/u', '', $label);
+    // drop the raw "NAME:" colon before the price — the chip's flex gap separates them
+    return preg_replace('/:\s*(<span)/u', ' $1', $label);
+}, 10, 2);
+
+// ═══════════ ARABIC SHIPPING DESTINATION ═══════════
+// Google reverse-geocoding stores English city/region names in the customer
+// address ("Riyadh Principality") — map them for the «الشحن إلى …» line.
+// Zooboxi shipping matches by coordinates, so this is display-safe.
+add_filter('woocommerce_cart_shipping_packages', function ($packages) {
+    if (!function_exists('zooboxi_city_ar')) return $packages;
+    foreach ($packages as &$p) {
+        foreach (['city', 'state'] as $k) {
+            if (!empty($p['destination'][$k]) && is_string($p['destination'][$k])) {
+                $p['destination'][$k] = zooboxi_city_ar($p['destination'][$k]);
+            }
+        }
+    }
+    return $packages;
+}, 20);
+
+// ═══════════ CLEAR ADD-TO-CART TOAST MESSAGE ═══════════
+// Replace WooCommerce's long sentence with a crisp two-line toast:
+// bold confirmation + truncated product name + compact cart button.
+add_filter('wc_add_to_cart_message_html', function ($message, $products, $show_qty) {
+    $titles = [];
+    foreach ((array) $products as $id => $qty) {
+        $t = get_the_title($id);
+        if ($t) { $titles[] = $t; }
+    }
+    $name = wc_trim_string(implode('، ', $titles), 46);
+    $first = is_array($products) ? array_key_first($products) : 0;
+    $thumb = $first ? get_the_post_thumbnail((int) $first, 'woocommerce_gallery_thumbnail', ['class' => 'zbx-toast-thumb', 'loading' => 'lazy']) : '';
+
+    return ($thumb ?: '<span class="zbx-toast-check" aria-hidden="true">✓</span>')
+         . '<span class="zbx-toast-txt"><strong class="zbx-toast-head">أُضيف إلى سلتك</strong>'
+         . '<span class="zbx-toast-name">' . esc_html($name) . '</span></span>'
+         . '<a href="' . esc_url(wc_get_cart_url()) . '" class="button wc-forward zbx-toast-btn">السلة</a>'
+         . '<span class="zbx-toast-life" aria-hidden="true"></span>';
+}, 10, 3);
+
+// ═══════════ CART COPY: SHORTER, CLEARER, NON-REPEATING ═══════════
+add_filter('gettext', function ($translated, $text, $domain) {
+    if ('woocommerce' !== $domain || get_locale() !== 'ar') {
+        return $translated;
+    }
+    switch ($text) {
+        case 'Cart totals':
+        case 'Cart Totals':
+            return 'ملخص الطلب';
+        case 'Total':
+            return 'الإجمالي';
+        case '(includes %s)':
+            return 'شامل %s';
+        case 'Shipping to %s.':
+            return 'التوصيل إلى %s';
+        case 'Change address':
+            return 'تغيير';
+        case 'Subtotal':
+            // Piece count belongs on the CART's totals row only — on checkout the
+            // same string is also the review table's column header, where it reads wrong.
+            if (is_cart() && !is_checkout() && function_exists('WC') && WC()->cart) {
+                $n = (int) WC()->cart->get_cart_contents_count();
+                if ($n > 0) {
+                    // Arabic counts: 1 and 2 read better without the numeral
+                    if (1 === $n) { $count = 'قطعة واحدة'; }
+                    elseif (2 === $n) { $count = 'قطعتان'; }
+                    elseif ($n <= 10) { $count = $n . ' قطع'; }
+                    else { $count = $n . ' قطعة'; }
+                    return 'المجموع الفرعي · ' . $count;
+                }
+            }
+            return 'المجموع الفرعي';
+    }
+    return $translated;
+}, 30, 3);
+
+// ═══════════ SHIPPING ROW: NO REPEATED TIER NAME ═══════════
+// The package heading already names the tier ("🚚 شحنة اليوم التالي"). When a
+// package offers a single rate, the chip repeating that name is noise — show
+// the price alone (or «مجاني»). With 2+ rates the names stay: they're choices.
+add_filter('woocommerce_cart_shipping_method_full_label', function ($label, $method) {
+    $label = preg_replace('/^[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{FE0F}\x{200D}]+\s*/u', '', $label);
+    $label = preg_replace('/:\s*(<span)/u', ' $1', $label);
+
+    if (!function_exists('WC') || !WC()->shipping()) {
+        return $label;
+    }
+    $alone = false;
+    foreach (WC()->shipping()->get_packages() as $package) {
+        if (isset($package['rates'][$method->get_id()])) {
+            $alone = (count($package['rates']) === 1);
+            break;
+        }
+    }
+    if (!$alone) {
+        return $label;
+    }
+    $cost = (float) $method->get_cost() + (float) $method->get_shipping_tax();
+    return $cost > 0
+        ? wc_price($cost)
+        : '<span class="zbx-free-ship">مجاني</span>';
+}, 20, 2);
+
+// ═══════════ CHECKOUT: ARABIC PAYMENT METHODS ═══════════
+// The store is Arabic-only; gateways ship English titles/descriptions.
+add_filter('woocommerce_gateway_title', function ($title, $id) {
+    if (get_locale() !== 'ar') return $title;
+    if ('cod' === $id) return 'الدفع عند الاستلام';
+    if (false !== strpos((string) $id, 'myfatoorah')) return 'الدفع الإلكتروني';
+    return $title;
+}, 20, 2);
+
+add_filter('woocommerce_gateway_description', function ($desc, $id) {
+    if (get_locale() !== 'ar') return $desc;
+    if ('cod' === $id) return 'ادفع نقداً أو بالشبكة لحظة استلام طلبك.';
+    if (false !== strpos((string) $id, 'myfatoorah')) return 'ادفع بأمان عبر مدى · Apple Pay · STC Pay · أو بطاقتك البنكية.';
+    return $desc;
+}, 20, 2);
+
+// ═══════════ CHECKOUT: NO DOUBLE "(اختياري)" ═══════════
+// The plugin appends it to some labels while WooCommerce adds its own suffix.
+add_filter('woocommerce_checkout_fields', function ($fields) {
+    foreach ($fields as $group => $items) {
+        foreach ($items as $key => $field) {
+            if (!empty($field['label'])) {
+                $fields[$group][$key]['label'] = trim(str_replace('(اختياري)', '', $field['label']));
+            }
+        }
+    }
+    return $fields;
+}, 9999); // the plugin sets these labels at 999 — run after it
+
+// ═══════════ CHECKOUT: DE-DUPLICATED DELIVERY BANNER ═══════════
+// The plugin prints the tier line AND a summary that repeats it (with a
+// "خلال خلال" typo). Buffer the hook and drop the echo when it repeats.
+add_action('woocommerce_checkout_before_order_review', function () { ob_start(); }, 1);
+add_action('woocommerce_checkout_before_order_review', function () {
+    $html = ob_get_clean();
+    if (!$html) { return; }
+
+    $html = str_replace('خلال خلال', 'خلال', $html);
+
+    if (preg_match('/__type">(.*?)<\/div>/su', $html, $t) &&
+        preg_match('/__summary">(.*?)<\/div>/su', $html, $s)) {
+        $type    = trim(wp_strip_all_tags($t[1]));
+        $summary = trim(wp_strip_all_tags($s[1]));
+        // the promise phrase lives after the em-dash: "توصيل عادي — خلال 24 ساعة"
+        $promise = '';
+        if (false !== strpos($type, '—')) {
+            $promise = trim(substr($type, strpos($type, '—') + strlen('—')));
+        }
+        if ($promise !== '' && false !== mb_strpos($summary, $promise)) {
+            $html = preg_replace('/<div class="[^"]*__summary">.*?<\/div>/su', '', $html, 1);
+        }
+    }
+    // Hold it: printed here it lands BETWEEN the panel heading and the panel body,
+    // splitting the order card in two. Re-emit it inside the card instead.
+    $GLOBALS['zbx_delivery_banner'] = $html;
+}, 999);
+
+add_action('woocommerce_checkout_order_review', function () {
+    if (!empty($GLOBALS['zbx_delivery_banner'])) {
+        echo $GLOBALS['zbx_delivery_banner']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        $GLOBALS['zbx_delivery_banner'] = '';
+    }
+}, 5);
+
+// ═══════════ CHECKOUT COPY ═══════════
+add_filter('gettext', function ($translated, $text, $domain) {
+    if ('woocommerce' !== $domain || get_locale() !== 'ar') {
+        return $translated;
+    }
+    switch ($text) {
+        case 'Billing details':   return 'بيانات التوصيل';
+        case 'Your order':        return 'ملخص طلبك';
+        case 'Order notes':       return 'ملاحظات للطلب';
+        case 'Ship to a different address?': return 'التوصيل إلى عنوان آخر؟';
+        case 'Place order':       return 'تأكيد الطلب والدفع';
+        case 'Product':           return 'المنتج';
+    }
+    return $translated;
+}, 99, 3);
+
+// ═══════════ CHECKOUT: READABLE QUANTITY ═══════════
+add_filter('woocommerce_checkout_cart_item_quantity', function ($html, $cart_item) {
+    if (get_locale() !== 'ar') { return $html; }
+    $qty = isset($cart_item['quantity']) ? (int) $cart_item['quantity'] : 0;
+    return $qty > 0 ? '<span class="product-quantity">الكمية: ' . $qty . '</span>' : $html;
+}, 10, 2);
+
+// ═══════════ FIX: CHECKOUT MAP LOCATION UPDATE (AJAX 400) ═══════════
+// The plugin REQUIREs Zooboxi_Checkout_Customizer during AJAX but only
+// INSTANTIATES it when !is_admin() — so its wp_ajax hooks never registered and
+// dragging the checkout map always failed with 400/"0" (shipping never
+// recalculated for the new pin). The handler is static; register it directly.
+if (!function_exists('zooboxi_ajax_checkout_location')) {
+    function zooboxi_ajax_checkout_location() {
+        if (is_callable(['Zooboxi_Checkout_Customizer', 'ajax_update_checkout_location'])) {
+            Zooboxi_Checkout_Customizer::ajax_update_checkout_location(); // sends JSON + dies
+        }
+        wp_send_json_error(['message' => 'checkout location handler unavailable'], 500);
+    }
+}
+add_action('wp_ajax_zooboxi_update_checkout_location', 'zooboxi_ajax_checkout_location');
+add_action('wp_ajax_nopriv_zooboxi_update_checkout_location', 'zooboxi_ajax_checkout_location');
+
+// ═══════════ TOTAL: TAX SHOWN AS ITS OWN ROW, NOT AN INLINE NOTE ═══════════
+// A dedicated «الإجمالي قبل الضريبة» + «ضريبة القيمة المضافة» pair reads far
+// clearer than "(شامل ...)" tucked under the total, so drop the inline note.
+add_filter('woocommerce_cart_totals_order_total_html', function ($value) {
+    if (get_locale() !== 'ar') {
+        return $value;
+    }
+    return preg_replace('/<small class="includes_tax">.*?<\/small>/su', '', $value);
+}, 20);
+
+// Renders: net total, then one row per tax rate (label + percent + amount).
+if (!function_exists('zooboxi_render_tax_breakdown')) {
+    function zooboxi_render_tax_breakdown() {
+        if (!function_exists('WC') || !WC()->cart || !wc_tax_enabled()) {
+            return;
+        }
+        $tax = (float) WC()->cart->get_total_tax();
+        if ($tax <= 0) {
+            return;
+        }
+        $total = (float) WC()->cart->get_total('edit');
+        $net   = max(0, $total - $tax);
+        ?>
+        <tr class="zbx-net-row">
+            <th><?php esc_html_e('الإجمالي قبل الضريبة', 'zooboxi'); ?></th>
+            <td><?php echo wp_kses_post(wc_price($net)); ?></td>
+        </tr>
+        <?php foreach ((array) WC()->cart->get_tax_totals() as $tt) :
+            $rate_id = $tt->tax_rate_id ?? ($tt->rate_id ?? 0); // core exposes tax_rate_id
+            $percent = $rate_id ? WC_Tax::get_rate_percent($rate_id) : '';
+            $label   = isset($tt->label) ? $tt->label : __('ضريبة القيمة المضافة', 'zooboxi');
+            ?>
+            <tr class="zbx-vat-row">
+                <th>
+                    <?php echo esc_html($label); ?>
+                    <?php if ($percent) : ?><span class="zbx-vat-rate"><?php echo esc_html($percent); ?></span><?php endif; ?>
+                </th>
+                <td><?php echo wp_kses_post($tt->formatted_amount); ?></td>
+            </tr>
+        <?php endforeach;
+    }
+}
+add_action('woocommerce_cart_totals_before_order_total', 'zooboxi_render_tax_breakdown');
+add_action('woocommerce_review_order_before_order_total', 'zooboxi_render_tax_breakdown');
+
+// ═══════════ CHECKOUT: VISIBLE CITY + DISTRICT, TIED TO THE MAP ═══════════
+// The address is chosen on the map, but the customer still needs to SEE the
+// city and district it resolved to (and be able to correct the district).
+add_filter('woocommerce_checkout_fields', function ($fields) {
+    if (get_locale() !== 'ar') {
+        return $fields;
+    }
+    $session  = function_exists('WC') ? WC()->session : null;
+    $city     = $_COOKIE['zooboxi_city'] ?? ($session ? (string) $session->get('zooboxi_customer_city', '') : '');
+    $district = $_COOKIE['zooboxi_district'] ?? ($session ? (string) $session->get('zooboxi_customer_district', '') : '');
+    $city     = $city ? zooboxi_city_ar(sanitize_text_field(wp_unslash($city))) : '';
+    $district = $district ? sanitize_text_field(wp_unslash($district)) : '';
+
+    $fields['billing']['billing_city'] = [
+        'type'        => 'text',
+        'label'       => 'المدينة',
+        'required'    => true,
+        'priority'    => 78,
+        'default'     => $city,
+        'placeholder' => 'تُحدد من الخريطة',
+        'class'       => ['form-row-first', 'zbx-map-field'],
+    ];
+    $fields['billing']['billing_address_2'] = [
+        'type'        => 'text',
+        'label'       => 'الحي',
+        'required'    => false,
+        'priority'    => 79,
+        'default'     => $district,
+        'placeholder' => 'يُملأ من الخريطة — عدّله إن لزم',
+        'class'       => ['form-row-last', 'zbx-map-field'],
+    ];
+    return $fields;
+}, 10000);
+
+// Keep the map's own defaults in sync with those fields.
+add_filter('woocommerce_checkout_get_value', function ($value, $input) {
+    if (get_locale() !== 'ar') return $value;
+    $session = function_exists('WC') ? WC()->session : null;
+    if ('billing_city' === $input) {
+        $c = $_COOKIE['zooboxi_city'] ?? ($session ? (string) $session->get('zooboxi_customer_city', '') : '');
+        return $c ? zooboxi_city_ar(sanitize_text_field(wp_unslash($c))) : $value;
+    }
+    if ('billing_address_2' === $input) {
+        $d = $_COOKIE['zooboxi_district'] ?? ($session ? (string) $session->get('zooboxi_customer_district', '') : '');
+        return $d ? sanitize_text_field(wp_unslash($d)) : $value;
+    }
+    return $value;
+}, 20, 2);
+
+// Hand the Arabic city map to the browser so map-driven updates match the server.
+add_action('wp_enqueue_scripts', function () {
+    if (!is_checkout() || !wp_script_is('zooboxi-delight', 'enqueued')) {
+        return;
+    }
+    wp_localize_script('zooboxi-delight', 'zbxCityMap', zooboxi_city_ar_map());
+}, 20);
+
+// ═══════════════════════════════════════════════════════════════
+// ORDER RECEIVED — A CELEBRATION, NOT A RECEIPT DUMP
+// The default page is a bare <ul> that even leaks the internal
+// placeholder email. Replace it with a hero, a live order timeline,
+// the delivery promise and clear next steps.
+// ═══════════════════════════════════════════════════════════════
+add_action('woocommerce_before_thankyou', function ($order_id) {
+    $order = wc_get_order($order_id);
+    if (!$order || get_locale() !== 'ar') {
+        return;
+    }
+
+    // Delivery promise straight from the order's shipping lines.
+    $promises = [];
+    foreach ($order->get_shipping_methods() as $ship) {
+        $name = trim(wp_strip_all_tags($ship->get_name()));
+        if ($name !== '') { $promises[] = $name; }
+    }
+
+    // Where it is going (city + district, Arabic).
+    $city     = trim((string) $order->get_billing_city()) ?: trim((string) $order->get_shipping_city());
+    $city     = $city !== '' ? zooboxi_city_ar($city) : '';
+    $district = trim((string) $order->get_billing_address_2()) ?: trim((string) $order->get_shipping_address_2());
+    $parts    = array_filter([$district, $city], static function ($v) { return trim((string) $v) !== ''; });
+    $place    = implode('، ', $parts);
+
+    // Timeline state from the order status.
+    $status = $order->get_status();
+    $stage  = 1;
+    if (in_array($status, ['processing', 'on-hold'], true)) { $stage = 2; }
+    if (in_array($status, ['shipped', 'out-for-delivery'], true)) { $stage = 3; }
+    if (in_array($status, ['completed'], true)) { $stage = 4; }
+
+    $steps = [
+        ['icon' => '📝', 'label' => 'استلمنا طلبك'],
+        ['icon' => '📦', 'label' => 'قيد التجهيز'],
+        ['icon' => '🚚', 'label' => 'في الطريق إليك'],
+        ['icon' => '🎉', 'label' => 'وصل!'],
+    ];
+
+    $account = wc_get_page_permalink('myaccount');
+    $shop    = wc_get_page_permalink('shop');
+    ?>
+    <div class="zbx-ty">
+        <div class="zbx-ty-hero">
+            <div class="zbx-ty-check" aria-hidden="true">
+                <svg viewBox="0 0 52 52"><circle class="zbx-ty-ring" cx="26" cy="26" r="23" fill="none"/><path class="zbx-ty-tick" fill="none" d="M14 27l8 8 16-17"/></svg>
+            </div>
+            <h2 class="zbx-ty-title">تم استلام طلبك 🎉</h2>
+            <p class="zbx-ty-sub">شكراً لك! بدأنا تجهيز طلبك، وأليفك على وشك أن يفرح.</p>
+
+            <div class="zbx-ty-facts">
+                <div class="zbx-ty-fact">
+                    <span class="zbx-ty-fact-cap">رقم الطلب</span>
+                    <strong class="zbx-ty-fact-val">#<?php echo esc_html($order->get_order_number()); ?></strong>
+                </div>
+                <div class="zbx-ty-fact">
+                    <span class="zbx-ty-fact-cap">الإجمالي</span>
+                    <strong class="zbx-ty-fact-val"><?php echo wp_kses_post($order->get_formatted_order_total()); ?></strong>
+                </div>
+                <div class="zbx-ty-fact">
+                    <span class="zbx-ty-fact-cap">وسيلة الدفع</span>
+                    <strong class="zbx-ty-fact-val"><?php echo esc_html($order->get_payment_method_title()); ?></strong>
+                </div>
+                <div class="zbx-ty-fact">
+                    <span class="zbx-ty-fact-cap">تاريخ الطلب</span>
+                    <strong class="zbx-ty-fact-val"><?php echo esc_html(zooboxi_date_ar($order->get_date_created())); ?></strong>
+                </div>
+            </div>
+        </div>
+
+        <?php if (!empty($promises) || $place !== '') : ?>
+        <div class="zbx-ty-promise">
+            <?php if (!empty($promises)) : ?>
+                <div class="zbx-ty-promise-row">
+                    <span class="zbx-ty-promise-ic">⏱️</span>
+                    <span><strong>موعد الوصول:</strong> <?php echo esc_html(implode(' · ', $promises)); ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if ($place !== '') : ?>
+                <div class="zbx-ty-promise-row">
+                    <span class="zbx-ty-promise-ic">📍</span>
+                    <span><strong>سيصل إلى:</strong> <?php echo esc_html($place); ?></span>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <div class="zbx-ty-timeline" role="list">
+            <?php foreach ($steps as $i => $s) :
+                $n = $i + 1;
+                $cls = $n < $stage ? 'is-done' : ($n === $stage ? 'is-current' : '');
+                ?>
+                <div class="zbx-ty-step <?php echo esc_attr($cls); ?>" role="listitem">
+                    <span class="zbx-ty-step-dot"><?php echo esc_html($s['icon']); ?></span>
+                    <span class="zbx-ty-step-label"><?php echo esc_html($s['label']); ?></span>
+                </div>
+                <?php if ($n < count($steps)) : ?><span class="zbx-ty-step-line <?php echo $n < $stage ? 'is-filled' : ''; ?>"></span><?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="zbx-ty-actions">
+            <a class="zbx-ty-btn zbx-ty-btn--primary" href="<?php echo esc_url($account); ?>">📦 تتبّع طلبي</a>
+            <a class="zbx-ty-btn" href="<?php echo esc_url($shop); ?>">🛍️ متابعة التسوق</a>
+            <a class="zbx-ty-btn" href="mailto:info@zooboxi.com">💬 تواصل معنا</a>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var colors = ['#429D9C', '#D46856', '#F4BE2C', '#7CC6C2', '#2DB87B'];
+        var wrap = document.createElement('div');
+        wrap.className = 'zbx-confetti';
+        for (var i = 0; i < 44; i++) {
+            var s = document.createElement('span');
+            s.style.left = (Math.random() * 100) + '%';
+            s.style.background = colors[i % colors.length];
+            s.style.animationDelay = (Math.random() * 0.7) + 's';
+            s.style.animationDuration = (2.2 + Math.random() * 1.6) + 's';
+            s.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+            wrap.appendChild(s);
+        }
+        document.body.appendChild(wrap);
+        setTimeout(function () { wrap.remove(); }, 4600);
+    })();
+    </script>
+    <?php
+}, 5);
+
+// The COD gateway prints its English instructions on this page. Gateways are
+// instantiated late, so swap the hook while the template is rendering.
+add_action('woocommerce_before_thankyou', function () {
+    if (get_locale() !== 'ar') return;
+    remove_all_actions('woocommerce_thankyou_cod');
+    add_action('woocommerce_thankyou_cod', function () {
+        echo '<p class="zbx-ty-note">💵 جهّز المبلغ نقداً أو بالشبكة عند استلام طلبك.</p>';
+    });
+}, 1);
+
+/** Arabic long date — date_i18n follows the site locale (en_US) here. */
+if (!function_exists('zooboxi_date_ar')) {
+    function zooboxi_date_ar($date): string {
+        if (!$date) return '';
+        static $months = [
+            1 => 'يناير', 2 => 'فبراير', 3 => 'مارس', 4 => 'أبريل', 5 => 'مايو', 6 => 'يونيو',
+            7 => 'يوليو', 8 => 'أغسطس', 9 => 'سبتمبر', 10 => 'أكتوبر', 11 => 'نوفمبر', 12 => 'ديسمبر',
+        ];
+        $d = (int) $date->date('j');
+        $m = (int) $date->date('n');
+        $y = (int) $date->date('Y');
+        return $d . ' ' . ($months[$m] ?? '') . ' ' . $y;
+    }
+}

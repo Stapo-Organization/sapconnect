@@ -1,0 +1,171 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ZOOBOXI — WISHLIST
+   The heart lives on product cards store-wide, so this sheet loads globally
+   and is deliberately small.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    --fav-on: #d46856;
+    --fav-off: #7a8b7c;
+}
+
+/* ── the heart on a product card ────────────────────────────────── */
+
+.woocommerce ul.products li.product,
+li.wc-block-product { position: relative; }
+
+/* Base: quiet button reset. The heavy !important overrides live on the card
+   variant below, where Astra and WooCommerce Blocks style bare <button>s. */
+.zbx-fav {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    cursor: pointer;
+    letter-spacing: normal;
+    /* product-card button rules paint text white — currentColor drives the
+       heart's stroke, so a white heart vanished on the white circle */
+    color: var(--fav-off) !important;
+    transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), color .18s ease, border-color .18s ease;
+}
+
+.zbx-fav__ic { width: 20px; height: 20px; display: block; pointer-events: none; }
+
+/* card overlay variant — must out-shout the theme's product-card button rules */
+.zbx-fav--loop,
+.zbx-fav--card {
+    position: absolute;
+    z-index: 3;
+    inset-block-start: 10px;
+    inset-inline-start: 10px;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    line-height: 0 !important;
+    display: grid !important;
+    place-items: center;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, .94) !important;
+    background-image: none !important;
+    box-shadow: 0 2px 8px rgba(44, 62, 45, .16);
+    backdrop-filter: blur(3px);
+}
+
+.zbx-fav--loop:hover,
+.zbx-fav--card:hover { transform: scale(1.12); color: var(--fav-on) !important; }
+
+.zbx-fav.is-on { color: var(--fav-on) !important; }
+.zbx-fav.is-on .zbx-fav__ic path { fill: var(--fav-on); stroke: var(--fav-on); }
+
+.zbx-fav.is-busy { opacity: .6; pointer-events: none; }
+
+/* a satisfying beat when it fills */
+.zbx-fav.is-on .zbx-fav__ic { animation: zbxFavPop .42s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes zbxFavPop {
+    0%   { transform: scale(1); }
+    38%  { transform: scale(1.32); }
+    70%  { transform: scale(.94); }
+    100% { transform: scale(1); }
+}
+
+/* ── single product page ────────────────────────────────────────── */
+
+.zbx-fav--single {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-block-start: 14px !important;
+    padding: 12px 20px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 12px !important;
+    border: 1.5px solid #e6eee7 !important;
+    background: #fff !important;
+    background-image: none !important;
+    color: #2c3e2d !important;
+    font-size: 14px !important;
+    font-weight: 700;
+    line-height: 1 !important;
+}
+.zbx-fav--single:hover { border-color: var(--fav-on) !important; color: var(--fav-on) !important; transform: none; }
+.zbx-fav--single.is-on { border-color: var(--fav-on) !important; color: var(--fav-on) !important; background: #fdf3f1 !important; }
+.zbx-fav--single .zbx-fav__tx { line-height: 1; }
+
+/* ── header badge ───────────────────────────────────────────────── */
+
+.zbx-fav-link { position: relative; }
+
+.zbx-fav-link .zbx-fav-count {
+    position: absolute;
+    inset-block-start: -5px;
+    inset-inline-end: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--fav-on);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+.zbx-fav-link .zbx-fav-count.is-empty { display: none; }
+
+.zbx-fav-count.zbx-pop { animation: zbxFavPop .42s cubic-bezier(.34, 1.56, .64, 1); }
+
+/* ── wishlist page cards ────────────────────────────────────────── */
+
+.zbx-fav-card { position: relative; }
+.zbx-fav-card .zbx-fav--card { inset-block-start: 16px; inset-inline-start: 16px; }
+.zbx-fav-card.is-going {
+    opacity: 0;
+    transform: scale(.94);
+    transition: opacity .25s ease, transform .25s ease;
+}
+
+/* ── toast ──────────────────────────────────────────────────────── */
+
+.zbx-fav-toast {
+    position: fixed;
+    inset-block-end: 22px;
+    inset-inline-start: 50%;
+    transform: translate(50%, 20px);
+    z-index: 99999;
+    max-width: min(90vw, 320px);
+    padding: 11px 18px;
+    border-radius: 14px;
+    background: #2c3e2d;
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .26);
+    opacity: 0;
+    transition: opacity .28s ease, transform .28s cubic-bezier(.22, 1, .36, 1);
+}
+.zbx-fav-toast.is-in { opacity: 1; transform: translate(50%, 0); }
+.zbx-fav-toast.is-error { background: #b3392c; }
+
+@media (prefers-reduced-motion: reduce) {
+    .zbx-fav, .zbx-fav__ic, .zbx-fav-count, .zbx-fav-toast, .zbx-fav-card { transition: none !important; animation: none !important; }
+}
+
+/* ── the heart must yield the corner to a promo badge ──
+   The merchandising badge ("🏷️ تصفية", "🔥 الأكثر طلباً") is absolutely
+   positioned at the same top inline-start corner, so the heart was painting
+   straight over it on 28 of 36 cards. The badge owns the corner; the heart
+   drops underneath it. .zbx-has-badge is set by JS as a fallback for
+   browsers without :has(). */
+.woocommerce ul.products li.product:has(.zb-badge-card) .zbx-fav--loop,
+.woocommerce ul.products li.product.zbx-has-badge .zbx-fav--loop,
+li.wc-block-product:has(.zb-badge-card) .zbx-fav--loop,
+li.wc-block-product.zbx-has-badge .zbx-fav--loop {
+    inset-block-start: 46px;
+}

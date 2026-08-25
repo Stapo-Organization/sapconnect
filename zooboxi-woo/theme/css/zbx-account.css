@@ -1,0 +1,1484 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ZOOBOXI — ACCOUNT EXPERIENCE
+   Loaded only on account pages. RTL-first: logical properties throughout,
+   so the same rules serve the /en/ side without a mirrored stylesheet.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Tokens live on :root, not on .zbx-account — WooCommerce renders the
+   logged-out login screen WITHOUT the account wrapper, and scoping them to
+   the wrapper left every var() undefined there (white text on white). */
+:root {
+    --a-bg: #ffffff;
+    --a-ink: #2c3e2d;
+    --a-mute: #7a8b7c;
+    --a-line: #e6eee7;
+    --a-soft: #f4f9f4;
+    --a-primary: var(--z-primary, #429d9c);
+    --a-primary-d: var(--z-primary-dark, #2d7a79);
+    --a-coral: var(--z-icons, #d46856);
+    --a-amber: var(--z-secondary, #d48644);
+    --a-r: 18px;
+    --a-shadow: 0 2px 4px rgba(44, 62, 45, .04), 0 8px 24px rgba(44, 62, 45, .06);
+    --a-shadow-lg: 0 4px 10px rgba(44, 62, 45, .06), 0 18px 44px rgba(44, 62, 45, .10);
+}
+
+.zbx-account {
+    max-width: 1180px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    color: var(--a-ink);
+}
+
+/* Astra floats the two account columns; we drive the layout with grid. */
+.zbx-account .woocommerce-MyAccount-navigation,
+.zbx-account .woocommerce-MyAccount-content {
+    float: none !important;
+    width: auto !important;
+    margin: 0 !important;
+}
+
+@media (min-width: 993px) {
+    .zbx-account {
+        grid-template-columns: 250px minmax(0, 1fr);
+        grid-template-areas:
+            "id  id"
+            "nav content";
+        column-gap: 26px;
+        row-gap: 20px;
+        align-items: start;
+    }
+    .zbx-acct-id { grid-area: id; }
+    .zbx-account .woocommerce-MyAccount-navigation { grid-area: nav; position: sticky; top: 96px; }
+    .zbx-account .woocommerce-MyAccount-content { grid-area: content; min-width: 0; }
+}
+
+/* ── Identity hero ─────────────────────────────────────────────── */
+
+.zbx-acct-id {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--tier-1, #5fb3b2), var(--tier-2, #429d9c));
+    color: #fff;
+    box-shadow: var(--a-shadow-lg);
+}
+
+.zbx-acct-id__glow {
+    position: absolute;
+    inset-block-start: -60%;
+    inset-inline-end: -12%;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, .30), transparent 68%);
+    pointer-events: none;
+}
+
+.zbx-acct-id__avatar {
+    position: relative;
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .22);
+    border: 2px solid rgba(255, 255, 255, .45);
+    backdrop-filter: blur(4px);
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: .5px;
+}
+
+.zbx-acct-id__crest {
+    position: absolute;
+    inset-block-end: -8px;
+    inset-inline-start: -8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    font-size: 15px;
+    font-style: normal;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+}
+
+.zbx-acct-id__who { flex: 1 1 auto; min-width: 0; position: relative; }
+
+.zbx-acct-id__name {
+    margin: 0 0 6px;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #fff;
+    overflow-wrap: anywhere;
+}
+
+.zbx-acct-id__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+}
+
+.zbx-tier-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .95);
+    color: var(--tier-2, #429d9c);
+    font-weight: 700;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.zbx-acct-id__since { color: rgba(255, 255, 255, .88); }
+
+.zbx-acct-id__mini {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.zbx-acct-id__mini > div {
+    min-width: 68px;
+    padding: 9px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .26);
+    text-align: center;
+}
+
+.zbx-acct-id__mini dt { margin: 0; font-size: 11px; opacity: .9; }
+.zbx-acct-id__mini dd { margin: 2px 0 0; font-size: 19px; font-weight: 800; line-height: 1; }
+
+@media (max-width: 600px) {
+    .zbx-acct-id { padding: 16px; gap: 13px; border-radius: 18px; flex-wrap: wrap; }
+    .zbx-acct-id__avatar { width: 54px; height: 54px; font-size: 20px; border-radius: 17px; }
+    .zbx-acct-id__name { font-size: 18px; }
+    .zbx-acct-id__mini { width: 100%; }
+    .zbx-acct-id__mini > div { flex: 1; }
+}
+
+/* ── Navigation ────────────────────────────────────────────────── */
+
+.zbx-acct-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-block: 2px;
+    padding-inline: 2px;
+}
+
+.zbx-acct-nav ul::-webkit-scrollbar { display: none; }
+
+.zbx-acct-nav li { margin: 0; flex: 0 0 auto; }
+
+.zbx-acct-nav li a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 14px;
+    border-radius: 13px;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    color: var(--a-ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.zbx-acct-nav li a:hover {
+    border-color: var(--a-primary);
+    color: var(--a-primary-d);
+    transform: translateY(-1px);
+}
+
+.zbx-acct-nav li.is-active a,
+.zbx-acct-nav li a[aria-current="page"] {
+    background: var(--a-primary);
+    border-color: var(--a-primary);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(66, 157, 156, .28);
+}
+
+.zbx-acct-nav .zbx-nav-ic { font-size: 15px; line-height: 1; }
+
+.zbx-acct-nav .zbx-nav--customer-logout a { color: var(--a-coral); }
+.zbx-acct-nav .zbx-nav--customer-logout a:hover { border-color: var(--a-coral); color: var(--a-coral); }
+
+@media (min-width: 993px) {
+    .zbx-acct-nav ul {
+        flex-direction: column;
+        gap: 4px;
+        overflow: visible;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid var(--a-line);
+        border-radius: var(--a-r);
+        box-shadow: var(--a-shadow);
+    }
+    .zbx-acct-nav li { width: 100%; }
+    .zbx-acct-nav li a {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 12px;
+        padding: 11px 12px;
+    }
+    .zbx-acct-nav li a:hover { background: var(--a-soft); transform: none; }
+    .zbx-acct-nav li.is-active a { box-shadow: none; }
+}
+
+/* ── Shared atoms ──────────────────────────────────────────────── */
+
+.zbx-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 12px 20px;
+    border-radius: 13px;
+    font-size: 14.5px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease;
+}
+
+.zbx-btn--solid {
+    background: var(--a-primary);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(66, 157, 156, .26);
+}
+.zbx-btn--solid:hover { background: var(--a-primary-d); color: #fff; transform: translateY(-2px); }
+
+.zbx-btn--ghost {
+    background: #fff;
+    color: var(--a-primary-d);
+    border-color: var(--a-primary);
+}
+.zbx-btn--ghost:hover { background: var(--a-soft); color: var(--a-primary-d); transform: translateY(-2px); }
+
+.zbx-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1.5;
+}
+.zbx-pill--lg { padding: 7px 15px; font-size: 13px; }
+
+.zbx-pill--ok   { background: #e6f6ec; color: #1c7a44; }
+.zbx-pill--go   { background: #e4f2f2; color: var(--a-primary-d); }
+.zbx-pill--work { background: #fdf0e2; color: #a4632a; }
+.zbx-pill--wait { background: #f1f0fb; color: #5b52a8; }
+.zbx-pill--dead { background: #fdeceb; color: #b3392c; }
+
+.zbx-empty {
+    text-align: center;
+    padding: 44px 22px;
+    background: #fff;
+    border: 1px dashed var(--a-line);
+    border-radius: var(--a-r);
+}
+.zbx-empty__ic { font-size: 42px; display: block; margin-bottom: 10px; }
+.zbx-empty h2 { margin: 0 0 6px; font-size: 19px; font-weight: 800; }
+.zbx-empty p { margin: 0 0 18px; color: var(--a-mute); font-size: 14px; }
+
+.zbx-block {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+}
+
+.zbx-block__head { margin-bottom: 14px; }
+.zbx-block__head h2 {
+    margin: 0 0 3px;
+    font-size: 17px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.zbx-block__head p { margin: 0; font-size: 13px; color: var(--a-mute); }
+
+/* ── Dashboard ─────────────────────────────────────────────────── */
+
+.zbx-dash { display: grid; gap: 16px; }
+
+/* A grid item's default min-width:auto lets an overflowing child (our
+   horizontally-scrolling product rails) blow the track open — which dragged
+   the whole account page to ~750px inside a 390px phone. Pin every level. */
+.zbx-account,
+.zbx-account > *,
+.zbx-account .woocommerce-MyAccount-content,
+.zbx-acct-nav,
+.zbx-acct-nav ul,
+.zbx-dash,
+.zbx-dash > *,
+.zbx-block,
+.zbx-live,
+.zbx-mine,
+.zbx-rail { min-width: 0; }
+
+.zbx-dash__hello {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.2px;
+}
+
+/* tier card */
+.zbx-tier-card {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+    position: relative;
+    overflow: hidden;
+}
+.zbx-tier-card::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--tier-1), var(--tier-2));
+}
+
+.zbx-tier-card__top { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
+
+.zbx-tier-card__badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    background: linear-gradient(135deg, var(--tier-1), var(--tier-2));
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+}
+
+.zbx-tier-card__cap { display: block; font-size: 12px; color: var(--a-mute); }
+.zbx-tier-card__name { display: block; font-size: 18px; font-weight: 800; }
+
+.zbx-tier-card__bar {
+    height: 9px;
+    border-radius: 999px;
+    background: var(--a-soft);
+    overflow: hidden;
+    border: 1px solid var(--a-line);
+}
+.zbx-tier-card__bar > span {
+    display: block;
+    height: 100%;
+    width: var(--p, 0%);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--tier-1), var(--tier-2));
+    animation: zbxGrow .9s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes zbxGrow { from { width: 0; } }
+
+.zbx-tier-card__next { margin: 10px 0 0; font-size: 13.5px; color: var(--a-mute); }
+.zbx-tier-card__next strong { color: var(--a-ink); }
+
+/* live order */
+.zbx-live {
+    background: linear-gradient(160deg, #f6fbf7, #ffffff 55%);
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+    display: grid;
+    gap: 14px;
+}
+
+.zbx-live__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.zbx-live__title { margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 9px; }
+
+.zbx-live__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--a-primary);
+    box-shadow: 0 0 0 0 rgba(66, 157, 156, .55);
+    animation: zbxPing 1.9s ease-out infinite;
+}
+@keyframes zbxPing {
+    70% { box-shadow: 0 0 0 11px rgba(66, 157, 156, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(66, 157, 156, 0); }
+}
+
+.zbx-live__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 14px;
+    font-size: 13px;
+    color: var(--a-mute);
+    padding-block-start: 4px;
+    border-block-start: 1px dashed var(--a-line);
+}
+.zbx-live__facts strong { color: var(--a-ink); }
+.zbx-live__facts .woocommerce-Price-amount { color: var(--a-ink); font-weight: 700; }
+.zbx-live__ship { color: var(--a-primary-d); font-weight: 600; }
+
+.zbx-live .zbx-btn { justify-self: start; }
+
+/* timeline */
+.zbx-track {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+}
+
+.zbx-track__step {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-block: 9px;
+    padding-inline-start: 2px;
+}
+
+/* the connector runs behind the icons */
+.zbx-track__step::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 17px;
+    inset-block-start: 34px;
+    width: 2px;
+    height: calc(100% - 24px);
+    background: var(--a-line);
+}
+.zbx-track__step:last-child::before { display: none; }
+.zbx-track__step.is-done::before { background: var(--a-primary); }
+
+.zbx-track__ic {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    background: #fff;
+    border: 2px solid var(--a-line);
+    color: var(--a-mute);
+}
+
+.zbx-track__tx { display: grid; gap: 1px; padding-block-start: 3px; }
+.zbx-track__tx strong { font-size: 14px; font-weight: 700; }
+.zbx-track__tx em { font-style: normal; font-size: 12.5px; color: var(--a-mute); }
+
+.zbx-track__step.is-done .zbx-track__ic { background: var(--a-primary); border-color: var(--a-primary); color: #fff; }
+.zbx-track__step.is-done .zbx-track__tx strong { color: var(--a-primary-d); }
+
+.zbx-track__step.is-now .zbx-track__ic {
+    background: #fff;
+    border-color: var(--a-primary);
+    color: var(--a-primary-d);
+    box-shadow: 0 0 0 5px rgba(66, 157, 156, .13);
+}
+.zbx-track__step.is-now .zbx-track__tx strong { color: var(--a-primary-d); }
+
+.zbx-track__step.is-next { opacity: .55; }
+
+/* wide (desktop) timeline on the single-order page */
+@media (min-width: 760px) {
+    .zbx-track--wide { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; }
+    .zbx-track--wide .zbx-track__step {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 8px;
+        padding-inline: 6px;
+    }
+    .zbx-track--wide .zbx-track__step::before {
+        inset-inline-start: 50%;
+        inset-block-start: 17px;
+        width: 100%;
+        height: 2px;
+    }
+    .zbx-track--wide .zbx-track__tx { justify-items: center; padding-block-start: 0; }
+}
+
+/* KPI grid */
+.zbx-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+@media (min-width: 820px) {
+    .zbx-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.zbx-kpi {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: 16px;
+    padding: 15px 14px 14px;
+    box-shadow: var(--a-shadow);
+    display: grid;
+    gap: 3px;
+    align-content: start;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.zbx-kpi:hover { transform: translateY(-3px); box-shadow: var(--a-shadow-lg); }
+
+.zbx-kpi__ic {
+    font-size: 17px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background: var(--a-soft);
+    margin-bottom: 6px;
+}
+
+.zbx-kpi__n {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.5px;
+    color: var(--a-ink);
+    overflow-wrap: anywhere;
+}
+.zbx-kpi__n--money { font-size: 21px; }
+.zbx-kpi__n .woocommerce-Price-amount { font-size: inherit; font-weight: inherit; color: inherit; }
+.zbx-kpi__n .woocommerce-Price-currencySymbol { font-size: .78em; }
+
+.zbx-kpi__cap { font-size: 12.5px; color: var(--a-mute); line-height: 1.4; }
+.zbx-kpi__sub { font-size: 11px; color: var(--a-mute); opacity: .8; }
+
+.zbx-kpi--orders .zbx-kpi__ic { background: #e4f2f2; }
+.zbx-kpi--spend  .zbx-kpi__ic { background: #e6f6ec; }
+.zbx-kpi--items  .zbx-kpi__ic { background: #fdf0e2; }
+.zbx-kpi--save   .zbx-kpi__ic { background: #fdeceb; }
+
+.zbx-kpi__spark {
+    width: 100%;
+    height: 30px;
+    margin-block-start: 4px;
+    color: var(--a-primary);
+    display: block;
+}
+
+/* Deliberately NOT flex: the bare text nodes around <strong> would each
+   become anonymous flex items and wrap into ragged fragments. */
+.zbx-freeship-note {
+    margin: 0;
+    padding: 12px 15px;
+    border-radius: 14px;
+    background: #fdf6ec;
+    border: 1px dashed #edd0a8;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #8a6021;
+}
+.zbx-freeship-note > span:first-child { margin-inline-end: 6px; }
+.zbx-freeship-note strong,
+.zbx-freeship-note .woocommerce-Price-amount { color: #6f4c15; font-weight: 800; }
+
+/* product rails */
+.zbx-rail {
+    list-style: none;
+    margin: 0;
+    padding: 0 2px 6px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 168px;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+}
+.zbx-rail::-webkit-scrollbar { height: 6px; }
+.zbx-rail::-webkit-scrollbar-thumb { background: var(--a-line); border-radius: 99px; }
+
+/* On a wide column a swipe rail leaves dead space — become a grid that fills.
+   auto-fill (not auto-fit) keeps the tracks at product-card size instead of
+   stretching three items across the whole row. */
+@media (min-width: 760px) {
+    .zbx-rail {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        overflow-x: visible;
+        scroll-snap-type: none;
+        padding-bottom: 0;
+        justify-items: center;
+    }
+    /* auto-fit stretches the tracks so the row is always full; the cap keeps a
+       lone "time to restock" item from becoming a full-width banner, and the
+       leftover space spreads evenly between cards instead of pooling at the end. */
+    .zbx-rail__item { max-width: 260px; width: 100%; }
+}
+
+.zbx-rail__item {
+    scroll-snap-align: start;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: 15px;
+    padding: 9px;
+    /* flex column, not grid: lets the CTA drop to the bottom so buttons stay
+       on one line even when product names wrap to different heights */
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.zbx-rail__item:hover { transform: translateY(-3px); border-color: #d6e6d8; box-shadow: var(--a-shadow); }
+
+.zbx-rail__img {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    border-radius: 11px;
+    overflow: hidden;
+    background: var(--a-soft);
+    aspect-ratio: 1 / 1;
+}
+.zbx-rail__img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.zbx-rail__times,
+.zbx-mine__due {
+    position: absolute;
+    inset-block-start: 6px;
+    inset-inline-start: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(44, 62, 45, .82);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+.zbx-mine__due { background: var(--a-coral); }
+
+.zbx-rail__name,
+.zbx-mine__name {
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--a-ink);
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.zbx-rail__name:hover, .zbx-mine__name:hover { color: var(--a-primary-d); }
+
+.zbx-rail__hint {
+    font-size: 11px;
+    color: var(--a-coral);
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.zbx-rail__price,
+.zbx-mine__price { font-size: 13.5px; font-weight: 800; color: var(--a-primary-d); }
+.zbx-rail__price del, .zbx-mine__price del { font-size: .8em; opacity: .55; font-weight: 500; }
+.zbx-rail__price ins, .zbx-mine__price ins { text-decoration: none; }
+
+.woocommerce-account .zbx-rail__add,
+.woocommerce-account .zbx-mine__add {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-block-start: auto !important;
+    margin-inline: 0 !important;
+    margin-block-end: 0 !important;
+    padding: 9px 10px !important;
+    border-radius: 11px !important;
+    background: var(--a-primary) !important;
+    background-image: none !important;
+    color: #fff !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    border: 0 !important;
+    text-decoration: none;
+    transition: background .16s ease, transform .16s ease;
+}
+.woocommerce-account .zbx-rail__add:hover,
+.woocommerce-account .zbx-mine__add:hover { background: var(--a-primary-d) !important; transform: translateY(-1px); }
+.woocommerce-account .zbx-rail__add.added,
+.woocommerce-account .zbx-mine__add.added { background: #1c7a44 !important; }
+.woocommerce-account .added_to_cart { display: none !important; }
+
+.zbx-mine__out {
+    display: block;
+    text-align: center;
+    padding: 9px;
+    border-radius: 11px;
+    background: var(--a-soft);
+    color: var(--a-mute);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* quick actions */
+.zbx-quick {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+}
+@media (min-width: 820px) { .zbx-quick { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.zbx-quick a {
+    display: grid;
+    gap: 2px;
+    padding: 15px 14px;
+    border-radius: 15px;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    text-decoration: none;
+    color: var(--a-ink);
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.zbx-quick a:hover { transform: translateY(-3px); border-color: var(--a-primary); box-shadow: var(--a-shadow); }
+.zbx-quick a > span { font-size: 21px; line-height: 1; margin-bottom: 5px; }
+.zbx-quick a > strong { font-size: 14px; font-weight: 700; }
+.zbx-quick a > em { font-style: normal; font-size: 12px; color: var(--a-mute); }
+
+/* welcome (no orders yet) */
+.zbx-welcome {
+    text-align: center;
+    padding: 30px 22px;
+    border-radius: var(--a-r);
+    background: linear-gradient(160deg, #f2faf6, #ffffff);
+    border: 1px solid var(--a-line);
+    box-shadow: var(--a-shadow);
+}
+.zbx-welcome__ic { font-size: 44px; display: block; margin-bottom: 8px; }
+.zbx-welcome h2 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+.zbx-welcome > p { margin: 0 auto 18px; max-width: 46ch; color: var(--a-mute); font-size: 14px; line-height: 1.7; }
+
+.zbx-welcome__perks {
+    list-style: none;
+    margin: 0 auto 20px;
+    padding: 0;
+    display: inline-grid;
+    gap: 9px;
+    text-align: start;
+}
+.zbx-welcome__perks li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+.zbx-welcome__perks li span { font-size: 16px; }
+
+/* ── Orders ────────────────────────────────────────────────────── */
+
+.zbx-order-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+
+.zbx-order {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    box-shadow: var(--a-shadow);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.zbx-order:hover { transform: translateY(-2px); box-shadow: var(--a-shadow-lg); }
+.zbx-order.is-open { border-inline-start: 3px solid var(--a-primary); }
+
+.zbx-order__thumbs {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, 34px);
+    gap: 4px;
+    align-content: start;
+    text-decoration: none;
+}
+
+.zbx-order__thumb {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    overflow: hidden;
+    background: var(--a-soft);
+    display: grid;
+    place-items: center;
+}
+.zbx-order__thumb img { width: 100%; height: 100%; object-fit: contain; }
+.zbx-order__thumb--empty { font-size: 15px; }
+
+.zbx-order__more {
+    unicode-bidi: isolate;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    background: var(--a-soft);
+    color: var(--a-mute);
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.zbx-order__body { flex: 1 1 auto; min-width: 0; display: grid; gap: 7px; align-content: start; }
+
+.zbx-order__top { display: flex; align-items: center; justify-content: space-between; gap: 9px; flex-wrap: wrap; }
+
+.zbx-order__no {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--a-ink);
+    text-decoration: none;
+}
+.zbx-order__no span { color: var(--a-primary-d); }
+.zbx-order__no:hover { color: var(--a-primary-d); }
+
+.zbx-order__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 12px;
+    font-size: 12.5px;
+    color: var(--a-mute);
+}
+.zbx-order__ship { color: var(--a-primary-d); font-weight: 600; }
+
+.zbx-order__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-block-start: 9px;
+    border-block-start: 1px dashed var(--a-line);
+}
+
+.zbx-order__total { font-size: 16px; font-weight: 800; color: var(--a-ink); }
+.zbx-order__total .woocommerce-Price-amount { color: inherit; }
+
+.zbx-order__actions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.zbx-obtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    background: var(--a-soft);
+    color: var(--a-ink);
+    border: 1px solid var(--a-line);
+    transition: background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
+}
+.zbx-obtn:hover { background: #fff; border-color: var(--a-primary); color: var(--a-primary-d); transform: translateY(-1px); }
+
+.zbx-obtn--view { background: var(--a-primary); border-color: var(--a-primary); color: #fff; }
+.zbx-obtn--view:hover { background: var(--a-primary-d); border-color: var(--a-primary-d); color: #fff; }
+
+.zbx-obtn--pay { background: var(--a-amber); border-color: var(--a-amber); color: #fff; }
+.zbx-obtn--pay:hover { background: #bd7434; border-color: #bd7434; color: #fff; }
+
+.zbx-obtn--cancel { color: var(--a-coral); }
+.zbx-obtn--cancel:hover { border-color: var(--a-coral); color: var(--a-coral); }
+
+.zbx-obtn--reorder { background: #fff; border-color: var(--a-primary); color: var(--a-primary-d); }
+.zbx-obtn--reorder.is-busy { opacity: .75; cursor: wait; }
+.zbx-obtn--reorder.is-done { background: #1c7a44; border-color: #1c7a44; color: #fff; }
+
+.zbx-spin {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    display: inline-block;
+    animation: zbxAcctSpin .7s linear infinite;
+}
+@keyframes zbxAcctSpin { to { transform: rotate(360deg); } }
+
+.zbx-order-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-block-start: 16px;
+    flex-wrap: wrap;
+}
+.zbx-order-pager__at { font-size: 12.5px; color: var(--a-mute); }
+
+@media (max-width: 520px) {
+    .zbx-order { flex-direction: column; }
+    .zbx-order__thumbs { grid-template-columns: repeat(4, 34px); }
+    .zbx-order__foot { align-items: stretch; }
+    .zbx-order__actions { width: 100%; }
+    .zbx-order__actions > * { flex: 1; justify-content: center; }
+}
+
+/* ── Single order ──────────────────────────────────────────────── */
+
+.zbx-vieworder { display: grid; gap: 16px; }
+
+.zbx-vo-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    box-shadow: var(--a-shadow);
+}
+.zbx-vo-head__cap { display: block; font-size: 12px; color: var(--a-mute); }
+.zbx-vo-head__no { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+.zbx-vo-head__date { display: block; font-size: 12.5px; color: var(--a-mute); margin-block-start: 2px; }
+
+.zbx-vieworder .zbx-track {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+}
+
+.zbx-vo-dead {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--a-r);
+    background: #fdeceb;
+    border: 1px solid #f5cfcb;
+    color: #b3392c;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.zbx-vo-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 11px;
+}
+
+.zbx-vo-fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: 15px;
+    box-shadow: var(--a-shadow);
+}
+.zbx-vo-fact__ic {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background: var(--a-soft);
+    font-size: 16px;
+}
+.zbx-vo-fact > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.zbx-vo-fact strong { font-size: 14px; font-weight: 700; }
+.zbx-vo-fact em { font-style: normal; font-size: 12.5px; color: var(--a-mute); line-height: 1.55; }
+.zbx-vo-fact--addr { grid-column: 1 / -1; }
+.zbx-vo-fact--addr em br { content: ""; display: block; margin-block-end: 1px; }
+
+.zbx-vo-reorder { justify-self: start; }
+
+.zbx-vo-notes {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+}
+.zbx-vo-notes h2 { margin: 0 0 12px; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.zbx-vo-notes ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.zbx-vo-notes li { padding-inline-start: 14px; border-inline-start: 2px solid var(--a-line); }
+.zbx-vo-notes__when { font-size: 11.5px; color: var(--a-mute); }
+.zbx-vo-notes__tx p { margin: 3px 0 0; font-size: 13.5px; line-height: 1.7; }
+
+/* the stock WooCommerce details table, dressed to match */
+.zbx-vo-details .woocommerce-order-details,
+.zbx-vo-details .woocommerce-customer-details {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+    margin-block-end: 14px;
+}
+.zbx-vo-details h2 { font-size: 16px; font-weight: 800; margin: 0 0 12px; }
+
+.zbx-vo-details table.shop_table {
+    width: 100%;
+    border: 0 !important;
+    border-collapse: collapse;
+    margin: 0;
+}
+.zbx-vo-details table.shop_table th,
+.zbx-vo-details table.shop_table td {
+    border: 0 !important;
+    border-block-end: 1px solid var(--a-line) !important;
+    padding: 11px 4px !important;
+    font-size: 13.5px;
+    text-align: start;
+    background: transparent !important;
+}
+.zbx-vo-details table.shop_table thead th { font-size: 12px; color: var(--a-mute); font-weight: 700; }
+.zbx-vo-details table.shop_table td.product-total,
+.zbx-vo-details table.shop_table th:last-child,
+.zbx-vo-details table.shop_table td:last-child { text-align: end; white-space: nowrap; }
+.zbx-vo-details table.shop_table tfoot th { font-weight: 700; color: var(--a-mute); }
+.zbx-vo-details table.shop_table tfoot tr:last-child th,
+.zbx-vo-details table.shop_table tfoot tr:last-child td {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--a-ink);
+    border-block-end: 0 !important;
+}
+.zbx-vo-details table.shop_table a { color: var(--a-ink); text-decoration: none; font-weight: 600; }
+.zbx-vo-details table.shop_table a:hover { color: var(--a-primary-d); }
+.zbx-vo-details .product-quantity {
+    unicode-bidi: isolate;
+    color: var(--a-primary-d);
+    font-weight: 800;
+    margin-inline-start: 4px;
+}
+.zbx-vo-details .wc-item-meta { margin: 4px 0 0; padding: 0; list-style: none; font-size: 11.5px; color: var(--a-mute); }
+.zbx-vo-details .wc-item-meta li { display: flex; gap: 5px; }
+.zbx-vo-details .wc-item-meta p { margin: 0; }
+
+/* product thumbnails injected into the item names */
+.zbx-oi-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--a-soft);
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    vertical-align: middle;
+    margin-inline-end: 9px;
+}
+.zbx-oi-thumb img { width: 100%; height: 100%; object-fit: contain; }
+
+.zbx-vo-back {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--a-primary-d);
+    text-decoration: none;
+}
+.zbx-vo-back:hover { text-decoration: underline; }
+
+/* ── My products ───────────────────────────────────────────────── */
+
+.zbx-mine__head { background: #fff; border: 1px solid var(--a-line); border-radius: var(--a-r); padding: 16px 18px; box-shadow: var(--a-shadow); margin-bottom: 14px; }
+
+.zbx-mine__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.zbx-mine__item {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: 15px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: var(--a-shadow);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.zbx-mine__item:hover { transform: translateY(-3px); box-shadow: var(--a-shadow-lg); }
+.zbx-mine__item.is-due { border-color: #f0c3bb; }
+
+.zbx-mine__img {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    border-radius: 11px;
+    overflow: hidden;
+    background: var(--a-soft);
+    aspect-ratio: 1 / 1;
+}
+.zbx-mine__img img { width: 100%; height: 100%; object-fit: contain; }
+
+.zbx-mine__stats { font-size: 11.5px; color: var(--a-mute); line-height: 1.45; }
+
+/* ── Addresses ─────────────────────────────────────────────────── */
+
+.zbx-addr__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 13px;
+}
+
+.zbx-addr__card {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 17px;
+    box-shadow: var(--a-shadow);
+    display: grid;
+    gap: 12px;
+    align-content: start;
+}
+.zbx-addr__card.is-empty { border-style: dashed; background: #fcfdfc; }
+
+.zbx-addr__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.zbx-addr__top h3 { margin: 0; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+
+.zbx-addr__ok {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #e6f6ec;
+    color: #1c7a44;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.zbx-addr__body address {
+    font-style: normal;
+    font-size: 13.5px;
+    line-height: 1.85;
+    color: var(--a-ink);
+    margin: 0;
+}
+.zbx-addr__none { margin: 0; font-size: 13px; color: var(--a-mute); line-height: 1.7; }
+.zbx-addr__card .zbx-btn { justify-self: start; }
+
+/* ── Forms (account details, edit address) ─────────────────────── */
+
+.woocommerce-account .zbx-form,
+.woocommerce-account form.edit-account,
+.woocommerce-account form.woocommerce-address-fields,
+.woocommerce-account .woocommerce-address-fields {
+    display: grid;
+    gap: 14px;
+}
+
+.zbx-fs {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+    margin: 0;
+}
+
+/* Deliberately a heading, not a <legend>: a legend straddles the fieldset
+   border (which left the heading floating above our card) and the float
+   workaround made the next field overlap it. These groups are text inputs, so
+   a labelled section carries the same meaning without the rendering quirks. */
+.zbx-fs__legend {
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--a-ink);
+}
+.zbx-fs__note { margin: 0 0 14px; font-size: 12.5px; color: var(--a-mute); }
+/* the last .form-row inside drops its own margin, so the group needs one */
+.zbx-fs__grid { display: grid; gap: 0 14px; grid-template-columns: 1fr; margin-block-end: 14px; }
+.zbx-fs__grid:last-child { margin-block-end: 0; }
+@media (min-width: 620px) { .zbx-fs__grid { grid-template-columns: 1fr 1fr; } }
+
+.woocommerce-account .form-row { margin: 0 0 14px; padding: 0; display: grid; gap: 6px; width: auto; float: none; }
+.woocommerce-account .form-row:last-child { margin-bottom: 0; }
+
+.woocommerce-account .form-row label,
+.woocommerce-account .woocommerce-address-fields label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--a-ink);
+    margin: 0;
+}
+.woocommerce-account .form-row .required { color: var(--a-coral); text-decoration: none; border: 0; }
+.zbx-opt { font-weight: 500; color: var(--a-mute); font-size: 11.5px; }
+
+.woocommerce-account .form-row input.input-text,
+.woocommerce-account .form-row select,
+.woocommerce-account .woocommerce-address-fields input.input-text,
+.woocommerce-account .woocommerce-address-fields select,
+.woocommerce-account .select2-container .select2-selection--single {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--a-line);
+    background: #fff;
+    font-size: 14px;
+    color: var(--a-ink);
+    transition: border-color .16s ease, box-shadow .16s ease;
+    box-sizing: border-box;
+}
+.woocommerce-account .form-row input.input-text:focus,
+.woocommerce-account .form-row select:focus,
+.woocommerce-account .woocommerce-address-fields input.input-text:focus,
+.woocommerce-account .woocommerce-address-fields select:focus {
+    outline: 0;
+    border-color: var(--a-primary);
+    box-shadow: 0 0 0 3px rgba(66, 157, 156, .14);
+}
+
+.woocommerce-account .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 44px; padding-inline-start: 0; }
+.woocommerce-account .select2-container--default .select2-selection--single .select2-selection__arrow { height: 44px; }
+
+.zbx-fs__hint { font-size: 11.5px; color: var(--a-mute); line-height: 1.6; }
+
+.zbx-locked input { background: var(--a-soft) !important; color: var(--a-mute) !important; cursor: not-allowed; }
+
+.zbx-form__actions { margin: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+.woocommerce-account .zbx-form__actions button { min-width: 180px; }
+
+/* WooCommerce puts the address form in its own wrapper — give it the card too */
+.woocommerce-account .woocommerce-address-fields__field-wrapper {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-r);
+    padding: 18px;
+    box-shadow: var(--a-shadow);
+    margin-bottom: 14px;
+}
+.woocommerce-account .woocommerce-MyAccount-content > h3,
+.woocommerce-account form.edit-account > h3 {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0 0 12px;
+}
+
+/* ── Auth (logged out) ─────────────────────────────────────────── */
+
+.zbx-auth {
+    display: grid;
+    gap: 16px;
+    max-width: 1000px;
+    margin-inline: auto;
+}
+@media (min-width: 900px) {
+    .zbx-auth { grid-template-columns: 1fr 1.05fr; align-items: start; }
+}
+
+.zbx-auth__pitch {
+    position: relative;
+    overflow: hidden;
+    padding: 26px 24px;
+    border-radius: 22px;
+    background: linear-gradient(150deg, #429d9c, #2d7a79);
+    color: #fff;
+    box-shadow: 0 18px 44px rgba(45, 122, 121, .22);
+}
+.zbx-auth__mark { font-size: 38px; display: block; margin-bottom: 8px; }
+.zbx-auth__pitch h2 { margin: 0 0 8px; font-size: 23px; font-weight: 800; color: #fff; }
+.zbx-auth__pitch > p { margin: 0 0 18px; font-size: 14px; line-height: 1.8; color: rgba(255, 255, 255, .92); }
+.zbx-auth__pitch ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+.zbx-auth__pitch li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; }
+.zbx-auth__pitch li span { font-size: 17px; }
+.zbx-auth__pitch .woocommerce-Price-amount { color: #fff; font-weight: 800; }
+
+.zbx-auth__forms {
+    background: #fff;
+    border: 1px solid var(--a-line);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: var(--a-shadow-lg);
+}
+
+/* WooCommerce ships form.login / form.register with their own border + 20px
+   padding — inside our card that reads as a box in a box and shrinks the
+   button. The card is the container now. */
+.woocommerce-account .zbx-auth__forms form.login,
+.woocommerce-account .zbx-auth__forms form.register {
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+.zbx-auth__otp { width: 100%; }
+
+.zbx-auth__or {
+    position: relative;
+    text-align: center;
+    margin: 16px 0;
+    font-size: 12px;
+    color: var(--a-mute);
+}
+.zbx-auth__or::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    height: 1px;
+    background: var(--a-line);
+}
+.zbx-auth__or span { position: relative; background: #fff; padding-inline: 12px; }
+
+.zbx-pw { position: relative; display: block; }
+.zbx-pw__eye {
+    position: absolute;
+    inset-inline-end: 8px;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0;
+    border-radius: 8px;
+}
+.zbx-pw__eye:hover { background: var(--a-soft); }
+.woocommerce-account .zbx-pw input.input-text { padding-inline-end: 44px; }
+
+.zbx-auth__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.zbx-check { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 0; }
+.zbx-check input { width: 17px; height: 17px; accent-color: var(--a-primary); margin: 0; }
+.zbx-auth__lost { font-size: 12.5px; color: var(--a-primary-d); font-weight: 600; text-decoration: none; }
+.zbx-auth__lost:hover { text-decoration: underline; }
+
+.zbx-auth__forms .zbx-form__actions button { width: 100%; }
+
+.zbx-auth__reg {
+    margin-block-start: 18px;
+    border-block-start: 1px solid var(--a-line);
+    padding-block-start: 16px;
+}
+.zbx-auth__reg summary {
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--a-mute);
+    list-style: none;
+    text-align: center;
+}
+.zbx-auth__reg summary::-webkit-details-marker { display: none; }
+.zbx-auth__reg summary strong { color: var(--a-primary-d); }
+.zbx-auth__reg[open] summary { margin-bottom: 16px; }
+
+/* ── Toast ─────────────────────────────────────────────────────── */
+
+.zbx-acct-toast {
+    position: fixed;
+    inset-block-end: 22px;
+    inset-inline-start: 50%;
+    transform: translate(50%, 24px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    max-width: min(92vw, 380px);
+    padding: 13px 17px;
+    border-radius: 15px;
+    background: #2c3e2d;
+    color: #fff;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .28);
+    opacity: 0;
+    transition: opacity .3s ease, transform .3s cubic-bezier(.22, 1, .36, 1);
+}
+html[dir="rtl"] .zbx-acct-toast { transform: translate(50%, 24px); }
+.zbx-acct-toast.is-in { opacity: 1; transform: translate(50%, 0); }
+.zbx-acct-toast.is-error { background: #b3392c; }
+.zbx-acct-toast__ic { font-size: 19px; }
+.zbx-acct-toast__tx { display: grid; gap: 2px; }
+.zbx-acct-toast__tx strong { font-size: 13.5px; font-weight: 700; }
+.zbx-acct-toast__tx em { font-style: normal; font-size: 11.5px; opacity: .85; }
+
+/* ── Motion ────────────────────────────────────────────────────── */
+
+.zbx-up { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s cubic-bezier(.22, 1, .36, 1); }
+.zbx-up-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .zbx-up, .zbx-up-in { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .zbx-tier-card__bar > span { animation: none; }
+    .zbx-live__dot { animation: none; }
+    .woocommerce-account *, .woocommerce-account *::before, .woocommerce-account *::after { transition-duration: .01ms !important; }
+}
+
+/* ── WooCommerce notices inside the account ────────────────────── */
+
+.woocommerce-account .woocommerce-message,
+.woocommerce-account .woocommerce-error,
+.woocommerce-account .woocommerce-info {
+    border-radius: 14px;
+    border: 1px solid var(--a-line);
+    border-top-width: 1px;
+    background: var(--a-soft);
+    padding: 13px 16px 13px 16px;
+    font-size: 13.5px;
+    margin-bottom: 14px;
+}
+.woocommerce-account .woocommerce-message::before,
+.woocommerce-account .woocommerce-error::before,
+.woocommerce-account .woocommerce-info::before { display: none; }
+.woocommerce-account .woocommerce-message { background: #e6f6ec; border-color: #bfe4cd; color: #1c7a44; }
+.woocommerce-account .woocommerce-error { background: #fdeceb; border-color: #f5cfcb; color: #b3392c; }
+.woocommerce-account .woocommerce-error li { list-style: none; }
+.woocommerce-account .woocommerce-info { background: #e4f2f2; border-color: #bfdedd; color: var(--a-primary-d); }

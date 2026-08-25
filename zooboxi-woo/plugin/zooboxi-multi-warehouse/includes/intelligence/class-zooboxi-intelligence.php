@@ -379,7 +379,6 @@ class Zooboxi_Intelligence
     public function ajax_track(): void
     {
         $type = isset($_POST['event_type']) ? sanitize_text_field(wp_unslash($_POST['event_type'])) : '';
-        // 'click' added so campaign clicks aren't conflated with organic 'view'.
         $allowed = ['view', 'search', 'add_to_cart', 'begin_checkout', 'purchase', 'impression', 'click'];
         if (!in_array($type, $allowed, true)) {
             wp_die('', '', ['response' => 204]);
@@ -390,7 +389,6 @@ class Zooboxi_Intelligence
             $payload = is_array($decoded) ? $decoded : null;
         }
         // Server-side forward (keeps the API token out of the browser).
-        // zone + ab_variant are forwarded so campaign attribution / A-B rollups work.
         $this->api_post('/events', array_filter([
             'event_type'   => $type,
             'anon_id'      => isset($_POST['anon_id']) ? sanitize_text_field(wp_unslash($_POST['anon_id'])) : null,

@@ -138,29 +138,29 @@ class Zooboxi_Homepage
         echo '<div id="zb-home-buyagain" class="zb-home-slot" data-zb-feed="buyagain" data-zb-feed-fallback="login">'
             . $this->skeleton_rail(__('اطلبها مجدداً', 'zooboxi')) . '</div>';
 
-        // 6) Recently viewed (hydrated).
-        echo '<div id="zb-home-recent" class="zb-home-slot" data-zb-feed="recent"></div>';
-
-        // 7) Recommended for you (hydrated).
+        // 6) "مختار لك" — recently-viewed + recommendations merged (hydrated).
         echo '<div id="zb-home-foryou" class="zb-home-slot" data-zb-feed="foryou"></div>';
 
-        // 8) Trending / available-fast in your city (hydrated).
+        // Brands slider — placed above the in-city rail (owner preference).
+        echo '<div class="zb-home-brands">' . do_shortcode('[zooboxi_brands_slider]') . '</div>';
+
+        // 7) In-city / fast-delivery picks (hydrated).
         echo '<div id="zb-home-incity" class="zb-home-slot" data-zb-feed="incity"></div>';
 
-        // 9) Global trending (shell).
-        echo $this->section_trending();
+        // 8) Ad banner (campaign shop_top creative if live, else on-brand promo).
+        echo $this->section_banner('a');
 
-        // 10) Global bestsellers (shell).
-        echo $this->section_bestsellers();
+        // 9) Most wanted — trending + bestsellers merged & deduped (shell).
+        echo $this->section_most_wanted();
 
-        // 11) New arrivals (shell).
+        // 10) New arrivals (shell, deduped).
         echo $this->section_new();
 
-        // 12) Clearance (shell, channel-safe).
-        echo $this->section_clearance();
+        // 11) Ad banner.
+        echo $this->section_banner('b');
 
-        // 13) Brands slider (shell).
-        echo '<div class="zb-home-brands">' . do_shortcode('[zooboxi_brands_slider]') . '</div>';
+        // 12) Clearance (shell, channel-safe, deduped).
+        echo $this->section_clearance();
 
         // 14) Category pills (shell).
         echo $this->section_categories();
@@ -176,6 +176,13 @@ class Zooboxi_Homepage
 
     private function section_hero(): string
     {
+        // Smart slider: manual banners + live campaigns + auto on-brand fill slides.
+        if (class_exists('Zooboxi_Hero_Slider')) {
+            $slider = Zooboxi_Hero_Slider::render();
+            if ($slider !== '') {
+                return '<div class="zb-home-hero zb-home-hero--slider">' . $slider . '</div>';
+            }
+        }
         $campaign = trim(do_shortcode('[zooboxi_hero]'));
         if ($campaign !== '') {
             return '<div class="zb-home-hero zb-home-hero--campaign">' . $campaign . '</div>';
@@ -204,36 +211,26 @@ class Zooboxi_Homepage
         return $out;
     }
 
-    private function section_trending(): string
+    /** Merged "most wanted" rail = bestsellers + trending, ranked & deduped. */
+    private function section_most_wanted(): string
     {
-        return $this->cached_rail('trending', [
-            Zooboxi_Product_Rail::q_trending(12),
-            Zooboxi_Product_Rail::q_top_ranked(12),
-            Zooboxi_Product_Rail::q_newest(12),
+        return $this->cached_rail('mostwanted', [
+            Zooboxi_Product_Rail::q_bestsellers(24),
+            Zooboxi_Product_Rail::q_trending(24),
+            Zooboxi_Product_Rail::q_top_ranked(24),
+            Zooboxi_Product_Rail::q_newest(24),
         ], [
-            'title' => __('رائج الآن', 'zooboxi'),
-            'icon'  => '📈',
-            'zone'  => 'home:trending',
-        ]);
-    }
-
-    private function section_bestsellers(): string
-    {
-        return $this->cached_rail('bestsellers', [
-            Zooboxi_Product_Rail::q_bestsellers(12),
-            Zooboxi_Product_Rail::q_top_ranked(12),
-        ], [
-            'title' => __('الأكثر مبيعاً', 'zooboxi'),
+            'title' => __('الأكثر طلباً ورواجاً', 'zooboxi'),
             'icon'  => '🔥',
-            'zone'  => 'home:bestsellers',
+            'zone'  => 'home:mostwanted',
         ]);
     }
 
     private function section_new(): string
     {
         return $this->cached_rail('new', [
-            Zooboxi_Product_Rail::q_new(12),
-            Zooboxi_Product_Rail::q_newest(12),
+            Zooboxi_Product_Rail::q_new(24),
+            Zooboxi_Product_Rail::q_newest(24),
         ], [
             'title' => __('وصل حديثاً', 'zooboxi'),
             'icon'  => '✨',
@@ -247,14 +244,55 @@ class Zooboxi_Homepage
             return '';
         }
         return $this->cached_rail('clearance', [
-            Zooboxi_Product_Rail::q_clearance(12),
+            Zooboxi_Product_Rail::q_clearance(24),
         ], [
-            'title'    => __('عروض التصفية', 'zooboxi'),
-            'subtitle' => __('كميات محدودة', 'zooboxi'),
-            'icon'     => '🏷️',
-            'zone'     => 'home:clearance',
-            'class'    => 'zb-rail--clearance',
+            'title'      => __('عروض التصفية', 'zooboxi'),
+            'subtitle'   => __('كميات محدودة', 'zooboxi'),
+            'icon'       => '🏷️',
+            'zone'       => 'home:clearance',
+            'class'      => 'zb-rail--clearance',
+            'badge_mode' => 'clearance',
         ]);
+    }
+
+    /**
+     * Inline ad banner between rails. Uses a live campaign 'shop_top' creative when
+     * present; otherwise an on-brand promo strip (never empty, never a fake offer).
+     */
+    private function section_banner(string $slot): string
+    {
+        if (get_option('zooboxi_campaigns_enabled', 'no') === 'yes') {
+            $cached = get_transient('zooboxi_campaigns_cache');
+            if (is_array($cached)) {
+                $now = current_time('timestamp');
+                foreach ($cached as $c) {
+                    $zones = $c['zones'] ?? [];
+                    if (!is_array($zones) || !in_array('shop_top', $zones, true)) { continue; }
+                    if (!empty($c['ends_at']) && strtotime($c['ends_at']) < $now) { continue; }
+                    $img = $c['creatives']['A']['wide'] ?? ($c['creatives']['A']['hero'] ?? null);
+                    if (!$img) { continue; }
+                    $cid = (int) ($c['id'] ?? 0);
+                    $wid = (int) ($c['woo_product_id'] ?? 0);
+                    $link = $wid > 0 ? (get_permalink($wid) ?: wc_get_page_permalink('shop')) : wc_get_page_permalink('shop');
+                    return '<a class="zb-home-banner zb-camp" href="' . esc_url($link) . '" data-zb-campaign="' . $cid
+                        . '" data-zb-zone="' . esc_attr('campaign:' . $cid . ':shop_top') . '" data-zb-variant="A" data-zb-item="' . esc_attr((string) ($c['item_code'] ?? '')) . '">'
+                        . '<img src="' . esc_url($img) . '" alt="' . esc_attr((string) ($c['headline_ar'] ?? '')) . '" loading="lazy"></a>';
+                }
+            }
+        }
+
+        // Static on-brand promo strips (alternate by slot).
+        $shop = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/');
+        $strips = [
+            'a' => ['theme' => 'teal',  'icon' => '🚀', 'title' => __('توصيل خلال ساعتين لكل أنحاء مدينتك', 'zooboxi'), 'sub' => __('من أقرب مستودع — لكل مستلزمات حيوانك الأليف', 'zooboxi'), 'cta' => __('تسوّق الآن', 'zooboxi')],
+            'b' => ['theme' => 'coral', 'icon' => '💯', 'title' => __('منتجات أصلية 100% مستوردة مباشرة', 'zooboxi'), 'sub' => __('أفضل الماركات العالمية بين يديك', 'zooboxi'), 'cta' => __('اكتشف الماركات', 'zooboxi')],
+        ];
+        $s = $strips[$slot] ?? $strips['a'];
+        return '<a class="zb-home-banner zb-home-banner--promo zb-home-banner--' . esc_attr($s['theme']) . '" href="' . esc_url($shop) . '">'
+            . '<span class="zb-home-banner__icon" aria-hidden="true">' . esc_html($s['icon']) . '</span>'
+            . '<span class="zb-home-banner__txt"><span class="zb-home-banner__title">' . esc_html($s['title']) . '</span>'
+            . '<span class="zb-home-banner__sub">' . esc_html($s['sub']) . '</span></span>'
+            . '<span class="zb-home-banner__cta">' . esc_html($s['cta']) . '</span></a>';
     }
 
     private function section_categories(): string
@@ -306,6 +344,9 @@ class Zooboxi_Homepage
      * (1h, mirroring the hourly intelligence snapshot sync), so repeated front-page
      * loads run a cheap post__in query instead of a meta-sorted scan over 4k+ products.
      */
+    /** Products already shown in earlier shell rails this request (cross-rail dedup). */
+    private array $shell_used = [];
+
     private function cached_rail(string $key, array $queries, array $render_args): string
     {
         $tkey = 'zbhome_ids_' . $key . '_' . get_locale();
@@ -320,9 +361,15 @@ class Zooboxi_Homepage
             }
             set_transient($tkey, $ids, HOUR_IN_SECONDS);
         }
+        // Drop anything already shown in an earlier shell rail, then cap at 12.
+        if (!empty($this->shell_used)) {
+            $ids = array_values(array_diff($ids, $this->shell_used));
+        }
         if (empty($ids)) {
             return '';
         }
+        $ids = array_slice($ids, 0, 12);
+        $this->shell_used = array_merge($this->shell_used, $ids);
         return Zooboxi_Product_Rail::render(array_merge($render_args, ['ids' => $ids]));
     }
 

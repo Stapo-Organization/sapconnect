@@ -379,15 +379,38 @@ class Zooboxi_Checkout_Customizer
                 }
             });
 
-            // Load Google Maps if not already loaded
-            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            // Load Google Maps ONCE. The location popup injects its own async tag on
+            // every page, so "google is undefined" here does not mean "nobody is
+            // loading it" — appending a second tag made the API load twice, which
+            // Google answers with a 400 and an intermittently blank map.
+            function zbxStartCheckoutMap() {
+                if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                    zbxInitCheckoutMap();
+                    return;
+                }
+                // The location popup prints its own async tag later in the footer, so
+                // this check must run once the document is parsed — otherwise we race
+                // it, load the API twice, and Google answers 400 with a blank map.
+                if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+                    var zbxMapWait = setInterval(function () {
+                        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                            clearInterval(zbxMapWait);
+                            zbxInitCheckoutMap();
+                        }
+                    }, 120);
+                    setTimeout(function () { clearInterval(zbxMapWait); }, 15000);
+                    return;
+                }
                 var script = document.createElement('script');
                 script.src = 'https://maps.googleapis.com/maps/api/js?key=<?php echo esc_attr($mapsKey); ?>&callback=zbxInitCheckoutMap';
                 script.async = true;
                 script.defer = true;
                 document.body.appendChild(script);
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', zbxStartCheckoutMap);
             } else {
-                zbxInitCheckoutMap();
+                zbxStartCheckoutMap();
             }
         })();
         </script>

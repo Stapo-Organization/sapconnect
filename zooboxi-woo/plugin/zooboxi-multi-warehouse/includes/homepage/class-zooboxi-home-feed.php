@@ -43,9 +43,9 @@ class Zooboxi_Home_Feed
         $out = [
             'welcome'  => $logged ? $this->welcome_html($uid) : null,
             'promise'  => $this->promise_html($lat, $lng, $city) ?: null,
-            'recent'   => $this->recent_html($recent) ?: null,
             'buyagain' => $logged ? ($this->buyagain_html($uid) ?: null) : null,
             'login'    => $logged ? null : $this->login_card_html(),
+            // "مختار لك" merges recently-viewed + recommendations into one deduped rail.
             'foryou'   => $this->foryou_html($recent) ?: null,
             'incity'   => $this->incity_html($lat, $lng, $city) ?: null,
         ];
@@ -126,6 +126,7 @@ class Zooboxi_Home_Feed
         $type  = $best['delivery_type'] ?? '';
         $time  = (string) ($best['estimated_time'] ?? '');
         $where = $city !== '' ? $city : (string) ($best['warehouse_name'] ?? '');
+        if ($where !== '' && function_exists('zooboxi_city_ar')) { $where = zooboxi_city_ar($where); }
         $icon  = $type === Zooboxi_Delivery_Engine::TYPE_EXPRESS ? '⚡'
                : ($type === Zooboxi_Delivery_Engine::TYPE_STANDARD ? '🚚' : '📦');
 
@@ -210,50 +211,66 @@ class Zooboxi_Home_Feed
             . '</div></div>';
     }
 
+    /**
+     * "مختار لك" — ONE personalized rail that merges recently-viewed (strong personal
+     * signal, shown first) with recommendations (FBT + substitutes) for the latest
+     * viewed item, deduped. Replaces the old separate "تصفّحت مؤخراً" + "موصى لك" rails
+     * so the homepage isn't cluttered with near-duplicate personal rails.
+     */
     private function foryou_html(array $recent): string
     {
-        if (empty($recent)) {
-            return '';
-        }
-        $top  = (int) $recent[0];
-        $code = (string) get_post_meta($top, '_zooboxi_item_code', true);
-        if ($code === '') {
-            return '';
-        }
-
-        $tkey   = 'zbhome_foryou_' . md5($code);
-        $cached = get_transient($tkey);
-        if ($cached !== false) {
-            return (string) $cached;
-        }
-
-        $recs = $this->api_get('/recommendations/' . rawurlencode($code));
-        $pool = array_merge(
-            $recs['frequently_bought_together'] ?? [],
-            $recs['substitutes'] ?? []
-        );
-
         $ids = [];
-        foreach ($pool as $r) {
-            $pid = !empty($r['woo_product_id'])
-                ? (int) $r['woo_product_id']
-                : $this->find_product_id($r['item_code'] ?? '');
-            if ($pid && get_post_status($pid) === 'publish'
-                && !in_array($pid, $ids, true) && !in_array($pid, $recent, true)) {
+
+        // 1) Recently viewed first.
+        foreach ($recent as $pid) {
+            $pid = (int) $pid;
+            if ($pid && get_post_status($pid) === 'publish' && !in_array($pid, $ids, true)) {
                 $ids[] = $pid;
             }
         }
-        $ids = array_slice($ids, 0, 12);
 
-        $html = empty($ids) ? '' : Zooboxi_Product_Rail::render([
+        // 2) Recommendations for the latest viewed item (cached by item code).
+        if (!empty($recent)) {
+            $code = (string) get_post_meta((int) $recent[0], '_zooboxi_item_code', true);
+            if ($code !== '') {
+                $tkey   = 'zbhome_recs_' . md5($code);
+                $recIds = get_transient($tkey);
+                if ($recIds === false) {
+                    $recs = $this->api_get('/recommendations/' . rawurlencode($code));
+                    $pool = array_merge(
+                        $recs['frequently_bought_together'] ?? [],
+                        $recs['substitutes'] ?? []
+                    );
+                    $recIds = [];
+                    foreach ($pool as $r) {
+                        $pid = !empty($r['woo_product_id'])
+                            ? (int) $r['woo_product_id']
+                            : $this->find_product_id($r['item_code'] ?? '');
+                        if ($pid && get_post_status($pid) === 'publish' && !in_array($pid, $recIds, true)) {
+                            $recIds[] = $pid;
+                        }
+                    }
+                    set_transient($tkey, $recIds, 30 * MINUTE_IN_SECONDS);
+                }
+                foreach ($recIds as $pid) {
+                    if (!in_array($pid, $ids, true)) {
+                        $ids[] = $pid;
+                    }
+                }
+            }
+        }
+
+        if (empty($ids)) {
+            return '';
+        }
+        $ids = array_slice($ids, 0, 14);
+
+        return Zooboxi_Product_Rail::render([
             'ids'   => $ids,
-            'title' => __('موصى لك', 'zooboxi'),
-            'icon'  => '💡',
+            'title' => __('مختار لك', 'zooboxi'),
+            'icon'  => '✨',
             'zone'  => 'home:foryou',
         ]);
-
-        set_transient($tkey, $html, 30 * MINUTE_IN_SECONDS);
-        return $html;
     }
 
     private function incity_html(float $lat, float $lng, string $city): string
@@ -304,7 +321,7 @@ class Zooboxi_Home_Feed
         wp_reset_postdata();
 
         $title = $city !== ''
-            ? sprintf(__('الأكثر رواجاً في %s', 'zooboxi'), $city)
+            ? sprintf(__('الأكثر رواجاً في %s', 'zooboxi'), function_exists('zooboxi_city_ar') ? zooboxi_city_ar($city) : $city)
             : __('متاح للتوصيل السريع', 'zooboxi');
 
         $html = empty($ids) ? '' : Zooboxi_Product_Rail::render([

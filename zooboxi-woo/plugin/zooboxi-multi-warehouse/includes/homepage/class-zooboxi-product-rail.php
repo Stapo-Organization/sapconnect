@@ -21,6 +21,9 @@ class Zooboxi_Product_Rail
     /** True only while a rail loop is rendering — gates the per-card item marker. */
     private static bool $in_rail = false;
 
+    /** Per-rail badge override (e.g. 'clearance' swaps the demand badge for a تصفية pill). */
+    private static string $badge_mode = '';
+
     /**
      * Render a rail.
      *
@@ -50,7 +53,9 @@ class Zooboxi_Product_Rail
             'cta_url'   => '',
             'cta_label' => '',
             'class'     => '',
+            'badge_mode' => '',
         ]);
+        self::$badge_mode = (string) $args['badge_mode'];
 
         if (is_array($args['ids'])) {
             $ids = array_values(array_unique(array_filter(array_map('intval', $args['ids']))));
@@ -113,7 +118,7 @@ class Zooboxi_Product_Rail
         echo '<ul class="products columns-' . $cols . ' zb-rail__track">';
         while ($q->have_posts()) {
             $q->the_post();
-            wc_get_template_part('content', 'product');
+            self::render_card();
         }
         echo '</ul>';
         echo '</div>';
@@ -124,6 +129,7 @@ class Zooboxi_Product_Rail
         remove_filter('woocommerce_product_add_to_cart_text', [self::class, 'ar_button_text'], 99);
         remove_filter('woocommerce_loop_add_to_cart_args', [self::class, 'ar_button_aria'], 99);
         self::$in_rail = false;
+        self::$badge_mode = '';
 
         wp_reset_postdata();
 
@@ -140,6 +146,105 @@ class Zooboxi_Product_Rail
             'aria-label="Select options' => 'aria-label="اختر الخيارات',
         ]);
         return $html;
+    }
+
+    /**
+     * Render ONE rail card with a custom, fully-controlled structure so every rail
+     * is byte-identical in BOTH the page (shell) and REST (/home-feed) contexts.
+     *
+     * We must NOT use wc_get_template_part('content','product') here: Astra only
+     * partially boots its WooCommerce loop markup in the REST context (its on-card
+     * button fires but its thumbnail/summary wrappers don't), so page rails and
+     * hydrated rails ended up with different DOM (and a duplicate add-to-cart button
+     * → a double stepper). This custom card eliminates that divergence.
+     */
+    public static function render_card(): void
+    {
+        global $product;
+        if (!($product instanceof WC_Product)) {
+            $product = wc_get_product(get_the_ID());
+        }
+        if (!($product instanceof WC_Product)) {
+            return;
+        }
+        $pid  = $product->get_id();
+        $link = get_permalink($pid);
+
+        echo '<li ';
+        wc_product_class('', $product);
+        echo '>';
+
+        // Thumbnail link: badges + brand chip + delivery badge + image.
+        echo '<a href="' . esc_url($link) . '" class="woocommerce-LoopProduct-link woocommerce-loop-product__link zb-card-thumb">';
+        // Clearance rail: a تصفية pill is the right signal (popularity badge is not).
+        if (self::$badge_mode === 'clearance') {
+            echo '<span class="zb-badge zb-b-clear zb-badge-card"><span class="zb-badge-ic">🏷️</span>' . esc_html__('تصفية', 'zooboxi') . '</span>';
+        }
+        self::fire_card_decorations();
+        echo $product->get_image('woocommerce_thumbnail');
+        echo '</a>';
+
+        // Title link.
+        echo '<a href="' . esc_url($link) . '" class="ast-loop-product__link"><h2 class="woocommerce-loop-product__title">'
+            . esc_html($product->get_name()) . '</h2></a>';
+
+        // Foot row: price + action (icon button / options / out-of-stock pill).
+        echo '<div class="zb-card-foot"><span class="price">' . $product->get_price_html() . '</span>';
+        ob_start();
+        woocommerce_template_loop_add_to_cart();
+        echo ob_get_clean();
+        echo '</div>';
+
+        // Hidden item-code marker for click attribution.
+        $code = get_post_meta($pid, '_zooboxi_item_code', true);
+        if ($code !== '') {
+            echo '<span class="zb-rail-item" data-zb-item="' . esc_attr($code) . '" hidden></span>';
+        }
+
+        echo '</li>';
+    }
+
+    /**
+     * Fire ONLY our card decorations on woocommerce_before_shop_loop_item_title:
+     * dynamic badges (p8), delivery badge (p9), brand chip (p9). Suppress the WC
+     * default thumbnail and any Astra wrapper callbacks so output is identical in
+     * every context (we render the <img> ourselves).
+     */
+    private static function fire_card_decorations(): void
+    {
+        $hook = 'woocommerce_before_shop_loop_item_title';
+        remove_action($hook, 'woocommerce_template_loop_product_thumbnail', 10);
+
+        $removed = [];
+        if (!empty($GLOBALS['wp_filter'][$hook]) && !empty($GLOBALS['wp_filter'][$hook]->callbacks)) {
+            foreach ($GLOBALS['wp_filter'][$hook]->callbacks as $prio => $cbs) {
+                foreach ($cbs as $id => $cb) {
+                    $fn = $cb['function'] ?? null;
+                    $cls = (is_array($fn) && isset($fn[0]) && is_object($fn[0])) ? get_class($fn[0]) : (is_string($fn) ? $fn : '');
+                    $drop = false;
+                    if (stripos($cls, 'astra') !== false || stripos($cls, 'astra') === 0) {
+                        $drop = true; // Astra wrapper markup (we render our own thumbnail)
+                    }
+                    // In the clearance rail, suppress the demand/"most ordered" badge.
+                    if (self::$badge_mode === 'clearance' && stripos($cls, 'Dynamic_Badges') !== false) {
+                        $drop = true;
+                    }
+                    if ($drop) {
+                        $removed[] = [$prio, $id, $cb];
+                    }
+                }
+            }
+            foreach ($removed as [$prio, $id, $cb]) {
+                unset($GLOBALS['wp_filter'][$hook]->callbacks[$prio][$id]);
+            }
+        }
+
+        do_action($hook);
+
+        foreach ($removed as [$prio, $id, $cb]) {
+            $GLOBALS['wp_filter'][$hook]->callbacks[$prio][$id] = $cb;
+        }
+        add_action($hook, 'woocommerce_template_loop_product_thumbnail', 10);
     }
 
     /** Arabic loop button text (store is Arabic-only; WC ships English defaults). */
