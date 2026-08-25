@@ -224,6 +224,11 @@ class Zooboxi_V2_Bootstrap
             if ($value === null) {
                 continue;
             }
+            // The app percent-encodes Arabic values (dart:io cannot send
+            // non-Latin-1 header bytes) — undo that before sanitizing.
+            if (strpos($value, '%') !== false && preg_match('/%[0-9A-Fa-f]{2}/', $value)) {
+                $value = rawurldecode($value);
+            }
             $value = sanitize_text_field($value);
             if ($value === '') {
                 unset($_COOKIE[$cookie]);
