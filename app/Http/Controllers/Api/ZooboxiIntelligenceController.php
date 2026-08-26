@@ -125,7 +125,7 @@ class ZooboxiIntelligenceController extends Controller
     public function storeEvent(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'event_type' => 'required|in:view,search,add_to_cart,begin_checkout,purchase,impression',
+            'event_type' => 'required|in:view,search,add_to_cart,begin_checkout,purchase,impression,click',
             'anon_id' => 'nullable|string|max:64',
             'customer_ref' => 'nullable|string|max:255',
             'item_code' => 'nullable|string|max:255',

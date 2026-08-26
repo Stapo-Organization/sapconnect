@@ -20,6 +20,26 @@ class AdPlacements
             'zone' => 'hero',
         ],
 
+        // ── Mobile app (Zooboxi customer app) ──────────────────────────────
+        // App-only zones: the store website ignores them, the app's /v2/home
+        // reads them. Formats reuse the existing pipeline (hero renders 3:2 on
+        // the gpt-image path, wide is the in-feed strip) — no generator changes.
+        'app_home_hero' => [
+            'label_ar' => 'سلايدر التطبيق الرئيسي',
+            'format' => 'hero',     // 3:2 — fills the app hero carousel card
+            'zone' => 'app_hero',
+        ],
+        'app_home_banner_1' => [
+            'label_ar' => 'بانر التطبيق ١',
+            'format' => 'wide',     // in-feed banner between app rails
+            'zone' => 'app_banner',
+        ],
+        'app_home_banner_2' => [
+            'label_ar' => 'بانر التطبيق ٢',
+            'format' => 'wide',
+            'zone' => 'app_banner',
+        ],
+
         // ── Brand boutique pages (/brand/<slug>/) ──────────────────────────
         // One brand hero (3:2) + up to three square promo tiles, each rendered
         // by gpt-image-2 in the brand's own identity. Served per-brand by
