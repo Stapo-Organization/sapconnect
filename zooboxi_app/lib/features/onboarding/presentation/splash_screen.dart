@@ -6,19 +6,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
-import '../../../core/location/location_controller.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../location/presentation/location_sheet.dart';
 
 /// The launch screen.
 ///
-/// It does exactly two things — restore the session from the keychain and,
-/// on a first run, offer the location primer — then gets out of the way. It
-/// deliberately does not wait on the catalog: the home screen has skeletons
-/// for that, and a splash that lingers for a network call is a splash the
-/// customer resents.
+/// It does exactly two things — restore the session from the keychain and pick
+/// the first destination — then gets out of the way. It deliberately does not
+/// wait on the catalog: the home screen has skeletons for that, and a splash
+/// that lingers for a network call is a splash the customer resents.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -42,18 +39,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await minimumSplash;
     if (!mounted) return;
 
-    final store = ref.read(localStoreProvider);
-    final location = ref.read(currentLocationProvider);
-    final needsPrimer = !store.hasOnboarded && !location.isSet;
-
-    context.go('/home');
-    if (!needsPrimer) return;
-
-    await store.setOnboarded();
-    if (!mounted) return;
-    // Offered *after* landing on home, so the customer can dismiss it and
-    // still be looking at a store rather than at a blocking wall.
-    await showLocationSheet(context, primer: true);
+    // The welcome journey owns language, location and notifications; it runs
+    // once and hands over to the store.
+    context.go(ref.read(localStoreProvider).hasSeenWelcome ? '/home' : '/onboarding');
   }
 
   @override

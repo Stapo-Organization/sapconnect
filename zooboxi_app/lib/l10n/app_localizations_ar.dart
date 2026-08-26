@@ -121,6 +121,81 @@ class LAr extends L {
   String get onboardLocationFailed => 'تعذّر تحديد الموقع. اختر مدينتك يدويًا.';
 
   @override
+  String get onbStart => 'يلا نبدأ';
+
+  @override
+  String get onbContinue => 'استمرار';
+
+  @override
+  String get onbLater => 'لاحقًا';
+
+  @override
+  String get onbWelcomeTitle => 'حيّاك الله في زوبوكسي';
+
+  @override
+  String get onbWelcomeBody =>
+      'كل اللي يحتاجه حيوانك الأليف — أكل وعناية ولعب — يوصلك لباب البيت بسرعة';
+
+  @override
+  String get onbLanguageTitle => 'بأي لغة تحب نخدمك؟';
+
+  @override
+  String get onbLocTitle => 'وين نوصّلك؟';
+
+  @override
+  String get onbLocBody =>
+      'حدد موقعك ونعرض لك مخزون أقرب فرع ووعد توصيل صادق لحيّك';
+
+  @override
+  String get onbLocPerk1 => 'أسرع توصيل ممكن لحيّك';
+
+  @override
+  String get onbLocPerk2 => 'مخزون حقيقي من أقرب فرع لك';
+
+  @override
+  String get onbLocPerk3 => 'عروض مدينتك أول بأول';
+
+  @override
+  String get onbLocCta => 'حدد موقعي تلقائيًا';
+
+  @override
+  String get onbLocCity => 'أختار مدينتي بنفسي';
+
+  @override
+  String get onbLocSetTitle => 'وصلناك!';
+
+  @override
+  String get onbLocFailed => 'ما قدرنا نحدد موقعك — تقدر تختار مدينتك بنفسك';
+
+  @override
+  String get onbNotifTitle => 'خلّك أول من يعرف';
+
+  @override
+  String get onbNotifBody =>
+      'فعّل الإشعارات نوصلك حالة طلبك أولًا بأول وأحلى العروض قبل الكل';
+
+  @override
+  String get onbNotifPerk1 => 'تتبّع طلبك خطوة بخطوة';
+
+  @override
+  String get onbNotifPerk2 => 'عروض وتخفيضات على مقاضي حيوانك';
+
+  @override
+  String get onbNotifPerk3 => 'تنبيه لحظة وصول طلبك';
+
+  @override
+  String get onbNotifCta => 'فعّل الإشعارات';
+
+  @override
+  String get onbNotifMockTitle => 'طلبك في الطريق 🚚';
+
+  @override
+  String get onbNotifMockBody => 'السائق قريب منك — جهّز نفسك!';
+
+  @override
+  String get onbNotifNow => 'الآن';
+
+  @override
   String get citiesTitle => 'اختر مدينتك';
 
   @override

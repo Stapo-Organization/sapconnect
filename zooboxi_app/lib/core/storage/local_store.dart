@@ -15,7 +15,7 @@ class LocalStore {
 
   static const _kThemeMode = 'settings.theme_mode';
   static const _kLocale = 'settings.locale';
-  static const _kOnboarded = 'settings.onboarded';
+  static const _kWelcomeSeen = 'settings.onboarded.v2';
   static const _kLocation = 'location.current';
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
@@ -49,8 +49,11 @@ class LocalStore {
   Future<void> setLocaleCode(String? code) =>
       code == null ? _prefs.remove(_kLocale) : _prefs.setString(_kLocale, code);
 
-  bool get hasOnboarded => _prefs.getBool(_kOnboarded) ?? false;
-  Future<void> setOnboarded() => _prefs.setBool(_kOnboarded, true);
+  /// Whether the welcome journey has run. Deliberately a *new* key: the old
+  /// `settings.onboarded` only ever marked the location primer, and every
+  /// existing install is owed the rebuilt journey once.
+  bool get hasSeenWelcome => _prefs.getBool(_kWelcomeSeen) ?? false;
+  Future<void> setWelcomeSeen() => _prefs.setBool(_kWelcomeSeen, true);
 
   // ── Delivery location ────────────────────────────────────────────────
 

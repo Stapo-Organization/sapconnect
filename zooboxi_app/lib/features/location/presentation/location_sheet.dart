@@ -10,22 +10,14 @@ import '../../../l10n/app_localizations.dart';
 import '../data/location_models.dart';
 import 'widgets/city_picker.dart';
 
-/// Opens the delivery-location sheet.
-///
-/// [primer] is the first-run framing — it explains *why* we're asking, and
-/// offers a skip, because a store that blocks browsing on a permission prompt
-/// loses the customer before it has shown them anything.
-Future<void> showLocationSheet(BuildContext context, {bool primer = false}) {
-  return showZbSheet<void>(
-    context,
-    builder: (_) => LocationSheet(primer: primer),
-  );
+/// Opens the delivery-location sheet — the in-store way to change where we
+/// deliver. The first-run framing lives in the welcome journey now.
+Future<void> showLocationSheet(BuildContext context) {
+  return showZbSheet<void>(context, builder: (_) => const LocationSheet());
 }
 
 class LocationSheet extends ConsumerStatefulWidget {
-  const LocationSheet({super.key, this.primer = false});
-
-  final bool primer;
+  const LocationSheet({super.key});
 
   @override
   ConsumerState<LocationSheet> createState() => _LocationSheetState();
@@ -73,12 +65,11 @@ class _LocationSheetState extends ConsumerState<LocationSheet> {
     }
 
     return BottomSheetScaffold(
-      title: widget.primer ? l.onboardTitle : l.locationSheetTitle,
+      title: l.locationSheetTitle,
       subtitle: l.onboardSubtitle,
-      child: _PrimerBody(
+      child: _LocationBody(
         busy: state.isBusy,
         current: state.location,
-        primer: widget.primer,
         onUseGps: _useGps,
         onChooseCity: () => setState(() => _showCities = true),
       ),
@@ -86,18 +77,16 @@ class _LocationSheetState extends ConsumerState<LocationSheet> {
   }
 }
 
-class _PrimerBody extends StatelessWidget {
-  const _PrimerBody({
+class _LocationBody extends StatelessWidget {
+  const _LocationBody({
     required this.busy,
     required this.current,
-    required this.primer,
     required this.onUseGps,
     required this.onChooseCity,
   });
 
   final bool busy;
   final ZbLocation current;
-  final bool primer;
   final VoidCallback onUseGps;
   final VoidCallback onChooseCity;
 
@@ -162,13 +151,6 @@ class _PrimerBody extends StatelessWidget {
           icon: const Icon(Icons.location_city_rounded, size: 20),
           label: Text(l.onboardChooseCity),
         ),
-        if (primer) ...[
-          Gap.h4,
-          TextButton(
-            onPressed: busy ? null : () => Navigator.of(context).pop(),
-            child: Text(l.onboardSkip),
-          ),
-        ],
         Gap.h8,
       ],
     );

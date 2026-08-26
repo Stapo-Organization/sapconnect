@@ -313,6 +313,150 @@ abstract class L {
   /// **'تعذّر تحديد الموقع. اختر مدينتك يدويًا.'**
   String get onboardLocationFailed;
 
+  /// No description provided for @onbStart.
+  ///
+  /// In ar, this message translates to:
+  /// **'يلا نبدأ'**
+  String get onbStart;
+
+  /// No description provided for @onbContinue.
+  ///
+  /// In ar, this message translates to:
+  /// **'استمرار'**
+  String get onbContinue;
+
+  /// No description provided for @onbLater.
+  ///
+  /// In ar, this message translates to:
+  /// **'لاحقًا'**
+  String get onbLater;
+
+  /// No description provided for @onbWelcomeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حيّاك الله في زوبوكسي'**
+  String get onbWelcomeTitle;
+
+  /// No description provided for @onbWelcomeBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل اللي يحتاجه حيوانك الأليف — أكل وعناية ولعب — يوصلك لباب البيت بسرعة'**
+  String get onbWelcomeBody;
+
+  /// No description provided for @onbLanguageTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'بأي لغة تحب نخدمك؟'**
+  String get onbLanguageTitle;
+
+  /// No description provided for @onbLocTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'وين نوصّلك؟'**
+  String get onbLocTitle;
+
+  /// No description provided for @onbLocBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدد موقعك ونعرض لك مخزون أقرب فرع ووعد توصيل صادق لحيّك'**
+  String get onbLocBody;
+
+  /// No description provided for @onbLocPerk1.
+  ///
+  /// In ar, this message translates to:
+  /// **'أسرع توصيل ممكن لحيّك'**
+  String get onbLocPerk1;
+
+  /// No description provided for @onbLocPerk2.
+  ///
+  /// In ar, this message translates to:
+  /// **'مخزون حقيقي من أقرب فرع لك'**
+  String get onbLocPerk2;
+
+  /// No description provided for @onbLocPerk3.
+  ///
+  /// In ar, this message translates to:
+  /// **'عروض مدينتك أول بأول'**
+  String get onbLocPerk3;
+
+  /// No description provided for @onbLocCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدد موقعي تلقائيًا'**
+  String get onbLocCta;
+
+  /// No description provided for @onbLocCity.
+  ///
+  /// In ar, this message translates to:
+  /// **'أختار مدينتي بنفسي'**
+  String get onbLocCity;
+
+  /// No description provided for @onbLocSetTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصلناك!'**
+  String get onbLocSetTitle;
+
+  /// No description provided for @onbLocFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'ما قدرنا نحدد موقعك — تقدر تختار مدينتك بنفسك'**
+  String get onbLocFailed;
+
+  /// No description provided for @onbNotifTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلّك أول من يعرف'**
+  String get onbNotifTitle;
+
+  /// No description provided for @onbNotifBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'فعّل الإشعارات نوصلك حالة طلبك أولًا بأول وأحلى العروض قبل الكل'**
+  String get onbNotifBody;
+
+  /// No description provided for @onbNotifPerk1.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتبّع طلبك خطوة بخطوة'**
+  String get onbNotifPerk1;
+
+  /// No description provided for @onbNotifPerk2.
+  ///
+  /// In ar, this message translates to:
+  /// **'عروض وتخفيضات على مقاضي حيوانك'**
+  String get onbNotifPerk2;
+
+  /// No description provided for @onbNotifPerk3.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنبيه لحظة وصول طلبك'**
+  String get onbNotifPerk3;
+
+  /// No description provided for @onbNotifCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'فعّل الإشعارات'**
+  String get onbNotifCta;
+
+  /// No description provided for @onbNotifMockTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك في الطريق 🚚'**
+  String get onbNotifMockTitle;
+
+  /// No description provided for @onbNotifMockBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'السائق قريب منك — جهّز نفسك!'**
+  String get onbNotifMockBody;
+
+  /// Timestamp on the mock notification card in the welcome journey
+  ///
+  /// In ar, this message translates to:
+  /// **'الآن'**
+  String get onbNotifNow;
+
   /// No description provided for @citiesTitle.
   ///
   /// In ar, this message translates to:

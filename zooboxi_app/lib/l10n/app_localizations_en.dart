@@ -121,6 +121,82 @@ class LEn extends L {
       'We couldn\'t detect your location. Pick your city instead.';
 
   @override
+  String get onbStart => 'Let\'s go';
+
+  @override
+  String get onbContinue => 'Continue';
+
+  @override
+  String get onbLater => 'Later';
+
+  @override
+  String get onbWelcomeTitle => 'Welcome to Zooboxi';
+
+  @override
+  String get onbWelcomeBody =>
+      'Everything your pet needs — food, care and toys — delivered fast to your door';
+
+  @override
+  String get onbLanguageTitle => 'Which language do you prefer?';
+
+  @override
+  String get onbLocTitle => 'Where should we deliver?';
+
+  @override
+  String get onbLocBody =>
+      'Set your location and we\'ll show real stock from your nearest branch with an honest delivery promise';
+
+  @override
+  String get onbLocPerk1 => 'The fastest delivery for your district';
+
+  @override
+  String get onbLocPerk2 => 'Real stock from your nearest branch';
+
+  @override
+  String get onbLocPerk3 => 'Your city\'s offers, first';
+
+  @override
+  String get onbLocCta => 'Use my location';
+
+  @override
+  String get onbLocCity => 'Choose my city';
+
+  @override
+  String get onbLocSetTitle => 'Got you!';
+
+  @override
+  String get onbLocFailed =>
+      'We couldn\'t get your location — you can pick your city instead';
+
+  @override
+  String get onbNotifTitle => 'Be the first to know';
+
+  @override
+  String get onbNotifBody =>
+      'Turn on notifications for live order updates and the best offers before anyone else';
+
+  @override
+  String get onbNotifPerk1 => 'Track your order step by step';
+
+  @override
+  String get onbNotifPerk2 => 'Offers and discounts on your pet\'s supplies';
+
+  @override
+  String get onbNotifPerk3 => 'A heads-up the moment your order arrives';
+
+  @override
+  String get onbNotifCta => 'Allow notifications';
+
+  @override
+  String get onbNotifMockTitle => 'Your order is on the way 🚚';
+
+  @override
+  String get onbNotifMockBody => 'The driver is close — get ready!';
+
+  @override
+  String get onbNotifNow => 'now';
+
+  @override
   String get citiesTitle => 'Choose your city';
 
   @override

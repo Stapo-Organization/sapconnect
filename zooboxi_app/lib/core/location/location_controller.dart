@@ -121,8 +121,8 @@ class ZbLocation {
       value.codeUnits.every((u) => u >= 0x20 && u < 0x7f) ? value : Uri.encodeComponent(value);
 }
 
-/// How the last location resolution went — drives the primer sheet's UI
-/// without needing a second piece of state.
+/// How the last location resolution went — drives the welcome step and the
+/// location sheet without either needing a second piece of state.
 enum LocationPhase { idle, locating, denied, failed }
 
 @immutable

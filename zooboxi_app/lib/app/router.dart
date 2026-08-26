@@ -18,6 +18,7 @@ import '../features/checkout/data/checkout_models.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/checkout/presentation/success_screen.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/orders/presentation/order_detail_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
@@ -60,6 +61,13 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
+      // First run only. It owns the whole screen — language, delivery location
+      // and notifications are asked once, before the store opens.
+      GoRoute(
+        path: '/onboarding',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const OnboardingScreen()),
+      ),
 
       GoRoute(
         path: '/product/:id',
