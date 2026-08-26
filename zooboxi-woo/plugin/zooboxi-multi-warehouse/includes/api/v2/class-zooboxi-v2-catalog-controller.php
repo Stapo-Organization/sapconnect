@@ -1413,7 +1413,8 @@ class Zooboxi_V2_Catalog_Controller
     {
         // Keyed by the REQUEST language (get_locale() here is the site base
         // locale regardless of ?lang, which would cross-contaminate ar/en).
-        $tkey   = 'zb_v2_brandcats_' . $brand->slug . '_' . Zooboxi_V2_Bootstrap::lang();
+        // v2 suffix: the shape gained image/icon artwork.
+        $tkey   = 'zb_v2_brandcats2_' . $brand->slug . '_' . Zooboxi_V2_Bootstrap::lang();
         $cached = get_transient($tkey);
         if (is_array($cached)) {
             return $cached;
@@ -1477,26 +1478,20 @@ class Zooboxi_V2_Catalog_Controller
         $out  = [];
         $seen = [];
         foreach ($counts as $tid => $n) {
-            // map_term() returns the translated term ID under ?lang=en.
-            $mapped_id = Zooboxi_V2_Bootstrap::map_term((int) $tid);
-            $name      = $names[$tid]->name;
-            if ($mapped_id !== (int) $tid) {
-                $translated = get_term($mapped_id, 'product_cat');
-                if ($translated instanceof \WP_Term) {
-                    $name = $translated->name;
-                }
-            }
-            $key = mb_strtolower(trim((string) $name));
+            // term_dto handles translation AND the artwork chain (WP thumbnail →
+            // the theme's curated icon map → emoji) — the same art the categories
+            // screen shows, so a department looks identical on both pages.
+            $dto = $this->term_dto($names[$tid], false);
+            $key = mb_strtolower(trim((string) ($dto['name'] ?? '')));
             if ($key === '' || isset($seen[$key])) {
                 continue;
             }
             $seen[$key] = true;
-            $out[]      = [
-                'id'    => (int) $tid,
-                'slug'  => (string) $names[$tid]->slug,
-                'name'  => (string) $name,
-                'count' => (int) $n,
-            ];
+            unset($dto['children']);
+            // The ORIGINAL slug: it is what the brand grid filters by.
+            $dto['slug']  = (string) $names[$tid]->slug;
+            $dto['count'] = (int) $n;
+            $out[]        = $dto;
             if (count($out) >= 8) {
                 break;
             }
