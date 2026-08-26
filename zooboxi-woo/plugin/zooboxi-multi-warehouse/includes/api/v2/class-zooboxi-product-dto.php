@@ -516,6 +516,19 @@ class Zooboxi_Product_DTO
                 continue;
             }
             $variation = wc_get_product($variation_id);
+
+            // An honest ceiling: WooCommerce's own max is counted in the line's
+            // units and knows nothing about packs, so a 17-piece carton showed
+            // max 306 over a 99-piece pool. The pool divided by the pack size
+            // is what a stepper may actually promise.
+            $own_max = ($v['max_qty'] ?? '') === '' ? null : (int) $v['max_qty'];
+            $units   = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_id($variation_id) : 1;
+            $pool    = $product->managing_stock() ? $product->get_stock_quantity() : null;
+            if ($pool !== null && class_exists('Zooboxi_Units')) {
+                $pool_max = Zooboxi_Units::units_from_pieces((int) $pool, $units);
+                $own_max  = $own_max === null ? $pool_max : min($own_max, $pool_max);
+            }
+
             $list[] = [
                 'variation_id'  => $variation_id,
                 'attributes'    => is_array($v['attributes'] ?? null) ? array_map('strval', $v['attributes']) : [],
@@ -523,7 +536,8 @@ class Zooboxi_Product_DTO
                 'regular_price' => isset($v['display_regular_price']) ? (float) $v['display_regular_price'] : null,
                 'image'         => $variation instanceof \WC_Product ? self::image_url($variation, 'woocommerce_single') : null,
                 'in_stock'      => !empty($v['is_in_stock']),
-                'max_qty'       => ($v['max_qty'] ?? '') === '' ? null : (int) $v['max_qty'],
+                'max_qty'       => $own_max,
+                'units'         => $units,
                 'sku'           => (string) ($v['sku'] ?? ''),
             ];
         }

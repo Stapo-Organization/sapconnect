@@ -439,6 +439,15 @@ class Zooboxi_V2_Cart_Controller
     public static function cart_dto(array $extra = []): array
     {
         $cart = WC()->cart;
+
+        // The honest-quantity clamp runs before ANY cart answer leaves this
+        // API: add, update, read and checkout review all pass through here, so
+        // a response can never show a group of حبة/كرتون lines whose combined
+        // pieces exceed the one pool they all draw from.
+        if (class_exists('Zooboxi_Units')) {
+            Zooboxi_Units::clamp_cart($cart);
+        }
+
         [$lat, $lng] = Zooboxi_V2_Bootstrap::latlng();
 
         $items = [];
