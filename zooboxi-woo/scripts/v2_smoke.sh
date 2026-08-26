@@ -179,6 +179,24 @@ if [ -n "$PID" ]; then
   expect_status "$code" 200 "cart get"
   expect_jq '.data | has("items") and has("notices")' "cart get shape"
   expect_jq '.data.totals | has("subtotal") and has("total")' "totals present"
+
+  # Mutations MUST be exercised: WC defers loading cart contents to wp_loaded
+  # (long gone in REST), so update/remove can 404 with "item_not_found" while
+  # add and get look perfectly healthy. This block is what catches that.
+  ITEM_KEY=$(jq -r '.data.items[0].key // empty' "$BODY_FILE")
+  if [ -n "$ITEM_KEY" ]; then
+    c_head "Guest cart (update → remove)"
+    code=$(call PATCH "/cart/items/${ITEM_KEY}" '{"quantity":2}')
+    expect_status "$code" 200 "cart qty update"
+    expect_jq ".data.items[] | select(.key == \"$ITEM_KEY\") | .qty == 2" "quantity actually changed"
+
+    code=$(call DELETE "/cart/items/${ITEM_KEY}")
+    expect_status "$code" 200 "cart item remove"
+    expect_jq "[.data.items[] | select(.key == \"$ITEM_KEY\")] | length == 0" "line actually gone"
+  else
+    c_head "Guest cart (update → remove)"
+    c_ok "no purchasable line to mutate (add was refused) — skipped"
+  fi
 else
   c_bad "no product id — cart flow skipped"
 fi

@@ -68,6 +68,14 @@ class Zooboxi_V2_Cart_Controller
         // (same hook, priority 20) trims lines to what this customer can receive.
         add_action('woocommerce_cart_loaded_from_session', ['Zooboxi_V2_Bootstrap', 'mirror_location_to_session'], 1);
         wc_load_cart();
+        // WC_Cart defers reading the session to `wp_loaded` — long gone by REST
+        // dispatch — and only get_cart() lazy-loads it. Without this call the
+        // contents stay EMPTY for direct reads: get_cart_item() finds nothing,
+        // every update/remove answers item_not_found, while the DTO (which uses
+        // get_cart()) happily shows the line. Force the load HERE, while the
+        // location mirror above is still armed, so the cap hook also runs
+        // against the right coordinates.
+        WC()->cart->get_cart();
         remove_action('woocommerce_cart_loaded_from_session', ['Zooboxi_V2_Bootstrap', 'mirror_location_to_session'], 1);
 
         self::$loaded = (WC()->cart instanceof \WC_Cart);
