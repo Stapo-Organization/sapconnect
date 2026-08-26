@@ -138,6 +138,9 @@ class _Media extends StatelessWidget {
       ),
       child: Stack(
         fit: StackFit.expand,
+        // The add control's shoulder badge deliberately overhangs its corner
+        // by a few pixels — a clipped badge reads as a rendering bug.
+        clipBehavior: Clip.none,
         children: [
           // Sold out reads as "dimmed", not as "broken": the art stays
           // recognisable, it just stops competing with what is buyable.

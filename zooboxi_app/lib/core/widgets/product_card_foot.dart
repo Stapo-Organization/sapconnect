@@ -52,8 +52,8 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
   /// How long the stepper stays open after the last touch.
   static const _settle = Duration(milliseconds: 3500);
 
-  static const double _size = 34;
-  static const double _stepperWidth = 100;
+  static const double _size = 36;
+  static const double _stepperWidth = 104;
 
   /// What the customer wants while no cart line exists yet to carry it.
   /// Null once the server's line is the source of truth.
@@ -235,23 +235,38 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
 
     // One shell, three faces. Width, colour, border and shadow morph together;
     // the face cross-fades faster than the shell moves, so the contents are
-    // already legible while the pill is still growing.
-    return AnimatedContainer(
+    // already legible while the pill is still growing. The count bubble rides
+    // the shell's shoulder — half outside, the way a real badge sits — so it
+    // lives OUTSIDE the clipped shell, in this unclipped stack.
+    final shell = AnimatedContainer(
       duration: const Duration(milliseconds: 320),
       curve: _shellCurve,
       width: open ? _stepperWidth : _size,
       height: _size,
       decoration: BoxDecoration(
-        color: open ? cs.surfaceContainerHigh : cs.primary,
+        // A quiet top-light on the teal gives the closed button its depth;
+        // both stops collapse to the flat surface tone while open, so the
+        // colour morph stays one continuous move.
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: open
+              ? [cs.surfaceContainerHigh, cs.surfaceContainerHigh]
+              : [
+                  Color.lerp(cs.primary, Colors.white, 0.16)!,
+                  Color.lerp(cs.primary, Colors.black, 0.10)!,
+                ],
+        ),
         borderRadius: BorderRadius.circular(_size / 2),
         border: Border.all(
           color: open ? cs.outlineVariant : Colors.transparent,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: open ? 0.14 : 0.22),
-            blurRadius: open ? 10 : 6,
-            offset: const Offset(0, 2),
+            color: (open ? Colors.black : cs.primary)
+                .withValues(alpha: open ? 0.14 : 0.38),
+            blurRadius: open ? 10 : 9,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -274,13 +289,29 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
         child: face,
       ),
     );
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        shell,
+        PositionedDirectional(
+          top: -4,
+          end: -3,
+          child: AnimatedScale(
+            scale: open ? 0 : 1,
+            duration: context.motion(const Duration(milliseconds: 200)),
+            curve: open ? Curves.easeIn : Curves.easeOutBack,
+            child: _ShoulderBubble(count: qty),
+          ),
+        ),
+      ],
+    );
   }
 }
 
-/// The closed face: the app's bag glyph (the same one the cart tab wears)
-/// with a little bubble riding its shoulder — "+" before the first add, the
-/// quantity after. Only the bubble's content animates; the bag holds still,
-/// which is what makes the flip read as *the plus becoming the number*.
+/// The closed face: the app's bag glyph, centred and calm — the same one the
+/// cart tab wears, so the control unmistakably means "cart". Its badge lives
+/// outside, on the shell's shoulder ([_ShoulderBubble]).
 ///
 /// Drawn transparent so the shell underneath supplies the teal — that is
 /// what lets the shell's own colour morph stay seamless.
@@ -293,71 +324,90 @@ class _BagFace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final hasCount = count > 0;
 
     return SizedBox(
-      width: 34,
-      height: 34,
+      width: 36,
+      height: 36,
       child: Material(
         color: Colors.transparent,
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              PositionedDirectional(
-                bottom: 5,
-                start: 5,
-                child: Icon(
-                  Icons.shopping_bag_rounded,
-                  size: 17,
-                  color: cs.onPrimary,
-                ),
+          child: Center(
+            // A hair below true centre reads as optically centred for this
+            // glyph — its visual mass sits high.
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Icon(
+                Icons.shopping_bag_rounded,
+                size: 18,
+                color: cs.onPrimary,
               ),
-              PositionedDirectional(
-                top: 3.5,
-                end: 3.5,
-                child: Container(
-                  width: 15,
-                  height: 15,
-                  decoration: BoxDecoration(
-                    color: cs.onPrimary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: AnimatedSwitcher(
-                    duration: context.motion(const Duration(milliseconds: 180)),
-                    switchInCurve: Curves.easeOutBack,
-                    transitionBuilder: (child, animation) => ScaleTransition(
-                      scale: animation,
-                      child: FadeTransition(opacity: animation, child: child),
-                    ),
-                    child: hasCount
-                        ? Center(
-                            key: ValueKey('n$count'),
-                            child: Text(
-                              count > 9 ? '9+' : '$count',
-                              style: TextStyle(
-                                fontSize: count > 9 ? 7.5 : 9.5,
-                                height: 1,
-                                fontWeight: FontWeight.w800,
-                                color: cs.primary,
-                              ),
-                            ),
-                          )
-                        : Icon(
-                            Icons.add_rounded,
-                            key: const ValueKey('plus'),
-                            size: 12,
-                            color: cs.primary,
-                          ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The badge on the shell's shoulder, half outside like a real one: "+"
+/// before the first add, the count after. Only its content flips — the bag
+/// beneath holds still, so the change reads as *the plus becoming the
+/// number*. A ring in the card's surface colour punches it out of both the
+/// teal shell and the artwork behind.
+class _ShoulderBubble extends StatelessWidget {
+  const _ShoulderBubble({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    final hasCount = count > 0;
+
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: hasCount ? context.zb.sale : cs.onPrimary,
+        shape: BoxShape.circle,
+        border: Border.all(color: cs.surface, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: AnimatedSwitcher(
+        duration: context.motion(const Duration(milliseconds: 200)),
+        switchInCurve: Curves.easeOutBack,
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: animation,
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: hasCount
+            ? Center(
+                key: ValueKey('n$count'),
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  style: TextStyle(
+                    fontSize: count > 9 ? 7 : 9,
+                    height: 1,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            : Icon(
+                Icons.add_rounded,
+                key: const ValueKey('plus'),
+                size: 11,
+                color: cs.primary,
+              ),
       ),
     );
   }
