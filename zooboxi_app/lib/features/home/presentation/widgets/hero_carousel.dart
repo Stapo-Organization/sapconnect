@@ -71,18 +71,20 @@ String? autoSlideRoute(HeroSlide slide) {
 abstract final class HeroMetrics {
   /// Slides are full-bleed: the canvas owns the whole width, like the header
   /// it fuses with.
-  // Owner-tuned twice (2026-08-26): 1.6 → 1.9 → 2.35. With the header fused
-  // in, the whole canvas unit was passing half the screen; the slide band is
-  // the only part with room to give — the compositions center and crop, so
-  // they absorb a lower band without redesign.
-  static const double aspect = 2.35;
+  // Owner-tuned three times (2026-08-26): 1.6 → 1.9 → 2.35 → 2.75. With the
+  // header fused in, the whole canvas unit was passing half the screen; the
+  // slide band is the only part with room to give — the compositions center
+  // and crop, so they absorb a lower band without redesign.
+  static const double aspect = 2.75;
   static const double maxTextScale = 1.3;
 
   /// How much taller the slide area gets at the top of the text-scale range.
-  static const double scaleHeadroom = 96;
+  /// Raised with the 2.75 aspect: the compact band fits scale 1.0 exactly, so
+  /// enlarged text needs the whole difference back from here.
+  static const double scaleHeadroom = 132;
 
   /// The strip under the slide copy that the page dots live in.
-  static const double dotsBand = 26;
+  static const double dotsBand = 22;
 
   static double height(BuildContext context, double width) {
     final factor =
