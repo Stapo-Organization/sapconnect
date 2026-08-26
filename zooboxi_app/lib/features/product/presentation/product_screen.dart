@@ -88,7 +88,10 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
       product: detail.card,
       variationId: variation?.variationId,
       quantity: _qty,
-      attributes: _selection.isEmpty ? null : _selection,
+      // A concrete variation carries its own combination server-side; sending
+      // the slugs too only re-introduces encoding pitfalls. Attributes travel
+      // only when no single variation could be resolved (an "Any …" axis).
+      attributes: variation != null || _selection.isEmpty ? null : _selection,
       zone: 'pdp',
     );
     if (mounted) setState(() => _adding = false);

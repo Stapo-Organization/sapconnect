@@ -275,7 +275,13 @@ class Zooboxi_V2_Cart_Controller
                 if (strpos($name, 'attribute_') !== 0) {
                     $name = 'attribute_' . sanitize_title($name);
                 }
-                $variation[$name] = sanitize_text_field((string) $value);
+                // NOT sanitize_text_field: it strips %xx octets, and Arabic
+                // term slugs arrive percent-encoded (كرتون → %d9%83…). Mangling
+                // the value made WooCommerce reject the combination and every
+                // carton/weight add died with add_failed. Tags and control
+                // characters still go; the encoding stays.
+                $clean = trim(wp_strip_all_tags(wp_unslash((string) $value)));
+                $variation[$name] = mb_substr(preg_replace('/[\r\n\t]+/', ' ', $clean), 0, 190);
             }
         }
 
@@ -462,7 +468,7 @@ class Zooboxi_V2_Cart_Controller
                 'variation_id'     => (int) ($item['variation_id'] ?? 0),
                 'name'             => wp_strip_all_tags($product->get_name()),
                 'image'            => Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail'),
-                'attributes_label' => trim(wp_strip_all_tags((string) wc_get_formatted_cart_item_data($item, true))),
+                'attributes_label' => self::attributes_label($item),
                 'qty'              => $qty,
                 'max_reachable'    => $max_reachable,
                 'unit_price'       => (float) $product->get_price(),
@@ -557,6 +563,31 @@ class Zooboxi_V2_Cart_Controller
             ];
         }
         return $out;
+    }
+
+    /**
+     * Human title of the chosen combination ("كرتون (17 حبة)"). WooCommerce's
+     * formatted item data can come back empty for REST-built carts, so the
+     * variation's own slugs are resolved to term names as the fallback.
+     */
+    private static function attributes_label(array $item): string
+    {
+        $label = trim(wp_strip_all_tags((string) wc_get_formatted_cart_item_data($item, true)));
+        if ($label !== '' || empty($item['variation']) || !is_array($item['variation'])) {
+            return $label;
+        }
+
+        $parts = [];
+        foreach ($item['variation'] as $key => $slug) {
+            $slug = (string) $slug;
+            if ($slug === '') {
+                continue;
+            }
+            $taxonomy = str_replace('attribute_', '', (string) $key);
+            $term     = taxonomy_exists($taxonomy) ? get_term_by('slug', $slug, $taxonomy) : false;
+            $parts[]  = ($term && !is_wp_error($term)) ? $term->name : rawurldecode($slug);
+        }
+        return implode('، ', array_filter($parts));
     }
 
     private static function tier_fee(string $tier): float
