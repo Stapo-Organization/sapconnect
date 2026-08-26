@@ -210,7 +210,9 @@ class _CartSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShimmerGroup(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          // Nothing pins the bottom while the cart is still loading, so the
+          // list clears the floating tab bar itself.
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.paddingOf(context).bottom),
           children: [
             const SkeletonBox(width: double.infinity, height: 54, radius: ZbTokens.rMd),
             Gap.h16,

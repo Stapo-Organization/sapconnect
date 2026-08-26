@@ -1066,4 +1066,34 @@ class LEn extends L {
 
   @override
   String get paymentOrCard => 'Or pay by card';
+
+  @override
+  String get brandAllCategories => 'All';
+
+  @override
+  String brandCurated(String brand) {
+    return '$brand picks';
+  }
+
+  @override
+  String brandSince(String year) {
+    return 'Since $year';
+  }
+
+  @override
+  String brandProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+      zero: 'No products',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String brandShopAll(String brand) {
+    return 'All $brand products';
+  }
 }

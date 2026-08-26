@@ -817,11 +817,36 @@ class MetaConfig {
   }
 }
 
+/// One lifestyle tile from a brand's boutique kit: artwork plus the line that
+/// belongs on it. The headline is routinely empty — the tile then reads as a
+/// plain photo rather than as a card missing its text.
+@immutable
+class BrandTile {
+  const BrandTile({required this.image, this.headline = ''});
+
+  final String image;
+  final String headline;
+
+  /// Null for a tile with no artwork — a headline alone is not a tile.
+  static BrandTile? maybe(Map<String, dynamic> json) {
+    final image = asStringOrNull(json['image']);
+    if (image == null) return null;
+    return BrandTile(image: image, headline: asString(json['headline']));
+  }
+}
+
 /// `GET /brands/{slug}` — a brand boutique page.
+///
+/// Everything past the name is optional and usually *absent*: the AI boutique
+/// kit (hero art, tagline, story, tiles) is synced per brand and most brands
+/// are still waiting for theirs. So the model keeps every rich field nullable
+/// or empty rather than defaulting it, and the screen is built to look
+/// finished with nothing but a name, a logo, categories and products.
 @immutable
 class BrandPage {
   const BrandPage({
     required this.brand,
+    this.boutique = false,
     this.accentDark,
     this.tagline,
     this.hero,
@@ -831,18 +856,40 @@ class BrandPage {
     this.tiles = const [],
     this.categories = const [],
     this.products = const [],
+    this.productCount = 0,
   });
 
   final BrandSummary brand;
+
+  /// True once the AI boutique kit is synced for this brand.
+  final bool boutique;
+
   final String? accentDark;
   final String? tagline;
+
+  /// Wide AI hero artwork. Null for most brands today.
   final String? hero;
+
+  /// `story.lead` (+ `story.mood`) folded into one readable paragraph.
   final String? story;
+
   final String? country;
   final String? founded;
-  final List<String> tiles;
+  final List<BrandTile> tiles;
+
+  /// The categories this brand actually sells into, biggest first — at most
+  /// eight, because the chip row is a filter, not a sitemap.
   final List<CategoryNode> categories;
+
+  /// Curated bestsellers for the brand. Merchandising, not a first page: the
+  /// grid below still queries the full catalogue.
   final List<ProductCard> products;
+
+  /// How many products carry the brand. 0 means "the server didn't say".
+  final int productCount;
+
+  String get slug => brand.slug;
+  String get name => brand.name;
 
   factory BrandPage.fromJson(String slug, Map<String, dynamic> json) {
     final kit = asMap(json['kit']);
@@ -855,24 +902,31 @@ class BrandPage {
     ];
     return BrandPage(
       brand: BrandSummary(
-        slug: slug,
+        slug: asString(json['slug'], fallback: slug),
         name: asString(json['name'], fallback: slug),
         code: asStringOrNull(json['code']),
         logo: asStringOrNull(json['logo']),
         accent: asStringOrNull(kit['accent']),
       ),
+      boutique: asBool(json['boutique']),
       accentDark: asStringOrNull(kit['accent_dark']),
       tagline: asStringOrNull(kit['tagline']),
       hero: asStringOrNull(json['hero']),
-      story: storyParts.isEmpty ? asStringOrNull(json['story']) : storyParts.join('\n\n'),
+      // A story object whose every line is empty is *no story*. Falling back
+      // to `json['story']` there would stringify the map itself and print
+      // "{lead: , country: , mood: }" on the page — which is exactly the shape
+      // the server sends for a brand whose kit hasn't been written yet.
+      story: storyParts.isNotEmpty
+          ? storyParts.join('\n\n')
+          : (json['story'] is Map ? null : asStringOrNull(json['story'])),
       country: asStringOrNull(storyJson['country']),
       founded: asStringOrNull(storyJson['founded']),
       tiles: [
-        for (final tile in asMapList(json['tiles']))
-          if (asStringOrNull(tile['image']) != null) asString(tile['image']),
+        for (final tile in asMapList(json['tiles'])) ?BrandTile.maybe(tile),
       ],
       categories: asMapList(json['categories']).map(CategoryNode.fromJson).toList(),
       products: ProductCard.listFrom(json['products']),
+      productCount: asInt(json['product_count']),
     );
   }
 }

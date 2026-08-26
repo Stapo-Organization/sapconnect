@@ -124,7 +124,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               )
             else
               const SliverToBoxAdapter(child: _HomeSkeleton()),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            // The tab bar floats over the feed, so the last rail has to clear
+            // it. Scaffold folds the bar's height into the bottom padding —
+            // reading it here means the gap is right on every device and stays
+            // right if the bar ever changes size.
+            SliverToBoxAdapter(
+              child: SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
+            ),
           ],
         ),
       ),

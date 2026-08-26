@@ -23,6 +23,7 @@ class PaginatedProductGrid extends StatefulWidget {
     super.key,
     required this.fetchPage,
     required this.resetKey,
+    this.leadingSlivers = const [],
     this.header,
     this.emptyState,
     this.onAdd,
@@ -34,6 +35,12 @@ class PaginatedProductGrid extends StatefulWidget {
 
   /// Rebuilding with a different value restarts paging from page 1.
   final Object resetKey;
+
+  /// Slivers above [header] in the grid's own scroll view — a collapsing app
+  /// bar, a page hero, a rail. They belong here rather than in a parent scroll
+  /// view because the grid *is* the page's scroll: a second one nested inside
+  /// it would give the customer two things to fling.
+  final List<Widget> leadingSlivers;
 
   /// Pinned above the grid, inside the same scroll view.
   final Widget? header;
@@ -151,6 +158,7 @@ class _PaginatedProductGridState extends State<PaginatedProductGrid> {
         controller: _controller,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          ...widget.leadingSlivers,
           if (widget.header != null) SliverToBoxAdapter(child: widget.header!),
           ..._body(),
         ],

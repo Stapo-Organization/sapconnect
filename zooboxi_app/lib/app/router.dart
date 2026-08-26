@@ -7,6 +7,7 @@ import '../core/session/session_controller.dart';
 import '../features/account/presentation/account_screen.dart';
 import '../features/account/presentation/address_book_screen.dart';
 import '../features/account/presentation/buy_again_screen.dart';
+import '../features/brand/presentation/brand_screen.dart';
 import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/data/catalog_models.dart';
 import '../features/catalog/data/product_models.dart';
@@ -82,6 +83,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             query: state.extra is ListingQuery
                 ? state.extra! as ListingQuery
                 : ListingQuery.fromJson(state.uri.queryParameters),
+          ),
+        ),
+      ),
+      // A brand is a destination, not a filter: `/listing?brand=` throws away
+      // the identity the customer came looking for.
+      GoRoute(
+        path: '/brand/:slug',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => sharedAxisPage(
+          state.pageKey,
+          BrandScreen(
+            slug: state.pathParameters['slug'] ?? '',
+            // What the caller already knew, so the first frame says the brand's
+            // name rather than its slug.
+            name: state.uri.queryParameters['title'] ?? '',
           ),
         ),
       ),

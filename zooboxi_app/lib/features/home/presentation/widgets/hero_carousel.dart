@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
@@ -23,6 +24,45 @@ const List<String> heroZones = ['hero', 'app_hero'];
 /// The campaigns the carousel will actually show, in the order it shows them.
 List<Campaign> heroCampaignsOf(List<Campaign> campaigns) =>
     campaigns.where((c) => c.inAnyZone(heroZones)).toList();
+
+/// Where a **server-composed** slide goes, as an in-app location.
+///
+/// Auto slides are merchandising the server assembled out of live catalogue
+/// data — express stock, clearance, a brand, the bestsellers — and the store
+/// URL it attaches is a web address for the same idea. Following that URL threw
+/// the customer into a browser tab mid-shop (and the clearance slide shipped no
+/// link at all, so it did nothing). Every theme therefore resolves to a screen
+/// this app already owns, and the ranking behind each one is the same ranking
+/// the slide was built from.
+///
+/// Returns null only for a theme this build has never heard of — the slide then
+/// stays inert rather than guessing, which is the same contract the home layout
+/// uses for unknown slots.
+String? autoSlideRoute(HeroSlide slide) {
+  final title = slide.title ?? '';
+
+  String listing([Map<String, String> scope = const {}]) {
+    final query = {...scope, if (title.isNotEmpty) 'title': title};
+    return query.isEmpty
+        ? '/listing'
+        : Uri(path: '/listing', queryParameters: query).toString();
+  }
+
+  return switch (slide.theme) {
+    'clearance' => listing(const {'rail': 'clearance'}),
+    'bestsellers' => listing(const {'rail': 'bestsellers'}),
+    // No rail key: the listing's own recommended sort already floats what is
+    // in a nearby warehouse to the top, which *is* the express promise.
+    'express' => listing(),
+    'brand' => switch (ZbLink.fromUrl(slide.linkUrl)) {
+        ZbLink(type: 'brand', :final value) => brandLocation(value, title: title),
+        // A brand slide whose link the server didn't spell as a brand archive
+        // still has a headline worth honouring.
+        _ => listing(),
+      },
+    _ => null,
+  };
+}
 
 /// Hero geometry. The slide area is a fixed-extent element, so — exactly like
 /// a product card — its height is *computed* from the text scale rather than
@@ -148,6 +188,15 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
   }
 
   void _open(_HeroItem item) {
+    // A slide the *server composed out of our own catalogue* must never hand
+    // the customer to a browser: it resolves to an app screen or it does
+    // nothing. `followLink` is deliberately out of reach here — it can open a
+    // custom tab, and that is the exact outcome this closes off.
+    if (item is _AutoItem) {
+      final route = autoSlideRoute(item.slide);
+      if (route != null) unawaited(context.push(route));
+      return;
+    }
     if (item is _CampaignItem) {
       trackCampaignClick(ref, item.campaign, 'hero');
     }

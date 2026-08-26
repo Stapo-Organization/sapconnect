@@ -468,5 +468,38 @@
   "authCartMerged": "دمجنا سلتك السابقة",
   "commonComingSoon": "قريبًا",
   "commonOptional": "اختياري",
-  "paymentOrCard": "أو ادفع بالبطاقة"
+  "paymentOrCard": "أو ادفع بالبطاقة",
+  "brandAllCategories": "الكل",
+  "brandCurated": "مختارات {brand}",
+  "@brandCurated": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "brandSince": "منذ {year}",
+  "@brandSince": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "brandProductCount": "{count, plural, =0{لا توجد منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}",
+  "@brandProductCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "brandShopAll": "كل منتجات {brand}",
+  "@brandShopAll": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  }
 }

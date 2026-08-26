@@ -1073,4 +1073,37 @@ class LAr extends L {
 
   @override
   String get paymentOrCard => 'أو ادفع بالبطاقة';
+
+  @override
+  String get brandAllCategories => 'الكل';
+
+  @override
+  String brandCurated(String brand) {
+    return 'مختارات $brand';
+  }
+
+  @override
+  String brandSince(String year) {
+    return 'منذ $year';
+  }
+
+  @override
+  String brandProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      many: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+      zero: 'لا توجد منتجات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String brandShopAll(String brand) {
+    return 'كل منتجات $brand';
+  }
 }

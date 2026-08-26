@@ -1950,6 +1950,36 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'أو ادفع بالبطاقة'**
   String get paymentOrCard;
+
+  /// No description provided for @brandAllCategories.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get brandAllCategories;
+
+  /// No description provided for @brandCurated.
+  ///
+  /// In ar, this message translates to:
+  /// **'مختارات {brand}'**
+  String brandCurated(String brand);
+
+  /// No description provided for @brandSince.
+  ///
+  /// In ar, this message translates to:
+  /// **'منذ {year}'**
+  String brandSince(String year);
+
+  /// No description provided for @brandProductCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا توجد منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}'**
+  String brandProductCount(int count);
+
+  /// No description provided for @brandShopAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل منتجات {brand}'**
+  String brandShopAll(String brand);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

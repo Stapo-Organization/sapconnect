@@ -462,5 +462,10 @@
   "authCartMerged": "We merged your previous cart",
   "commonComingSoon": "Coming soon",
   "commonOptional": "Optional",
-  "paymentOrCard": "Or pay by card"
+  "paymentOrCard": "Or pay by card",
+  "brandAllCategories": "All",
+  "brandCurated": "{brand} picks",
+  "brandSince": "Since {year}",
+  "brandProductCount": "{count, plural, =0{No products} =1{1 product} other{{count} products}}",
+  "brandShopAll": "All {brand} products"
 }

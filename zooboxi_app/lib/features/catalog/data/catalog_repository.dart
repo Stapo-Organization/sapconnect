@@ -200,3 +200,11 @@ final brandsProvider = FutureProvider<List<BrandSummary>>((ref) {
   ref.watch(catalogRevisionProvider);
   return ref.watch(catalogRepositoryProvider).brands();
 });
+
+/// One brand's boutique page, keyed by slug. Auto-disposed: a customer who
+/// walks through six brands should not be holding six payloads of hero art.
+final brandPageProvider =
+    FutureProvider.autoDispose.family<BrandPage, String>((ref, slug) {
+  ref.watch(catalogRevisionProvider);
+  return ref.watch(catalogRepositoryProvider).brand(slug);
+});

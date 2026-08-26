@@ -7,6 +7,16 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../catalog/data/catalog_models.dart';
 
+/// The in-app location of a brand's boutique page.
+///
+/// Spelled once, because three places link to a brand — the strip, a hero
+/// slide, and any server-declared `{type: brand}` link — and a route rename
+/// that only fixes two of them is a bug nobody notices until a customer taps
+/// the third.
+String brandLocation(String slug, {String? title}) => (title ?? '').isEmpty
+    ? Uri(path: '/brand/$slug').toString()
+    : Uri(path: '/brand/$slug', queryParameters: {'title': title}).toString();
+
 /// Follows a merchandising link.
 ///
 /// The server describes destinations declaratively (`{type, value}`) so it can
@@ -24,11 +34,10 @@ Future<void> followLink(BuildContext context, ZbLink? link, {String? title}) asy
         path: '/listing',
         queryParameters: {'category': link.value, 'title': ?title},
       ).toString()));
+    // A brand has a page of its own — its stage, its story, its departments.
+    // Sending it to a filtered listing was throwing all of that away.
     case 'brand':
-      unawaited(context.push(Uri(
-        path: '/listing',
-        queryParameters: {'brand': link.value, 'title': ?title},
-      ).toString()));
+      unawaited(context.push(brandLocation(link.value, title: title)));
     case 'search':
       unawaited(context.push(Uri(
         path: '/listing',

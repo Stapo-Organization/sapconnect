@@ -33,7 +33,9 @@ class AccountScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l.accountTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+        // The floating tab bar's height arrives as bottom padding, so sign-out
+        // never ends up under the glass.
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 28 + MediaQuery.paddingOf(context).bottom),
         children: [
           AccountHeader(
             user: session.user,

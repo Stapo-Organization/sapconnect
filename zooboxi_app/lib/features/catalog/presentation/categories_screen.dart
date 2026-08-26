@@ -56,7 +56,14 @@ class CategoriesScreen extends ConsumerWidget {
               );
             }
             return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+              // The floating tab bar's height arrives as bottom padding, so
+              // the last board clears it instead of hiding behind the glass.
+              padding: EdgeInsets.fromLTRB(
+                16,
+                12,
+                16,
+                28 + MediaQuery.paddingOf(context).bottom,
+              ),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: nodes.length,
               separatorBuilder: (_, _) => Gap.h16,

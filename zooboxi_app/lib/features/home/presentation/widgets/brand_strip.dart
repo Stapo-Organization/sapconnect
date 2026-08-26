@@ -8,6 +8,7 @@ import '../../../../core/widgets/section_header.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
+import 'link_navigation.dart';
 
 /// Featured brands. Logos sit on a neutral tile rather than on the brand's own
 /// colour: a strip of eight different brand colours is noise, and the logos
@@ -57,12 +58,7 @@ class _BrandTile extends StatelessWidget {
 
     return PressScale(
       borderRadius: BorderRadius.circular(ZbTokens.rMd),
-      onTap: () => context.push(
-        Uri(
-          path: '/listing',
-          queryParameters: {'brand': brand.slug, 'title': brand.name},
-        ).toString(),
-      ),
+      onTap: () => context.push(brandLocation(brand.slug, title: brand.name)),
       child: Container(
         width: 118,
         decoration: BoxDecoration(
