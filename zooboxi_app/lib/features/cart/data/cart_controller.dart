@@ -180,3 +180,17 @@ final cartControllerProvider =
 final cartCountProvider = Provider<int>(
   (ref) => ref.watch(cartControllerProvider).value?.count ?? 0,
 );
+
+/// The free-delivery gap, but only while it is still worth nudging about:
+/// there is a basket, the threshold is on, and it hasn't been cleared yet.
+///
+/// Derived rather than read inline on Home so the storefront rebuilds when the
+/// *nudge* changes, not on every optimistic quantity tap — and so it reads the
+/// cart the shell already keeps warm instead of asking for a fresh one.
+final cartFreeShippingNudgeProvider = Provider<FreeShipping?>((ref) {
+  final cart = ref.watch(cartControllerProvider).value;
+  if (cart == null || cart.isEmpty) return null;
+  final freeShipping = cart.freeShipping;
+  if (!freeShipping.isActive || freeShipping.qualified) return null;
+  return freeShipping;
+});

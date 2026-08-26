@@ -191,8 +191,12 @@ install.
 
 ## Built vs. stubbed
 
-**Fully built:** splash + location primer · home (hero carousel, animal nav,
-rails, brand strip, pull-to-refresh, skeletons) · categories · listing
+**Fully built:** splash + location primer · **home** (server-driven slot
+layout, hero carousel with natively-composed campaign and auto slides,
+campaign banners with impression tracking, personal + for-you + in-city feed
+rails, clearance band, wishlist rail, trust strip, cross-slot de-duplication,
+stale-while-revalidate disk cache, pull-to-refresh, skeletons) · categories ·
+listing
 (infinite grid, facet sheet with price range, sort sheet, empty states) ·
 search (debounced suggest, recent chips, barcode scanner) · product page
 (gallery with pinch-zoom, variation chips, delivery promise card, per-warehouse
@@ -207,8 +211,7 @@ wishlist · auth sheet · account settings (language + theme switch both live).
 
 **Stubbed but navigable:** support.
 
-**Not started (later phases):** push notifications, brand boutique pages,
-personal home slots.
+**Not started (later phases):** push notifications, brand boutique pages.
 
 Checkout is **auth-gated at the cart's CTA**, exactly like the web store: the
 sheet is raised there rather than mid-flow, because discovering you need an

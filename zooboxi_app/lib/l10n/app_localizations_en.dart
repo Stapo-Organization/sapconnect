@@ -166,6 +166,57 @@ class LEn extends L {
   String get homeGreeting => 'Welcome 👋';
 
   @override
+  String get homeEmpty => 'Nothing to show yet';
+
+  @override
+  String get homeEmptyHint =>
+      'Pull to refresh in a moment, or browse the categories.';
+
+  @override
+  String get homeWishlistRail => 'From your wishlist';
+
+  @override
+  String get homeReorderDue => 'Time to reorder';
+
+  @override
+  String homeCampaignCoupon(String code) {
+    return 'Code: $code';
+  }
+
+  @override
+  String homeCampaignDiscount(String percent) {
+    return '$percent off';
+  }
+
+  @override
+  String homeCampaignEndsIn(String time) {
+    return 'Ends in $time';
+  }
+
+  @override
+  String homeCampaignEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeTrustDelivery => 'Fast delivery';
+
+  @override
+  String get homeTrustPayment => 'Secure payment';
+
+  @override
+  String get homeTrustGenuine => 'Genuine products';
+
+  @override
+  String get homeTrustReturns => 'Easy returns';
+
+  @override
   String get categoriesTitle => 'Categories';
 
   @override

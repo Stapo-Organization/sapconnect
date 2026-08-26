@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,16 +7,61 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/envelope.dart';
 import '../../../core/providers.dart';
+import '../../../core/session/session_controller.dart';
+import '../../../core/storage/local_store.dart';
 import 'catalog_models.dart';
 import 'product_models.dart';
 
 class CatalogRepository {
-  CatalogRepository(this._api);
+  CatalogRepository(this._api, this._store);
 
   final ApiClient _api;
+  final LocalStore _store;
 
-  Future<HomePayload> home() async =>
-      HomePayload.fromJson(asMap(await _api.get('/home')));
+  /// The storefront. The raw body is kept on disk so the *next* cold start
+  /// paints a real page instead of a shimmer — see [cachedHome].
+  Future<HomePayload> home() async {
+    final data = asMap(await _api.get('/home'));
+    // Fire-and-forget: a disk write must never delay the first frame.
+    unawaited(_store.setHomeCache(data));
+    return HomePayload.fromJson(data);
+  }
+
+  /// Last good `/home` body, decoded. Null on a first run or after a
+  /// location change (which drops it — it described another city).
+  HomePayload? cachedHome() {
+    final json = _store.homeCache;
+    if (json == null) return null;
+    try {
+      final payload = HomePayload.fromJson(json);
+      return payload.isEmpty ? null : payload;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `GET /home/feed` — the personal half of the page. [recentIds] are the
+  /// products this device has looked at, which is the only signal a guest has.
+  Future<HomeFeed> homeFeed(List<int> recentIds, {required bool authed}) async {
+    final data = asMap(await _api.get(
+      '/home/feed',
+      query: {if (recentIds.isNotEmpty) 'recent_ids': recentIds.join(',')},
+    ));
+    unawaited(_store.setHomeFeedCache(data, authed: authed));
+    return HomeFeed.fromJson(data);
+  }
+
+  /// Last good feed body — but only when it was captured in the *current*
+  /// sign-in state, so a previous account's history can't flash on screen.
+  HomeFeed? cachedHomeFeed({required bool authed}) {
+    final cached = _store.homeFeedCache;
+    if (cached == null || cached.authed != authed) return null;
+    try {
+      return HomeFeed.fromJson(cached.data);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<List<CategoryNode>> categories({String? parent}) async {
     final data = await _api.get('/catalog/categories', query: {'parent': ?parent});
@@ -77,12 +124,44 @@ class CatalogRepository {
 // switch, delivery-location change) refreshes the whole catalog at once — the
 // alternative is a screen quietly showing another city's stock.
 
-final catalogRepositoryProvider =
-    Provider<CatalogRepository>((ref) => CatalogRepository(ref.watch(apiClientProvider)));
+final catalogRepositoryProvider = Provider<CatalogRepository>(
+  (ref) => CatalogRepository(ref.watch(apiClientProvider), ref.watch(localStoreProvider)),
+);
 
 final homeProvider = FutureProvider<HomePayload>((ref) {
   ref.watch(catalogRevisionProvider);
   return ref.watch(catalogRepositoryProvider).home();
+});
+
+/// Yesterday's storefront, read straight off disk.
+///
+/// Home is the screen people open the app *into*: a shimmer there is the whole
+/// first impression. So the last good payload paints on frame one and the
+/// network refresh swaps in behind it — and if that refresh fails, the
+/// customer keeps a browsable store instead of an error page.
+final homeCacheProvider = Provider<HomePayload?>((ref) {
+  ref.watch(catalogRevisionProvider);
+  return ref.watch(catalogRepositoryProvider).cachedHome();
+});
+
+/// `GET /home/feed`. Refetched when the catalog revision bumps (language or
+/// city) and whenever the sign-in identity changes — signing in turns "what
+/// you were looking at" into "what you actually buy".
+final homeFeedProvider = FutureProvider.autoDispose<HomeFeed>((ref) {
+  ref.watch(catalogRevisionProvider);
+  final session = ref.watch(sessionProvider.select((s) => (s.status, s.user?.id)));
+  return ref.watch(catalogRepositoryProvider).homeFeed(
+        ref.watch(localStoreProvider).recentlyViewed,
+        authed: session.$1 == AuthStatus.authenticated,
+      );
+});
+
+/// The feed's disk snapshot — same stale-while-revalidate deal as
+/// [homeCacheProvider], scoped to the current sign-in state.
+final homeFeedCacheProvider = Provider.autoDispose<HomeFeed?>((ref) {
+  ref.watch(catalogRevisionProvider);
+  final authed = ref.watch(sessionProvider.select((s) => s.isAuthenticated));
+  return ref.watch(catalogRepositoryProvider).cachedHomeFeed(authed: authed);
 });
 
 /// `null` argument = top-level categories.

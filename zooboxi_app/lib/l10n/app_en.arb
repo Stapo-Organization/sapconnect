@@ -51,6 +51,46 @@
   "homeAnimalNav": "Shop by pet",
   "homeBrands": "Featured brands",
   "homeGreeting": "Welcome 👋",
+  "homeEmpty": "Nothing to show yet",
+  "homeEmptyHint": "Pull to refresh in a moment, or browse the categories.",
+  "homeWishlistRail": "From your wishlist",
+  "homeReorderDue": "Time to reorder",
+  "homeCampaignCoupon": "Code: {code}",
+  "@homeCampaignCoupon": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCampaignDiscount": "{percent} off",
+  "@homeCampaignDiscount": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCampaignEndsIn": "Ends in {time}",
+  "@homeCampaignEndsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCampaignEndsInDays": "{days, plural, =1{1 day left} other{{days} days left}}",
+  "@homeCampaignEndsInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTrustDelivery": "Fast delivery",
+  "homeTrustPayment": "Secure payment",
+  "homeTrustGenuine": "Genuine products",
+  "homeTrustReturns": "Easy returns",
   "categoriesTitle": "Categories",
   "categoriesEmpty": "No categories yet",
   "listingFilters": "Filter",

@@ -166,6 +166,58 @@ class LAr extends L {
   String get homeGreeting => 'أهلًا بك 👋';
 
   @override
+  String get homeEmpty => 'لا يوجد ما نعرضه الآن';
+
+  @override
+  String get homeEmptyHint => 'اسحب للتحديث بعد قليل، أو تصفّح الأقسام.';
+
+  @override
+  String get homeWishlistRail => 'من مفضّلتك';
+
+  @override
+  String get homeReorderDue => 'حان وقت إعادة الطلب';
+
+  @override
+  String homeCampaignCoupon(String code) {
+    return 'كود: $code';
+  }
+
+  @override
+  String homeCampaignDiscount(String percent) {
+    return 'خصم $percent';
+  }
+
+  @override
+  String homeCampaignEndsIn(String time) {
+    return 'ينتهي خلال $time';
+  }
+
+  @override
+  String homeCampaignEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'باقي $days يومًا',
+      few: 'باقي $days أيام',
+      two: 'باقي يومان',
+      one: 'باقي يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeTrustDelivery => 'توصيل سريع';
+
+  @override
+  String get homeTrustPayment => 'دفع آمن';
+
+  @override
+  String get homeTrustGenuine => 'منتجات أصلية';
+
+  @override
+  String get homeTrustReturns => 'إرجاع سهل';
+
+  @override
   String get categoriesTitle => 'الأقسام';
 
   @override

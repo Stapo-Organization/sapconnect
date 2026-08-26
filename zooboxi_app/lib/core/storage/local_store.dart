@@ -19,6 +19,8 @@ class LocalStore {
   static const _kLocation = 'location.current';
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
+  static const _kHomeCache = 'catalog.home_cache';
+  static const _kHomeFeedCache = 'catalog.home_feed_cache';
   static const _kEvents = 'analytics.pending';
   static const _kCachePrefix = 'cache.';
   static const _kEtagPrefix = 'etag.';
@@ -52,16 +54,7 @@ class LocalStore {
 
   // ── Delivery location ────────────────────────────────────────────────
 
-  Map<String, dynamic>? get location {
-    final raw = _prefs.getString(_kLocation);
-    if (raw == null) return null;
-    try {
-      final decoded = jsonDecode(raw);
-      return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
-    } catch (_) {
-      return null;
-    }
-  }
+  Map<String, dynamic>? get location => _json(_kLocation);
 
   Future<void> setLocation(Map<String, dynamic>? value) => value == null
       ? _prefs.remove(_kLocation)
@@ -99,6 +92,42 @@ class LocalStore {
 
   Future<void> clearRecentSearches() => _prefs.remove(_kRecentSearches);
 
+  // ── Home payload cache (stale-while-revalidate) ──────────────────────
+  //
+  // Separate from the ETag store below: that one only spares the *bytes* on a
+  // 304 and still needs a round trip. This one is what paints the storefront
+  // on the frame the app opens, while the refresh happens behind it.
+
+  Map<String, dynamic>? get homeCache => _json(_kHomeCache);
+
+  Future<void> setHomeCache(Map<String, dynamic> json) =>
+      _prefs.setString(_kHomeCache, jsonEncode(json));
+
+  /// The feed is per-customer, so the sign-in state it was captured under is
+  /// stored with it — one person's "buy again" must never flash on another's
+  /// screen after a sign-out.
+  ({bool authed, Map<String, dynamic> data})? get homeFeedCache {
+    final wrapper = _json(_kHomeFeedCache);
+    if (wrapper == null) return null;
+    final data = wrapper['data'];
+    if (data is! Map) return null;
+    return (authed: wrapper['authed'] == true, data: Map<String, dynamic>.from(data));
+  }
+
+  Future<void> setHomeFeedCache(Map<String, dynamic> json, {required bool authed}) =>
+      _prefs.setString(_kHomeFeedCache, jsonEncode({'authed': authed, 'data': json}));
+
+  Map<String, dynamic>? _json(String key) {
+    final raw = _prefs.getString(key);
+    if (raw == null) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // ── Analytics batch (survives a cold kill) ───────────────────────────
 
   List<Map<String, dynamic>> get pendingEvents {
@@ -133,11 +162,13 @@ class LocalStore {
 
   /// Dropped whenever the delivery location changes — every cached catalog
   /// payload is location-scoped, so keeping it would show another city's stock.
+  /// The home snapshots go with them for exactly the same reason.
   Future<void> clearHttpCache() async {
     final keys = _prefs
         .getKeys()
         .where((k) => k.startsWith(_kCachePrefix) || k.startsWith(_kEtagPrefix))
-        .toList();
+        .toList()
+      ..addAll([_kHomeCache, _kHomeFeedCache]);
     for (final k in keys) {
       await _prefs.remove(k);
     }

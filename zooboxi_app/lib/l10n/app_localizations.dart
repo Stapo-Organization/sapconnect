@@ -403,6 +403,78 @@ abstract class L {
   /// **'أهلًا بك 👋'**
   String get homeGreeting;
 
+  /// No description provided for @homeEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد ما نعرضه الآن'**
+  String get homeEmpty;
+
+  /// No description provided for @homeEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسحب للتحديث بعد قليل، أو تصفّح الأقسام.'**
+  String get homeEmptyHint;
+
+  /// No description provided for @homeWishlistRail.
+  ///
+  /// In ar, this message translates to:
+  /// **'من مفضّلتك'**
+  String get homeWishlistRail;
+
+  /// No description provided for @homeReorderDue.
+  ///
+  /// In ar, this message translates to:
+  /// **'حان وقت إعادة الطلب'**
+  String get homeReorderDue;
+
+  /// Coupon chip on a campaign creative
+  ///
+  /// In ar, this message translates to:
+  /// **'كود: {code}'**
+  String homeCampaignCoupon(String code);
+
+  /// Discount chip; percent arrives pre-formatted (25٪)
+  ///
+  /// In ar, this message translates to:
+  /// **'خصم {percent}'**
+  String homeCampaignDiscount(String percent);
+
+  /// Live countdown chip; time is HH:MM:SS
+  ///
+  /// In ar, this message translates to:
+  /// **'ينتهي خلال {time}'**
+  String homeCampaignEndsIn(String time);
+
+  /// No description provided for @homeCampaignEndsInDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{باقي يوم واحد} =2{باقي يومان} few{باقي {days} أيام} other{باقي {days} يومًا}}'**
+  String homeCampaignEndsInDays(int days);
+
+  /// No description provided for @homeTrustDelivery.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل سريع'**
+  String get homeTrustDelivery;
+
+  /// No description provided for @homeTrustPayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'دفع آمن'**
+  String get homeTrustPayment;
+
+  /// No description provided for @homeTrustGenuine.
+  ///
+  /// In ar, this message translates to:
+  /// **'منتجات أصلية'**
+  String get homeTrustGenuine;
+
+  /// No description provided for @homeTrustReturns.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرجاع سهل'**
+  String get homeTrustReturns;
+
   /// No description provided for @categoriesTitle.
   ///
   /// In ar, this message translates to:

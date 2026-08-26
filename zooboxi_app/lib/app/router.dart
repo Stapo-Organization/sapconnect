@@ -81,11 +81,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             title: state.uri.queryParameters['title'] ?? '',
             query: state.extra is ListingQuery
                 ? state.extra! as ListingQuery
-                : ListingQuery(
-                    category: state.uri.queryParameters['category'],
-                    brand: state.uri.queryParameters['brand'],
-                    q: state.uri.queryParameters['q'],
-                  ),
+                : ListingQuery.fromJson(state.uri.queryParameters),
           ),
         ),
       ),

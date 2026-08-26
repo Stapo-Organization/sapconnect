@@ -46,7 +46,13 @@ abstract final class ZbEvents {
   static const addToCart = 'add_to_cart';
   static const beginCheckout = 'begin_checkout';
   static const purchase = 'purchase';
-  static const campaignClick = 'campaign_click';
+  // The wire value is 'click' — the only spelling the store plugin's
+  // EVENT_TYPES allowlist and the warehouse validator accept.
+  static const campaignClick = 'click';
+
+  /// A creative that was actually ≥50% on screen. Paired with
+  /// [campaignClick] it is what makes a click-through rate mean anything.
+  static const impression = 'impression';
 }
 
 /// Batches signals and posts them in the background.

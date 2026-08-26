@@ -180,6 +180,19 @@ class ZbColors extends ThemeExtension<ZbColors> {
   }
 }
 
+/// Parses a brand-kit hex (`#429D9C`, `429D9C`, `#FF429D9C`) to a [Color].
+///
+/// Brand accents come from the store's kit as strings, so the failure mode has
+/// to be "no tint" rather than a crash: one brand with a typo'd accent must not
+/// take the strip down with it.
+Color? hexColor(String? value) {
+  final raw = value?.trim().replaceFirst('#', '');
+  if (raw == null || (raw.length != 6 && raw.length != 8)) return null;
+  final parsed = int.tryParse(raw, radix: 16);
+  if (parsed == null) return null;
+  return Color(raw.length == 6 ? 0xFF000000 | parsed : parsed);
+}
+
 /// Terse theme accessors. `context.zb.tierExpress`, `context.cs.primary`,
 /// `context.tt.titleMedium`.
 extension ZbColorsX on BuildContext {

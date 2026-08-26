@@ -32,6 +32,9 @@ dependencies:
   shimmer: ^3.0.0
   flutter_animate: ^4.5.2
   google_fonts: ^8.1.0
+  # Fires a campaign impression once the creative is actually ≥50% on screen —
+  # a banner that scrolled past below the fold was never "shown".
+  visibility_detector: ^0.4.0+2
 
   # Location + maps
   geolocator: ^14.0.2

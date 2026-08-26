@@ -54,6 +54,49 @@
   "homeAnimalNav": "تسوّق حسب حيوانك",
   "homeBrands": "أبرز العلامات",
   "homeGreeting": "أهلًا بك 👋",
+  "homeEmpty": "لا يوجد ما نعرضه الآن",
+  "homeEmptyHint": "اسحب للتحديث بعد قليل، أو تصفّح الأقسام.",
+  "homeWishlistRail": "من مفضّلتك",
+  "homeReorderDue": "حان وقت إعادة الطلب",
+  "homeCampaignCoupon": "كود: {code}",
+  "@homeCampaignCoupon": {
+    "description": "Coupon chip on a campaign creative",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCampaignDiscount": "خصم {percent}",
+  "@homeCampaignDiscount": {
+    "description": "Discount chip; percent arrives pre-formatted (25٪)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCampaignEndsIn": "ينتهي خلال {time}",
+  "@homeCampaignEndsIn": {
+    "description": "Live countdown chip; time is HH:MM:SS",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCampaignEndsInDays": "{days, plural, =1{باقي يوم واحد} =2{باقي يومان} few{باقي {days} أيام} other{باقي {days} يومًا}}",
+  "@homeCampaignEndsInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTrustDelivery": "توصيل سريع",
+  "homeTrustPayment": "دفع آمن",
+  "homeTrustGenuine": "منتجات أصلية",
+  "homeTrustReturns": "إرجاع سهل",
   "categoriesTitle": "الأقسام",
   "categoriesEmpty": "لا توجد أقسام حاليًا",
   "listingFilters": "تصفية",

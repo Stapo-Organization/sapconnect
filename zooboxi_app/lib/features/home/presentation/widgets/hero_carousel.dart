@@ -5,56 +5,100 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
-import '../../../../core/analytics/events_buffer.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../catalog/data/catalog_models.dart';
+import 'campaign_chips.dart';
+import 'campaign_composition.dart';
+import 'campaign_impression.dart';
+import 'hero_auto_slide.dart';
 import 'link_navigation.dart';
 
-/// The hero banner strip. Slides and campaign placements share the carousel —
-/// to a customer they are the same thing, and merging them means an active
-/// campaign is never buried below a static banner.
+/// Placement zones whose creatives belong in the hero rather than in a banner
+/// slot. Shared with the home screen so a campaign can never be counted twice.
+const List<String> heroZones = ['hero', 'app_hero'];
+
+/// The campaigns the carousel will actually show, in the order it shows them.
+List<Campaign> heroCampaignsOf(List<Campaign> campaigns) =>
+    campaigns.where((c) => c.inAnyZone(heroZones)).toList();
+
+/// Hero geometry. The card is a fixed-extent element, so — exactly like a
+/// product card — its height is *computed* from the text scale rather than
+/// guessed and hoped for. The scale is clamped at 1.3× in both the arithmetic
+/// and the painted copy, so the number here and the pixels can't disagree.
+abstract final class HeroMetrics {
+  static const double viewportFraction = 0.92;
+  static const double aspect = 1.6;
+  static const double maxTextScale = 1.3;
+
+  /// How much taller the card gets at the top of the text-scale range.
+  static const double scaleHeadroom = 96;
+
+  static double height(BuildContext context, double width) {
+    final factor =
+        MediaQuery.textScalerOf(context).clamp(maxScaleFactor: maxTextScale).scale(16) / 16;
+    return (width * viewportFraction) / aspect + (factor - 1) * scaleHeadroom;
+  }
+}
+
+/// The hero strip. Uploaded banners, live campaign placements and the slides
+/// the server composes from stock all share one carousel — to a customer they
+/// are the same thing, and merging them means an active campaign is never
+/// buried below a static banner.
 class HeroCarousel extends ConsumerStatefulWidget {
   const HeroCarousel({super.key, required this.slides, this.campaigns = const []});
 
   final List<HeroSlide> slides;
   final List<Campaign> campaigns;
 
+  /// Whether there is anything at all to show — campaigns count, which is the
+  /// point: a campaign-only hero used to be hidden by an `hero.isEmpty` gate.
+  static bool hasContent(HomePayload payload) =>
+      payload.hero.isNotEmpty || heroCampaignsOf(payload.campaigns).isNotEmpty;
+
   @override
   ConsumerState<HeroCarousel> createState() => _HeroCarouselState();
 }
 
 class _HeroCarouselState extends ConsumerState<HeroCarousel> {
-  late final PageController _controller = PageController(viewportFraction: 0.92);
+  late final PageController _controller =
+      PageController(viewportFraction: HeroMetrics.viewportFraction);
   Timer? _autoplay;
   int _index = 0;
 
-  List<_Slide> get _items => [
+  /// Item count the running autoplay timer was built for.
+  int _autoplayCount = 0;
+
+  /// Manual banners first (they are bought and paid for), then live campaigns,
+  /// then the slides the server composed to fill the gap.
+  List<_HeroItem> get _items => [
         for (final slide in widget.slides)
-          _Slide(
-            image: slide.bestImage,
-            title: slide.title,
-            subtitle: slide.subtitle,
-            cta: slide.ctaLabel,
-            link: ZbLink.fromUrl(slide.linkUrl),
-          ),
-        for (final campaign in widget.campaigns)
-          if (campaign.inZone('hero'))
-            _Slide(
-              image: campaign.image,
-              title: campaign.headline,
-              link: ZbLink.fromUrl(campaign.linkUrl, productId: campaign.productId),
-              campaignId: campaign.campaignId,
-              abVariant: campaign.abVariant,
-              zone: 'hero',
-            ),
+          if (!slide.isAuto) _ManualItem(slide),
+        for (final campaign in heroCampaignsOf(widget.campaigns)) _CampaignItem(campaign),
+        for (final slide in widget.slides)
+          if (slide.isAuto) _AutoItem(slide),
       ];
 
   @override
   void initState() {
     super.initState();
     _startAutoplay();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reportImpression(0));
+  }
+
+  @override
+  void didUpdateWidget(HeroCarousel old) {
+    super.didUpdateWidget(old);
+    // The slide list arrives, then grows when the network refresh lands. An
+    // autoplay timer started against the old count either never starts or
+    // cycles a page that no longer exists — restart it whenever the count moves.
+    final count = _items.length;
+    if (count != _autoplayCount) {
+      if (_index >= count) _index = count == 0 ? 0 : count - 1;
+      _startAutoplay();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reportImpression(_index));
+    }
   }
 
   @override
@@ -66,14 +110,38 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
 
   void _startAutoplay() {
     _autoplay?.cancel();
-    if (_items.length < 2) return;
+    _autoplay = null;
+    _autoplayCount = _items.length;
+    if (_autoplayCount < 2) return;
+
     _autoplay = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!mounted || !_controller.hasClients) return;
       // Reduce Motion means "don't move things on your own": no autoplay.
       if (MediaQuery.disableAnimationsOf(context)) return;
       final next = (_index + 1) % _items.length;
-      _controller.animateToPage(next, duration: Motion.page, curve: Motion.emphasized);
+      unawaited(
+        _controller.animateToPage(next, duration: Motion.page, curve: Motion.emphasized),
+      );
     });
+  }
+
+  /// The hero has no scroll position of its own to measure, so "shown" is
+  /// "became the current page" — which is the same thing to a customer.
+  void _reportImpression(int index) {
+    if (!mounted) return;
+    final items = _items;
+    if (index < 0 || index >= items.length) return;
+    final item = items[index];
+    if (item is _CampaignItem) {
+      trackCampaignImpression(ref, item.campaign, 'hero');
+    }
+  }
+
+  void _open(_HeroItem item) {
+    if (item is _CampaignItem) {
+      trackCampaignClick(ref, item.campaign, 'hero');
+    }
+    unawaited(followLink(context, item.link, title: item.title));
   }
 
   @override
@@ -82,155 +150,230 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
     if (items.isEmpty) return const SizedBox.shrink();
 
     final width = MediaQuery.sizeOf(context).width;
-    final height = (width * 0.92) * 0.52;
 
-    return Column(
-      children: [
-        SizedBox(
-          height: height,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: items.length,
-            onPageChanged: (index) => setState(() => _index = index),
-            itemBuilder: (context, index) {
-              final slide = items[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                child: _HeroCard(
-                  slide: slide,
-                  onTap: () {
-                    if (slide.campaignId != null) {
-                      ref.track(ZbEvent(
-                        type: ZbEvents.campaignClick,
-                        campaignId: slide.campaignId,
-                        abVariant: slide.abVariant,
-                        zone: slide.zone,
-                      ));
-                    }
-                    followLink(context, slide.link, title: slide.title);
-                  },
-                ),
-              );
-            },
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: HeroMetrics.maxTextScale,
+      child: Column(
+        children: [
+          SizedBox(
+            height: HeroMetrics.height(context, width),
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: items.length,
+              onPageChanged: (index) {
+                setState(() => _index = index);
+                _reportImpression(index);
+              },
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: PressScale(
+                    onTap: () => _open(item),
+                    borderRadius: BorderRadius.circular(ZbTokens.rLg),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(ZbTokens.rLg),
+                      child: switch (item) {
+                        _ManualItem(:final slide) => _ManualCard(slide: slide),
+                        _CampaignItem(:final campaign) => _CampaignCard(campaign: campaign),
+                        _AutoItem(:final slide) => HeroAutoCard(slide: slide),
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        if (items.length > 1) ...[
-          Gap.h12,
-          _Dots(count: items.length, index: _index),
+          if (items.length > 1) ...[
+            Gap.h12,
+            _Dots(count: items.length, index: _index),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+// ── Items ──────────────────────────────────────────────────────────────
+
+sealed class _HeroItem {
+  const _HeroItem();
+
+  ZbLink? get link;
+  String? get title;
+}
+
+class _ManualItem extends _HeroItem {
+  const _ManualItem(this.slide);
+
+  final HeroSlide slide;
+
+  @override
+  ZbLink? get link => ZbLink.fromUrl(slide.linkUrl);
+
+  @override
+  String? get title => slide.title;
+}
+
+class _AutoItem extends _HeroItem {
+  const _AutoItem(this.slide);
+
+  final HeroSlide slide;
+
+  @override
+  ZbLink? get link => ZbLink.fromUrl(slide.linkUrl);
+
+  @override
+  String? get title => slide.title;
+}
+
+class _CampaignItem extends _HeroItem {
+  const _CampaignItem(this.campaign);
+
+  final Campaign campaign;
+
+  @override
+  ZbLink? get link => ZbLink.fromUrl(campaign.linkUrl, productId: campaign.productId);
+
+  @override
+  String? get title => campaign.headline;
+}
+
+// ── Cards ──────────────────────────────────────────────────────────────
+
+/// An uploaded banner: full-bleed art, a scrim only where the copy sits so the
+/// artwork stays bright.
+class _ManualCard extends StatelessWidget {
+  const _ManualCard({required this.slide});
+
+  final HeroSlide slide;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCopy = (slide.title ?? '').isNotEmpty || (slide.subtitle ?? '').isNotEmpty;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ZbImage(url: slide.bestImage, fit: BoxFit.cover),
+        if (hasCopy)
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: AlignmentDirectional.centerStart,
+                end: AlignmentDirectional.centerEnd,
+                colors: [
+                  Colors.black.withValues(alpha: 0.62),
+                  Colors.black.withValues(alpha: 0.10),
+                  Colors.transparent,
+                ],
+                stops: const [0, 0.55, 1],
+              ),
+            ),
+          ),
+        if (hasCopy)
+          PositionedDirectional(
+            start: 18,
+            end: 90,
+            bottom: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if ((slide.title ?? '').isNotEmpty)
+                  Text(
+                    slide.title!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.tt.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                if ((slide.subtitle ?? '').isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      slide.subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.tt.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.88),
+                      ),
+                    ),
+                  ),
+                if ((slide.ctaLabel ?? '').isNotEmpty) ...[
+                  Gap.h12,
+                  CampaignCta(label: slide.ctaLabel!),
+                ],
+              ],
+            ),
+          ),
       ],
     );
   }
 }
 
-class _Slide {
-  const _Slide({
-    this.image,
-    this.title,
-    this.subtitle,
-    this.cta,
-    this.link,
-    this.campaignId,
-    this.abVariant,
-    this.zone,
-  });
+/// A live campaign, composed natively — see [CampaignComposition] for why the
+/// artwork is never trusted to carry the words.
+class _CampaignCard extends StatelessWidget {
+  const _CampaignCard({required this.campaign});
 
-  final String? image;
-  final String? title;
-  final String? subtitle;
-  final String? cta;
-  final ZbLink? link;
-  final String? campaignId;
-  final String? abVariant;
-  final String? zone;
-}
-
-class _HeroCard extends StatelessWidget {
-  const _HeroCard({required this.slide, required this.onTap});
-
-  final _Slide slide;
-  final VoidCallback onTap;
+  final Campaign campaign;
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.cs;
-    final hasCopy = (slide.title ?? '').isNotEmpty || (slide.subtitle ?? '').isNotEmpty;
+    final panel = CampaignPanel.of(context, campaignType: campaign.campaignType);
+    final headline = campaign.headline;
+    final subheadline = campaign.subheadline;
+    final cta = campaign.cta;
 
-    return PressScale(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(ZbTokens.rLg),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            ZbImage(url: slide.image, fit: BoxFit.cover),
-            if (hasCopy)
-              // A scrim only where the text sits, so the artwork stays bright.
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: AlignmentDirectional.centerStart,
-                    end: AlignmentDirectional.centerEnd,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.62),
-                      Colors.black.withValues(alpha: 0.10),
-                      Colors.transparent,
-                    ],
-                    stops: const [0, 0.55, 1],
-                  ),
-                ),
-              ),
-            if (hasCopy)
-              PositionedDirectional(
-                start: 18,
-                end: 90,
-                bottom: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if ((slide.title ?? '').isNotEmpty)
-                      Text(
-                        slide.title!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.tt.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    if ((slide.subtitle ?? '').isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          slide.subtitle!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.tt.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.88),
-                          ),
-                        ),
-                      ),
-                    if ((slide.cta ?? '').isNotEmpty) ...[
-                      Gap.h12,
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                        decoration: BoxDecoration(
-                          color: cs.surface,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          slide.cta!,
-                          style: context.tt.labelMedium?.copyWith(color: cs.onSurface),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+    return CampaignComposition(
+      panel: panel,
+      art: campaign.artFor(const ['app_hero', 'card', 'hero', 'wide']),
+      copy: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if ((campaign.badge ?? '').isNotEmpty) ...[
+            CampaignBadgeChip(campaign: campaign, panel: panel),
+            Gap.h8,
           ],
-        ),
+          if ((headline ?? '').isNotEmpty)
+            Flexible(
+              child: Text(
+                headline!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.titleLarge?.copyWith(
+                  color: panel.fg,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          if ((subheadline ?? '').isNotEmpty) ...[
+            Gap.h4,
+            Flexible(
+              child: Text(
+                subheadline!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.bodySmall?.copyWith(color: panel.muted),
+              ),
+            ),
+          ],
+          if ((cta ?? '').isNotEmpty) ...[
+            Gap.h12,
+            CampaignCta(label: cta!),
+          ],
+          Gap.h8,
+          CampaignChipRow(
+            campaign: campaign,
+            panel: panel,
+            includeBadge: false,
+            maxChips: 2,
+          ),
+        ],
       ),
     );
   }
@@ -257,7 +400,7 @@ class _Dots extends StatelessWidget {
           height: 6,
           decoration: BoxDecoration(
             color: active ? cs.primary : cs.outlineVariant,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(ZbTokens.rPill),
           ),
         );
       }),

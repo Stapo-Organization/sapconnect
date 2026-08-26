@@ -11,7 +11,9 @@ import '../../../catalog/data/catalog_models.dart';
 
 /// Featured brands. Logos sit on a neutral tile rather than on the brand's own
 /// colour: a strip of eight different brand colours is noise, and the logos
-/// already carry the identity.
+/// already carry the identity. The kit accent is spent on the tile's edge and a
+/// breath of glow underneath — enough that the strip has rhythm, not so much
+/// that eight brands start shouting over each other.
 class BrandStrip extends StatelessWidget {
   const BrandStrip({super.key, required this.brands});
 
@@ -51,6 +53,7 @@ class _BrandTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
+    final accent = hexColor(brand.accent);
 
     return PressScale(
       borderRadius: BorderRadius.circular(ZbTokens.rMd),
@@ -65,7 +68,19 @@ class _BrandTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(ZbTokens.rMd),
-          border: Border.all(color: cs.outlineVariant),
+          border: Border.all(
+            color: accent?.withValues(alpha: context.isDark ? 0.55 : 0.40) ??
+                cs.outlineVariant,
+          ),
+          boxShadow: accent == null
+              ? null
+              : [
+                  BoxShadow(
+                    color: accent.withValues(alpha: context.isDark ? 0.16 : 0.12),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         alignment: Alignment.center,

@@ -47,13 +47,22 @@ class ZbLink {
 @immutable
 class HeroSlide {
   const HeroSlide({
+    this.kind = 'manual',
     this.image,
     this.imageMobile,
     this.title,
     this.subtitle,
     this.ctaLabel,
     this.linkUrl,
+    this.theme,
+    this.brand,
+    this.productImages = const [],
   });
+
+  /// `manual` — an uploaded banner image. `auto` — a slide the server composed
+  /// from live merchandising (express stock, clearance, a brand, bestsellers);
+  /// it ships copy and product art, and the app draws it natively.
+  final String kind;
 
   final String? image;
 
@@ -67,29 +76,59 @@ class HeroSlide {
   /// resolves store product/category URLs to in-app routes where it can.
   final String? linkUrl;
 
+  /// Auto slides only: `express` | `clearance` | `brand` | `bestsellers`.
+  final String? theme;
+
+  /// Auto slides only, on the `brand` theme.
+  final BrandRef? brand;
+
+  /// Auto slides only: up to four product photos to compose into the slide.
+  final List<String> productImages;
+
+  bool get isAuto => kind == 'auto';
+
   String? get bestImage => imageMobile ?? image;
 
-  // Server fields: image, image_mobile, headline, subheadline, cta_label, link.
+  // Server fields: kind, image, image_mobile, headline, subheadline,
+  // cta_label, link, theme, brand{name,logo}, product_images[].
   factory HeroSlide.fromJson(Map<String, dynamic> json) => HeroSlide(
+        kind: asString(json['kind'], fallback: 'manual'),
         image: asStringOrNull(json['image']),
         imageMobile: asStringOrNull(json['image_mobile']),
         title: asStringOrNull(json['headline']) ?? asStringOrNull(json['title']),
         subtitle: asStringOrNull(json['subheadline']) ?? asStringOrNull(json['subtitle']),
         ctaLabel: asStringOrNull(json['cta_label']),
         linkUrl: asStringOrNull(json['link']),
+        theme: asStringOrNull(json['theme']),
+        brand: BrandRef.maybe(json['brand']),
+        productImages: asStringList(json['product_images']),
       );
 }
 
 /// A merchandising campaign placement. [campaignId] and [abVariant] travel
 /// back with every impression/click event so the server can measure lift.
+///
+/// Creatives arrive per format (`hero`, `wide`, `card`, `strip`, `app_hero`)
+/// because one crop cannot serve a 4:1 strip and a 2:1 hero. The copy travels
+/// *beside* the artwork rather than baked into it: the app composes headline,
+/// badge, coupon and countdown natively, so nothing is ever cropped mid-word
+/// and every chip respects the theme and the reading direction.
 @immutable
 class Campaign {
   const Campaign({
     required this.campaignId,
     this.zones = const [],
     this.abVariant,
+    this.campaignType,
     this.headline,
-    this.image,
+    this.subheadline,
+    this.cta,
+    this.badge,
+    this.couponCode,
+    this.discountPct,
+    this.startsAt,
+    this.endsAt,
+    this.creatives = const {},
     this.itemCode,
     this.productId,
     this.linkUrl,
@@ -100,8 +139,27 @@ class Campaign {
   /// Placement zones this creative was approved for (hero, shop_top, …).
   final List<String> zones;
   final String? abVariant;
+
+  /// `clearance` | `bundle` | `visibility` … — drives the accent, not layout.
+  final String? campaignType;
+
   final String? headline;
-  final String? image;
+  final String? subheadline;
+  final String? cta;
+
+  /// Short kicker rendered as a pill above the headline ("عرض محدود").
+  final String? badge;
+
+  final String? couponCode;
+  final int? discountPct;
+  final DateTime? startsAt;
+
+  /// Drives the urgency chip. Null means "no deadline worth showing".
+  final DateTime? endsAt;
+
+  /// format → url.
+  final Map<String, String> creatives;
+
   final String? itemCode;
 
   /// When the campaign promotes one product, navigate in-app by id —
@@ -111,18 +169,54 @@ class Campaign {
 
   bool inZone(String zone) => zones.isEmpty || zones.contains(zone);
 
-  // Server fields: campaign_id, ab_variant, zones[], image, headline,
-  // item_code, product_id, link.
-  factory Campaign.fromJson(Map<String, dynamic> json) => Campaign(
-        campaignId: asString(json['campaign_id']),
-        zones: asStringList(json['zones']),
-        abVariant: asStringOrNull(json['ab_variant']),
-        headline: asStringOrNull(json['headline']),
-        image: asStringOrNull(json['image']),
-        itemCode: asStringOrNull(json['item_code']),
-        productId: asIntOrNull(json['product_id']),
-        linkUrl: asStringOrNull(json['link']),
-      );
+  /// True when the campaign was approved for *any* of [candidates]. A campaign
+  /// with no zones at all is unrestricted, as in [inZone].
+  bool inAnyZone(List<String> candidates) =>
+      zones.isEmpty || candidates.any(zones.contains);
+
+  /// First creative present in [preferredFormats] order, or null. Callers pass
+  /// the shapes they can actually lay out, best fit first.
+  String? artFor(List<String> preferredFormats) {
+    for (final format in preferredFormats) {
+      final url = creatives[format];
+      if (url != null && url.isNotEmpty) return url;
+    }
+    return null;
+  }
+
+  // Server fields: campaign_id, ab_variant, zones[], campaign_type, headline,
+  // subheadline, cta, badge, coupon_code, discount_pct, starts_at, ends_at,
+  // creatives{}, item_code, product_id, link.
+  factory Campaign.fromJson(Map<String, dynamic> json) {
+    final creatives = <String, String>{};
+    asMap(json['creatives']).forEach((key, value) {
+      final url = asStringOrNull(value);
+      if (url != null) creatives[key] = url;
+    });
+    // v1 payloads shipped a single flat `image`. Treat it as the hero crop so
+    // an older server keeps rendering instead of going blank.
+    final legacy = asStringOrNull(json['image']);
+    if (creatives.isEmpty && legacy != null) creatives['hero'] = legacy;
+
+    return Campaign(
+      campaignId: asString(json['campaign_id']),
+      zones: asStringList(json['zones']),
+      abVariant: asStringOrNull(json['ab_variant']),
+      campaignType: asStringOrNull(json['campaign_type']),
+      headline: asStringOrNull(json['headline']),
+      subheadline: asStringOrNull(json['subheadline']),
+      cta: asStringOrNull(json['cta']),
+      badge: asStringOrNull(json['badge']),
+      couponCode: asStringOrNull(json['coupon_code']),
+      discountPct: asIntOrNull(json['discount_pct']),
+      startsAt: asDate(json['starts_at']),
+      endsAt: asDate(json['ends_at']),
+      creatives: creatives,
+      itemCode: asStringOrNull(json['item_code']),
+      productId: asIntOrNull(json['product_id']),
+      linkUrl: asStringOrNull(json['link']),
+    );
+  }
 }
 
 /// One circle in the "shop by pet" strip.
@@ -193,6 +287,31 @@ class BrandSummary {
       );
 }
 
+/// One entry in the server-driven home order.
+///
+/// The server merchandises the page: it decides that clearance runs above the
+/// new arrivals today and below them tomorrow. The app renders whatever it is
+/// handed and **skips a `type` it does not know**, so the server can ship a new
+/// slot before the app that draws it has shipped.
+@immutable
+class HomeLayoutSlot {
+  const HomeLayoutSlot(this.type, {this.key, this.index});
+
+  final String type;
+
+  /// Which rail (`trending`, `foryou`, …) for `rail` / `feed_rail` slots.
+  final String? key;
+
+  /// Which campaign out of the banner pool, for `banner` slots.
+  final int? index;
+
+  factory HomeLayoutSlot.fromJson(Map<String, dynamic> json) => HomeLayoutSlot(
+        asString(json['type']),
+        key: asStringOrNull(json['key']),
+        index: asIntOrNull(json['index']),
+      );
+}
+
 /// `GET /home` — everything above the fold, in one round trip.
 @immutable
 class HomePayload {
@@ -202,6 +321,7 @@ class HomePayload {
     this.animalNav = const [],
     this.rails = const [],
     this.brands = const [],
+    this.layout = const [],
   });
 
   final List<HeroSlide> hero;
@@ -210,8 +330,41 @@ class HomePayload {
   final List<ProductRail> rails;
   final List<BrandSummary> brands;
 
+  /// Empty means "use [defaultLayout]" — an older server, or a payload that
+  /// predates the layout engine.
+  final List<HomeLayoutSlot> layout;
+
+  /// The order the app falls back to when the server sends none.
+  static const List<HomeLayoutSlot> defaultLayout = [
+    HomeLayoutSlot('hero'),
+    HomeLayoutSlot('animal_nav'),
+    HomeLayoutSlot('personal'),
+    HomeLayoutSlot('shipping_nudge'),
+    HomeLayoutSlot('rail', key: 'trending'),
+    HomeLayoutSlot('banner', index: 0),
+    HomeLayoutSlot('feed_rail', key: 'foryou'),
+    HomeLayoutSlot('rail', key: 'bestsellers'),
+    HomeLayoutSlot('feed_rail', key: 'incity'),
+    HomeLayoutSlot('clearance_band'),
+    HomeLayoutSlot('rail', key: 'new'),
+    HomeLayoutSlot('banner', index: 1),
+    HomeLayoutSlot('wishlist_rail'),
+    HomeLayoutSlot('brands'),
+    HomeLayoutSlot('trust'),
+  ];
+
+  List<HomeLayoutSlot> get slots => layout.isEmpty ? defaultLayout : layout;
+
   bool get isEmpty =>
       hero.isEmpty && campaigns.isEmpty && animalNav.isEmpty && rails.isEmpty && brands.isEmpty;
+
+  ProductRail? rail(String? key) {
+    if (key == null) return null;
+    for (final rail in rails) {
+      if (rail.key == key) return rail;
+    }
+    return null;
+  }
 
   factory HomePayload.fromJson(Map<String, dynamic> json) => HomePayload(
         hero: asMapList(json['hero']).map(HeroSlide.fromJson).toList(),
@@ -222,6 +375,118 @@ class HomePayload {
             .where((rail) => rail.products.isNotEmpty)
             .toList(),
         brands: asMapList(json['brands']).map(BrandSummary.fromJson).toList(),
+        layout: asMapList(json['layout'])
+            .map(HomeLayoutSlot.fromJson)
+            .where((slot) => slot.type.isNotEmpty)
+            .toList(),
+      );
+}
+
+/// How overdue a buy-again product is, parsed off the card map so [ProductCard]
+/// itself stays the one shape every list in the app speaks.
+@immutable
+class ReorderHint {
+  const ReorderHint({this.lastOrderedDays, this.due = false});
+
+  final int? lastOrderedDays;
+
+  /// The server thinks this customer is due to run out.
+  final bool due;
+}
+
+/// The personal strip at the top of the feed: what they buy, or — for someone
+/// with no history — what they were just looking at.
+@immutable
+class PersonalSlot {
+  const PersonalSlot({
+    this.kind = 'none',
+    this.title = '',
+    this.products = const [],
+    this.hints = const {},
+  });
+
+  /// `buyagain` | `recent` | `none`.
+  final String kind;
+
+  /// Arrives localized — the server knows the language from `?lang=`.
+  final String title;
+  final List<ProductCard> products;
+
+  /// product id → reorder hint. Only populated for `buyagain`.
+  final Map<int, ReorderHint> hints;
+
+  static const PersonalSlot none = PersonalSlot();
+
+  bool get isEmpty => kind == 'none' || products.isEmpty;
+
+  /// Whether anything in the strip is actually due — drives the nudge line.
+  bool get anyDue => hints.values.any((hint) => hint.due);
+
+  factory PersonalSlot.fromJson(Map<String, dynamic> json) {
+    final cards = asMapList(json['products']);
+    final hints = <int, ReorderHint>{};
+    for (final card in cards) {
+      final days = asIntOrNull(card['last_ordered_days']);
+      final due = asBool(card['due']);
+      if (days == null && !due) continue;
+      hints[asInt(card['id'])] = ReorderHint(lastOrderedDays: days, due: due);
+    }
+    return PersonalSlot(
+      kind: asString(json['kind'], fallback: 'none'),
+      title: asString(json['title']),
+      products: cards.map(ProductCard.fromJson).toList(),
+      hints: hints,
+    );
+  }
+}
+
+/// A titled strip that lives in the personalized feed rather than in the
+/// cacheable home payload.
+@immutable
+class FeedRail {
+  const FeedRail({required this.title, this.products = const []});
+
+  final String title;
+  final List<ProductCard> products;
+
+  /// Null for "the server had nothing personal to say here" — which is a
+  /// normal answer, not an error.
+  static FeedRail? maybe(dynamic value) {
+    final map = asMap(value);
+    if (map.isEmpty) return null;
+    final products = ProductCard.listFrom(map['products']);
+    if (products.isEmpty) return null;
+    return FeedRail(title: asString(map['title']), products: products);
+  }
+}
+
+/// `GET /home/feed` — the per-customer half of the page.
+///
+/// Split from `/home` on purpose: `/home` is identical for everyone in a city
+/// and therefore cacheable, while this is `no-store` and personal.
+@immutable
+class HomeFeed {
+  const HomeFeed({
+    this.personal = PersonalSlot.none,
+    this.forYou,
+    this.inCity,
+    this.loginNudge = false,
+  });
+
+  final PersonalSlot personal;
+  final FeedRail? forYou;
+  final FeedRail? inCity;
+
+  /// The server would have more to show if this person signed in.
+  final bool loginNudge;
+
+  static const HomeFeed empty = HomeFeed();
+
+  factory HomeFeed.fromJson(Map<String, dynamic> json) => HomeFeed(
+        personal: PersonalSlot.fromJson(asMap(json['personal'])),
+        forYou: FeedRail.maybe(json['foryou']),
+        inCity: FeedRail.maybe(json['incity']),
+        loginNudge: asBool(json['login_nudge']),
       );
 }
 
@@ -369,6 +634,7 @@ class ListingQuery {
     this.brand,
     this.q,
     this.sku,
+    this.rail,
     this.attributes = const {},
     this.minPrice,
     this.maxPrice,
@@ -376,10 +642,24 @@ class ListingQuery {
     this.perPage = 20,
   });
 
+  /// Rebuilds a query from a deep link / `context.push` URL.
+  factory ListingQuery.fromJson(Map<String, String> params) => ListingQuery(
+        category: asStringOrNull(params['category']),
+        brand: asStringOrNull(params['brand']),
+        q: asStringOrNull(params['q']),
+        sku: asStringOrNull(params['sku']),
+        rail: asStringOrNull(params['rail']),
+      );
+
   final String? category;
   final String? brand;
   final String? q;
   final String? sku;
+
+  /// A home rail's "see all" (`trending`, `bestsellers`, `new`, `clearance`).
+  /// The server resolves it to the same ranking the rail was built from —
+  /// otherwise page 2 of "الأكثر مبيعًا" would be sorted by date.
+  final String? rail;
 
   /// `pa_*` taxonomy → selected term slugs.
   final Map<String, Set<String>> attributes;
@@ -410,6 +690,7 @@ class ListingQuery {
         brand: brand ?? this.brand,
         q: q ?? this.q,
         sku: sku,
+        rail: rail,
         attributes: attributes ?? this.attributes,
         minPrice: clearPrice ? null : (minPrice ?? this.minPrice),
         maxPrice: clearPrice ? null : (maxPrice ?? this.maxPrice),
@@ -423,6 +704,7 @@ class ListingQuery {
         brand: brand,
         q: q,
         sku: sku,
+        rail: rail,
         orderBy: orderBy,
         perPage: perPage,
       );
@@ -432,6 +714,7 @@ class ListingQuery {
         if (brand != null) 'brand': brand,
         if (q != null && q!.isNotEmpty) 'q': q,
         if (sku != null) 'sku': sku,
+        if (rail != null) 'rail': rail,
         for (final entry in attributes.entries)
           if (entry.value.isNotEmpty) entry.key: entry.value.join(','),
         if (minPrice != null) 'min_price': minPrice,
@@ -448,6 +731,7 @@ class ListingQuery {
       other.brand == brand &&
       other.q == q &&
       other.sku == sku &&
+      other.rail == rail &&
       other.minPrice == minPrice &&
       other.maxPrice == maxPrice &&
       other.orderBy == orderBy &&
@@ -472,6 +756,7 @@ class ListingQuery {
         brand,
         q,
         sku,
+        rail,
         minPrice,
         maxPrice,
         orderBy,
