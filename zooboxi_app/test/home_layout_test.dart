@@ -13,6 +13,7 @@ import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_repository.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/features/home/presentation/home_screen.dart';
+import 'package:zooboxi_app/features/home/presentation/widgets/address_nav_bar.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/animal_nav.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/brand_strip.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/campaign_banner.dart';
@@ -204,6 +205,42 @@ void main() {
     expect(find.text('مختارة لك'), findsOneWidget);
     expect(find.text('رائج الآن'), findsNothing, reason: 'one card left is not a rail');
     expect(find.text('P1'), findsOneWidget);
+  });
+
+  testWidgets('the address bar slides in on scroll and back out at the top',
+      (tester) async {
+    final payload = HomePayload(
+      hero: const [HeroSlide(kind: 'auto', theme: 'express', title: 'توصيل سريع')],
+      rails: [
+        for (var rail = 0; rail < 3; rail++)
+          ProductRail(
+            key: 'r$rail',
+            title: 'رف $rail',
+            products: [for (var i = 0; i < 4; i++) _p(rail * 10 + i)],
+          ),
+      ],
+      layout: const [
+        HomeLayoutSlot('hero'),
+        HomeLayoutSlot('rail', key: 'r0'),
+        HomeLayoutSlot('rail', key: 'r1'),
+        HomeLayoutSlot('rail', key: 'r2'),
+      ],
+    );
+
+    await _pumpHome(tester, _host(payload), size: const Size(393, 700));
+
+    bool navVisible() =>
+        tester.widget<AddressNavBar>(find.byType(AddressNavBar)).visible;
+
+    expect(navVisible(), isFalse, reason: 'at rest the canvas carries the address');
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    expect(navVisible(), isTrue, reason: 'past the canvas the bar takes over');
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 400));
+    await tester.pumpAndSettle();
+    expect(navVisible(), isFalse, reason: 'back at the top it hands back to the canvas');
   });
 
   testWidgets('a campaign-only hero still renders', (tester) async {

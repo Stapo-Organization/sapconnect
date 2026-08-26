@@ -191,8 +191,9 @@ class LocationChip extends ConsumerWidget {
     final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
     final location = ref.watch(currentLocationProvider);
-    final city = location.cityFor(locale);
-    final isSet = city != null && city.isNotEmpty;
+    // The full line a person recognises as *their* address: district, city.
+    final detail = location.detailLabel(locale);
+    final isSet = detail != null && detail.isNotEmpty;
 
     final fg = onCanvas ? (context.isDark ? ZbTokens.inkDark : Colors.white) : null;
     final accent = fg ?? cs.primary;
@@ -230,7 +231,7 @@ class LocationChip extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      isSet ? city : l.locationChoose,
+                      isSet ? detail : l.locationChoose,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.tt.titleSmall?.copyWith(height: 1.2, color: fg),

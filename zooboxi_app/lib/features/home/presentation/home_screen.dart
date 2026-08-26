@@ -18,6 +18,7 @@ import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
 import '../../wishlist/data/wishlist_controller.dart';
+import 'widgets/address_nav_bar.dart';
 import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
@@ -45,18 +46,18 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  /// True once the hero canvas has scrolled away from under the status bar —
-  /// the clock flips back from light to the theme's own color.
-  bool _pastCanvas = false;
+  /// True once the canvas' own address row has scrolled out of reach — the
+  /// compact address bar slides in and the status-bar clock flips back dark.
+  bool _navVisible = false;
 
-  /// Roughly where the canvas stops backing the status bar. An estimate is
-  /// fine: the flip happens mid-scroll, never at rest.
-  double _canvasThreshold = 320;
+  /// Where the canvas header (address + search) is judged gone. An estimate
+  /// is fine: the swap happens mid-scroll, never at rest.
+  static const double _navThreshold = 130;
 
   bool _onScroll(ScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
-    final past = notification.metrics.pixels > _canvasThreshold;
-    if (past != _pastCanvas) setState(() => _pastCanvas = past);
+    final visible = notification.metrics.pixels > _navThreshold;
+    if (visible != _navVisible) setState(() => _navVisible = visible);
     return false;
   }
 
@@ -80,10 +81,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         HeroCarousel.hasContent(payload) &&
         payload.slots.any((slot) => slot.type == 'hero');
 
-    final width = MediaQuery.sizeOf(context).width;
     final statusTop = MediaQuery.paddingOf(context).top;
-    _canvasThreshold =
-        (168 + HeroMetrics.height(context, width) + HeroMetrics.dotsBand) * 0.85;
 
     final scroll = NotificationListener<ScrollNotification>(
       onNotification: _onScroll,
@@ -133,15 +131,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     // The canvas runs behind the status bar, so the clock goes light while it
-    // is there and returns to the theme's color once it scrolls away.
-    final statusStyle = (canvas && !_pastCanvas) || context.isDark
+    // is there; the moment the address bar takes over, its surface backs the
+    // status bar and the clock flips with it.
+    final statusStyle = (canvas && !_navVisible) || context.isDark
         ? SystemUiOverlayStyle.light
         : SystemUiOverlayStyle.dark;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: statusStyle,
       child: Scaffold(
-        body: canvas ? scroll : SafeArea(bottom: false, child: scroll),
+        body: canvas
+            ? Stack(
+                children: [
+                  scroll,
+                  // Pinned over the feed: the address that scrolled away with
+                  // the canvas, back within thumb's reach.
+                  PositionedDirectional(
+                    top: 0,
+                    start: 0,
+                    end: 0,
+                    child: AddressNavBar(visible: _navVisible),
+                  ),
+                ],
+              )
+            : SafeArea(bottom: false, child: scroll),
       ),
     );
   }

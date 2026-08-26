@@ -44,6 +44,18 @@ class ZbLocation {
   static const ZbLocation none = ZbLocation();
 
   bool get isSet => (city != null && city!.isNotEmpty) || (lat != null && lng != null);
+
+  /// The address as a person says it — district first, then the city
+  /// ("النرجس، الرياض"). Null when nothing is set.
+  String? detailLabel(String locale) {
+    final cityLabel = cityFor(locale);
+    final parts = [
+      if (district != null && district!.trim().isNotEmpty) district!.trim(),
+      if (cityLabel != null && cityLabel.isNotEmpty) cityLabel,
+    ];
+    if (parts.isEmpty) return null;
+    return parts.join(locale == 'ar' ? '، ' : ', ');
+  }
   bool get hasCoordinates => lat != null && lng != null;
 
   /// Coordinates drift: a customer who set their location a month ago may well
