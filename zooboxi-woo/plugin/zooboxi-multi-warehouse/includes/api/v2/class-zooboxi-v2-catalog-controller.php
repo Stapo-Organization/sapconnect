@@ -1363,7 +1363,7 @@ class Zooboxi_V2_Catalog_Controller
             'name'     => is_array($payload) ? (string) ($payload['name'] ?? $term->name) : (string) $term->name,
             'boutique' => is_array($payload),
             'hero'     => is_array($payload) && !empty($payload['hero_url']) ? esc_url_raw((string) $payload['hero_url']) : null,
-            'logo'     => is_array($payload) && !empty($payload['logo_url']) ? esc_url_raw((string) $payload['logo_url']) : null,
+            'logo'     => $this->brand_logo($payload, $term),
             'kit'      => [
                 'accent'      => $this->safe_color((string) ($kit['accent'] ?? '')),
                 'accent_dark' => $this->safe_color((string) ($kit['accent_dark'] ?? '')),
@@ -1376,9 +1376,134 @@ class Zooboxi_V2_Catalog_Controller
                 'founded' => (string) ($kit['founded'] ?? ''),
                 'mood'    => (string) ($kit['mood_ar'] ?? ''),
             ],
-            'tiles'    => $tiles,
-            'products' => $curated,
+            'tiles'         => $tiles,
+            'products'      => $curated,
+            // What the boutique's own shelf filter is built from.
+            'categories'    => $this->brand_categories($term),
+            'product_count' => max(0, (int) $term->count),
         ], Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /** Boutique logo when the sync has one, else the brand term's own thumbnail. */
+    private function brand_logo(?array $payload, \WP_Term $term): ?string
+    {
+        if (is_array($payload) && !empty($payload['logo_url'])) {
+            return esc_url_raw((string) $payload['logo_url']);
+        }
+        $thumb = (int) get_term_meta($term->term_id, 'thumbnail_id', true);
+        $url   = $thumb ? wp_get_attachment_image_url($thumb, 'medium') : null;
+        return $url ? esc_url_raw($url) : null;
+    }
+
+    /**
+     * The categories this brand actually sells in, busiest first — the chips a
+     * boutique page filters its shelf with. Cached per brand per locale.
+     *
+     * The raw term list is polluted three ways and each gets a rule:
+     *   • the brands-container tree ("العلامات التجارية" and the brand's own
+     *     category twin) — dropped by ancestry;
+     *   • terms that cover ~everything the brand sells — a filter that doesn't
+     *     filter is dropped (≥95% of the shelf);
+     *   • Polylang twins and the parallel health/main trees sharing one name —
+     *     deduped by display name, biggest count kept.
+     *
+     * @return array<int,array{id:int,slug:string,name:string,count:int}>
+     */
+    private function brand_categories(\WP_Term $brand): array
+    {
+        // Keyed by the REQUEST language (get_locale() here is the site base
+        // locale regardless of ?lang, which would cross-contaminate ar/en).
+        $tkey   = 'zb_v2_brandcats_' . $brand->slug . '_' . Zooboxi_V2_Bootstrap::lang();
+        $cached = get_transient($tkey);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $ids = get_posts([
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            'posts_per_page' => 500,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+            'tax_query'      => [[
+                'taxonomy' => 'product_brand',
+                'field'    => 'slug',
+                'terms'    => [$brand->slug],
+            ]],
+        ]);
+        $total = count($ids);
+
+        // The "brands as categories" container roots, in both languages.
+        $container_roots = [];
+        foreach (['العلامات التجارية', 'Brands', 'brands'] as $root_name) {
+            $root = get_term_by('name', $root_name, 'product_cat');
+            if ($root instanceof \WP_Term) {
+                $container_roots[] = (int) $root->term_id;
+            }
+        }
+
+        $counts = [];
+        $names  = [];
+        if (!empty($ids)) {
+            $terms = wp_get_object_terms($ids, 'product_cat', ['fields' => 'all_with_object_id']);
+            if (!is_wp_error($terms)) {
+                foreach ($terms as $t) {
+                    if ($t->slug === 'uncategorized') {
+                        continue;
+                    }
+                    if (!isset($counts[$t->term_id])) {
+                        $chain = array_map('intval', get_ancestors($t->term_id, 'product_cat'));
+                        $chain[] = (int) $t->term_id;
+                        if (array_intersect($chain, $container_roots)) {
+                            $counts[$t->term_id] = -1; // marked excluded
+                            continue;
+                        }
+                    }
+                    if (($counts[$t->term_id] ?? 0) < 0) {
+                        continue;
+                    }
+                    $counts[$t->term_id] = ($counts[$t->term_id] ?? 0) + 1;
+                    $names[$t->term_id]  = $t;
+                }
+            }
+        }
+
+        $counts = array_filter(
+            $counts,
+            static fn ($n) => $n >= 2 && ($total < 4 || $n < (int) ceil($total * 0.95))
+        );
+        arsort($counts);
+
+        $out  = [];
+        $seen = [];
+        foreach ($counts as $tid => $n) {
+            // map_term() returns the translated term ID under ?lang=en.
+            $mapped_id = Zooboxi_V2_Bootstrap::map_term((int) $tid);
+            $name      = $names[$tid]->name;
+            if ($mapped_id !== (int) $tid) {
+                $translated = get_term($mapped_id, 'product_cat');
+                if ($translated instanceof \WP_Term) {
+                    $name = $translated->name;
+                }
+            }
+            $key = mb_strtolower(trim((string) $name));
+            if ($key === '' || isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $out[]      = [
+                'id'    => (int) $tid,
+                'slug'  => (string) $names[$tid]->slug,
+                'name'  => (string) $name,
+                'count' => (int) $n,
+            ];
+            if (count($out) >= 8) {
+                break;
+            }
+        }
+
+        set_transient($tkey, $out, HOUR_IN_SECONDS);
+        return $out;
     }
 
     private function safe_color(string $value): ?string
