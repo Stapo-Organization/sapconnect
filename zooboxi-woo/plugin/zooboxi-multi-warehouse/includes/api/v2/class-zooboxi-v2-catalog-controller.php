@@ -207,9 +207,23 @@ class Zooboxi_V2_Catalog_Controller
             $shop
         );
 
-        // 2) Clearance — only when the collection actually has stock.
+        // 2) Clearance — only when the collection actually has stock. The badge
+        // carries the real number ("up to 45% off") because "offers" without a
+        // figure is wallpaper, not merchandising.
         $clearance = $this->pool_ids('clearance', [Zooboxi_Product_Rail::q_clearance(4)]);
         if (!empty($clearance)) {
+            $max_off = 0;
+            foreach (array_slice($clearance, 0, 8) as $cid) {
+                $p = function_exists('wc_get_product') ? wc_get_product((int) $cid) : null;
+                if (!$p) {
+                    continue;
+                }
+                $regular = (float) $p->get_regular_price();
+                $now     = (float) $p->get_price();
+                if ($regular > 0 && $now > 0 && $now < $regular) {
+                    $max_off = max($max_off, (int) round((1 - $now / $regular) * 100));
+                }
+            }
             // No clearance archive exists on the website, so the app routes this slide
             // by `theme` (its own /clearance surface) rather than by URL.
             $out[] = $this->auto_slide(
@@ -219,7 +233,10 @@ class Zooboxi_V2_Catalog_Controller
                 Zooboxi_V2_Bootstrap::pick('اكتشف العروض', 'View the offers'),
                 null,
                 null,
-                self::thumbs($clearance, 4)
+                self::thumbs($clearance, 4),
+                $max_off >= 10
+                    ? sprintf(Zooboxi_V2_Bootstrap::pick('خصم حتى %d%%', 'Up to %d%% off'), $max_off)
+                    : null
             );
         }
 
@@ -257,7 +274,8 @@ class Zooboxi_V2_Catalog_Controller
         string $cta,
         ?string $link,
         ?array $brand = null,
-        array $images = []
+        array $images = [],
+        ?string $badge = null
     ): array {
         return [
             'kind'           => 'auto',
@@ -268,6 +286,7 @@ class Zooboxi_V2_Catalog_Controller
             'link'           => $link ? esc_url_raw($link) : null,
             'brand'          => $brand,
             'product_images' => array_values($images),
+            'badge'          => $badge,
         ];
     }
 
