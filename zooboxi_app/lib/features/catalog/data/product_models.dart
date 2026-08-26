@@ -347,8 +347,16 @@ class ProductVariation {
 
   factory ProductVariation.fromJson(Map<String, dynamic> json) => ProductVariation(
         variationId: asInt(json['variation_id']),
-        attributes: asMap(json['attributes'])
-            .map((key, value) => MapEntry(key, asString(value))),
+        // WooCommerce serialises combination keys as `attribute_pa_weight`
+        // while the attribute GROUPS (and therefore the picker's selection)
+        // use the bare `pa_weight`. Normalise here, once, or no option ever
+        // matches a variant and the whole picker renders dead.
+        attributes: asMap(json['attributes']).map(
+          (key, value) => MapEntry(
+            key.startsWith('attribute_') ? key.substring('attribute_'.length) : key,
+            asString(value),
+          ),
+        ),
         price: asDouble(json['price']),
         regularPrice: asDoubleOrNull(json['regular_price']),
         image: asStringOrNull(json['image']),
@@ -356,9 +364,13 @@ class ProductVariation {
         maxQty: asIntOrNull(json['max_qty']),
       );
 
-  /// Whether this variant satisfies a (possibly partial) selection.
-  bool matches(Map<String, String> selection) =>
-      selection.entries.every((e) => attributes[e.key] == e.value);
+  /// Whether this variant satisfies a (possibly partial) selection. An empty
+  /// stored value is WooCommerce's "Any …" — it accepts whatever was chosen
+  /// on that axis.
+  bool matches(Map<String, String> selection) => selection.entries.every((e) {
+        final stored = attributes[e.key];
+        return stored == e.value || stored == '';
+      });
 }
 
 /// The product page payload: the card plus everything that only matters once

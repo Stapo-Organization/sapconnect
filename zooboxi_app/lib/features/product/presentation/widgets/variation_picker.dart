@@ -27,13 +27,11 @@ class VariationPicker extends StatelessWidget {
   final void Function(String attribute, String option) onSelect;
 
   /// Can [option] on [axis] still lead to an in-stock variant, holding every
-  /// *other* chosen axis fixed?
+  /// *other* chosen axis fixed? Shares [ProductVariation.matches] so the
+  /// "Any …" wildcard semantics can never drift between chip and checkout.
   bool _isAvailable(String axis, String option) {
-    final others = {...selection}..remove(axis);
-    return variations.any((variation) =>
-        variation.inStock &&
-        variation.attributes[axis] == option &&
-        others.entries.every((e) => variation.attributes[e.key] == e.value));
+    final probe = {...selection, axis: option};
+    return variations.any((v) => v.inStock && v.matches(probe));
   }
 
   @override
