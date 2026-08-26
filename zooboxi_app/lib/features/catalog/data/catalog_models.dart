@@ -276,7 +276,14 @@ class ProductRail {
 
 @immutable
 class BrandSummary {
-  const BrandSummary({required this.slug, required this.name, this.code, this.logo, this.accent});
+  const BrandSummary({
+    required this.slug,
+    required this.name,
+    this.code,
+    this.logo,
+    this.accent,
+    this.count = 0,
+  });
 
   final String slug;
   final String name;
@@ -284,12 +291,16 @@ class BrandSummary {
   final String? logo;
   final String? accent;
 
+  /// Catalogue size — what the brands directory sorts and labels by.
+  final int count;
+
   factory BrandSummary.fromJson(Map<String, dynamic> json) => BrandSummary(
         slug: asString(json['slug']),
         name: asString(json['name']),
         code: asStringOrNull(json['code']),
         logo: asStringOrNull(json['logo']),
         accent: asStringOrNull(json['accent']),
+        count: asInt(json['count']),
       );
 }
 

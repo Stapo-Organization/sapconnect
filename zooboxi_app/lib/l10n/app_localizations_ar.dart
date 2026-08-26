@@ -1106,4 +1106,7 @@ class LAr extends L {
   String brandShopAll(String brand) {
     return 'كل منتجات $brand';
   }
+
+  @override
+  String get brandsTitle => 'كل الماركات';
 }

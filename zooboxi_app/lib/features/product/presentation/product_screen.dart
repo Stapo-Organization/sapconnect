@@ -58,8 +58,13 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
   /// one, otherwise how many units can physically reach this customer.
   int? _maxQty(ProductDetail detail) {
     final variation = _matchedVariation(detail);
-    if (variation?.maxQty != null) return variation!.maxQty;
+    final own = variation?.maxQty;
+    // The variation-scoped delivery read speaks in this pack's units, so when
+    // both ceilings exist the stepper honours the LOWER one — a units-blind
+    // shelf number must never outrank what can actually be delivered.
     final reachable = detail.delivery.reachableTotal;
+    if (own != null && reachable > 0) return own < reachable ? own : reachable;
+    if (own != null) return own;
     if (reachable > 0) return reachable;
     return detail.card.stockQty;
   }

@@ -1096,4 +1096,7 @@ class LEn extends L {
   String brandShopAll(String brand) {
     return 'All $brand products';
   }
+
+  @override
+  String get brandsTitle => 'All brands';
 }

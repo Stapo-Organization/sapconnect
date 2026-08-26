@@ -28,7 +28,7 @@ class BrandStrip extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: l.homeBrands),
+        SectionHeader(title: l.homeBrands, onSeeAll: () => context.push('/brands')),
         Gap.h12,
         SizedBox(
           height: 76,

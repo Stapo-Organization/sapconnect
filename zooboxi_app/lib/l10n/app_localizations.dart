@@ -1980,6 +1980,12 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'كل منتجات {brand}'**
   String brandShopAll(String brand);
+
+  /// No description provided for @brandsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل الماركات'**
+  String get brandsTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -8,6 +8,7 @@ import '../features/account/presentation/account_screen.dart';
 import '../features/account/presentation/address_book_screen.dart';
 import '../features/account/presentation/buy_again_screen.dart';
 import '../features/brand/presentation/brand_screen.dart';
+import '../features/brand/presentation/brands_screen.dart';
 import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/data/catalog_models.dart';
 import '../features/catalog/data/product_models.dart';
@@ -88,6 +89,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // A brand is a destination, not a filter: `/listing?brand=` throws away
       // the identity the customer came looking for.
+      GoRoute(
+        path: '/brands',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const BrandsScreen()),
+      ),
       GoRoute(
         path: '/brand/:slug',
         parentNavigatorKey: rootNavigatorKey,
