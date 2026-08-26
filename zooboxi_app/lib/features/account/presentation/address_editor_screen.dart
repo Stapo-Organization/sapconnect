@@ -228,12 +228,8 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
       AppToast.error(context, l.addressCityRequired);
       return;
     }
-    // Mirrors the server: a building number is itself a description of where
-    // the door is, so only an address with neither is unroutable.
-    if (_line.text.trim().isEmpty && _building.text.trim().isEmpty) {
-      AppToast.error(context, l.addressLineRequired);
-      return;
-    }
+    // Everything written is optional — the pin and its coordinates are the
+    // address; building, flat and description only make the driver faster.
 
     Haptics.light();
     final label = switch (_labelChoice) {
