@@ -108,10 +108,10 @@ void main() {
     final catalog = _FakeCatalog();
     await _pump(tester, _host(_page(), catalog));
 
-    // Identity: the name, and — with no logo — the brand's own initial on the
-    // tile rather than the generic paw.
+    // Identity: the name, and — with no logo — the brand's own initial rather
+    // than the generic paw, on the tile AND on the «الكل» chip's circle.
     expect(find.text('Applaws'), findsWidgets);
-    expect(find.text('A'), findsOneWidget);
+    expect(find.text('A'), findsNWidgets(2));
     // The one fact this payload can state honestly.
     expect(find.text('80 منتجًا'), findsOneWidget);
 

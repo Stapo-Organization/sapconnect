@@ -4,6 +4,7 @@ import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/category_art.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/zb_image.dart';
@@ -107,7 +108,7 @@ class BrandCategoryChips extends StatelessWidget {
     final categories = page.categories;
 
     return SizedBox(
-      height: 42,
+      height: _Chip.height,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
@@ -118,6 +119,8 @@ class BrandCategoryChips extends StatelessWidget {
           if (index == 0) {
             return _Chip(
               label: l.brandAllCategories,
+              // «الكل» wears the brand's own mark — it *is* the whole brand.
+              art: _AllArt(page: page, accent: accent),
               accent: accent,
               selected: selected == null,
               onTap: () => onSelect(null),
@@ -127,6 +130,11 @@ class BrandCategoryChips extends StatelessWidget {
           return _Chip(
             label: category.name,
             count: category.count,
+            art: CategoryArt(
+              image: category.image,
+              icon: category.icon,
+              size: _Chip.artSize,
+            ),
             accent: accent,
             selected: selected == category.slug,
             onTap: () => onSelect(category.slug),
@@ -137,17 +145,61 @@ class BrandCategoryChips extends StatelessWidget {
   }
 }
 
+/// The «الكل» chip's leading circle: the brand logo on white, else its initial.
+class _AllArt extends StatelessWidget {
+  const _AllArt({required this.page, required this.accent});
+
+  final BrandPage page;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _Chip.artSize,
+      height: _Chip.artSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: context.isDark ? context.cs.surfaceContainerHighest : Colors.white,
+        border: Border.all(color: context.cs.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: ClipOval(
+        child: ZbImage(
+          url: page.brand.logo,
+          padding: const EdgeInsets.all(6),
+          backgroundColor: Colors.transparent,
+          fallback: Center(
+            child: Text(
+              page.name.characters.take(1).toString().toUpperCase(),
+              style: context.tt.titleMedium?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A department as a face, not a word: the category's own artwork in a ring,
+/// its name beside it, the shelf size in quiet digits.
 class _Chip extends StatelessWidget {
   const _Chip({
     required this.label,
+    required this.art,
     required this.accent,
     required this.selected,
     required this.onTap,
     this.count = 0,
   });
 
+  static const double height = 56;
+  static const double artSize = 38;
+
   final String label;
   final int count;
+  final Widget art;
   final Color accent;
   final bool selected;
   final VoidCallback onTap;
@@ -163,20 +215,23 @@ class _Chip extends StatelessWidget {
       child: AnimatedContainer(
         duration: context.motion(Motion.select),
         curve: Motion.decelerate,
-        padding: const EdgeInsetsDirectional.only(start: 14, end: 14),
+        padding: const EdgeInsetsDirectional.only(start: 9, end: 16),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected
-              ? accent.withValues(alpha: context.isDark ? 0.22 : 0.14)
+              ? accent.withValues(alpha: context.isDark ? 0.22 : 0.12)
               : cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(ZbTokens.rPill),
           border: Border.all(
-            color: selected ? accent.withValues(alpha: 0.55) : Colors.transparent,
+            width: 1.4,
+            color: selected ? accent.withValues(alpha: 0.6) : Colors.transparent,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            art,
+            Gap.w8,
             Text(
               label,
               maxLines: 1,
@@ -219,31 +274,24 @@ class BrandPageSkeleton extends StatelessWidget {
         children: [
           SkeletonBox(width: double.infinity, height: stageHeight, radius: 0),
           const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
+            padding: EdgeInsets.only(top: 14),
+            child: Column(
               children: [
                 SkeletonBox(
                   width: BrandIdentity.tile,
                   height: BrandIdentity.tile,
                   radius: ZbTokens.rLg,
                 ),
-                Gap.w16,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SkeletonBox(width: 150, height: 18),
-                      Gap.h8,
-                      SkeletonBox(width: double.infinity, height: 12),
-                    ],
-                  ),
-                ),
+                Gap.h12,
+                SkeletonBox(width: 140, height: 18),
+                Gap.h8,
+                SkeletonBox(width: 200, height: 12),
               ],
             ),
           ),
           Gap.h20,
           SizedBox(
-            height: 42,
+            height: 56,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
@@ -251,7 +299,7 @@ class BrandPageSkeleton extends StatelessWidget {
               itemCount: 4,
               separatorBuilder: (_, _) => Gap.w8,
               itemBuilder: (_, _) =>
-                  const SkeletonBox(width: 86, height: 42, radius: ZbTokens.rPill),
+                  const SkeletonBox(width: 118, height: 56, radius: ZbTokens.rPill),
             ),
           ),
           Gap.h12,

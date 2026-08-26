@@ -164,20 +164,21 @@ class _StageDecor extends StatelessWidget {
   }
 }
 
-/// Logo tile + name + tagline, then the facts worth stating and the story.
+/// Logo tile + name + tagline, then the facts worth stating and the story —
+/// all on one center axis, the way a boutique introduces itself.
 ///
-/// It laps up onto the stage: the tile's top edge crosses the hero's bottom,
-/// which is what makes the two read as one page rather than as a banner with a
-/// list under it. Rows of facts appear only when the server has them — an empty
-/// chip row is worse than no chip row.
+/// Centered because the tile straddles the stage's bottom edge: an off-axis
+/// tile reads as "stuck in the corner", a centered one reads as the page's
+/// crest. Rows of facts appear only when the server has them — an empty chip
+/// row is worse than no chip row.
 class BrandIdentity extends StatelessWidget {
   const BrandIdentity({super.key, required this.page});
 
   final BrandPage page;
 
-  /// The logo tile's side. Also the amount of vertical room the name column has
-  /// before it starts creeping up onto the stage.
-  static const double tile = 92;
+  /// The logo tile's side. The screen offsets this block by half of it, so the
+  /// tile sits exactly astride the stage edge.
+  static const double tile = 96;
 
   @override
   Widget build(BuildContext context) {
@@ -205,46 +206,42 @@ class BrandIdentity extends StatelessWidget {
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            _LogoTile(page: page, accent: accent),
-            Gap.w16,
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    page.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                  if (tagline.isNotEmpty) ...[
-                    Gap.h4,
-                    Text(
-                      tagline,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
+        _LogoTile(page: page, accent: accent),
+        Gap.h12,
+        Text(
+          page.name,
+          maxLines: 2,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
         ),
+        if (tagline.isNotEmpty) ...[
+          Gap.h4,
+          Text(
+            tagline,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+          ),
+        ],
         if (facts.isNotEmpty) ...[
-          Gap.h16,
-          Wrap(spacing: 8, runSpacing: 8, children: facts),
+          Gap.h12,
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: facts,
+          ),
         ],
         if (story.isNotEmpty) ...[
-          Gap.h16,
+          Gap.h12,
           Text(
             story,
             maxLines: 3,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: context.tt.bodyMedium?.copyWith(
               color: cs.onSurfaceVariant,

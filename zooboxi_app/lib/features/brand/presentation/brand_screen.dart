@@ -47,7 +47,7 @@ class BrandScreen extends ConsumerStatefulWidget {
 
 class _BrandScreenState extends ConsumerState<BrandScreen> {
   /// How tall the stage stands before it collapses into the app bar.
-  static const double _stage = 230;
+  static const double _stage = 188;
 
   /// Selected department, or null for «الكل».
   String? _category;
@@ -146,12 +146,13 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
             leadingSlivers: [
               _StageBar(page: brand, collapsed: _collapsed, expandedHeight: _stage),
 
-              // Laps 28 up onto the stage. The sliver still measures its full
-              // height, so what lands under the block is a 28pt gap — which is
-              // the breathing room the next section wanted anyway.
+              // The logo tile straddles the stage's bottom edge — half on the
+              // color, half on the page — which is what fuses the two into one
+              // composition. The sliver still measures its full height, so the
+              // slack under the block is the section spacing.
               SliverToBoxAdapter(
                 child: Transform.translate(
-                  offset: const Offset(0, -28),
+                  offset: const Offset(0, -BrandIdentity.tile / 2),
                   child: Padding(
                     padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
                     child: BrandIdentity(page: brand),
