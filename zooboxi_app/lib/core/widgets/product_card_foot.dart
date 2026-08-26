@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/zb_colors.dart';
-import '../../app/theme/zooboxi_tokens.dart';
 import '../../features/cart/data/cart_controller.dart';
 import '../../features/catalog/data/product_models.dart';
 import '../motion/motion.dart';
@@ -16,15 +15,16 @@ import 'qty_stepper.dart';
 ///
 ///   ➊ the round teal "+" · ➋ an expanded stepper · ➌ a small count badge
 ///
-/// One tap on ➊ expands to ➋ **instantly** — the server add runs behind the
-/// animation, never in front of it. Left alone for a few seconds, ➋ settles
-/// into ➌ so the artwork gets its corner back; tapping ➌ reopens ➋. The
-/// expansion itself is the add confirmation, which is why card adds are
-/// toast-silent.
+/// One container morphs between them — width, colour (teal ↔ surface),
+/// border and shadow all animate as one, with a touch of overshoot on the
+/// way open. The content cross-fades inside while the shell is still moving,
+/// which is what makes it read as *growing* rather than *swapping*.
 ///
-/// Truth still belongs to the cart: the optimistic quantity only bridges the
-/// round trip, and the first server answer replaces it. A failed add rolls the
-/// control back to ➊.
+/// The control is alive from the very first frame: while the initial server
+/// add is in flight the +/− already work against an optimistic quantity, and
+/// the first real cart line reconciles to whatever the customer meanwhile
+/// chose — including "changed my mind", which removes the line the moment it
+/// lands. Truth stays with the cart; the optimism only bridges the round trip.
 class ProductCardAddOverlay extends ConsumerStatefulWidget {
   const ProductCardAddOverlay({
     super.key,
@@ -52,12 +52,22 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
   /// How long the stepper stays open after the last touch.
   static const _settle = Duration(milliseconds: 3500);
 
-  /// Optimistic quantity while the first server add is in flight (no cart
-  /// line exists yet to carry it). Cleared the moment the line lands.
+  static const double _size = 34;
+  static const double _stepperWidth = 100;
+
+  /// What the customer wants while no cart line exists yet to carry it.
+  /// Null once the server's line is the source of truth.
   int? _pending;
+
+  /// The customer closed the line (− at 1) while the add was still in
+  /// flight — remove it the moment it lands instead of resurrecting it.
+  bool _cancelOnLand = false;
 
   bool _expanded = false;
   Timer? _collapse;
+
+  /// Overshoot on the way open, clean ease on the way closed.
+  Curve _shellCurve = Curves.easeOutBack;
 
   @override
   void dispose() {
@@ -68,8 +78,18 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
   void _keepOpen() {
     _collapse?.cancel();
     _collapse = Timer(_settle, () {
-      if (mounted) setState(() => _expanded = false);
+      if (!mounted) return;
+      setState(() {
+        _expanded = false;
+        _shellCurve = Curves.easeInOutCubic;
+      });
     });
+  }
+
+  void _open() {
+    _expanded = true;
+    _shellCurve = Curves.easeOutBack;
+    _keepOpen();
   }
 
   Future<void> _firstAdd() async {
@@ -90,9 +110,9 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
     unawaited(Haptics.success());
     setState(() {
       _pending = 1;
-      _expanded = true;
+      _cancelOnLand = false;
+      _open();
     });
-    _keepOpen();
 
     var accepted = false;
     try {
@@ -105,9 +125,31 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       // The shared add path already explained why; just take the claim back.
       setState(() {
         _pending = null;
+        _cancelOnLand = false;
         _expanded = false;
+        _shellCurve = Curves.easeInOutCubic;
       });
     }
+  }
+
+  /// The server's line arrived — replay whatever the customer decided while
+  /// it was in flight, exactly once, after this frame.
+  void _reconcile(_CartLine line) {
+    final target = _pending;
+    final cancel = _cancelOnLand;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || (_pending == null && !_cancelOnLand)) return;
+      final notifier = ref.read(cartControllerProvider.notifier);
+      setState(() {
+        _pending = null;
+        _cancelOnLand = false;
+      });
+      if (cancel) {
+        unawaited(notifier.remove(line.key).catchError((_) {}));
+      } else if (target != null && target != line.qty) {
+        notifier.setQuantity(line.key, target);
+      }
+    });
   }
 
   @override
@@ -125,136 +167,148 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       }),
     );
 
-    // The server's line has landed — the optimistic bridge is done.
-    if (line != null && _pending != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _pending != null) setState(() => _pending = null);
-      });
-    }
+    if (line != null && (_pending != null || _cancelOnLand)) _reconcile(line);
 
-    final qty = line?.qty ?? _pending ?? 0;
+    final pendingQty = _cancelOnLand ? 0 : _pending;
+    final qty = pendingQty ?? line?.qty ?? 0;
+    final open = _expanded && qty > 0;
 
-    final Widget shape;
+    final cs = context.cs;
+
+    final Widget face;
     if (qty <= 0) {
-      shape = AddButton(
+      face = _RoundFace(
         key: const ValueKey('add'),
+        icon: Icons.add_rounded,
         onTap: () => unawaited(_firstAdd()),
       );
-    } else if (_expanded) {
-      shape = _FloatingShell(
+    } else if (open) {
+      face = SizedBox(
         key: const ValueKey('stepper'),
-        child: line == null
-            // Still in flight: the stepper shows, its buttons wait for the key.
-            ? IgnorePointer(
-                child: QtyStepper(value: qty, dense: true, onChanged: (_) {}),
-              )
-            : QtyStepper(
-                value: line.qty,
-                max: line.max,
-                dense: true,
-                onChanged: (value) {
-                  _keepOpen();
-                  ref
-                      .read(cartControllerProvider.notifier)
-                      .setQuantity(line.key, value);
-                },
-                onRemove: () {
-                  _collapse?.cancel();
-                  setState(() => _expanded = false);
-                  unawaited(
-                    ref
-                        .read(cartControllerProvider.notifier)
-                        .remove(line.key)
-                        .catchError((_) {}),
-                  );
-                },
-              ),
+        width: _stepperWidth,
+        child: QtyStepper(
+          value: qty,
+          max: line?.max,
+          dense: true,
+          onChanged: (value) {
+            _keepOpen();
+            if (line != null && _pending == null) {
+              ref.read(cartControllerProvider.notifier).setQuantity(line.key, value);
+            } else {
+              // Still in flight — steer the optimistic number; _reconcile
+              // replays the final choice when the line lands.
+              setState(() => _pending = value);
+            }
+          },
+          onRemove: () {
+            _collapse?.cancel();
+            if (line != null && _pending == null) {
+              setState(() {
+                _expanded = false;
+                _shellCurve = Curves.easeInOutCubic;
+              });
+              unawaited(
+                ref
+                    .read(cartControllerProvider.notifier)
+                    .remove(line.key)
+                    .catchError((_) {}),
+              );
+            } else {
+              setState(() {
+                _cancelOnLand = true;
+                _expanded = false;
+                _shellCurve = Curves.easeInOutCubic;
+              });
+            }
+          },
+        ),
       );
     } else {
-      shape = _CountBadge(
+      face = _RoundFace(
         key: const ValueKey('count'),
-        count: qty,
+        label: qty > 9 ? '9+' : '$qty',
         onTap: () {
           Haptics.light();
-          setState(() => _expanded = true);
-          _keepOpen();
+          setState(_open);
         },
       );
     }
 
-    // AnimatedSize slides the width between the three shapes from the same
-    // corner; the switcher cross-fades the content riding inside it.
-    return AnimatedSize(
-      duration: context.motion(Motion.select),
-      curve: Motion.emphasized,
-      alignment: AlignmentDirectional.centerEnd,
-      child: AnimatedSwitcher(
-        duration: context.motion(Motion.select),
-        switchInCurve: Motion.decelerate,
-        transitionBuilder: (child, animation) =>
-            FadeTransition(opacity: animation, child: child),
-        child: shape,
-      ),
-    );
-  }
-}
-
-/// A raised pill that keeps the stepper legible over any product art.
-class _FloatingShell extends StatelessWidget {
-  const _FloatingShell({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = context.cs;
-    return DecoratedBox(
+    // One shell, three faces. Width, colour, border and shadow morph together;
+    // the face cross-fades faster than the shell moves, so the contents are
+    // already legible while the pill is still growing.
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 320),
+      curve: _shellCurve,
+      width: open ? _stepperWidth : _size,
+      height: _size,
       decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(ZbTokens.rPill),
-        border: Border.all(color: cs.outlineVariant),
+        color: open ? cs.surfaceContainerHigh : cs.primary,
+        borderRadius: BorderRadius.circular(_size / 2),
+        border: Border.all(
+          color: open ? cs.outlineVariant : Colors.transparent,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: open ? 0.14 : 0.22),
+            blurRadius: open ? 10 : 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: child,
+      clipBehavior: Clip.antiAlias,
+      child: AnimatedSwitcher(
+        duration: context.motion(const Duration(milliseconds: 170)),
+        switchInCurve: const Interval(0.35, 1, curve: Curves.easeOut),
+        switchOutCurve: const Interval(0.65, 1, curve: Curves.easeIn),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.9, end: 1.0).animate(animation),
+            child: child,
+          ),
+        ),
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.center,
+          children: [...previous, ?current],
+        ),
+        child: face,
+      ),
     );
   }
 }
 
-/// The settled shape: how many are in the basket, one tap from adjusting.
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({super.key, required this.count, required this.onTap});
+/// The circular faces (+ and the count), drawn transparent so the shell
+/// underneath supplies the teal — that is what lets the colour itself morph.
+class _RoundFace extends StatelessWidget {
+  const _RoundFace({super.key, this.icon, this.label, required this.onTap});
 
-  final int count;
+  final IconData? icon;
+  final String? label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    return Material(
-      color: cs.primary,
-      shape: const CircleBorder(),
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.25),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 34,
-          height: 34,
+    return SizedBox(
+      width: 34,
+      height: 34,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
           child: Center(
-            child: Text(
-              count > 9 ? '9+' : '$count',
-              style: context.tt.labelMedium?.copyWith(
-                color: cs.onPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            child: icon != null
+                ? Icon(icon, size: 20, color: cs.onPrimary)
+                : Text(
+                    label!,
+                    style: context.tt.labelMedium?.copyWith(
+                      color: cs.onPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
           ),
         ),
       ),
