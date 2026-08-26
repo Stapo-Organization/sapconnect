@@ -176,13 +176,21 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
     final cs = context.cs;
 
     final Widget face;
-    if (qty <= 0) {
-      face = _RoundFace(
-        key: const ValueKey('add'),
-        icon: Icons.add_rounded,
-        onTap: () => unawaited(_firstAdd()),
+    if (!open) {
+      // One face for both closed states: the bag never re-animates, only its
+      // little bubble flips from "+" to the count. That is the owner's ask —
+      // the plus *becomes* the number, on a control that clearly means "cart".
+      face = _BagFace(
+        key: const ValueKey('bag'),
+        count: qty,
+        onTap: qty <= 0
+            ? () => unawaited(_firstAdd())
+            : () {
+                Haptics.light();
+                setState(_open);
+              },
       );
-    } else if (open) {
+    } else {
       face = SizedBox(
         key: const ValueKey('stepper'),
         width: _stepperWidth,
@@ -222,15 +230,6 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
             }
           },
         ),
-      );
-    } else {
-      face = _RoundFace(
-        key: const ValueKey('count'),
-        label: qty > 9 ? '9+' : '$qty',
-        onTap: () {
-          Haptics.light();
-          setState(_open);
-        },
       );
     }
 
@@ -278,18 +277,24 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
   }
 }
 
-/// The circular faces (+ and the count), drawn transparent so the shell
-/// underneath supplies the teal — that is what lets the colour itself morph.
-class _RoundFace extends StatelessWidget {
-  const _RoundFace({super.key, this.icon, this.label, required this.onTap});
+/// The closed face: the app's bag glyph (the same one the cart tab wears)
+/// with a little bubble riding its shoulder — "+" before the first add, the
+/// quantity after. Only the bubble's content animates; the bag holds still,
+/// which is what makes the flip read as *the plus becoming the number*.
+///
+/// Drawn transparent so the shell underneath supplies the teal — that is
+/// what lets the shell's own colour morph stay seamless.
+class _BagFace extends StatelessWidget {
+  const _BagFace({super.key, required this.count, required this.onTap});
 
-  final IconData? icon;
-  final String? label;
+  final int count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
+    final hasCount = count > 0;
+
     return SizedBox(
       width: 34,
       height: 34,
@@ -299,16 +304,58 @@ class _RoundFace extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          child: Center(
-            child: icon != null
-                ? Icon(icon, size: 20, color: cs.onPrimary)
-                : Text(
-                    label!,
-                    style: context.tt.labelMedium?.copyWith(
-                      color: cs.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              PositionedDirectional(
+                bottom: 5,
+                start: 5,
+                child: Icon(
+                  Icons.shopping_bag_rounded,
+                  size: 17,
+                  color: cs.onPrimary,
+                ),
+              ),
+              PositionedDirectional(
+                top: 3.5,
+                end: 3.5,
+                child: Container(
+                  width: 15,
+                  height: 15,
+                  decoration: BoxDecoration(
+                    color: cs.onPrimary,
+                    shape: BoxShape.circle,
                   ),
+                  child: AnimatedSwitcher(
+                    duration: context.motion(const Duration(milliseconds: 180)),
+                    switchInCurve: Curves.easeOutBack,
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    ),
+                    child: hasCount
+                        ? Center(
+                            key: ValueKey('n$count'),
+                            child: Text(
+                              count > 9 ? '9+' : '$count',
+                              style: TextStyle(
+                                fontSize: count > 9 ? 7.5 : 9.5,
+                                height: 1,
+                                fontWeight: FontWeight.w800,
+                                color: cs.primary,
+                              ),
+                            ),
+                          )
+                        : Icon(
+                            Icons.add_rounded,
+                            key: const ValueKey('plus'),
+                            size: 12,
+                            color: cs.primary,
+                          ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
