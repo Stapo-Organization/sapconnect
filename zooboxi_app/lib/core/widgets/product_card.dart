@@ -42,7 +42,7 @@ class ProductCardView extends ConsumerWidget {
 
   /// Supplied by screens that own an add-to-cart action. Variable products
   /// always open the page instead — a variant has to be chosen first.
-  final Future<void> Function(ProductCard product)? onAdd;
+  final Future<bool> Function(ProductCard product)? onAdd;
 
   final double? width;
 
@@ -117,7 +117,7 @@ class _Media extends StatelessWidget {
   });
 
   final ProductCard product;
-  final Future<void> Function(ProductCard product)? onAdd;
+  final Future<bool> Function(ProductCard product)? onAdd;
   final bool outOfStock;
 
   @override

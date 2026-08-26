@@ -284,7 +284,7 @@ class _Loaded extends ConsumerWidget {
               products: detail.fbt,
               zone: 'pdp_fbt',
               onAdd: (product) =>
-                  addToCart(context, ref, product: product, zone: 'pdp_fbt'),
+                  addToCart(context, ref, product: product, zone: 'pdp_fbt', quiet: true),
             ),
           ],
           if (detail.substitutes.isNotEmpty) ...[
@@ -294,7 +294,7 @@ class _Loaded extends ConsumerWidget {
               products: detail.substitutes,
               zone: 'pdp_substitutes',
               onAdd: (product) =>
-                  addToCart(context, ref, product: product, zone: 'pdp_substitutes'),
+                  addToCart(context, ref, product: product, zone: 'pdp_substitutes', quiet: true),
             ),
           ],
         ],

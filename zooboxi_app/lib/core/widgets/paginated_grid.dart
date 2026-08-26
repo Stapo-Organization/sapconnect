@@ -38,7 +38,7 @@ class PaginatedProductGrid extends StatefulWidget {
   /// Pinned above the grid, inside the same scroll view.
   final Widget? header;
   final Widget? emptyState;
-  final Future<void> Function(ProductCard product)? onAdd;
+  final Future<bool> Function(ProductCard product)? onAdd;
   final String? zone;
   final EdgeInsets padding;
 

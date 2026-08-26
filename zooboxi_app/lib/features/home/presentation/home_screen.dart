@@ -69,8 +69,8 @@ class HomeScreen extends ConsumerWidget {
       (_) => ref.read(wishlistControllerProvider.notifier).seedFrom(allCards),
     );
 
-    Future<void> add(ProductCard product) =>
-        addToCart(context, ref, product: product, zone: 'home');
+    Future<bool> add(ProductCard product) =>
+        addToCart(context, ref, product: product, zone: 'home', quiet: true);
 
     return [
       if (payload.hero.isNotEmpty)

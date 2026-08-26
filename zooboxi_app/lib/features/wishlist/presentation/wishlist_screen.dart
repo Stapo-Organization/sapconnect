@@ -87,7 +87,7 @@ class _List extends ConsumerWidget {
               product: visible[index],
               zone: 'wishlist',
               onAdd: (product) =>
-                  addToCart(context, ref, product: product, zone: 'wishlist'),
+                  addToCart(context, ref, product: product, zone: 'wishlist', quiet: true),
             ),
           );
         },

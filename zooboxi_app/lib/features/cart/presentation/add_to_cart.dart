@@ -24,6 +24,10 @@ Future<bool> addToCart(
   int quantity = 1,
   Map<String, String>? attributes,
   String? zone,
+  // Card surfaces morph their own control into the stepper — that IS the
+  // confirmation, so they skip the generic success toast. Server notices
+  // (a capped quantity, a split) still surface: only the server knows those.
+  bool quiet = false,
 }) async {
   final l = L.of(context);
   try {
@@ -51,7 +55,7 @@ Future<bool> addToCart(
       } else {
         AppToast.info(context, notice.text);
       }
-    } else {
+    } else if (!quiet) {
       AppToast.success(context, l.pdpAddedToCart);
     }
     return true;

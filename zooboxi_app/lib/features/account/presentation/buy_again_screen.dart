@@ -60,7 +60,7 @@ class BuyAgainScreen extends ConsumerWidget {
                 product: list[index],
                 zone: 'buy_again',
                 onAdd: (product) =>
-                    addToCart(context, ref, product: product, zone: 'buy_again'),
+                    addToCart(context, ref, product: product, zone: 'buy_again', quiet: true),
               ),
             );
           },

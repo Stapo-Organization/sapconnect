@@ -98,7 +98,7 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
         resetKey: _query,
         fetchPage: _fetch,
         zone: 'listing',
-        onAdd: (product) => addToCart(context, ref, product: product, zone: 'listing'),
+        onAdd: (product) => addToCart(context, ref, product: product, zone: 'listing', quiet: true),
         header: _Toolbar(
           total: _total,
           activeFilters: _query.activeFilterCount,

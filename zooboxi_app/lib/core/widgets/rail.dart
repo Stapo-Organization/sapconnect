@@ -30,7 +30,7 @@ class ProductRailView extends ConsumerWidget {
   final String? subtitle;
   final List<ProductCard> products;
   final VoidCallback? onSeeAll;
-  final Future<void> Function(ProductCard product)? onAdd;
+  final Future<bool> Function(ProductCard product)? onAdd;
   final double cardWidth;
   final String? zone;
   final bool animate;

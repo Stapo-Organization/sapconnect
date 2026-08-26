@@ -12,13 +12,19 @@ import '../motion/motion.dart';
 import '../utils/haptics.dart';
 import 'qty_stepper.dart';
 
-/// The add control that floats on the product image — the round teal "+"
-/// button, which becomes a compact stepper the moment the line exists in the
-/// cart. Same corner, same tap target, so the customer's next tap is where
-/// their last one was.
+/// The add control that floats on the product image, in three shapes:
 ///
-/// State comes from the cart itself rather than from a local flag, so a
-/// quantity changed on the cart screen is reflected here, and vice versa.
+///   ➊ the round teal "+" · ➋ an expanded stepper · ➌ a small count badge
+///
+/// One tap on ➊ expands to ➋ **instantly** — the server add runs behind the
+/// animation, never in front of it. Left alone for a few seconds, ➋ settles
+/// into ➌ so the artwork gets its corner back; tapping ➌ reopens ➋. The
+/// expansion itself is the add confirmation, which is why card adds are
+/// toast-silent.
+///
+/// Truth still belongs to the cart: the optimistic quantity only bridges the
+/// round trip, and the first server answer replaces it. A failed add rolls the
+/// control back to ➊.
 class ProductCardAddOverlay extends ConsumerStatefulWidget {
   const ProductCardAddOverlay({
     super.key,
@@ -27,24 +33,48 @@ class ProductCardAddOverlay extends ConsumerStatefulWidget {
   });
 
   final ProductCard product;
-  final Future<void> Function(ProductCard product)? onAdd;
+
+  /// Returns whether the server accepted the line. Card surfaces pass the
+  /// quiet variant of the shared add path — the morph is the confirmation.
+  final Future<bool> Function(ProductCard product)? onAdd;
 
   @override
   ConsumerState<ProductCardAddOverlay> createState() =>
       _ProductCardAddOverlayState();
 }
 
-/// The cart's view of this exact product, reduced to the three values the
-/// control renders. A record so `select` compares by value — a cart refresh
-/// that did not touch this line must not rebuild every card in the grid.
+/// The cart's view of this exact product, reduced to the values the control
+/// renders. A record so `select` compares by value — a cart refresh that did
+/// not touch this line must not rebuild every card in the grid.
 typedef _CartLine = ({String key, int qty, int? max});
 
 class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
-  bool _busy = false;
+  /// How long the stepper stays open after the last touch.
+  static const _settle = Duration(milliseconds: 3500);
 
-  Future<void> _add() async {
+  /// Optimistic quantity while the first server add is in flight (no cart
+  /// line exists yet to carry it). Cleared the moment the line lands.
+  int? _pending;
+
+  bool _expanded = false;
+  Timer? _collapse;
+
+  @override
+  void dispose() {
+    _collapse?.cancel();
+    super.dispose();
+  }
+
+  void _keepOpen() {
+    _collapse?.cancel();
+    _collapse = Timer(_settle, () {
+      if (mounted) setState(() => _expanded = false);
+    });
+  }
+
+  Future<void> _firstAdd() async {
     final onAdd = widget.onAdd;
-    if (onAdd == null || _busy) return;
+    if (onAdd == null) return;
 
     // A variable product can't be added blind — the customer has to pick a
     // flavour or size first, so send them to the page instead of guessing.
@@ -56,11 +86,27 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       return;
     }
 
-    setState(() => _busy = true);
+    // Expand NOW; the network answers behind the animation.
+    unawaited(Haptics.success());
+    setState(() {
+      _pending = 1;
+      _expanded = true;
+    });
+    _keepOpen();
+
+    var accepted = false;
     try {
-      await onAdd(widget.product);
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      accepted = await onAdd(widget.product);
+    } catch (_) {
+      accepted = false;
+    }
+    if (!mounted) return;
+    if (!accepted) {
+      // The shared add path already explained why; just take the claim back.
+      setState(() {
+        _pending = null;
+        _expanded = false;
+      });
     }
   }
 
@@ -79,40 +125,83 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       }),
     );
 
-    final Widget child;
-    if (line != null && !widget.product.isVariable) {
-      final notifier = ref.read(cartControllerProvider.notifier);
-      child = _FloatingStepper(
+    // The server's line has landed — the optimistic bridge is done.
+    if (line != null && _pending != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pending != null) setState(() => _pending = null);
+      });
+    }
+
+    final qty = line?.qty ?? _pending ?? 0;
+
+    final Widget shape;
+    if (qty <= 0) {
+      shape = AddButton(
+        key: const ValueKey('add'),
+        onTap: () => unawaited(_firstAdd()),
+      );
+    } else if (_expanded) {
+      shape = _FloatingShell(
         key: const ValueKey('stepper'),
-        child: QtyStepper(
-          value: line.qty,
-          max: line.max,
-          dense: true,
-          onChanged: (value) => notifier.setQuantity(line.key, value),
-          onRemove: () => unawaited(notifier.remove(line.key).catchError((_) {})),
-        ),
+        child: line == null
+            // Still in flight: the stepper shows, its buttons wait for the key.
+            ? IgnorePointer(
+                child: QtyStepper(value: qty, dense: true, onChanged: (_) {}),
+              )
+            : QtyStepper(
+                value: line.qty,
+                max: line.max,
+                dense: true,
+                onChanged: (value) {
+                  _keepOpen();
+                  ref
+                      .read(cartControllerProvider.notifier)
+                      .setQuantity(line.key, value);
+                },
+                onRemove: () {
+                  _collapse?.cancel();
+                  setState(() => _expanded = false);
+                  unawaited(
+                    ref
+                        .read(cartControllerProvider.notifier)
+                        .remove(line.key)
+                        .catchError((_) {}),
+                  );
+                },
+              ),
       );
     } else {
-      child = AddButton(
-        key: const ValueKey('add'),
-        onTap: () => unawaited(_add()),
-        busy: _busy,
+      shape = _CountBadge(
+        key: const ValueKey('count'),
+        count: qty,
+        onTap: () {
+          Haptics.light();
+          setState(() => _expanded = true);
+          _keepOpen();
+        },
       );
     }
 
-    return AnimatedSwitcher(
+    // AnimatedSize slides the width between the three shapes from the same
+    // corner; the switcher cross-fades the content riding inside it.
+    return AnimatedSize(
       duration: context.motion(Motion.select),
-      switchInCurve: Motion.decelerate,
-      transitionBuilder: (widget, animation) =>
-          ScaleTransition(scale: animation, child: widget),
-      child: child,
+      curve: Motion.emphasized,
+      alignment: AlignmentDirectional.centerEnd,
+      child: AnimatedSwitcher(
+        duration: context.motion(Motion.select),
+        switchInCurve: Motion.decelerate,
+        transitionBuilder: (child, animation) =>
+            FadeTransition(opacity: animation, child: child),
+        child: shape,
+      ),
     );
   }
 }
 
 /// A raised pill that keeps the stepper legible over any product art.
-class _FloatingStepper extends StatelessWidget {
-  const _FloatingStepper({super.key, required this.child});
+class _FloatingShell extends StatelessWidget {
+  const _FloatingShell({super.key, required this.child});
 
   final Widget child;
 
@@ -133,6 +222,42 @@ class _FloatingStepper extends StatelessWidget {
         ],
       ),
       child: child,
+    );
+  }
+}
+
+/// The settled shape: how many are in the basket, one tap from adjusting.
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({super.key, required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    return Material(
+      color: cs.primary,
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.25),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          width: 34,
+          height: 34,
+          child: Center(
+            child: Text(
+              count > 9 ? '9+' : '$count',
+              style: context.tt.labelMedium?.copyWith(
+                color: cs.onPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

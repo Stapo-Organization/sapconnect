@@ -95,7 +95,7 @@ void main() {
                           delegate: SliverChildBuilderDelegate(
                             (context, i) => ProductCardView(
                               product: _products[i],
-                              onAdd: (_) async {},
+                              onAdd: (_) async => true,
                             ),
                             childCount: _products.length,
                           ),
@@ -130,7 +130,7 @@ void main() {
                           title: 'رائج الآن',
                           products: _products,
                           animate: false,
-                          onAdd: (_) async {},
+                          onAdd: (_) async => true,
                         ),
                       ),
                     ],
