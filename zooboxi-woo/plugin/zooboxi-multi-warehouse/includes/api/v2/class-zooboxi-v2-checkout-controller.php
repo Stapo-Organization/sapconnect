@@ -692,9 +692,8 @@ class Zooboxi_V2_Checkout_Controller
         if (!$address['lat'] || !$address['lng'] || abs($address['lat']) > 90 || abs($address['lng']) > 180) {
             return 'coordinates_required';
         }
-        if ($address['address_line'] === '' && $address['building'] === '') {
-            return 'address_line_required';
-        }
+        // The written details are optional — the pin is the address, and the
+        // order stores its coordinates as meta.
         if ($address['city'] === '') {
             $geo = Zooboxi_Location_Detector::reverse_geocode($address['lat'], $address['lng']);
             $address['city'] = (string) ($geo['city'] ?? '');

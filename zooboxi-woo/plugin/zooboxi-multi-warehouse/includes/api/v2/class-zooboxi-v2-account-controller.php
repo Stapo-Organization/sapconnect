@@ -397,11 +397,9 @@ class Zooboxi_V2_Account_Controller
         if (!$a['lat'] || !$a['lng'] || abs($a['lat']) > 90 || abs($a['lng']) > 180) {
             return Zooboxi_V2_Bootstrap::fail('coordinates_required', __('حدّد موقع التوصيل على الخريطة', 'zooboxi'), 'Pick the delivery point on the map.', 422);
         }
-        // Structured unit fields can stand in for the free description — a
-        // customer who typed building/floor/flat has said where they live.
-        if ($a['address_line'] === '' && ($a['building'] ?? '') === '') {
-            return Zooboxi_V2_Bootstrap::fail('address_line_required', __('تفاصيل العنوان مطلوبة', 'zooboxi'), 'Address details are required.', 422);
-        }
+        // The written details are all optional — the pin's coordinates are
+        // the address (the order carries them as meta); text only helps the
+        // driver go faster.
         if ($a['city'] === '') {
             return Zooboxi_V2_Bootstrap::fail('city_required', __('المدينة مطلوبة', 'zooboxi'), 'A city is required.', 422);
         }
