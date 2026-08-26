@@ -179,7 +179,11 @@ class _PrimerBody extends StatelessWidget {
 /// the sheet. On a store where the same product has three different answers
 /// depending on where you stand, this is the most important control on Home.
 class LocationChip extends ConsumerWidget {
-  const LocationChip({super.key});
+  const LocationChip({super.key, this.onCanvas = false});
+
+  /// Renders the chip for the hero canvas: every stroke turns light, since
+  /// the canvas colors are deep by design.
+  final bool onCanvas;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -189,6 +193,10 @@ class LocationChip extends ConsumerWidget {
     final location = ref.watch(currentLocationProvider);
     final city = location.cityFor(locale);
     final isSet = city != null && city.isNotEmpty;
+
+    final fg = onCanvas ? (context.isDark ? ZbTokens.inkDark : Colors.white) : null;
+    final accent = fg ?? cs.primary;
+    final muted = fg?.withValues(alpha: 0.78) ?? cs.onSurfaceVariant;
 
     return Material(
       color: Colors.transparent,
@@ -206,7 +214,7 @@ class LocationChip extends ConsumerWidget {
               Icon(
                 isSet ? Icons.place_rounded : Icons.add_location_alt_outlined,
                 size: 16,
-                color: cs.primary,
+                color: accent,
               ),
               Gap.w6,
               Flexible(
@@ -217,7 +225,7 @@ class LocationChip extends ConsumerWidget {
                     Text(
                       l.locationDeliverTo,
                       style: context.tt.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
+                        color: muted,
                         height: 1.1,
                       ),
                     ),
@@ -225,13 +233,13 @@ class LocationChip extends ConsumerWidget {
                       isSet ? city : l.locationChoose,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: context.tt.titleSmall?.copyWith(height: 1.2),
+                      style: context.tt.titleSmall?.copyWith(height: 1.2, color: fg),
                     ),
                   ],
                 ),
               ),
               Gap.w4,
-              Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: cs.onSurfaceVariant),
+              Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: muted),
             ],
           ),
         ),
@@ -242,7 +250,11 @@ class LocationChip extends ConsumerWidget {
 
 /// The promise line under the header, e.g. "خلال ساعتين من فرع النخيل".
 class PromiseLine extends ConsumerWidget {
-  const PromiseLine({super.key});
+  const PromiseLine({super.key, this.onCanvas = false});
+
+  /// On the hero canvas the pill goes translucent-light instead of tinted —
+  /// the tier colors were mixed for surfaces, not for a deep teal.
+  final bool onCanvas;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -251,20 +263,24 @@ class PromiseLine extends ConsumerWidget {
     if (promise == null || promise.isEmpty) return const SizedBox.shrink();
 
     final pair = context.zb.tier(location.deliveryType);
+    final canvasFg = context.isDark ? ZbTokens.inkDark : Colors.white;
+    final fg = onCanvas ? canvasFg : pair.fg;
+    final bg = onCanvas ? canvasFg.withValues(alpha: 0.16) : pair.bg;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: pair.bg,
+        color: bg,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.bolt_rounded, size: 13, color: pair.fg),
+          Icon(Icons.bolt_rounded, size: 13, color: fg),
           Gap.w4,
           Text(
             promise,
-            style: context.tt.labelSmall?.copyWith(color: pair.fg, fontWeight: FontWeight.w700),
+            style: context.tt.labelSmall?.copyWith(color: fg, fontWeight: FontWeight.w700),
           ),
         ],
       ),

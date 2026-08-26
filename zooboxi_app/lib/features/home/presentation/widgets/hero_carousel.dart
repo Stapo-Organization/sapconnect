@@ -13,6 +13,7 @@ import 'campaign_chips.dart';
 import 'campaign_composition.dart';
 import 'campaign_impression.dart';
 import 'hero_auto_slide.dart';
+import 'home_header.dart';
 import 'link_navigation.dart';
 
 /// Placement zones whose creatives belong in the hero rather than in a banner
@@ -23,31 +24,39 @@ const List<String> heroZones = ['hero', 'app_hero'];
 List<Campaign> heroCampaignsOf(List<Campaign> campaigns) =>
     campaigns.where((c) => c.inAnyZone(heroZones)).toList();
 
-/// Hero geometry. The card is a fixed-extent element, so — exactly like a
-/// product card — its height is *computed* from the text scale rather than
+/// Hero geometry. The slide area is a fixed-extent element, so — exactly like
+/// a product card — its height is *computed* from the text scale rather than
 /// guessed and hoped for. The scale is clamped at 1.3× in both the arithmetic
 /// and the painted copy, so the number here and the pixels can't disagree.
 abstract final class HeroMetrics {
-  static const double viewportFraction = 0.92;
-  // Owner-tuned (2026-08-26): 1.6 read as too tall on device — a wider, lower
-  // card keeps the hero premium without pushing the shelves below the fold.
+  /// Slides are full-bleed: the canvas owns the whole width, like the header
+  /// it fuses with.
   static const double aspect = 1.9;
   static const double maxTextScale = 1.3;
 
-  /// How much taller the card gets at the top of the text-scale range.
+  /// How much taller the slide area gets at the top of the text-scale range.
   static const double scaleHeadroom = 96;
+
+  /// The strip under the slide copy that the page dots live in.
+  static const double dotsBand = 26;
 
   static double height(BuildContext context, double width) {
     final factor =
         MediaQuery.textScalerOf(context).clamp(maxScaleFactor: maxTextScale).scale(16) / 16;
-    return (width * viewportFraction) / aspect + (factor - 1) * scaleHeadroom;
+    return width / aspect + (factor - 1) * scaleHeadroom;
   }
 }
 
-/// The hero strip. Uploaded banners, live campaign placements and the slides
-/// the server composes from stock all share one carousel — to a customer they
-/// are the same thing, and merging them means an active campaign is never
-/// buried below a static banner.
+/// The storefront's marquee: **one colored canvas** that starts behind the
+/// status bar, carries the location row and the search field, and ends as the
+/// hero slide — the pattern the big delivery apps use. Every slide brings its
+/// own canvas color, and because the canvas is painted *inside* the page, the
+/// color boundary drags with the customer's finger mid-swipe instead of
+/// snapping when the page settles.
+///
+/// The header itself does not pan: it floats fixed above the pages, and each
+/// page reserves its exact height with an invisible twin — so the two can
+/// never drift apart, at any text size.
 class HeroCarousel extends ConsumerStatefulWidget {
   const HeroCarousel({super.key, required this.slides, this.campaigns = const []});
 
@@ -64,8 +73,7 @@ class HeroCarousel extends ConsumerStatefulWidget {
 }
 
 class _HeroCarouselState extends ConsumerState<HeroCarousel> {
-  late final PageController _controller =
-      PageController(viewportFraction: HeroMetrics.viewportFraction);
+  late final PageController _controller = PageController();
   Timer? _autoplay;
   int _index = 0;
 
@@ -149,48 +157,139 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
   @override
   Widget build(BuildContext context) {
     final items = _items;
-    if (items.isEmpty) return const SizedBox.shrink();
-
+    final statusTop = MediaQuery.paddingOf(context).top;
     final width = MediaQuery.sizeOf(context).width;
+    final fallback = _canvasFallback(context);
+
+    if (items.isEmpty) {
+      // Data can only shrink to zero on a refresh gone strange — keep the
+      // header usable on its own canvas rather than vanishing the whole unit.
+      return _CanvasShell(
+        statusTop: statusTop,
+        decoration: BoxDecoration(gradient: fallback),
+        child: const SizedBox.shrink(),
+      );
+    }
 
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: HeroMetrics.maxTextScale,
-      child: Column(
-        children: [
-          SizedBox(
-            height: HeroMetrics.height(context, width),
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: items.length,
-              onPageChanged: (index) {
-                setState(() => _index = index);
-                _reportImpression(index);
-              },
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: PressScale(
-                    onTap: () => _open(item),
-                    borderRadius: BorderRadius.circular(ZbTokens.rLg),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(ZbTokens.rLg),
-                      child: switch (item) {
-                        _ManualItem(:final slide) => _ManualCard(slide: slide),
-                        _CampaignItem(:final campaign) => _CampaignCard(campaign: campaign),
-                        _AutoItem(:final slide) => HeroAutoCard(slide: slide),
-                      },
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+        child: Stack(
+          children: [
+            // The panning layer: canvas color + slide content per page. It
+            // fills whatever height the fixed foreground column decides.
+            Positioned.fill(
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: items.length,
+                onPageChanged: (index) {
+                  setState(() => _index = index);
+                  _reportImpression(index);
+                },
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return DecoratedBox(
+                    decoration: BoxDecoration(gradient: item.canvas(context)),
+                    child: Column(
+                      children: [
+                        SizedBox(height: statusTop),
+                        // The invisible twin that reserves the header's exact
+                        // height inside the page — measurement by construction.
+                        const _HeaderGhost(),
+                        Expanded(
+                          child: PressScale(
+                            onTap: () => _open(item),
+                            child: switch (item) {
+                              _ManualItem(:final slide) => _ManualSlide(slide: slide),
+                              _CampaignItem(:final campaign) =>
+                                _CampaignSlide(campaign: campaign),
+                              _AutoItem(:final slide) => HeroAutoCard(slide: slide, flush: true),
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: HeroMetrics.dotsBand),
+                      ],
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          if (items.length > 1) ...[
-            Gap.h12,
-            _Dots(count: items.length, index: _index),
+
+            // The fixed foreground: status inset + the real header + the space
+            // the slides show through. Empty boxes are hit-test transparent,
+            // so swipes and slide taps fall straight through to the pages.
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: statusTop),
+                const HomeHeader(onCanvas: true),
+                SizedBox(height: HeroMetrics.height(context, width)),
+                const SizedBox(height: HeroMetrics.dotsBand),
+              ],
+            ),
+
+            if (items.length > 1)
+              PositionedDirectional(
+                start: 0,
+                end: 0,
+                bottom: 9,
+                child: _Dots(count: items.length, index: _index),
+              ),
           ],
-        ],
+        ),
+      ),
+    );
+  }
+
+  LinearGradient _canvasFallback(BuildContext context) => context.isDark
+      ? const LinearGradient(colors: [ZbTokens.tealContainerDark, ZbTokens.graphiteHigh])
+      : const LinearGradient(colors: [ZbTokens.tealDeep, ZbTokens.tealDark]);
+}
+
+/// The degenerate no-slides shell: canvas + header only.
+class _CanvasShell extends StatelessWidget {
+  const _CanvasShell({
+    required this.statusTop,
+    required this.decoration,
+    required this.child,
+  });
+
+  final double statusTop;
+  final BoxDecoration decoration;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+      child: DecoratedBox(
+        decoration: decoration,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: statusTop),
+            const HomeHeader(onCanvas: true),
+            child,
+            Gap.h8,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The header's invisible twin: same widget, same width, zero paint, zero
+/// pointer — its only job is to make every page reserve exactly the height the
+/// real header occupies above it.
+class _HeaderGhost extends StatelessWidget {
+  const _HeaderGhost();
+
+  @override
+  Widget build(BuildContext context) {
+    return const IgnorePointer(
+      child: ExcludeSemantics(
+        child: Opacity(opacity: 0, child: HomeHeader(onCanvas: true)),
       ),
     );
   }
@@ -203,6 +302,9 @@ sealed class _HeroItem {
 
   ZbLink? get link;
   String? get title;
+
+  /// The canvas this slide paints the whole unit with — status bar to dots.
+  LinearGradient canvas(BuildContext context);
 }
 
 class _ManualItem extends _HeroItem {
@@ -215,6 +317,19 @@ class _ManualItem extends _HeroItem {
 
   @override
   String? get title => slide.title;
+
+  @override
+  LinearGradient canvas(BuildContext context) => context.isDark
+      ? const LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [ZbTokens.tealContainerDark, ZbTokens.graphiteHigh],
+        )
+      : const LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [ZbTokens.tealDeep, ZbTokens.tealDark],
+        );
 }
 
 class _AutoItem extends _HeroItem {
@@ -227,6 +342,10 @@ class _AutoItem extends _HeroItem {
 
   @override
   String? get title => slide.title;
+
+  @override
+  LinearGradient canvas(BuildContext context) =>
+      AutoSlideSkin.of(context, slide.theme).gradient;
 }
 
 class _CampaignItem extends _HeroItem {
@@ -239,14 +358,18 @@ class _CampaignItem extends _HeroItem {
 
   @override
   String? get title => campaign.headline;
+
+  @override
+  LinearGradient canvas(BuildContext context) =>
+      CampaignPanel.of(context, campaignType: campaign.campaignType).gradient;
 }
 
-// ── Cards ──────────────────────────────────────────────────────────────
+// ── Slides ─────────────────────────────────────────────────────────────
 
-/// An uploaded banner: full-bleed art, a scrim only where the copy sits so the
-/// artwork stays bright.
-class _ManualCard extends StatelessWidget {
-  const _ManualCard({required this.slide});
+/// An uploaded banner: the artwork fills the slide area of the canvas, a scrim
+/// only where the copy sits so the art stays bright.
+class _ManualSlide extends StatelessWidget {
+  const _ManualSlide({required this.slide});
 
   final HeroSlide slide;
 
@@ -257,7 +380,7 @@ class _ManualCard extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ZbImage(url: slide.bestImage, fit: BoxFit.cover),
+        ZbImage(url: slide.bestImage, fit: BoxFit.cover, backgroundColor: Colors.transparent),
         if (hasCopy)
           DecoratedBox(
             decoration: BoxDecoration(
@@ -277,7 +400,7 @@ class _ManualCard extends StatelessWidget {
           PositionedDirectional(
             start: 18,
             end: 90,
-            bottom: 16,
+            bottom: 12,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -316,10 +439,11 @@ class _ManualCard extends StatelessWidget {
   }
 }
 
-/// A live campaign, composed natively — see [CampaignComposition] for why the
-/// artwork is never trusted to carry the words.
-class _CampaignCard extends StatelessWidget {
-  const _CampaignCard({required this.campaign});
+/// A live campaign, composed natively on the slide's own canvas — see
+/// [CampaignComposition] for why the artwork is never trusted to carry the
+/// words.
+class _CampaignSlide extends StatelessWidget {
+  const _CampaignSlide({required this.campaign});
 
   final Campaign campaign;
 
@@ -332,6 +456,8 @@ class _CampaignCard extends StatelessWidget {
 
     return CampaignComposition(
       panel: panel,
+      // The page already painted the panel gradient from the status bar down.
+      paintBackground: false,
       art: campaign.artFor(const ['app_hero', 'card', 'hero', 'wide']),
       copy: Column(
         mainAxisSize: MainAxisSize.min,
@@ -389,7 +515,7 @@ class _Dots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.cs;
+    // The dots always sit on a deep canvas, so they are always light.
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(count, (i) {
@@ -401,7 +527,7 @@ class _Dots extends StatelessWidget {
           width: active ? 18 : 6,
           height: 6,
           decoration: BoxDecoration(
-            color: active ? cs.primary : cs.outlineVariant,
+            color: active ? Colors.white : Colors.white.withValues(alpha: 0.42),
             borderRadius: BorderRadius.circular(ZbTokens.rPill),
           ),
         );

@@ -25,11 +25,8 @@ class AutoSlideSkin {
 
   static AutoSlideSkin of(BuildContext context, String? theme) {
     final zb = context.zb;
-    final cs = context.cs;
     final dark = context.isDark;
     final onDark = dark ? ZbTokens.inkDark : Colors.white;
-
-    LinearGradient flat(Color color) => LinearGradient(colors: [color, color]);
 
     return switch (theme) {
       'express' => AutoSlideSkin(
@@ -64,12 +61,18 @@ class AutoSlideSkin {
           muted: onDark.withValues(alpha: 0.82),
           icon: Icons.local_offer_rounded,
         ),
-      // A brand slide belongs to the brand: a neutral tile, its logo carrying
-      // the identity — the same reason the brand strip refuses to tint itself.
+      // A brand slide belongs to the brand: a deep neutral stage, the logo on
+      // its own white tile carrying the identity — the same reason the brand
+      // strip refuses to tint itself. Deep, because this gradient doubles as
+      // the hero canvas and the header on top of it is always light.
       'brand' => AutoSlideSkin(
-          gradient: flat(cs.surfaceContainerHigh),
-          fg: cs.onSurface,
-          muted: cs.onSurfaceVariant,
+          gradient: const LinearGradient(
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
+            colors: [ZbTokens.graphiteHighest, ZbTokens.graphiteHigh],
+          ),
+          fg: ZbTokens.inkDark,
+          muted: ZbTokens.inkDark.withValues(alpha: 0.75),
         ),
       _ => AutoSlideSkin(
           gradient: zb.brandGradient,
@@ -82,9 +85,13 @@ class AutoSlideSkin {
 }
 
 class HeroAutoCard extends StatelessWidget {
-  const HeroAutoCard({super.key, required this.slide});
+  const HeroAutoCard({super.key, required this.slide, this.flush = false});
 
   final HeroSlide slide;
+
+  /// True when the slide sits on the hero canvas, which already painted this
+  /// skin's gradient from the status bar down — paint everything but it.
+  final bool flush;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +103,7 @@ class HeroAutoCard extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
+        if (!flush) DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
         if (skin.icon != null)
           PositionedDirectional(
             top: -14,
@@ -113,9 +120,25 @@ class HeroAutoCard extends StatelessWidget {
             child: FractionallySizedBox(
               widthFactor: 0.42,
               child: logo != null
-                  ? Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: ZbImage(url: logo, backgroundColor: Colors.transparent),
+                  // The logo owns its own white tile: brand marks are drawn
+                  // for light paper, and the stage behind them is deep.
+                  ? Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        constraints: const BoxConstraints(maxHeight: 96, maxWidth: 132),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(ZbTokens.rMd),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.22),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: ZbImage(url: logo, backgroundColor: Colors.transparent),
+                      ),
                     )
                   : _ProductStack(images: images),
             ),

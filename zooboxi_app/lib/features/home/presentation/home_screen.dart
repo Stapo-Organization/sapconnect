@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -35,11 +37,31 @@ import 'widgets/trust_strip.dart';
 /// Everything above the fold still answers one question — "what can I get, and
 /// how fast" — so the location chip sits in the header and every card carries
 /// its own delivery promise.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  /// True once the hero canvas has scrolled away from under the status bar —
+  /// the clock flips back from light to the theme's own color.
+  bool _pastCanvas = false;
+
+  /// Roughly where the canvas stops backing the status bar. An estimate is
+  /// fine: the flip happens mid-scroll, never at rest.
+  double _canvasThreshold = 320;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) return false;
+    final past = notification.metrics.pixels > _canvasThreshold;
+    if (past != _pastCanvas) setState(() => _pastCanvas = past);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = L.of(context);
     final home = ref.watch(homeProvider);
 
@@ -51,45 +73,75 @@ class HomeScreen extends ConsumerWidget {
         ? ref.watch(homeCacheProvider)
         : null);
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator.adaptive(
-          onRefresh: () async {
-            Haptics.light();
-            ref.invalidate(homeProvider);
-            ref.invalidate(homeFeedProvider);
-            await ref.read(homeProvider.future);
-          },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
+    // The canvas unit — colored header + hero fused, HungerStation-style —
+    // exists whenever there is a hero to show and the server kept the slot.
+    final canvas = payload != null &&
+        !payload.isEmpty &&
+        HeroCarousel.hasContent(payload) &&
+        payload.slots.any((slot) => slot.type == 'hero');
+
+    final width = MediaQuery.sizeOf(context).width;
+    final statusTop = MediaQuery.paddingOf(context).top;
+    _canvasThreshold =
+        (168 + HeroMetrics.height(context, width) + HeroMetrics.dotsBand) * 0.85;
+
+    final scroll = NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: RefreshIndicator.adaptive(
+        edgeOffset: canvas ? statusTop + 4 : 0,
+        onRefresh: () async {
+          Haptics.light();
+          ref.invalidate(homeProvider);
+          ref.invalidate(homeFeedProvider);
+          await ref.read(homeProvider.future);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            if (canvas) ...[
+              SliverToBoxAdapter(
+                child: HeroCarousel(slides: payload.hero, campaigns: payload.campaigns),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            ] else
               const SliverToBoxAdapter(child: HomeHeader()),
-              if (payload != null && !payload.isEmpty)
-                ..._slots(context, ref, payload)
-              else if (payload != null)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: EmptyState(
-                    icon: Icons.storefront_outlined,
-                    title: l.homeEmpty,
-                    message: l.homeEmptyHint,
-                  ),
-                )
-              else if (home.hasError)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: ErrorState(
-                    error: home.error,
-                    onRetry: () => ref.invalidate(homeProvider),
-                  ),
-                )
-              else
-                const SliverToBoxAdapter(child: _HomeSkeleton()),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            ],
-          ),
+            if (payload != null && !payload.isEmpty)
+              ..._slots(context, ref, payload)
+            else if (payload != null)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  icon: Icons.storefront_outlined,
+                  title: l.homeEmpty,
+                  message: l.homeEmptyHint,
+                ),
+              )
+            else if (home.hasError)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: ErrorState(
+                  error: home.error,
+                  onRetry: () => ref.invalidate(homeProvider),
+                ),
+              )
+            else
+              const SliverToBoxAdapter(child: _HomeSkeleton()),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          ],
         ),
+      ),
+    );
+
+    // The canvas runs behind the status bar, so the clock goes light while it
+    // is there and returns to the theme's color once it scrolls away.
+    final statusStyle = (canvas && !_pastCanvas) || context.isDark
+        ? SystemUiOverlayStyle.light
+        : SystemUiOverlayStyle.dark;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: statusStyle,
+      child: Scaffold(
+        body: canvas ? scroll : SafeArea(bottom: false, child: scroll),
       ),
     );
   }
@@ -159,13 +211,11 @@ class HomeScreen extends ConsumerWidget {
 
     for (final slot in payload.slots) {
       switch (slot.type) {
+        // The hero fused with the header at the very top of the scroll view —
+        // its slot in the layout only decides *whether* it exists, never where:
+        // a canvas that starts behind the status bar cannot sit mid-page.
         case 'hero':
-          if (!HeroCarousel.hasContent(payload)) break;
-          emit(
-            HeroCarousel(slides: payload.hero, campaigns: payload.campaigns),
-            top: 4,
-            bottom: 20,
-          );
+          break;
 
         case 'animal_nav':
           if (payload.animalNav.isEmpty) break;

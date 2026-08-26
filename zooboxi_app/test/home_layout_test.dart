@@ -124,18 +124,21 @@ void main() {
     await _pumpHome(tester, _host(payload));
 
     double y(Finder finder) => tester.getTopLeft(finder).dy;
+    // The hero fuses with the header into the top canvas, so it is always
+    // first regardless of where its slot sits; everything else keeps the
+    // server's order.
     final order = [
+      y(find.byType(HeroCarousel)),
       y(find.text('وصل حديثًا')),
       y(find.byType(CampaignBanner)),
       y(find.text('رائج الآن')),
-      y(find.byType(HeroCarousel)),
       y(find.byType(TrustStrip)),
       y(find.byType(BrandStrip)),
     ];
     expect(
       order,
       orderedEquals(<double>[...order]..sort()),
-      reason: 'slots must paint top-to-bottom in the order the server sent',
+      reason: 'hero pins to the top canvas; other slots paint in server order',
     );
 
     // The unknown `wormhole` slot drew nothing, and the layout — not the

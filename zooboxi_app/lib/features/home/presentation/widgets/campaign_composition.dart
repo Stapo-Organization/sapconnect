@@ -77,6 +77,7 @@ class CampaignComposition extends StatelessWidget {
     required this.panel,
     required this.copy,
     this.art,
+    this.paintBackground = true,
     this.artFactor = 0.46,
     this.copyFactor = 0.60,
     this.padding = const EdgeInsetsDirectional.only(start: 16, end: 12, top: 14, bottom: 14),
@@ -85,6 +86,11 @@ class CampaignComposition extends StatelessWidget {
   final CampaignPanel panel;
   final Widget copy;
   final String? art;
+
+  /// False when the composition sits on the hero canvas, which already painted
+  /// [CampaignPanel.gradient] from the status bar down — the art fade and the
+  /// copy scrim still paint, only the base coat is skipped.
+  final bool paintBackground;
 
   /// Share of the width the artwork covers, and the share the copy is allowed
   /// to run into. They overlap on purpose — the fade lives in that overlap.
@@ -100,7 +106,8 @@ class CampaignComposition extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        DecoratedBox(decoration: BoxDecoration(gradient: panel.gradient)),
+        if (paintBackground)
+          DecoratedBox(decoration: BoxDecoration(gradient: panel.gradient)),
         if (art != null)
           Align(
             alignment: AlignmentDirectional.centerEnd,

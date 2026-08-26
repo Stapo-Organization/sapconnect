@@ -11,13 +11,20 @@ import '../../../location/presentation/location_sheet.dart';
 
 /// The home header: who we're delivering to, and the two things a customer
 /// reaches for first — search and their saved list.
+///
+/// [onCanvas] renders it for the hero canvas — the deep colored panel the
+/// header fuses with — so every stroke turns light and the search field stays
+/// a bright, obvious well on top of the color.
 class HomeHeader extends ConsumerWidget {
-  const HomeHeader({super.key});
+  const HomeHeader({super.key, this.onCanvas = false});
+
+  final bool onCanvas;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final user = ref.watch(sessionProvider).user;
+    final fg = onCanvas ? _canvasFg(context) : null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
@@ -26,13 +33,13 @@ class HomeHeader extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Expanded(child: LocationChip()),
+              Expanded(child: LocationChip(onCanvas: onCanvas)),
               IconButton(
                 onPressed: () {
                   Haptics.light();
                   context.push('/wishlist');
                 },
-                icon: const Icon(Icons.favorite_border_rounded),
+                icon: Icon(Icons.favorite_border_rounded, color: fg),
                 tooltip: l.wishlistTitle,
               ),
             ],
@@ -44,18 +51,19 @@ class HomeHeader extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     user == null ? l.homeGreeting : '${l.homeGreeting.split(' ').first} ${user.firstName}',
-                    style: context.tt.headlineSmall,
+                    style: context.tt.headlineSmall?.copyWith(color: fg),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const PromiseLine(),
+                PromiseLine(onCanvas: onCanvas),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
             child: _SearchBar(
+              onCanvas: onCanvas,
               onTap: () => context.push('/search'),
               onScan: () => context.push('/scan'),
             ),
@@ -66,24 +74,37 @@ class HomeHeader extends ConsumerWidget {
   }
 }
 
+/// Foreground for header strokes sitting on the hero canvas — always light,
+/// because every canvas color is deep by design.
+Color _canvasFg(BuildContext context) =>
+    context.isDark ? ZbTokens.inkDark : Colors.white;
+
 /// A tap target that *looks* like a field but pushes the search screen — so
 /// the keyboard and the suggestion list belong to one screen instead of
 /// half-opening over the home feed.
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({required this.onTap, required this.onScan});
+  const _SearchBar({required this.onTap, required this.onScan, this.onCanvas = false});
 
   final VoidCallback onTap;
   final VoidCallback onScan;
+  final bool onCanvas;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final cs = context.cs;
+    // On the canvas the field is the one bright object — a white well in
+    // light theme, the raised surface in dark. Off-canvas it stays subtle.
+    final fill = onCanvas
+        ? (context.isDark ? cs.surfaceContainerHigh : Colors.white)
+        : cs.surfaceContainerHigh;
 
     return Material(
-      color: cs.surfaceContainerHigh,
+      color: fill,
       borderRadius: BorderRadius.circular(ZbTokens.rMd),
       clipBehavior: Clip.antiAlias,
+      elevation: onCanvas ? 1.5 : 0,
+      shadowColor: Colors.black.withValues(alpha: 0.35),
       child: InkWell(
         onTap: () {
           Haptics.light();
