@@ -14,6 +14,9 @@ class Address {
     required this.addressLine,
     this.label,
     this.district,
+    this.building,
+    this.floor,
+    this.apartment,
     this.lat,
     this.lng,
     this.email,
@@ -28,6 +31,12 @@ class Address {
   final String city;
   final String? district;
   final String addressLine;
+
+  /// The last few metres. A pin plus a building/floor/flat is what turns
+  /// "somewhere on this street" into a door the driver can knock on.
+  final String? building;
+  final String? floor;
+  final String? apartment;
   final double? lat;
   final double? lng;
 
@@ -52,6 +61,9 @@ class Address {
         city: asString(json['city']),
         district: asStringOrNull(json['district']),
         addressLine: asString(json['address_line']),
+        building: asStringOrNull(json['building']),
+        floor: asStringOrNull(json['floor']),
+        apartment: asStringOrNull(json['apartment']),
         lat: asDoubleOrNull(json['lat']),
         lng: asDoubleOrNull(json['lng']),
         isDefault: asBool(json['is_default']),
@@ -68,6 +80,9 @@ class Address {
         'city': city,
         'district': ?district,
         'address_line': addressLine,
+        'building': ?building,
+        'floor': ?floor,
+        'apartment': ?apartment,
         'lat': ?lat,
         'lng': ?lng,
         'email': ?email,
@@ -82,6 +97,9 @@ class Address {
     String? city,
     String? district,
     String? addressLine,
+    String? building,
+    String? floor,
+    String? apartment,
     double? lat,
     double? lng,
     String? email,
@@ -95,6 +113,9 @@ class Address {
         city: city ?? this.city,
         district: district ?? this.district,
         addressLine: addressLine ?? this.addressLine,
+        building: building ?? this.building,
+        floor: floor ?? this.floor,
+        apartment: apartment ?? this.apartment,
         lat: lat ?? this.lat,
         lng: lng ?? this.lng,
         email: email ?? this.email,

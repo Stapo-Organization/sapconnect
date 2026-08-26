@@ -76,7 +76,10 @@ class MapPinPickerState extends State<MapPinPicker> {
 
   /// Centres on the device's own fix. Silent on refusal: the customer can
   /// always drag the map, so a permission dialog is a courtesy, not a gate.
-  Future<void> _useDeviceLocation() async {
+  ///
+  /// Public because the editor opens straight onto the map for a first-run
+  /// customer and centres it for them — the same path as tapping the button.
+  Future<void> locate() async {
     if (_locating) return;
     Haptics.light();
     setState(() => _locating = true);
@@ -149,7 +152,7 @@ class MapPinPickerState extends State<MapPinPicker> {
             PositionedDirectional(
               end: 12,
               bottom: 12,
-              child: _MyLocationButton(busy: _locating, onTap: _useDeviceLocation),
+              child: _MyLocationButton(busy: _locating, onTap: locate),
             ),
         ],
       ),

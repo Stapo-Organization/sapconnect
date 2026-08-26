@@ -14,10 +14,13 @@ import '../../../core/location/location_controller.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/notifications/notify_permission.dart';
 import '../../../core/providers.dart';
+import '../../../core/session/session_controller.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
 import '../../../core/widgets/press_scale.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../account/data/addresses_controller.dart';
+import '../../account/presentation/address_editor_screen.dart';
 import '../../location/data/location_models.dart';
 import '../../location/presentation/widgets/city_picker.dart';
 
@@ -98,14 +101,47 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await ref.read(appSettingsProvider.notifier).setLocale(code);
   }
 
-  Future<void> _useGps() async {
+  /// The precise answer to "where do we deliver?": a pin the customer placed
+  /// themselves, plus the building, floor and flat behind the door.
+  ///
+  /// Where the address lands depends on who is asking. A signed-in customer
+  /// gets it in their book straight away; a guest's waits on the device until
+  /// checkout, which is where an account can finally put a name on it.
+  Future<void> _pinAddress() async {
     Haptics.light();
     // The step is captured before the await: a customer who taps «لاحقًا»
-    // while the fix is still resolving has answered — a late success must
-    // not push them off whichever step they moved to.
+    // while the editor is open has answered — a late success must not push
+    // them off whichever step they moved to.
     final from = _step;
-    final ok = await ref.read(locationProvider.notifier).useDeviceLocation();
-    if (!mounted || !ok || _step != from) return;
+    final loggedIn = ref.read(sessionProvider).isAuthenticated;
+
+    final draft = await showAddressEditor(
+      context,
+      contactOptional: !loggedIn,
+      autoLocate: true,
+    );
+    if (draft == null || !mounted || _step != from) return;
+
+    final store = ref.read(localStoreProvider);
+    var stored = false;
+    if (loggedIn) {
+      try {
+        await ref.read(addressesControllerProvider.notifier).save(draft.address);
+        stored = true;
+      } catch (_) {
+        // A refused request must never cost the customer the address they
+        // just typed — it waits on the device and checkout picks it up.
+      }
+    }
+    if (!stored) await store.setPendingAddress(draft.address.toJson());
+
+    final lat = draft.address.lat;
+    final lng = draft.address.lng;
+    if (lat != null && lng != null) {
+      await ref.read(locationProvider.notifier).resolve(lat, lng);
+    }
+
+    if (!mounted || _step != from) return;
     _scheduleAdvance();
   }
 
@@ -175,7 +211,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         onNext: _next,
       ),
       _LocationStep(
-        onUseGps: () => unawaited(_useGps()),
+        onPinAddress: () => unawaited(_pinAddress()),
         onChooseCity: () => unawaited(_openCities()),
         onNext: _next,
       ),
@@ -769,12 +805,12 @@ class _Paw extends StatelessWidget {
 
 class _LocationStep extends ConsumerWidget {
   const _LocationStep({
-    required this.onUseGps,
+    required this.onPinAddress,
     required this.onChooseCity,
     required this.onNext,
   });
 
-  final VoidCallback onUseGps;
+  final VoidCallback onPinAddress;
   final VoidCallback onChooseCity;
   final VoidCallback onNext;
 
@@ -787,12 +823,12 @@ class _LocationStep extends ConsumerWidget {
     final stalled =
         state.phase == LocationPhase.denied || state.phase == LocationPhase.failed;
 
-    final gps = _CanvasButton(
+    final pin = _CanvasButton(
       label: l.onbLocCta,
-      icon: Icons.my_location_rounded,
+      icon: Icons.pin_drop_rounded,
       busy: state.isBusy,
       filled: !stalled,
-      onPressed: onUseGps,
+      onPressed: onPinAddress,
     );
     final city = _CanvasButton(
       label: l.onbLocCity,
@@ -837,7 +873,7 @@ class _LocationStep extends ConsumerWidget {
           Gap.h8,
           city,
         ] else ...[
-          if (stalled) ...[city, Gap.h8, gps] else ...[gps, Gap.h8, city],
+          if (stalled) ...[city, Gap.h8, pin] else ...[pin, Gap.h8, city],
           _CanvasTextAction(label: l.onbLater, onPressed: onNext),
         ],
       ],

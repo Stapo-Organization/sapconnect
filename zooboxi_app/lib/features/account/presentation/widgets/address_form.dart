@@ -18,11 +18,15 @@ class AddressForm extends StatelessWidget {
     required this.city,
     required this.district,
     required this.line,
+    required this.building,
+    required this.floor,
+    required this.apartment,
     required this.customLabel,
     required this.labelChoice,
     required this.onLabelChoice,
     this.resolving = false,
     this.enabled = true,
+    this.contactHidden = false,
   });
 
   final TextEditingController name;
@@ -30,6 +34,9 @@ class AddressForm extends StatelessWidget {
   final TextEditingController city;
   final TextEditingController district;
   final TextEditingController line;
+  final TextEditingController building;
+  final TextEditingController floor;
+  final TextEditingController apartment;
   final TextEditingController customLabel;
 
   final AddressLabelChoice labelChoice;
@@ -38,6 +45,11 @@ class AddressForm extends StatelessWidget {
   /// True while the pin's city/district are still being reverse-geocoded.
   final bool resolving;
   final bool enabled;
+
+  /// Drops the recipient name and phone entirely — the guest journey asks for
+  /// the place before there is an account, and checkout already knows who is
+  /// receiving it by the time it matters.
+  final bool contactHidden;
 
   @override
   Widget build(BuildContext context) {
@@ -83,31 +95,33 @@ class AddressForm extends StatelessWidget {
         ],
         Gap.h20,
 
-        TextField(
-          controller: name,
-          enabled: enabled,
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(labelText: l.addressNameLabel),
-        ),
-        Gap.h12,
-        TextField(
-          controller: phone,
-          enabled: enabled,
-          keyboardType: TextInputType.phone,
-          textInputAction: TextInputAction.next,
-          // The store only ships inside Saudi Arabia, so the number is always
-          // a 10-digit 05x — anything else is a typo, not a foreign customer.
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          decoration: InputDecoration(
-            labelText: l.addressPhoneLabel,
-            hintText: l.authPhoneHint,
+        if (!contactHidden) ...[
+          TextField(
+            controller: name,
+            enabled: enabled,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(labelText: l.addressNameLabel),
           ),
-        ),
-        Gap.h12,
+          Gap.h12,
+          TextField(
+            controller: phone,
+            enabled: enabled,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            // The store only ships inside Saudi Arabia, so the number is always
+            // a 10-digit 05x — anything else is a typo, not a foreign customer.
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
+            decoration: InputDecoration(
+              labelText: l.addressPhoneLabel,
+              hintText: l.authPhoneHint,
+            ),
+          ),
+          Gap.h12,
+        ],
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -149,6 +163,39 @@ class AddressForm extends StatelessWidget {
             style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
+        Gap.h12,
+        Row(
+          children: [
+            // Free text on all three: plenty of buildings here are named
+            // rather than numbered, and a ground floor is "أرضي", not a digit.
+            Expanded(
+              child: TextField(
+                controller: building,
+                enabled: enabled,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(labelText: l.addressBuildingLabel),
+              ),
+            ),
+            Gap.w12,
+            Expanded(
+              child: TextField(
+                controller: floor,
+                enabled: enabled,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(labelText: l.addressFloorLabel),
+              ),
+            ),
+            Gap.w12,
+            Expanded(
+              child: TextField(
+                controller: apartment,
+                enabled: enabled,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(labelText: l.addressApartmentLabel),
+              ),
+            ),
+          ],
+        ),
         Gap.h12,
         TextField(
           controller: line,

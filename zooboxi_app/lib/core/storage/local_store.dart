@@ -17,6 +17,7 @@ class LocalStore {
   static const _kLocale = 'settings.locale';
   static const _kWelcomeSeen = 'settings.onboarded.v2';
   static const _kLocation = 'location.current';
+  static const _kPendingAddress = 'address.pending';
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
   static const _kHomeCache = 'catalog.home_cache';
@@ -62,6 +63,15 @@ class LocalStore {
   Future<void> setLocation(Map<String, dynamic>? value) => value == null
       ? _prefs.remove(_kLocation)
       : _prefs.setString(_kLocation, jsonEncode(value));
+
+  /// An address a guest pinned during the welcome journey, waiting for the
+  /// checkout that can finally attach a name and a phone to it. Cleared the
+  /// moment it lands in the book or on an order — never carried into a second.
+  Map<String, dynamic>? get pendingAddress => _json(_kPendingAddress);
+
+  Future<void> setPendingAddress(Map<String, dynamic>? json) => json == null
+      ? _prefs.remove(_kPendingAddress)
+      : _prefs.setString(_kPendingAddress, jsonEncode(json));
 
   // ── Recently viewed ──────────────────────────────────────────────────
 

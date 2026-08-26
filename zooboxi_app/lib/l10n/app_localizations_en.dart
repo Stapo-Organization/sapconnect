@@ -144,7 +144,7 @@ class LEn extends L {
 
   @override
   String get onbLocBody =>
-      'Set your location and we\'ll show real stock from your nearest branch with an honest delivery promise';
+      'Drop your pin and we deliver to your door — real stock from your nearest branch and an honest promise for your district';
 
   @override
   String get onbLocPerk1 => 'The fastest delivery for your district';
@@ -156,7 +156,7 @@ class LEn extends L {
   String get onbLocPerk3 => 'Your city\'s offers, first';
 
   @override
-  String get onbLocCta => 'Use my location';
+  String get onbLocCta => 'Pin my location on the map';
 
   @override
   String get onbLocCity => 'Choose my city';
@@ -924,10 +924,20 @@ class LEn extends L {
   String get addressDistrictLabel => 'District';
 
   @override
-  String get addressLineLabel => 'Address details';
+  String get addressBuildingLabel => 'Building no.';
 
   @override
-  String get addressLineHint => 'Street, building number, nearest landmark';
+  String get addressFloorLabel => 'Floor';
+
+  @override
+  String get addressApartmentLabel => 'Apartment';
+
+  @override
+  String get addressLineLabel => 'Address description';
+
+  @override
+  String get addressLineHint =>
+      'Nearby landmark? gate? anything that helps the driver';
 
   @override
   String get addressSaveToggle => 'Save this address to my addresses';

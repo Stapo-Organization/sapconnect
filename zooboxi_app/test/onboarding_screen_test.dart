@@ -165,7 +165,7 @@ void main() {
     await _tap(tester, 'يلا نبدأ');
 
     expect(find.text('وين نوصّلك؟'), findsOneWidget);
-    expect(find.text('حدد موقعي تلقائيًا'), findsOneWidget);
+    expect(find.text('حدد موقعي على الخريطة'), findsOneWidget);
     expect(find.text('أختار مدينتي بنفسي'), findsOneWidget);
 
     await _tap(tester, 'لاحقًا');
@@ -217,7 +217,7 @@ void main() {
     expect(find.text('النرجس، الرياض'), findsOneWidget);
     expect(find.text('خلال ساعتين'), findsOneWidget);
     expect(find.text('استمرار'), findsOneWidget);
-    expect(find.text('حدد موقعي تلقائيًا'), findsNothing, reason: 'we already know');
+    expect(find.text('حدد موقعي على الخريطة'), findsNothing, reason: 'we already know');
 
     await _tap(tester, 'استمرار');
 

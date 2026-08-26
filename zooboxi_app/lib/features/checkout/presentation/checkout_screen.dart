@@ -8,6 +8,7 @@ import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/providers.dart';
 import '../../../core/utils/error_text.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
@@ -45,6 +46,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   CheckoutStep _step = CheckoutStep.address;
   String? _addressId;
   Address? _draftAddress;
+
+  /// True while [_draftAddress] is the address the customer pinned during the
+  /// welcome journey — it stays on the device until an order actually carries
+  /// it, so a cancelled checkout doesn't throw it away.
+  bool _draftFromPending = false;
   String? _paymentId;
   bool _placing = false;
   bool _tracked = false;
@@ -120,6 +126,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           onSelect: (value) => setState(() {
             _addressId = value.id;
             _draftAddress = null;
+            _draftFromPending = false;
           }),
           onSelectDraft: () => setState(() => _addressId = null),
           onNew: () => _openEditor(),
@@ -163,18 +170,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _openEditor({Address? initial}) async {
+    final store = ref.read(localStoreProvider);
+    // An address pinned during the welcome journey has been waiting for this
+    // moment: the customer finds it already typed out and only has to say who
+    // is receiving it.
+    final pending = initial == null ? store.pendingAddress : null;
+    final seed = initial ?? (pending == null ? null : Address.fromJson(pending));
+
     final draft = await showAddressEditor(
       context,
-      initial: initial,
+      initial: seed,
       // "Don't save this one" is only a meaningful choice for a new address;
       // an entry already in the book is being edited, not opted out of.
-      showSaveToggle: initial == null,
+      showSaveToggle: seed == null || !seed.isSaved,
     );
     if (draft == null || !mounted) return;
 
     if (!draft.save) {
       setState(() {
         _draftAddress = draft.address;
+        _draftFromPending = pending != null;
         _addressId = null;
       });
       return;
@@ -183,9 +198,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     try {
       final saved =
           await ref.read(addressesControllerProvider.notifier).save(draft.address);
+      // It lives in the book now; a second copy on the device would come back
+      // as a duplicate at the next checkout.
+      if (pending != null) await store.setPendingAddress(null);
       if (!mounted) return;
       setState(() {
         _draftAddress = null;
+        _draftFromPending = false;
         _addressId = saved.id;
       });
       // The book the review screen renders comes from GET /checkout, so it
@@ -301,6 +320,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             paymentMethod: payment,
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           );
+
+      // The pinned address has done its job — an order carries it now, so it
+      // must not be offered again at the next checkout.
+      if (_draftFromPending) {
+        await ref.read(localStoreProvider).setPendingAddress(null);
+      }
 
       // The server emptied the cart; the badge must agree before the customer
       // lands anywhere that shows it.

@@ -144,7 +144,7 @@ class LAr extends L {
 
   @override
   String get onbLocBody =>
-      'حدد موقعك ونعرض لك مخزون أقرب فرع ووعد توصيل صادق لحيّك';
+      'ثبّت دبوسك على الخريطة ونوصّل لبابك — مخزون أقرب فرع ووعد توصيل صادق لحيّك';
 
   @override
   String get onbLocPerk1 => 'أسرع توصيل ممكن لحيّك';
@@ -156,7 +156,7 @@ class LAr extends L {
   String get onbLocPerk3 => 'عروض مدينتك أول بأول';
 
   @override
-  String get onbLocCta => 'حدد موقعي تلقائيًا';
+  String get onbLocCta => 'حدد موقعي على الخريطة';
 
   @override
   String get onbLocCity => 'أختار مدينتي بنفسي';
@@ -933,10 +933,19 @@ class LAr extends L {
   String get addressDistrictLabel => 'الحي';
 
   @override
-  String get addressLineLabel => 'تفاصيل العنوان';
+  String get addressBuildingLabel => 'رقم العمارة';
 
   @override
-  String get addressLineHint => 'الشارع، رقم المبنى، أقرب معلم';
+  String get addressFloorLabel => 'الدور';
+
+  @override
+  String get addressApartmentLabel => 'الشقة';
+
+  @override
+  String get addressLineLabel => 'وصف العنوان';
+
+  @override
+  String get addressLineHint => 'قريب من؟ معلم مميز؟ بوابة؟';
 
   @override
   String get addressSaveToggle => 'حفظ هذا العنوان في عناويني';

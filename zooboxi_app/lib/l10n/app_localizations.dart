@@ -358,7 +358,7 @@ abstract class L {
   /// No description provided for @onbLocBody.
   ///
   /// In ar, this message translates to:
-  /// **'حدد موقعك ونعرض لك مخزون أقرب فرع ووعد توصيل صادق لحيّك'**
+  /// **'ثبّت دبوسك على الخريطة ونوصّل لبابك — مخزون أقرب فرع ووعد توصيل صادق لحيّك'**
   String get onbLocBody;
 
   /// No description provided for @onbLocPerk1.
@@ -382,7 +382,7 @@ abstract class L {
   /// No description provided for @onbLocCta.
   ///
   /// In ar, this message translates to:
-  /// **'حدد موقعي تلقائيًا'**
+  /// **'حدد موقعي على الخريطة'**
   String get onbLocCta;
 
   /// No description provided for @onbLocCity.
@@ -1675,16 +1675,34 @@ abstract class L {
   /// **'الحي'**
   String get addressDistrictLabel;
 
+  /// No description provided for @addressBuildingLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم العمارة'**
+  String get addressBuildingLabel;
+
+  /// No description provided for @addressFloorLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدور'**
+  String get addressFloorLabel;
+
+  /// No description provided for @addressApartmentLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقة'**
+  String get addressApartmentLabel;
+
   /// No description provided for @addressLineLabel.
   ///
   /// In ar, this message translates to:
-  /// **'تفاصيل العنوان'**
+  /// **'وصف العنوان'**
   String get addressLineLabel;
 
   /// No description provided for @addressLineHint.
   ///
   /// In ar, this message translates to:
-  /// **'الشارع، رقم المبنى، أقرب معلم'**
+  /// **'قريب من؟ معلم مميز؟ بوابة؟'**
   String get addressLineHint;
 
   /// No description provided for @addressSaveToggle.

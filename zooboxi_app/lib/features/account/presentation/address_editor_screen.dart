@@ -29,11 +29,18 @@ Future<AddressDraft?> showAddressEditor(
   BuildContext context, {
   Address? initial,
   bool showSaveToggle = false,
+  bool contactOptional = false,
+  bool autoLocate = false,
 }) {
   return Navigator.of(context, rootNavigator: true).push<AddressDraft>(
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (_) => AddressEditorScreen(initial: initial, showSaveToggle: showSaveToggle),
+      builder: (_) => AddressEditorScreen(
+        initial: initial,
+        showSaveToggle: showSaveToggle,
+        contactOptional: contactOptional,
+        autoLocate: autoLocate,
+      ),
     ),
   );
 }
@@ -41,10 +48,26 @@ Future<AddressDraft?> showAddressEditor(
 enum _Stage { pin, details }
 
 class AddressEditorScreen extends ConsumerStatefulWidget {
-  const AddressEditorScreen({super.key, this.initial, this.showSaveToggle = false});
+  const AddressEditorScreen({
+    super.key,
+    this.initial,
+    this.showSaveToggle = false,
+    this.contactOptional = false,
+    this.autoLocate = false,
+  });
 
   final Address? initial;
   final bool showSaveToggle;
+
+  /// Drops the recipient name/phone from the form and from validation — the
+  /// welcome journey asks a customer who has no account yet where they live,
+  /// and checkout collects who is receiving it later.
+  final bool contactOptional;
+
+  /// Centres the map on the device's own fix as soon as it opens, so the
+  /// customer nudges a pin that is already near their street instead of
+  /// dragging one across the country.
+  final bool autoLocate;
 
   @override
   ConsumerState<AddressEditorScreen> createState() => _AddressEditorScreenState();
@@ -57,6 +80,9 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
   final _city = TextEditingController();
   final _district = TextEditingController();
   final _line = TextEditingController();
+  final _building = TextEditingController();
+  final _floor = TextEditingController();
+  final _apartment = TextEditingController();
   final _customLabel = TextEditingController();
 
   late _Stage _stage = widget.initial?.lat == null ? _Stage.pin : _Stage.details;
@@ -75,11 +101,17 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
     final initial = widget.initial;
     final user = ref.read(sessionProvider).user;
 
-    _name.text = initial?.name ?? user?.name ?? '';
-    _phone.text = _localPhone(initial?.phone ?? user?.phone ?? '');
+    // `??` isn't enough: an address pinned during the welcome journey arrives
+    // here with *empty* contact strings, not absent ones, and the account we
+    // now have is exactly what should fill them.
+    _name.text = _firstFilled([initial?.name, user?.name]);
+    _phone.text = _localPhone(_firstFilled([initial?.phone, user?.phone]));
     _city.text = initial?.city ?? '';
     _district.text = initial?.district ?? '';
     _line.text = initial?.addressLine ?? '';
+    _building.text = initial?.building ?? '';
+    _floor.text = initial?.floor ?? '';
+    _apartment.text = initial?.apartment ?? '';
 
     if (_labelChoice == AddressLabelChoice.other && (initial?.label ?? '').isNotEmpty) {
       _customLabel.text = initial!.label!;
@@ -91,6 +123,14 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
       final current = ref.read(currentLocationProvider);
       if (current.hasCoordinates) _point = LatLng(current.lat!, current.lng!);
       _cityIsAuto = true;
+      if (widget.autoLocate) {
+        // After the first frame: the picker has to exist before it can be told
+        // to centre itself.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final picker = _pinKey.currentState;
+          if (mounted && picker != null) unawaited(picker.locate());
+        });
+      }
     }
   }
 
@@ -101,6 +141,9 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
     _city.dispose();
     _district.dispose();
     _line.dispose();
+    _building.dispose();
+    _floor.dispose();
+    _apartment.dispose();
     _customLabel.dispose();
     super.dispose();
   }
@@ -114,6 +157,9 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
     if (work.contains(label)) return AddressLabelChoice.work;
     return AddressLabelChoice.other;
   }
+
+  static String _firstFilled(List<String?> candidates) =>
+      candidates.firstWhere((e) => e != null && e.trim().isNotEmpty, orElse: () => '')!;
 
   /// `+9665…` / `9665…` → `05…`, so the field shows what people actually type.
   static String _localPhone(String raw) {
@@ -168,19 +214,23 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
       setState(() => _stage = _Stage.pin);
       return;
     }
-    if (_name.text.trim().isEmpty) {
-      AppToast.error(context, l.addressNameRequired);
-      return;
-    }
-    if (normalizeSaudiPhone(_phone.text) == null) {
-      AppToast.error(context, l.authPhoneInvalid);
-      return;
+    if (!widget.contactOptional) {
+      if (_name.text.trim().isEmpty) {
+        AppToast.error(context, l.addressNameRequired);
+        return;
+      }
+      if (normalizeSaudiPhone(_phone.text) == null) {
+        AppToast.error(context, l.authPhoneInvalid);
+        return;
+      }
     }
     if (_city.text.trim().isEmpty) {
       AppToast.error(context, l.addressCityRequired);
       return;
     }
-    if (_line.text.trim().isEmpty) {
+    // Mirrors the server: a building number is itself a description of where
+    // the door is, so only an address with neither is unroutable.
+    if (_line.text.trim().isEmpty && _building.text.trim().isEmpty) {
       AppToast.error(context, l.addressLineRequired);
       return;
     }
@@ -201,6 +251,9 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
         city: _city.text.trim(),
         district: _district.text.trim().isEmpty ? null : _district.text.trim(),
         addressLine: _line.text.trim(),
+        building: _trimmedOrNull(_building),
+        floor: _trimmedOrNull(_floor),
+        apartment: _trimmedOrNull(_apartment),
         lat: point.latitude,
         lng: point.longitude,
         isDefault: widget.initial?.isDefault ?? false,
@@ -209,10 +262,17 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
     ));
   }
 
+  static String? _trimmedOrNull(TextEditingController controller) {
+    final value = controller.text.trim();
+    return value.isEmpty ? null : value;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final editing = widget.initial != null;
+    // A prefilled draft that was never persisted is still a *new* address —
+    // the onboarding pin arrives at checkout with everything typed and no id.
+    final editing = widget.initial?.isSaved ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -278,10 +338,14 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
                 city: _city,
                 district: _district,
                 line: _line,
+                building: _building,
+                floor: _floor,
+                apartment: _apartment,
                 customLabel: _customLabel,
                 labelChoice: _labelChoice,
                 onLabelChoice: (choice) => setState(() => _labelChoice = choice),
                 resolving: _resolving,
+                contactHidden: widget.contactOptional,
               ),
               if (widget.showSaveToggle) ...[
                 Gap.h8,
