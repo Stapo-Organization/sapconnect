@@ -25,8 +25,9 @@ const String _slug = 'applaws';
 
 ProductCard _p(int id) => ProductCard(id: id, name: 'P$id', itemCode: 'C$id', price: 10);
 
+// The chips row shows imaged departments only, so the fixtures carry art.
 CategoryNode _c(int id, String slug, String name, int count) =>
-    CategoryNode(id: id, slug: slug, name: name, count: count);
+    CategoryNode(id: id, slug: slug, name: name, count: count, image: 'https://x/c$id.png');
 
 BrandPage _page() => BrandPage(
       brand: const BrandSummary(slug: _slug, name: 'Applaws', logo: null),

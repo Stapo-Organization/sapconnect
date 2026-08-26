@@ -80,6 +80,7 @@ class BrandStage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hero = page.hero;
+    final statusTop = MediaQuery.paddingOf(context).top;
 
     return Stack(
       fit: StackFit.expand,
@@ -101,6 +102,37 @@ class BrandStage extends StatelessWidget {
               ],
               stops: const [0, 0.46, 1],
             ),
+          ),
+        ),
+
+        // The crest lives ON the stage — a pinned app bar paints over whatever
+        // follows it, so nothing may straddle its bottom edge from outside.
+        // Inside, the logo fills the color instead of leaving it a void, and
+        // it parallax-fades away with the stage on collapse.
+        Padding(
+          padding: EdgeInsetsDirectional.only(top: statusTop + 26, bottom: 18),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              _LogoTile(page: page, accent: brandAccent(context, page)),
+              Gap.h12,
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 24, end: 24),
+                child: Text(
+                  page.name,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.tt.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    shadows: const [
+                      Shadow(color: Color(0x59000000), blurRadius: 12, offset: Offset(0, 2)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -205,20 +237,12 @@ class BrandIdentity extends StatelessWidget {
         ),
     ];
 
+    // The logo and the name live on the stage above; this block carries what
+    // the stage can't say — the words and the facts — on the same center axis.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _LogoTile(page: page, accent: accent),
-        Gap.h12,
-        Text(
-          page.name,
-          maxLines: 2,
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-          style: context.tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        if (tagline.isNotEmpty) ...[
-          Gap.h4,
+        if (tagline.isNotEmpty)
           Text(
             tagline,
             maxLines: 2,
@@ -226,9 +250,8 @@ class BrandIdentity extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
-        ],
         if (facts.isNotEmpty) ...[
-          Gap.h12,
+          if (tagline.isNotEmpty) Gap.h12,
           Wrap(
             spacing: 8,
             runSpacing: 8,

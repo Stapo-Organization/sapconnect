@@ -102,10 +102,15 @@ class BrandCategoryChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (page.categories.isEmpty) return const SizedBox.shrink();
+    // Faces only: a chip whose circle is a generic paw is a word pretending to
+    // be a face. The server already orders by shelf size, biggest first.
+    final categories = [
+      for (final category in page.categories)
+        if ((category.image ?? '').isNotEmpty) category,
+    ];
+    if (categories.isEmpty) return const SizedBox.shrink();
     final l = L.of(context);
     final accent = brandAccent(context, page);
-    final categories = page.categories;
 
     return SizedBox(
       height: _Chip.height,
@@ -274,18 +279,12 @@ class BrandPageSkeleton extends StatelessWidget {
         children: [
           SkeletonBox(width: double.infinity, height: stageHeight, radius: 0),
           const Padding(
-            padding: EdgeInsets.only(top: 14),
+            padding: EdgeInsets.only(top: 16),
             child: Column(
               children: [
-                SkeletonBox(
-                  width: BrandIdentity.tile,
-                  height: BrandIdentity.tile,
-                  radius: ZbTokens.rLg,
-                ),
-                Gap.h12,
-                SkeletonBox(width: 140, height: 18),
-                Gap.h8,
                 SkeletonBox(width: 200, height: 12),
+                Gap.h12,
+                SkeletonBox(width: 240, height: 26, radius: ZbTokens.rPill),
               ],
             ),
           ),

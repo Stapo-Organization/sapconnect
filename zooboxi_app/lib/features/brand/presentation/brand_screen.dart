@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/zb_colors.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/motion/motion.dart';
+import '../../../core/utils/haptics.dart';
+import '../../../core/widgets/bottom_sheet_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/paginated_grid.dart';
@@ -15,6 +17,8 @@ import '../../cart/presentation/add_to_cart.dart';
 import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
+import '../../catalog/presentation/widgets/facet_sheet.dart';
+import '../../catalog/presentation/widgets/sort_sheet.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/brand_identity.dart';
 import 'widgets/brand_sections.dart';
@@ -49,8 +53,15 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
   /// How tall the stage stands before it collapses into the app bar.
   static const double _stage = 188;
 
-  /// Selected department, or null for «الكل».
-  String? _category;
+  /// The grid's whole scope: brand always, plus the chosen department, the
+  /// facet selections and the sort — one object, one reset key.
+  late ListingQuery _query = ListingQuery(brand: widget.slug);
+
+  /// Facets, price bounds and sort options describe the *current* result set —
+  /// captured from whichever page-1 response came back last, as a listing does.
+  List<FacetGroup> _facets = const [];
+  PriceFacet? _priceBounds;
+  List<SortOption> _sortOptions = const [];
 
   /// True once the stage has scrolled away and the bar is a plain app bar.
   bool _collapsed = false;
@@ -80,18 +91,45 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
   }
 
   Future<ListingResult> _fetch(int page) async {
-    final result = await ref.read(catalogRepositoryProvider).products(
-          ListingQuery(brand: widget.slug, category: _category),
-          page,
-        );
+    final result = await ref.read(catalogRepositoryProvider).products(_query, page);
     _seedHearts(result.products);
-    if (page == 1 && result.total != _total) {
+    if (page == 1) {
       // Deferred: this runs inside the grid's own build/fetch cycle.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _total = result.total);
+        if (!mounted) return;
+        setState(() {
+          _total = result.total;
+          _facets = result.facets;
+          _priceBounds = result.price ?? _priceBounds;
+          _sortOptions = result.sortOptions;
+        });
       });
     }
     return result;
+  }
+
+  Future<void> _openFilters() async {
+    Haptics.light();
+    final updated = await showZbSheet<ListingQuery>(
+      context,
+      builder: (_) => FacetSheet(
+        query: _query,
+        facets: _facets,
+        priceBounds: _priceBounds,
+      ),
+    );
+    if (updated != null && mounted) setState(() => _query = updated);
+  }
+
+  Future<void> _openSort() async {
+    Haptics.light();
+    final chosen = await showZbSheet<String>(
+      context,
+      builder: (_) => SortSheet(options: _sortOptions, selected: _query.orderBy),
+    );
+    if (chosen != null && mounted) {
+      setState(() => _query = _query.copyWith(orderBy: chosen));
+    }
   }
 
   /// Hearts settle on the first frame instead of popping in a beat later.
@@ -124,7 +162,8 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
   Widget _loaded(BrandPage brand) {
     final l = L.of(context);
     final curated = brand.products;
-    if (_category == null) _seedHearts(curated);
+    final unscoped = _query.category == null && !_query.hasFilters;
+    if (unscoped) _seedHearts(curated);
 
     // The stage runs behind the status bar, so the clock goes light while it
     // is there and flips back the moment the plain bar takes over.
@@ -136,27 +175,32 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
         body: NotificationListener<ScrollNotification>(
           onNotification: _onScroll,
           child: PaginatedProductGrid(
-            // The chip is the query: switching department restarts paging
-            // rather than appending page 2 of "قطط" onto page 1 of "كلاب".
-            resetKey: _category ?? '',
+            // The whole scope is the reset key: a department chip, a facet or
+            // a sort change each restart paging rather than appending page 2
+            // of one query onto page 1 of another.
+            resetKey: _query,
             fetchPage: _fetch,
             zone: 'brand',
             onAdd: (product) =>
                 addToCart(context, ref, product: product, zone: 'brand', quiet: true),
             leadingSlivers: [
-              _StageBar(page: brand, collapsed: _collapsed, expandedHeight: _stage),
+              _StageBar(
+                page: brand,
+                collapsed: _collapsed,
+                expandedHeight: _stage,
+                activeFilters: _query.activeFilterCount,
+                onSort: _sortOptions.isEmpty ? null : _openSort,
+                onFilters:
+                    _facets.isEmpty && _priceBounds == null ? null : _openFilters,
+              ),
 
-              // The logo tile straddles the stage's bottom edge — half on the
-              // color, half on the page — which is what fuses the two into one
-              // composition. The sliver still measures its full height, so the
-              // slack under the block is the section spacing.
+              // The crest (logo + name) is painted inside the stage above — a
+              // pinned app bar paints over later slivers, so nothing straddles
+              // its edge. Down here: the words and the facts.
               SliverToBoxAdapter(
-                child: Transform.translate(
-                  offset: const Offset(0, -BrandIdentity.tile / 2),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
-                    child: BrandIdentity(page: brand),
-                  ),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 16),
+                  child: BrandIdentity(page: brand),
                 ),
               ),
 
@@ -170,16 +214,21 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
 
               if (brand.categories.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: BrandCategoryChips(
-                    page: brand,
-                    selected: _category,
-                    onSelect: (slug) => setState(() => _category = slug),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: BrandCategoryChips(
+                      page: brand,
+                      selected: _query.category,
+                      onSelect: (slug) => setState(() => _query = slug == null
+                          ? _query.copyWith(clearCategory: true)
+                          : _query.copyWith(category: slug)),
+                    ),
                   ),
                 ),
 
               // The brand's own picks lead, but only on «الكل»: inside a
               // department they would be showing cat food above a dog shelf.
-              if (_category == null && curated.isNotEmpty)
+              if (unscoped && curated.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 20, bottom: 4),
@@ -203,16 +252,18 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
             // where you are, so only the count — which is new information —
             // survives.
             header: _GridHeader(
-              title: _category == null ? l.brandShopAll(brand.name) : null,
+              title: unscoped ? l.brandShopAll(brand.name) : null,
               total: _total,
             ),
             emptyState: EmptyState(
               icon: Icons.search_off_rounded,
               title: l.listingEmpty,
               message: l.listingEmptyHint,
-              actionLabel: _category == null ? null : l.brandAllCategories,
-              onAction:
-                  _category == null ? null : () => setState(() => _category = null),
+              actionLabel: unscoped ? null : l.brandAllCategories,
+              onAction: unscoped
+                  ? null
+                  : () => setState(
+                      () => _query = _query.cleared().copyWith(clearCategory: true)),
             ),
           ),
         ),
@@ -261,11 +312,17 @@ class _StageBar extends StatelessWidget {
     required this.page,
     required this.collapsed,
     required this.expandedHeight,
+    this.activeFilters = 0,
+    this.onSort,
+    this.onFilters,
   });
 
   final BrandPage page;
   final bool collapsed;
   final double expandedHeight;
+  final int activeFilters;
+  final VoidCallback? onSort;
+  final VoidCallback? onFilters;
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +344,24 @@ class _StageBar extends StatelessWidget {
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         onTap: () => context.pop(),
       ),
+      actions: [
+        if (onSort != null)
+          _StageAction(
+            collapsed: collapsed,
+            icon: Icons.swap_vert_rounded,
+            tooltip: L.of(context).listingSort,
+            onTap: onSort!,
+          ),
+        if (onFilters != null)
+          _StageAction(
+            collapsed: collapsed,
+            icon: Icons.tune_rounded,
+            tooltip: L.of(context).listingFilters,
+            badge: activeFilters > 0,
+            onTap: onFilters!,
+          ),
+        const SizedBox(width: 6),
+      ],
       title: AnimatedOpacity(
         opacity: collapsed ? 1 : 0,
         duration: context.motion(Motion.select),
@@ -313,12 +388,16 @@ class _StageAction extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.tooltip,
+    this.badge = false,
   });
 
   final bool collapsed;
   final IconData icon;
   final VoidCallback onTap;
   final String? tooltip;
+
+  /// A live-filters dot on the glyph.
+  final bool badge;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +420,26 @@ class _StageAction extends StatelessWidget {
             tooltip: tooltip,
             iconSize: 20,
             visualDensity: VisualDensity.compact,
-            icon: Icon(icon, color: Color.lerp(Colors.white, cs.onSurface, t)),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, color: Color.lerp(Colors.white, cs.onSurface, t)),
+                if (badge)
+                  PositionedDirectional(
+                    top: -2,
+                    end: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: context.zb.sale,
+                        border: Border.all(color: cs.surface, width: 1.2),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

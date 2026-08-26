@@ -690,9 +690,10 @@ class ListingQuery {
     String? orderBy,
     bool clearPrice = false,
     bool clearOrderBy = false,
+    bool clearCategory = false,
   }) =>
       ListingQuery(
-        category: category ?? this.category,
+        category: clearCategory ? null : (category ?? this.category),
         brand: brand ?? this.brand,
         q: q ?? this.q,
         sku: sku,
