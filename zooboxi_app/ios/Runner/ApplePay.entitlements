@@ -2,17 +2,26 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <!--
-  Apple Pay entitlement — staged, NOT yet wired into the build.
+  Apple Pay entitlement — staged and deliberately NOT wired into the build.
 
-  Wire it only after the merchant chain exists, or automatic signing fails:
-    1. Apple Developer portal → Identifiers → Merchant IDs →
-       create `merchant.com.zooboxi.store`.
-    2. MyFatoorah vendor portal → Apple Pay (embedded) → download the CSR.
-    3. Apple portal → the merchant id → create a Payment Processing
-       Certificate with that CSR → upload the certificate back to MyFatoorah.
-    4. Set CODE_SIGN_ENTITLEMENTS = Runner/ApplePay.entitlements on the three
-       Runner build configurations, and flip the store option
-       `zooboxi_apple_pay_native` to `yes`.
+  The app's Apple Pay is the *embedded* MyFatoorah flow (MFApplePayButton →
+  MFSDK.loadApplePay): the button is MyFatoorah's own Apple Pay page inside a
+  WKWebView, running under THEIR merchant identity and certificates. Their
+  support confirmed (2026-08-26) that embedded needs no merchant id, no
+  payment-processing certificate, and no activation on our side — so this
+  entitlement must stay out of CODE_SIGN_ENTITLEMENTS, where it would only
+  break automatic signing against a merchant id that does not exist.
+
+  The embedded sheet requires iOS 16+ (Apple Pay in WKWebView); on older
+  devices the panel hides the button after two failed arms and the card form
+  carries on. Turning the button on is server-side only: store option
+  `zooboxi_apple_pay_native` = yes — no app release involved.
+
+  Keep this file ONLY for a possible future native PassKit path (MFApplePay /
+  applePayPayment). That path — and only that path — needs the full chain:
+  Apple merchant id `merchant.com.zooboxi.store`, a payment-processing
+  certificate minted from MyFatoorah's CSR, and this file wired into the
+  three Runner build configurations.
 -->
 <dict>
 	<key>com.apple.developer.in-app-payments</key>

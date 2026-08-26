@@ -95,8 +95,11 @@ class _CardPaymentPanelState extends State<CardPaymentPanel> {
   /// failure *after* the card cleared can still be checked with the server.
   String? _pendingInvoice;
 
-  /// Apple Pay renders only when the whole chain is live: the server's flag
-  /// (merchant id + certificate + vendor activation) and an iOS device.
+  /// Apple Pay renders only behind the server's flag and on iOS. The button
+  /// is MyFatoorah's embedded flow — their Apple Pay page in a WKWebView,
+  /// their certificates — so the flag is the *only* switch; there is no
+  /// merchant id or entitlement on our side. WKWebView Apple Pay needs
+  /// iOS 16+; older devices fail the arm and the button hides itself.
   bool get _applePayEnabled =>
       widget.config.applePay &&
       !_applePayBroken &&

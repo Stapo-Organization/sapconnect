@@ -57,9 +57,12 @@ class PaymentConfig {
   /// The `customerReference` the payment must carry. The server verifies by it.
   final String reference;
 
-  /// True once the merchant's Apple Pay chain is live end to end (Apple
-  /// merchant id + certificate + MyFatoorah vendor activation + the app's
-  /// entitlement). Flipped server-side so no release is needed on the day.
+  /// True when the store has switched the embedded Apple Pay button on
+  /// (option `zooboxi_apple_pay_native`). The embedded flow is MyFatoorah's
+  /// own Apple Pay page in a WKWebView under THEIR merchant identity, so no
+  /// Apple merchant id, certificate or entitlement exists on our side —
+  /// their support confirmed this is the whole setup (2026-08-26). Flipped
+  /// server-side so no release is needed on the day.
   final bool applePay;
 
   bool get isLive => environment.toLowerCase() == 'live';
