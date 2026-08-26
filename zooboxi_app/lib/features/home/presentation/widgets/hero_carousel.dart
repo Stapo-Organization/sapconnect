@@ -29,7 +29,9 @@ List<Campaign> heroCampaignsOf(List<Campaign> campaigns) =>
 /// and the painted copy, so the number here and the pixels can't disagree.
 abstract final class HeroMetrics {
   static const double viewportFraction = 0.92;
-  static const double aspect = 1.6;
+  // Owner-tuned (2026-08-26): 1.6 read as too tall on device — a wider, lower
+  // card keeps the hero premium without pushing the shelves below the fold.
+  static const double aspect = 1.9;
   static const double maxTextScale = 1.3;
 
   /// How much taller the card gets at the top of the text-scale range.
