@@ -325,7 +325,9 @@ class Zooboxi_V2_Checkout_Controller
             'billing_email'        => $this->billing_email($address),
             'billing_country'      => 'SA',
             'billing_city'         => $address['city'],
-            'billing_address_1'    => $address['address_line'],
+            // Unit details ride in front of the description — address_2 is
+            // already the district.
+            'billing_address_1'    => Zooboxi_V2_Account_Controller::compose_line($address),
             'billing_address_2'    => $address['district'],
             'billing_postcode'     => '',
             'billing_state'        => '',
@@ -333,7 +335,7 @@ class Zooboxi_V2_Checkout_Controller
             'shipping_last_name'   => '',
             'shipping_country'     => 'SA',
             'shipping_city'        => $address['city'],
-            'shipping_address_1'   => $address['address_line'],
+            'shipping_address_1'   => Zooboxi_V2_Account_Controller::compose_line($address),
             'shipping_address_2'   => $address['district'],
             'shipping_postcode'    => '',
             'shipping_state'       => '',
@@ -609,12 +611,12 @@ class Zooboxi_V2_Checkout_Controller
         $customer->set_billing_phone($address['phone']);
         $customer->set_billing_country('SA');
         $customer->set_billing_city($address['city']);
-        $customer->set_billing_address_1($address['address_line']);
+        $customer->set_billing_address_1(Zooboxi_V2_Account_Controller::compose_line($address));
         $customer->set_billing_address_2($address['district']);
         $customer->set_shipping_first_name($address['name']);
         $customer->set_shipping_country('SA');
         $customer->set_shipping_city($address['city']);
-        $customer->set_shipping_address_1($address['address_line']);
+        $customer->set_shipping_address_1(Zooboxi_V2_Account_Controller::compose_line($address));
         $customer->set_shipping_address_2($address['district']);
     }
 
@@ -672,6 +674,9 @@ class Zooboxi_V2_Checkout_Controller
             'city'         => sanitize_text_field((string) ($raw['city'] ?? '')),
             'district'     => sanitize_text_field((string) ($raw['district'] ?? '')),
             'address_line' => sanitize_text_field((string) ($raw['address_line'] ?? '')),
+            'building'     => sanitize_text_field((string) ($raw['building'] ?? '')),
+            'floor'        => sanitize_text_field((string) ($raw['floor'] ?? '')),
+            'apartment'    => sanitize_text_field((string) ($raw['apartment'] ?? '')),
             'email'        => sanitize_email((string) ($raw['email'] ?? '')),
             'lat'          => (float) ($raw['lat'] ?? 0),
             'lng'          => (float) ($raw['lng'] ?? 0),
@@ -687,7 +692,7 @@ class Zooboxi_V2_Checkout_Controller
         if (!$address['lat'] || !$address['lng'] || abs($address['lat']) > 90 || abs($address['lng']) > 180) {
             return 'coordinates_required';
         }
-        if ($address['address_line'] === '') {
+        if ($address['address_line'] === '' && $address['building'] === '') {
             return 'address_line_required';
         }
         if ($address['city'] === '') {

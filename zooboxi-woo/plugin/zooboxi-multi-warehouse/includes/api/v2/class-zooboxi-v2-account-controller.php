@@ -212,7 +212,7 @@ class Zooboxi_V2_Account_Controller
             if (!is_array($a) || empty($a['id'])) {
                 continue;
             }
-            foreach (['label', 'name', 'city', 'district', 'address_line'] as $field) {
+            foreach (['label', 'name', 'city', 'district', 'address_line', 'building', 'floor', 'apartment'] as $field) {
                 if (isset($a[$field]) && is_string($a[$field])) {
                     $fixed = self::unmangle($a[$field]);
                     if ($fixed !== $a[$field]) {
@@ -333,7 +333,7 @@ class Zooboxi_V2_Account_Controller
             update_user_meta($user_id, $prefix . '_first_name', $default['name']);
             update_user_meta($user_id, $prefix . '_country', 'SA');
             update_user_meta($user_id, $prefix . '_city', $default['city']);
-            update_user_meta($user_id, $prefix . '_address_1', $default['address_line']);
+            update_user_meta($user_id, $prefix . '_address_1', self::compose_line($default));
             update_user_meta($user_id, $prefix . '_address_2', $default['district']);
         }
         if ($default['phone'] !== '') {
@@ -351,11 +351,39 @@ class Zooboxi_V2_Account_Controller
             'city'         => sanitize_text_field((string) ($a['city'] ?? '')),
             'district'     => sanitize_text_field((string) ($a['district'] ?? '')),
             'address_line' => sanitize_text_field((string) ($a['address_line'] ?? '')),
+            'building'     => sanitize_text_field((string) ($a['building'] ?? '')),
+            'floor'        => sanitize_text_field((string) ($a['floor'] ?? '')),
+            'apartment'    => sanitize_text_field((string) ($a['apartment'] ?? '')),
             'lat'          => (float) ($a['lat'] ?? 0),
             'lng'          => (float) ($a['lng'] ?? 0),
             'is_default'   => !empty($a['is_default']),
             'created_at'   => sanitize_text_field((string) ($a['created_at'] ?? '')),
         ];
+    }
+
+    /**
+     * The one line a driver reads: the unit details, then the free
+     * description — «عمارة ٥، الدور ٢، شقة ٣ — بجانب المسجد». WC address_2
+     * already carries the district, so everything else lives in address_1.
+     */
+    public static function compose_line(array $a): string
+    {
+        $bits = [];
+        if (($a['building'] ?? '') !== '') {
+            $bits[] = 'عمارة ' . $a['building'];
+        }
+        if (($a['floor'] ?? '') !== '') {
+            $bits[] = 'الدور ' . $a['floor'];
+        }
+        if (($a['apartment'] ?? '') !== '') {
+            $bits[] = 'شقة ' . $a['apartment'];
+        }
+        $prefix = implode('، ', $bits);
+        $line   = (string) ($a['address_line'] ?? '');
+        if ($prefix === '') {
+            return $line;
+        }
+        return $line === '' ? $prefix : $prefix . ' — ' . $line;
     }
 
     private static function validate(array $a): ?\WP_REST_Response
@@ -369,7 +397,9 @@ class Zooboxi_V2_Account_Controller
         if (!$a['lat'] || !$a['lng'] || abs($a['lat']) > 90 || abs($a['lng']) > 180) {
             return Zooboxi_V2_Bootstrap::fail('coordinates_required', __('حدّد موقع التوصيل على الخريطة', 'zooboxi'), 'Pick the delivery point on the map.', 422);
         }
-        if ($a['address_line'] === '') {
+        // Structured unit fields can stand in for the free description — a
+        // customer who typed building/floor/flat has said where they live.
+        if ($a['address_line'] === '' && ($a['building'] ?? '') === '') {
             return Zooboxi_V2_Bootstrap::fail('address_line_required', __('تفاصيل العنوان مطلوبة', 'zooboxi'), 'Address details are required.', 422);
         }
         if ($a['city'] === '') {
