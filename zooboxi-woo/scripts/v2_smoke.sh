@@ -4,8 +4,11 @@
 #
 #   BASE=https://store.zooboxi.com/wp-json/zooboxi/v2 ./scripts/v2_smoke.sh
 #
-# Read-only + one guest cart line. It never sends an OTP, never places an order and
-# never touches an authenticated route, so it is safe against production.
+# Read-only + one guest cart line. It never sends an OTP and never places an order, so
+# it is safe against production. Authenticated checks run ONLY when TOKEN_USER3 carries
+# a bearer token (they are read-only too), and are skipped otherwise.
+#
+#   TOKEN_USER3=zbat_… BASE=… ./scripts/v2_smoke.sh
 #
 # Requires: curl, jq.
 
@@ -17,6 +20,8 @@ LAT="${LAT:-24.7136}"
 LNG="${LNG:-46.6753}"
 CITY="${CITY:-الرياض}"
 LANG_PARAM="${LANG_PARAM:-ar}"
+# Bearer token for a real customer (user 3 on prod) — enables the authed feed check.
+TOKEN_USER3="${TOKEN_USER3:-${TOKEN:-}}"
 
 PASS=0
 FAIL=0
@@ -42,6 +47,31 @@ call() {
     args+=(-H 'Content-Type: application/json' -d "$body")
   fi
   curl "${args[@]}" "${BASE}${path}" 2>/dev/null || echo "000"
+}
+
+# call_auth <METHOD> <PATH> [json-body] — same as call() plus the bearer token.
+call_auth() {
+  local method="$1" path="$2" body="${3:-}"
+  local args=(-sS -o "$BODY_FILE" -w '%{http_code}' -X "$method"
+    -H 'Accept: application/json'
+    -H "Authorization: Bearer ${TOKEN_USER3}"
+    -H "X-ZB-Guest: ${GUEST}"
+    -H "X-ZB-Lat: ${LAT}"
+    -H "X-ZB-Lng: ${LNG}"
+    -H "X-ZB-City: ${CITY}"
+    -H 'X-ZB-App: smoke/1.0')
+  if [ -n "$body" ]; then
+    args+=(-H 'Content-Type: application/json' -d "$body")
+  fi
+  curl "${args[@]}" "${BASE}${path}" 2>/dev/null || echo "000"
+}
+
+# headers <PATH> — the response headers of a guest GET, lowercased.
+headers() {
+  curl -sS -o /dev/null -D - -X GET \
+    -H 'Accept: application/json' \
+    -H "X-ZB-Guest: ${GUEST}" -H "X-ZB-Lat: ${LAT}" -H "X-ZB-Lng: ${LNG}" -H "X-ZB-City: ${CITY}" \
+    "${BASE}${1}" 2>/dev/null | tr -d '\r' | tr 'A-Z' 'a-z'
 }
 
 expect_status() {
@@ -95,9 +125,31 @@ expect_jq '.data.options | has("express") and has("standard") and has("shipping"
 c_head "GET /home"
 code=$(call GET "/home?lang=${LANG_PARAM}")
 expect_status "$code" 200 "home responds"
-expect_jq '.data | has("hero") and has("campaigns") and has("animal_nav") and has("rails") and has("brands")' "home sections present"
+expect_jq '.data | has("hero") and has("campaigns") and has("animal_nav") and has("rails") and has("brands") and has("layout")' "home sections present"
 expect_jq '.data.rails | type == "array"' "rails is an array"
 expect_jq '(.data.rails | length) == 0 or (.data.rails[0].products | type == "array")' "rails carry product cards"
+
+# The app renders sections in the order the server dictates.
+expect_jq '.data.layout | type == "array" and length >= 10' "layout is an array of 10+ sections"
+expect_jq '[.data.layout[] | has("type")] | all' "every layout entry names a type"
+
+# Never show the same product twice across the home rails.
+expect_jq '[.data.rails[].products[].id] | length == (unique | length)' "no duplicate products across rails"
+
+# Hero is never empty and every slide declares how it should be drawn.
+expect_jq '.data.hero | type == "array" and length > 0' "hero is never empty"
+expect_jq '[.data.hero[] | .kind == "manual" or .kind == "auto"] | all' "hero slides declare a kind"
+expect_jq '[.data.hero[] | select(.kind == "auto") | has("theme") and has("title") and has("product_images")] | all' "auto slides carry theme + copy + artwork"
+
+# Campaigns are owner-gated: an empty set is a legitimate production state.
+CAMPAIGNS=$(jq -r '.data.campaigns | length' "$BODY_FILE" 2>/dev/null || echo 0)
+if [ "${CAMPAIGNS:-0}" -gt 0 ]; then
+  expect_jq '[.data.campaigns[] | has("creatives") and has("ends_at") and has("zones") and has("ab_variant")] | all' "campaign rows carry creatives + ends_at"
+  expect_jq '[.data.campaigns[] | .creatives | type == "object"] | all' "creatives is an object per campaign"
+  expect_jq '[.data.campaigns[] | .creatives | length > 0] | all' "every campaign has at least one creative"
+else
+  c_ok "no live campaigns right now — campaign shape checks skipped"
+fi
 
 # ────────────────────────────────────────────────── categories
 c_head "GET /catalog/categories"
@@ -123,6 +175,7 @@ expect_jq '.data.sort_options | type == "array" and length > 0' "sort options pr
 expect_jq '(.data.products | length) == 0 or (.data.products[0] | has("id") and has("name") and has("price") and has("stock_qty") and has("delivery_chip"))' "card DTO shape"
 expect_jq '(.data.products | length) == 0 or ([.data.products[] | keys[]] | index("cost_price") | not)' "no cost/wholesale fields leaked"
 PID=$(jq -r '.data.products[0].id // empty' "$BODY_FILE")
+PID2=$(jq -r '.data.products[1].id // empty' "$BODY_FILE")
 
 # ──────────────────────────────────────── listing ETag → 304
 c_head "GET /catalog/products (If-None-Match)"
@@ -149,6 +202,67 @@ if [ -n "$PID" ]; then
   expect_jq '.data | has("fbt") and has("substitutes")' "recommendation slots present"
 else
   c_bad "no product id from the listing — PDP skipped"
+fi
+
+# ────────────────────────────────────── rail-scoped listings
+# The app's "عرض الكل" on a home rail must keep the rail's filter, with real paging.
+c_head "GET /catalog/products?rail=…"
+code=$(call GET "/catalog/products?rail=trending&per_page=6&lang=${LANG_PARAM}")
+expect_status "$code" 200 "rail=trending responds"
+expect_jq '.data.rail == "trending"' "rail echoed back"
+expect_jq '.data.products | type == "array"' "rail listing returns an array"
+expect_jq '.data | has("total") and has("pages") and has("page")' "rail listing paginates"
+RAIL_N=$(jq -r '.data.products | length' "$BODY_FILE" 2>/dev/null || echo 0)
+if [ "${RAIL_N:-0}" -gt 0 ]; then
+  c_ok "rail=trending returned ${RAIL_N} products"
+else
+  c_ok "rail=trending is empty right now (no fast movers) — count check skipped"
+fi
+
+code=$(call GET "/catalog/products?rail=clearance&page=2&per_page=6&lang=${LANG_PARAM}")
+expect_status "$code" 200 "rail=clearance page 2 responds"
+expect_jq '.ok == true' "page 2 envelope ok"
+expect_jq '.data.page == 2 and .data.rail == "clearance"' "page + rail echoed on page 2"
+
+code=$(call GET "/catalog/products?rail=not-a-rail&per_page=6")
+expect_status "$code" 200 "unknown rail still responds"
+expect_jq '.data.rail == null' "unknown rail value is ignored"
+
+# ─────────────────────────────────────────── home feed (guest)
+c_head "GET /home/feed (guest)"
+RECENT=""
+[ -n "$PID" ] && RECENT="$PID"
+[ -n "${PID2:-}" ] && RECENT="${RECENT:+${RECENT},}${PID2}"
+code=$(call GET "/home/feed?recent_ids=${RECENT}&lang=${LANG_PARAM}")
+expect_status "$code" 200 "home feed responds"
+expect_jq '.ok == true' "envelope ok"
+expect_jq '.data | has("personal") and has("foryou") and has("incity") and has("login_nudge")' "feed slots present"
+expect_jq '.data.personal | has("kind") and has("title") and has("products")' "personal slot shaped"
+expect_jq '.data.personal.kind | . == "buyagain" or . == "recent" or . == "none"' "personal.kind is a known kind"
+expect_jq '.data.personal.kind != "buyagain"' "a guest never gets buy-again"
+expect_jq '.data.login_nudge == true' "guest gets the login nudge"
+expect_jq '.data.foryou == null or (.data.foryou | has("title") and (.products | type == "array"))' "foryou is null or a rail"
+expect_jq '.data.incity == null or (.data.incity | has("title") and (.products | type == "array"))' "incity is null or a rail"
+expect_jq '[.data.personal.products[], (.data.foryou.products // [])[], (.data.incity.products // [])[] | .id] | length == (unique | length)' "no product repeats across feed slots"
+expect_jq '(.data.personal.products | length) == 0 or ([.data.personal.products[] | keys[]] | index("cost_price") | not)' "no cost/wholesale fields in the feed"
+
+CC=$(headers "/home/feed?recent_ids=${RECENT}" | awk '/^cache-control:/{ $1=""; print }')
+case "$CC" in
+  *no-store*) c_ok "feed is private, no-store" ;;
+  *)          c_bad "feed Cache-Control is missing no-store (got:${CC:-<none>})" ;;
+esac
+
+# ─────────────────────────────────── home feed (authenticated)
+c_head "GET /home/feed (bearer)"
+if [ -n "$TOKEN_USER3" ]; then
+  code=$(call_auth GET "/home/feed?recent_ids=${RECENT}&lang=${LANG_PARAM}")
+  expect_status "$code" 200 "authenticated feed responds"
+  expect_jq '.ok == true' "authenticated envelope ok"
+  expect_jq '.data.login_nudge == false' "no login nudge for a signed-in customer"
+  expect_jq '.data.personal.kind | . == "buyagain" or . == "recent" or . == "none"' "personal.kind is a known kind"
+  expect_jq '.data.personal.kind != "buyagain" or ([.data.personal.products[] | has("last_ordered_days") and has("due")] | all)' "buy-again cards carry the reorder signal"
+else
+  c_ok "TOKEN_USER3 not set — authenticated feed checks skipped"
 fi
 
 # ───────────────────────────────────────────────────── suggest

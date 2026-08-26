@@ -486,6 +486,7 @@ class Zooboxi_V2_Bootstrap
         $auth     = new Zooboxi_V2_Auth_Controller();
         $location = new Zooboxi_V2_Location_Controller();
         $catalog  = new Zooboxi_V2_Catalog_Controller();
+        $feed     = new Zooboxi_V2_Feed_Controller();
         $cart     = new Zooboxi_V2_Cart_Controller();
         $checkout = new Zooboxi_V2_Checkout_Controller();
         $orders   = new Zooboxi_V2_Orders_Controller();
@@ -496,6 +497,7 @@ class Zooboxi_V2_Bootstrap
         $auth->register_routes();
         $location->register_routes();
         $catalog->register_routes();
+        $feed->register_routes();
         $cart->register_routes();
         $checkout->register_routes();
         $orders->register_routes();
@@ -550,6 +552,8 @@ class Zooboxi_V2_Bootstrap
                 $customer_id = (int) $order->get_customer_id();
                 if ($customer_id > 0) {
                     delete_transient('zb_v2_buyagain_' . $customer_id);
+                    // …and the dated variant the app's home feed reads.
+                    delete_transient('zb_v2_buyagain2_' . $customer_id);
                 }
             }
 

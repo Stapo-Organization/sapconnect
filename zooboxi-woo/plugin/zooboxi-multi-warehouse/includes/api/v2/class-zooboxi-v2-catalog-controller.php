@@ -18,10 +18,46 @@ class Zooboxi_V2_Catalog_Controller
     private const PER_PAGE_DEFAULT = 24;
     private const PER_PAGE_MAX     = 48;
 
+    /** Hero: how many manual banners count as "enough" before auto slides fill in. */
+    private const HERO_MIN_MANUAL = 2;
+
+    /** Hero: hard cap on slides returned (manual + auto). */
+    private const HERO_MAX = 5;
+
+    /** Products per home rail after cross-rail dedup. */
+    private const RAIL_SIZE = 12;
+
     /** The 11 faceted attribute taxonomies the store curates. */
     public const FACET_TAXONOMIES = [
         'pa_brand', 'pa_age', 'pa_flavor', 'pa_food-type', 'pa_health', 'pa_litter-type',
         'pa_color', 'pa_material', 'pa_product-type', 'pa_size-opt', 'pa_weight-opt',
+    ];
+
+    /** `?rail=` on the listing → the rail query builder that shapes it. */
+    private const RAIL_QUERIES = [
+        'trending'    => 'q_trending',
+        'bestsellers' => 'q_bestsellers',
+        'new'         => 'q_new',
+        'clearance'   => 'q_clearance',
+    ];
+
+    /** The default app home composition (option `zooboxi_app_home_layout` overrides). */
+    private const DEFAULT_LAYOUT = [
+        ['type' => 'hero'],
+        ['type' => 'animal_nav'],
+        ['type' => 'personal'],
+        ['type' => 'shipping_nudge'],
+        ['type' => 'rail', 'key' => 'trending'],
+        ['type' => 'banner', 'index' => 0],
+        ['type' => 'feed_rail', 'key' => 'foryou'],
+        ['type' => 'rail', 'key' => 'bestsellers'],
+        ['type' => 'feed_rail', 'key' => 'incity'],
+        ['type' => 'clearance_band'],
+        ['type' => 'rail', 'key' => 'new'],
+        ['type' => 'banner', 'index' => 1],
+        ['type' => 'wishlist_rail'],
+        ['type' => 'brands'],
+        ['type' => 'trust'],
     ];
 
     public function register_routes(): void
@@ -43,23 +79,28 @@ class Zooboxi_V2_Catalog_Controller
 
     public function home(\WP_REST_Request $request): \WP_REST_Response
     {
+        // Rails run FIRST: they warm the shared `zbhome_ids_*` pools the hero's auto
+        // slides peek at for their clearance / bestsellers artwork.
+        // `$used` carries every id already shown so the four rails never repeat a
+        // product (same accumulator pattern as Zooboxi_Homepage::cached_rail()).
+        $used  = [];
         $rails = [
             $this->rail('trending', __('رائج الآن', 'zooboxi'), [
                 Zooboxi_Product_Rail::q_trending(24),
                 Zooboxi_Product_Rail::q_top_ranked(24),
-            ]),
+            ], $used),
             $this->rail('bestsellers', __('الأكثر طلباً', 'zooboxi'), [
                 Zooboxi_Product_Rail::q_bestsellers(24),
                 Zooboxi_Product_Rail::q_top_ranked(24),
                 Zooboxi_Product_Rail::q_newest(24),
-            ]),
+            ], $used),
             $this->rail('new', __('وصل حديثاً', 'zooboxi'), [
                 Zooboxi_Product_Rail::q_new(24),
                 Zooboxi_Product_Rail::q_newest(24),
-            ]),
+            ], $used),
             $this->rail('clearance', __('عروض التصفية', 'zooboxi'), [
                 Zooboxi_Product_Rail::q_clearance(24),
-            ]),
+            ], $used),
         ];
 
         return Zooboxi_V2_Bootstrap::ok([
@@ -68,54 +109,306 @@ class Zooboxi_V2_Catalog_Controller
             'animal_nav'    => $this->animal_nav(),
             'rails'         => array_values(array_filter($rails)),
             'brands'        => $this->brand_list(12),
+            'layout'        => $this->layout(),
             'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
         ], Zooboxi_V2_Bootstrap::TTL_HOME);
     }
 
-    /** Owner-uploaded hero banners (option `zooboxi_hero_slides`) exposed as data. */
+    /**
+     * The section order the app renders. Owner-overridable through the option
+     * `zooboxi_app_home_layout` (a JSON string or a plain array); anything that does
+     * not decode to a non-empty array falls back to the shipped composition.
+     */
+    private function layout(): array
+    {
+        $raw = get_option('zooboxi_app_home_layout', '');
+        if (is_string($raw) && trim($raw) !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && !empty($decoded)) {
+                return array_values($decoded);
+            }
+        }
+        if (is_array($raw) && !empty($raw)) {
+            return array_values($raw);
+        }
+        return self::DEFAULT_LAYOUT;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       HERO — owner banners first, on-brand auto slides so it is never empty
+       ══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Owner-uploaded hero banners (option `zooboxi_hero_slides`) exposed as data, then
+     * — when the owner has fewer than two live banners — structured AUTO slides the app
+     * renders natively (no image needed). Mirrors the website's never-empty hero
+     * (Zooboxi_Hero_Slider::auto_slides) without touching that class.
+     */
     private function hero_slides(): array
     {
+        $out = [];
         $raw = get_option('zooboxi_hero_slides', []);
-        if (!is_array($raw) || empty($raw)) {
-            return [];
+
+        if (is_array($raw) && !empty($raw)) {
+            $now = current_time('timestamp');
+            foreach ($raw as $r) {
+                if (!is_array($r) || empty($r['active']) || empty($r['image'])) {
+                    continue;
+                }
+                if (!empty($r['start']) && strtotime((string) $r['start']) > $now) {
+                    continue;
+                }
+                if (!empty($r['end']) && strtotime((string) $r['end']) < $now) {
+                    continue;
+                }
+                $out[] = [
+                    'kind'         => 'manual',
+                    'image'        => esc_url_raw((string) $r['image']),
+                    'image_mobile' => !empty($r['image_mobile']) ? esc_url_raw((string) $r['image_mobile']) : null,
+                    'link'         => !empty($r['link']) ? esc_url_raw((string) $r['link']) : null,
+                    'headline'     => (string) ($r['headline'] ?? ''),
+                    'subheadline'  => (string) ($r['subheadline'] ?? ''),
+                    'cta_label'    => (string) ($r['cta_label'] ?? ''),
+                    'order'        => (int) ($r['order'] ?? 0),
+                ];
+            }
+            usort($out, static fn ($a, $b) => $a['order'] <=> $b['order']);
         }
 
-        $now = current_time('timestamp');
-        $out = [];
-        foreach ($raw as $r) {
-            if (!is_array($r) || empty($r['active']) || empty($r['image'])) {
-                continue;
-            }
-            if (!empty($r['start']) && strtotime((string) $r['start']) > $now) {
-                continue;
-            }
-            if (!empty($r['end']) && strtotime((string) $r['end']) < $now) {
-                continue;
-            }
-            $out[] = [
-                'image'        => esc_url_raw((string) $r['image']),
-                'image_mobile' => !empty($r['image_mobile']) ? esc_url_raw((string) $r['image_mobile']) : null,
-                'link'         => !empty($r['link']) ? esc_url_raw((string) $r['link']) : null,
-                'headline'     => (string) ($r['headline'] ?? ''),
-                'subheadline'  => (string) ($r['subheadline'] ?? ''),
-                'cta_label'    => (string) ($r['cta_label'] ?? ''),
-                'order'        => (int) ($r['order'] ?? 0),
-            ];
+        if (count($out) >= self::HERO_MIN_MANUAL) {
+            return array_slice($out, 0, self::HERO_MAX);
         }
-        usort($out, static fn ($a, $b) => $a['order'] <=> $b['order']);
+
+        foreach ($this->auto_hero_slides() as $auto) {
+            if (count($out) >= self::HERO_MAX) {
+                break;
+            }
+            $out[] = $auto;
+        }
         return $out;
     }
 
-    /** Live owner-approved campaigns, straight from the cache Zooboxi_Campaigns keeps. */
+    /**
+     * Data-driven hero panels: the express promise, live clearance, a featured brand and
+     * the bestsellers pool. Composition ported from Zooboxi_Hero_Slider::auto_slides();
+     * the app draws them, so we ship copy + artwork instead of a baked banner.
+     */
+    private function auto_hero_slides(): array
+    {
+        $shop = function_exists('wc_get_page_permalink') ? (wc_get_page_permalink('shop') ?: null) : null;
+        $out  = [];
+
+        // 1) Express promise — always true, always available.
+        $out[] = $this->auto_slide(
+            'express',
+            Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered in two hours'),
+            Zooboxi_V2_Bootstrap::pick('من أقرب مستودع إليك داخل مدينتك', 'From the nearest warehouse in your city'),
+            Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
+            $shop
+        );
+
+        // 2) Clearance — only when the collection actually has stock.
+        $clearance = $this->pool_ids('clearance', [Zooboxi_Product_Rail::q_clearance(4)]);
+        if (!empty($clearance)) {
+            // No clearance archive exists on the website, so the app routes this slide
+            // by `theme` (its own /clearance surface) rather than by URL.
+            $out[] = $this->auto_slide(
+                'clearance',
+                Zooboxi_V2_Bootstrap::pick('عروض التصفية', 'Clearance offers'),
+                Zooboxi_V2_Bootstrap::pick('أسعار مخفّضة على منتجات مختارة بكميات محدودة', 'Reduced prices on selected products, limited quantities'),
+                Zooboxi_V2_Bootstrap::pick('اكتشف العروض', 'View the offers'),
+                null,
+                null,
+                self::thumbs($clearance, 4)
+            );
+        }
+
+        // 3) Featured brand (shares the website's 6h `zbhero_featured_brand` transient).
+        $brand = $this->featured_brand();
+        if ($brand !== null) {
+            $out[] = $this->auto_slide(
+                'brand',
+                sprintf(Zooboxi_V2_Bootstrap::pick('ماركة %s', '%s'), $brand['name']),
+                Zooboxi_V2_Bootstrap::pick('منتجات أصلية مستوردة مباشرة', 'Original products, imported directly'),
+                Zooboxi_V2_Bootstrap::pick('تسوّق الماركة', 'Shop the brand'),
+                $brand['link'],
+                ['name' => $brand['name'], 'logo' => $brand['logo']]
+            );
+        }
+
+        // 4) Bestsellers.
+        $out[] = $this->auto_slide(
+            'bestsellers',
+            Zooboxi_V2_Bootstrap::pick('الأكثر مبيعاً', 'Best sellers'),
+            Zooboxi_V2_Bootstrap::pick('اختيارات عملائنا الأكثر طلباً', 'What our customers order most'),
+            Zooboxi_V2_Bootstrap::pick('تصفّح القائمة', 'Browse the list'),
+            $shop,
+            null,
+            self::thumbs($this->pool_ids('bestsellers', []), 4)
+        );
+
+        return $out;
+    }
+
+    private function auto_slide(
+        string $theme,
+        string $title,
+        string $subtitle,
+        string $cta,
+        ?string $link,
+        ?array $brand = null,
+        array $images = []
+    ): array {
+        return [
+            'kind'           => 'auto',
+            'theme'          => $theme,
+            'title'          => $title,
+            'subtitle'       => $subtitle,
+            'cta_label'      => $cta,
+            'link'           => $link ? esc_url_raw($link) : null,
+            'brand'          => $brand,
+            'product_images' => array_values($images),
+        ];
+    }
+
+    /**
+     * Peek a shared `zbhome_ids_{key}_{locale}` pool. `$fallback` queries run ONLY when
+     * the transient is cold (the home rails normally warm it moments earlier).
+     *
+     * @return int[]
+     */
+    private function pool_ids(string $key, array $fallback): array
+    {
+        $ids = get_transient('zbhome_ids_' . $key . '_' . get_locale());
+        if (is_array($ids)) {
+            return array_map('intval', $ids);
+        }
+        foreach ($fallback as $args) {
+            $args['fields']        = 'ids';
+            $args['no_found_rows'] = true;
+            $q   = new WP_Query($args);
+            $ids = is_array($q->posts) ? array_map('intval', $q->posts) : [];
+            wp_reset_postdata();
+            if (!empty($ids)) {
+                return $ids;
+            }
+        }
+        return [];
+    }
+
+    /** Up to `$limit` product thumbnails, skipping anything without artwork. */
+    private static function thumbs(array $ids, int $limit): array
+    {
+        $out = [];
+        foreach ($ids as $id) {
+            if (count($out) >= $limit) {
+                break;
+            }
+            $url = wp_get_attachment_image_url(get_post_thumbnail_id((int) $id), 'medium');
+            if ($url) {
+                $out[] = $url;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Highest-product-count brand that has an uploaded logo — same rule (and the same
+     * 6h transient) as the website's hero, so both surfaces feature the same brand.
+     *
+     * @return array{name:string,logo:string,link:?string}|null
+     */
+    private function featured_brand(): ?array
+    {
+        $cached = get_transient('zbhero_featured_brand');
+        if (is_array($cached)) {
+            return !empty($cached['name']) ? $this->brand_slide_payload($cached) : null;
+        }
+
+        $terms = get_terms([
+            'taxonomy'   => 'product_brand',
+            'hide_empty' => true,
+            'orderby'    => 'count',
+            'order'      => 'DESC',
+            'number'     => 12,
+        ]);
+
+        $found = null;
+        if (!is_wp_error($terms)) {
+            foreach ($terms as $t) {
+                $logo_id = (int) get_term_meta($t->term_id, 'thumbnail_id', true);
+                if (!$logo_id) {
+                    continue;
+                }
+                $url = wp_get_attachment_image_url($logo_id, 'medium');
+                if (!$url) {
+                    continue;
+                }
+                $link  = get_term_link($t);
+                $found = [
+                    'name' => (string) $t->name,
+                    'logo' => (string) $url,
+                    'link' => is_string($link) ? $link : '',
+                ];
+                break;
+            }
+        }
+
+        set_transient('zbhero_featured_brand', $found ?: [], 6 * HOUR_IN_SECONDS);
+        return $found ? $this->brand_slide_payload($found) : null;
+    }
+
+    /**
+     * Normalise a `zbhero_featured_brand` row (the website writes `link` straight from
+     * get_term_link(), which can be a WP_Error — never cast that to a string).
+     *
+     * @return array{name:string,logo:?string,link:?string}
+     */
+    private function brand_slide_payload(array $row): array
+    {
+        $logo = isset($row['logo']) && is_string($row['logo']) ? trim($row['logo']) : '';
+        $link = isset($row['link']) && is_string($row['link']) ? trim($row['link']) : '';
+
+        return [
+            'name' => (string) ($row['name'] ?? ''),
+            'logo' => $logo !== '' ? esc_url_raw($logo) : null,
+            'link' => $link !== '' ? esc_url_raw($link) : null,
+        ];
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       CAMPAIGNS
+       ══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Live owner-approved campaigns as structured data (the app composes the banner
+     * itself, so every creative size ships side by side).
+     *
+     * Honours the master toggle, self-heals a cold cache the way the website's hero
+     * does, and picks the A/B variant deterministically per requester so one device
+     * always sees the same arm.
+     */
     private function campaigns(): array
     {
+        if (get_option('zooboxi_campaigns_enabled', 'no') !== 'yes') {
+            return [];
+        }
+
         $cached = get_transient('zooboxi_campaigns_cache');
+        // Cold cache (expired / flushed) → pull the live set now, exactly like
+        // Zooboxi_Hero_Slider::campaign_slides(), so the app never loses the banners
+        // between the hourly sync cron runs.
+        if ($cached === false && class_exists('Zooboxi_Campaigns')) {
+            $cached = (new Zooboxi_Campaigns())->sync_campaigns();
+        }
         if (!is_array($cached) || empty($cached)) {
             return [];
         }
 
-        $now = current_time('timestamp');
-        $out = [];
+        $identity = $this->requester_identity();
+        $now      = current_time('timestamp');
+        $out      = [];
+
         foreach ($cached as $c) {
             if (!is_array($c)) {
                 continue;
@@ -123,29 +416,87 @@ class Zooboxi_V2_Catalog_Controller
             if (!empty($c['ends_at']) && strtotime((string) $c['ends_at']) < $now) {
                 continue;
             }
-
-            $variant   = 'A';
-            $creatives = (isset($c['creatives'][$variant]) && is_array($c['creatives'][$variant])) ? $c['creatives'][$variant] : [];
-            $image     = $creatives['hero'] ?? ($creatives['wide'] ?? ($creatives['strip'] ?? null));
-            if (!$image) {
+            if (!empty($c['starts_at']) && strtotime((string) $c['starts_at']) > $now) {
                 continue;
             }
 
-            $woo_id = (int) ($c['woo_product_id'] ?? 0);
-            $zones  = is_array($c['zones'] ?? null) ? array_values(array_map('strval', $c['zones'])) : [];
+            $campaign_id = (string) ($c['id'] ?? '');
+            $variant     = (!empty($c['ab_enabled']) && !empty($c['creatives']['B']))
+                ? ((crc32('zbab|' . $campaign_id . '|' . $identity) % 2) ? 'B' : 'A')
+                : 'A';
+
+            $creatives = self::creative_set($c, $variant);
+            if (empty($creatives)) {
+                // Fall back to the other arm before dropping the campaign entirely.
+                $variant   = $variant === 'B' ? 'A' : 'B';
+                $creatives = self::creative_set($c, $variant);
+            }
+            if (empty($creatives)) {
+                continue;
+            }
+
+            $woo_id    = (int) ($c['woo_product_id'] ?? 0);
+            $item_code = trim((string) ($c['item_code'] ?? ''));
+            $discount  = (int) ($c['discount_pct'] ?? 0);
+            $coupon    = trim((string) ($c['coupon_code'] ?? ''));
 
             $out[] = [
-                'campaign_id' => (int) ($c['id'] ?? 0),
-                'ab_variant'  => $variant,
-                'zones'       => $zones,
-                'image'       => esc_url_raw((string) $image),
-                'headline'    => (string) ($c['headline_ar'] ?? ''),
-                'item_code'   => (string) ($c['item_code'] ?? ''),
-                'product_id'  => $woo_id ?: null,
-                'link'        => $woo_id ? get_permalink($woo_id) : null,
+                'campaign_id'   => $campaign_id,
+                'ab_variant'    => $variant,
+                // Passed through verbatim — Laravel keeps adding placements
+                // (`app_hero`, `app_banner`, …) and the app decides what it honours.
+                'zones'         => is_array($c['zones'] ?? null) ? array_values(array_map('strval', $c['zones'])) : [],
+                'campaign_type' => !empty($c['campaign_type']) ? (string) $c['campaign_type'] : null,
+                'headline'      => (string) ($c['headline_ar'] ?? ''),
+                'subheadline'   => (string) ($c['subheadline_ar'] ?? ''),
+                'cta'           => (string) ($c['cta_ar'] ?? ''),
+                'badge'         => (string) ($c['badge_ar'] ?? ''),
+                'coupon_code'   => $coupon !== '' ? $coupon : null,
+                'discount_pct'  => $discount > 0 ? $discount : null,
+                'starts_at'     => !empty($c['starts_at']) ? (string) $c['starts_at'] : null,
+                'ends_at'       => !empty($c['ends_at']) ? (string) $c['ends_at'] : null,
+                'item_code'     => $item_code !== '' ? $item_code : null,
+                'product_id'    => $woo_id ?: null,
+                'link'          => $woo_id ? (get_permalink($woo_id) ?: null) : null,
+                'creatives'     => $creatives,
             ];
         }
         return $out;
+    }
+
+    /**
+     * The non-empty creative URLs of one A/B arm, keyed by placement.
+     *
+     * @return array<string,string>
+     */
+    private static function creative_set(array $campaign, string $variant): array
+    {
+        $set = $campaign['creatives'][$variant] ?? null;
+        if (!is_array($set)) {
+            return [];
+        }
+        $out = [];
+        foreach (['hero', 'wide', 'card', 'strip', 'app_hero'] as $slot) {
+            $url = isset($set[$slot]) ? trim((string) $set[$slot]) : '';
+            if ($url !== '') {
+                $out[$slot] = esc_url_raw($url);
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * A stable identity for A/B bucketing: the signed-in user, else the device's
+     * X-ZB-Guest id, else 'anon' (everyone unidentified shares arm A's bucket rules).
+     */
+    private function requester_identity(): string
+    {
+        $uid = get_current_user_id();
+        if ($uid > 0) {
+            return 'u' . $uid;
+        }
+        $guest = Zooboxi_V2_Bootstrap::guest_id();
+        return $guest !== '' ? 'g' . $guest : 'anon';
     }
 
     /**
@@ -185,8 +536,14 @@ class Zooboxi_V2_Catalog_Controller
     /**
      * One home rail. Shares the website's `zbhome_ids_{key}_{locale}` id transients so
      * both surfaces show the same products for the same hour.
+     *
+     * The transient stores the RAW pool (24 ids). Dedup happens per request, after the
+     * cache read: `$used` accumulates every id already emitted this response, so a
+     * bestseller that is also trending appears exactly once across the home rails.
+     *
+     * @param int[] $used Ids already shown — read and extended in place.
      */
-    private function rail(string $key, string $title, array $queries): ?array
+    private function rail(string $key, string $title, array $queries, array &$used): ?array
     {
         $tkey = 'zbhome_ids_' . $key . '_' . get_locale();
         $ids  = get_transient($tkey);
@@ -203,13 +560,19 @@ class Zooboxi_V2_Catalog_Controller
                     break;
                 }
             }
+            // Cache the raw pool — never the deduped slice, which is request-specific.
             set_transient($tkey, $ids, HOUR_IN_SECONDS);
         }
 
-        $ids = array_slice(is_array($ids) ? $ids : [], 0, 12);
+        $ids = array_map('intval', is_array($ids) ? $ids : []);
+        if (!empty($used)) {
+            $ids = array_values(array_diff($ids, $used));
+        }
+        $ids = array_slice($ids, 0, self::RAIL_SIZE);
         if (empty($ids)) {
             return null;
         }
+        $used = array_merge($used, $ids);
 
         return [
             'key'      => $key,
@@ -345,9 +708,18 @@ class Zooboxi_V2_Catalog_Controller
         $page     = max(1, (int) $request->get_param('page'));
         $per_page = (int) $request->get_param('per_page');
         $per_page = $per_page > 0 ? min(self::PER_PAGE_MAX, $per_page) : self::PER_PAGE_DEFAULT;
-        $orderby  = sanitize_text_field((string) ($request->get_param('orderby') ?: 'recommended'));
+        $raw_sort = sanitize_text_field((string) $request->get_param('orderby'));
+        $orderby  = $raw_sort !== '' ? $raw_sort : 'recommended';
         $search   = sanitize_text_field((string) $request->get_param('q'));
         $sku      = sanitize_text_field((string) $request->get_param('sku'));
+
+        // `?rail=` reproduces a home rail as a full, paginated listing — the app's
+        // "عرض الكل" keeps the rail's filter instead of falling back to the catalogue.
+        $rail      = sanitize_key((string) $request->get_param('rail'));
+        $rail_args = self::rail_listing_args($rail, $per_page);
+        if (empty($rail_args)) {
+            $rail = '';
+        }
 
         $category = $this->resolve_category($request->get_param('category'));
 
@@ -416,12 +788,21 @@ class Zooboxi_V2_Catalog_Controller
             ];
         }
 
+        // The rail's own meta conditions ride in as ONE nested group, so its internal
+        // relation (bestsellers is an OR pair) survives the merge with the facets.
+        if (!empty($rail_args['meta_query'])) {
+            $meta_query[] = $rail_args['meta_query'];
+        }
+
         $args = [
             'post_type'           => 'product',
             'post_status'         => 'publish',
             'posts_per_page'      => $per_page,
             'paged'               => $page,
             'ignore_sticky_posts' => true,
+            // A listing must count: Zooboxi_Product_Rail::base() opts out, and the rail
+            // args are merged in below.
+            'no_found_rows'       => false,
             'tax_query'           => $tax_query,
             // The flag both posts_clauses filters look for (web queries never set it).
             'zooboxi_v2_listing'  => 1,
@@ -435,6 +816,12 @@ class Zooboxi_V2_Catalog_Controller
         }
 
         $args = array_merge($args, $this->orderby_args($orderby));
+
+        // An explicit ?orderby wins; otherwise the rail's own ranking defines the page.
+        if ($rail !== '' && $raw_sort === '' && !empty($rail_args['orderby'])) {
+            unset($args['meta_key']);
+            $args = array_merge($args, $rail_args['orderby']);
+        }
 
         $plugin       = class_exists('Zooboxi_Plugin') ? Zooboxi_Plugin::instance() : null;
         $added_sort   = false;
@@ -470,10 +857,53 @@ class Zooboxi_V2_Catalog_Controller
             'page'          => $page,
             'per_page'      => $per_page,
             'orderby'       => $orderby,
+            'rail'          => $rail !== '' ? $rail : null,
             'facets'        => $this->facets($category),
             'sort_options'  => self::sort_options(),
             'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
         ], Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /**
+     * The meta conditions + ranking of a home rail, reshaped for a paginated listing.
+     * Everything else in the rail args (post_type, the visibility tax_query, the
+     * no_found_rows opt-out, its own posts_per_page) is deliberately dropped — the
+     * listing already sets those, and a listing must count its rows.
+     *
+     * @return array{meta_query?:array,orderby?:array} Empty for an unknown rail key.
+     */
+    private static function rail_listing_args(string $rail, int $per_page): array
+    {
+        $builder = self::RAIL_QUERIES[$rail] ?? null;
+        if ($builder === null || !method_exists('Zooboxi_Product_Rail', $builder)) {
+            return [];
+        }
+
+        $source = call_user_func(['Zooboxi_Product_Rail', $builder], $per_page);
+        if (!is_array($source)) {
+            return [];
+        }
+        $out = [];
+
+        if (!empty($source['meta_query']) && is_array($source['meta_query'])) {
+            $out['meta_query'] = $source['meta_query'];
+        }
+
+        $orderby = [];
+        if (!empty($source['meta_key'])) {
+            $orderby['meta_key'] = (string) $source['meta_key'];
+        }
+        if (!empty($source['orderby'])) {
+            $orderby['orderby'] = $source['orderby'];
+        }
+        if (!empty($source['order'])) {
+            $orderby['order'] = (string) $source['order'];
+        }
+        if (!empty($orderby)) {
+            $out['orderby'] = $orderby;
+        }
+
+        return $out;
     }
 
     /**

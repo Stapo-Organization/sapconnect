@@ -100,6 +100,7 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-auth-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-location-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-catalog-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-feed-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-cart-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-checkout-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-orders-controller.php';
