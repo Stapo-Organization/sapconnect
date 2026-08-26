@@ -450,16 +450,22 @@ class Zooboxi_V2_Cart_Controller
             $pid = (int) ($item['product_id'] ?? 0);
             $qty = (int) ($item['quantity'] ?? 0);
 
+            // Pack lines (كرتون = N حبة) consume N pieces per unit — the plan
+            // is asked for pieces, the answers are given back in units.
+            $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_cart_item($item) : 1;
+
             $plan = ($lat && $lng)
-                ? Zooboxi_Fulfillment::resolve($pid, max(1, $qty), $lat, $lng)
+                ? Zooboxi_Fulfillment::resolve($pid, max(1, $qty) * $units, $lat, $lng)
                 : null;
 
             // Cap like every other stock figure (an exact warehouse count is commercial
             // information) — but never below the line's own qty, or the stepper would
             // wrongly flag an already-valid line as over the limit.
             $raw_reachable = $plan
-                ? (int) $plan['reachable_total']
-                : (($product->get_stock_quantity() === null) ? null : (int) $product->get_stock_quantity());
+                ? Zooboxi_Units::units_from_pieces((int) $plan['reachable_total'], $units)
+                : (($product->get_stock_quantity() === null)
+                    ? null
+                    : Zooboxi_Units::units_from_pieces((int) $product->get_stock_quantity(), $units));
             $max_reachable = $raw_reachable === null ? null : min(max($raw_reachable, 0), max(99, $qty));
 
             $items[] = [

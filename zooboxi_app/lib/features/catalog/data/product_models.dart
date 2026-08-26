@@ -400,6 +400,27 @@ class ProductDetail {
   final List<ProductVariation> variations;
   final DeliveryInfo delivery;
   final List<WarehouseAvailability> perWarehouse;
+
+  /// The same detail with its availability blocks swapped for a
+  /// variation-scoped read (units-converted server-side).
+  ProductDetail withAvailability(
+    DeliveryInfo delivery,
+    List<WarehouseAvailability> perWarehouse,
+  ) =>
+      ProductDetail(
+        card: card,
+        gallery: gallery,
+        descriptionHtml: descriptionHtml,
+        shortDescription: shortDescription,
+        attributes: attributes,
+        variations: variations,
+        delivery: delivery,
+        perWarehouse: perWarehouse,
+        badges: badges,
+        fbt: fbt,
+        substitutes: substitutes,
+        langFallback: langFallback,
+      );
   final List<ProductBadge> badges;
 
   /// "Frequently bought together" — from the Laravel recommendations engine.

@@ -26,8 +26,13 @@ class CatalogRepository {
     return ListingResult.fromJson(asMap(data));
   }
 
-  Future<ProductDetail> product(int id) async =>
-      ProductDetail.fromJson(asMap(await _api.get('/catalog/products/$id')));
+  /// [variationId] re-scopes the delivery promise and warehouse counts to a
+  /// chosen pack variation (كرتون = N pieces) — the server divides through.
+  Future<ProductDetail> product(int id, {int? variationId}) async =>
+      ProductDetail.fromJson(asMap(await _api.get(
+        '/catalog/products/$id',
+        query: {'variation_id': ?variationId},
+      )));
 
   Future<List<SearchSuggestion>> suggest(String query, {CancelToken? cancelToken}) async {
     final data = await _api.get(
@@ -91,6 +96,17 @@ final productProvider =
     FutureProvider.autoDispose.family<ProductDetail, int>((ref, id) {
   ref.watch(catalogRevisionProvider);
   return ref.watch(catalogRepositoryProvider).product(id);
+});
+
+/// The variation-scoped read the PDP overlays on top of [productProvider]
+/// when a pack is chosen: same payload, delivery + warehouse numbers spoken
+/// in that variation's units. Keyed by record so each pack caches separately.
+final variationDeliveryProvider = FutureProvider.autoDispose
+    .family<ProductDetail, ({int id, int variationId})>((ref, key) {
+  ref.watch(catalogRevisionProvider);
+  return ref
+      .watch(catalogRepositoryProvider)
+      .product(key.id, variationId: key.variationId);
 });
 
 /// First page of a listing — used for the facet/sort metadata and the initial

@@ -716,7 +716,9 @@ class Zooboxi_V2_Catalog_Controller
     public function product(\WP_REST_Request $request): \WP_REST_Response
     {
         $id  = absint($request->get_param('id'));
-        $pdp = Zooboxi_Product_DTO::pdp($id);
+        // A chosen pack variation (كرتون = N حبة) changes what the promise and
+        // the per-warehouse counts MEAN — the app re-asks with the selection.
+        $pdp = Zooboxi_Product_DTO::pdp($id, absint($request->get_param('variation_id')));
 
         if ($pdp === null) {
             return Zooboxi_V2_Bootstrap::fail('product_not_found', __('المنتج غير موجود', 'zooboxi'), 'Product not found.', 404);

@@ -88,6 +88,9 @@ class Zooboxi_Plugin
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/intelligence/class-zooboxi-brand-sync.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-brand-page.php';
 
+        // Pack-size awareness (كرتون × حبة): pieces-per-unit factors from SAP.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-units.php';
+
         // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:
         // set option `zooboxi_v2_enabled` to anything but 'yes' to unload it entirely.
         if (get_option('zooboxi_v2_enabled', 'yes') === 'yes') {
@@ -236,16 +239,37 @@ class Zooboxi_Plugin
             $reachable = $product->get_stock_quantity(); // already filtered to the customer's area
             if ($reachable === null) continue;            // unmanaged → skip
             $reachable = (int) $reachable;
+
+            // Stock is counted in PIECES; a pack variation (كرتون = N حبة)
+            // consumes N of them per cart unit — cap in whole packs.
+            $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_cart_item($item) : 1;
+
+            // The cap must agree with what checkout can actually deliver: the
+            // fulfilment resolver spans every reachable tier (express + city +
+            // national, split shipments included), while the session-warehouse
+            // pool above can be just the express branch. Whenever coordinates
+            // exist, the resolver's total is the truth; the narrow pool stays
+            // the fallback for a customer with no location yet.
             $qty = (int) ($item['quantity'] ?? 0);
-            if ($qty <= $reachable) continue;
+            if (class_exists('Zooboxi_Fulfillment')) {
+                [$cust_lat, $cust_lng] = array_pad(array_values(Zooboxi_Fulfillment::customer_location()), 2, 0.0);
+                if ($cust_lat && $cust_lng) {
+                    $plan      = Zooboxi_Fulfillment::resolve((int) ($item['product_id'] ?? 0), max(1, $qty) * $units, (float) $cust_lat, (float) $cust_lng);
+                    $reachable = (int) ($plan['reachable_total'] ?? $reachable);
+                }
+            }
+
+            $max_units = Zooboxi_Units::units_from_pieces($reachable, $units);
+
+            if ($qty <= $max_units) continue;
 
             try {
-                if ($reachable <= 0) {
+                if ($max_units <= 0) {
                     $cart->remove_cart_item($key);
                     $adjusted[] = [$product->get_name(), 0];
                 } else {
-                    $cart->set_quantity($key, $reachable, false);
-                    $adjusted[] = [$product->get_name(), $reachable];
+                    $cart->set_quantity($key, $max_units, false);
+                    $adjusted[] = [$product->get_name(), $max_units];
                 }
             } catch (\Throwable $e) {
                 // never break the cart over a cap adjustment

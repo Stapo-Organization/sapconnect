@@ -454,6 +454,11 @@ class Zooboxi_Sync_Engine
             update_post_meta($productId, '_zooboxi_brand_code', $data['brand_code'] ?? '');
             update_post_meta($productId, '_zooboxi_barcode', $data['barcode'] ?? '');
             update_post_meta($productId, '_zooboxi_uom', $data['uom'] ?? '');
+            // SAP's pieces-per-carton factor — the backfill/variation logic
+            // turns it into `_zooboxi_units` on the pack variation.
+            if (isset($data['sales_items_per_unit']) && (float) $data['sales_items_per_unit'] > 0) {
+                update_post_meta($productId, '_zooboxi_sales_items_per_unit', (string) round((float) $data['sales_items_per_unit']));
+            }
             update_post_meta($productId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
             update_post_meta($productId, '_zooboxi_last_sync', current_time('mysql'));
 

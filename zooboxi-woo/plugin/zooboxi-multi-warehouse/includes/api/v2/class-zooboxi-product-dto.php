@@ -114,7 +114,7 @@ class Zooboxi_Product_DTO
        PDP
        ══════════════════════════════════════════════════════════════ */
 
-    public static function pdp(int $id): ?array
+    public static function pdp(int $id, int $variation_id = 0): ?array
     {
         $id      = Zooboxi_V2_Bootstrap::map_post($id);
         $product = self::resolve($id);
@@ -126,6 +126,12 @@ class Zooboxi_Product_DTO
         if ($card === null) {
             return null;
         }
+
+        // How many warehouse pieces one unit of the CHOSEN variation eats —
+        // the delivery plan and warehouse counts below speak in those units.
+        $units = ($variation_id > 0 && class_exists('Zooboxi_Units'))
+            ? Zooboxi_Units::for_id($variation_id)
+            : 1;
 
         [$lat, $lng] = Zooboxi_V2_Bootstrap::latlng();
         $item_code   = (string) get_post_meta($id, '_zooboxi_item_code', true);
@@ -143,8 +149,9 @@ class Zooboxi_Product_DTO
             'categories'         => self::categories($id),
             'attributes'         => self::flat_attributes($product),
             'variations'         => self::variations($product),
-            'delivery'           => self::delivery_plan($id, $lat, $lng),
-            'per_warehouse'      => self::per_warehouse($id, $lat, $lng),
+            'delivery'           => self::delivery_plan($id, $lat, $lng, 1, $units),
+            'per_warehouse'      => self::per_warehouse($id, $lat, $lng, $units),
+            'selected_units'     => $units,
             'badges'             => self::badges($id),
             'fbt'                => self::cards($recs['fbt']),
             'substitutes'        => self::cards($recs['substitutes']),
@@ -401,9 +408,10 @@ class Zooboxi_Product_DTO
      * The full, honest delivery plan for one unit — projected straight from
      * Zooboxi_Fulfillment (the single source of truth) plus its branded presentation.
      */
-    public static function delivery_plan(int $product_id, float $lat, float $lng, int $qty = 1): array
+    public static function delivery_plan(int $product_id, float $lat, float $lng, int $qty = 1, int $units = 1): array
     {
-        $plan  = Zooboxi_Fulfillment::resolve($product_id, max(1, $qty), $lat, $lng);
+        $units = max(1, $units);
+        $plan  = Zooboxi_Fulfillment::resolve($product_id, max(1, $qty) * $units, $lat, $lng);
         $tiers = [];
 
         foreach ($plan['tiers'] as $t) {
@@ -412,7 +420,9 @@ class Zooboxi_Product_DTO
             $tiers[] = [
                 'tier'           => $tier,
                 'warehouse_name' => (string) ($t['warehouse_name'] ?? ''),
-                'stock'          => min(self::STOCK_DISPLAY_CAP, (int) ($t['stock'] ?? 0)),
+                // Stock is stored in pieces; spoken here in the chosen unit —
+                // a warehouse holding 140 pieces has 8 cartons of 17.
+                'stock'          => min(self::STOCK_DISPLAY_CAP, Zooboxi_Units::units_from_pieces((int) ($t['stock'] ?? 0), $units)),
                 'fee'            => (float) ($t['fee'] ?? 0),
                 'label'          => (string) $pres['name'],
                 'date_label'     => (string) $pres['date'],
@@ -425,25 +435,27 @@ class Zooboxi_Product_DTO
         return [
             'headline'        => Zooboxi_Fulfillment::headline($plan),
             'tiers'           => $tiers,
-            'reachable_total' => min(self::STOCK_DISPLAY_CAP, (int) $plan['reachable_total']),
+            'reachable_total' => min(self::STOCK_DISPLAY_CAP, Zooboxi_Units::units_from_pieces((int) $plan['reachable_total'], $units)),
             'fastest'         => (string) $plan['fastest'],
             'is_split'        => (bool) $plan['is_split'],
         ];
     }
 
     /**
-     * Per-warehouse availability — REACHABLE warehouses only. The full network stock
-     * map is deliberately never serialized (it is commercial information).
+     * Per-warehouse availability — REACHABLE warehouses only, in the chosen
+     * variation's units. The full network stock map is deliberately never
+     * serialized (it is commercial information).
      */
-    private static function per_warehouse(int $product_id, float $lat, float $lng): array
+    private static function per_warehouse(int $product_id, float $lat, float $lng, int $units = 1): array
     {
-        $plan = Zooboxi_Fulfillment::resolve($product_id, 1, $lat, $lng);
-        $out  = [];
+        $units = max(1, $units);
+        $plan  = Zooboxi_Fulfillment::resolve($product_id, 1, $lat, $lng);
+        $out   = [];
         foreach ($plan['tiers'] as $t) {
             $out[] = [
                 'warehouse_name' => (string) ($t['warehouse_name'] ?? ''),
                 'tier'           => (string) $t['tier'],
-                'stock'          => min(self::STOCK_DISPLAY_CAP, (int) ($t['stock'] ?? 0)),
+                'stock'          => min(self::STOCK_DISPLAY_CAP, Zooboxi_Units::units_from_pieces((int) ($t['stock'] ?? 0), $units)),
             ];
         }
         return $out;

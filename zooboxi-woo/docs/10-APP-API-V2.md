@@ -313,7 +313,7 @@ Every call returns the full cart:
   "count": 2,
   "shipments": [ { "tier": "express", "label": "توصيل سريع", "icon": "⚡", "color": "#d9480f",
                    "date_label": "اليوم", "relative_label": "خلال ساعتين",
-                   "fee": 0, "free": true, "items": [ { "name": "…", "qty": 2 } ] } ],
+                   "fee": 0, "free": true, "lines": [ { "name": "…", "qty": 2 } ] } ],
   "totals": { "subtotal": 145.8, "discount": 0, "shipping": 0, "tax": 0, "total": 145.8, "currency": "SAR" },
   "free_shipping": { "min": 200, "remaining": 54.2, "qualified": false },
   "coupons": [ { "code": "welcome10", "amount": 10 } ],

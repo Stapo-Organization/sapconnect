@@ -126,8 +126,25 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
     final detail = ref.watch(productProvider(widget.productId));
 
     if (detail.hasValue) {
-      final data = detail.requireValue;
+      var data = detail.requireValue;
       _onLoaded(data);
+
+      // A chosen pack (كرتون = N حبة) changes what the promise and warehouse
+      // numbers MEAN — overlay the variation-scoped read the server converts.
+      // The page itself never reloads; only the availability blocks swap.
+      final matched = _matchedVariation(data);
+      var availabilityRefreshing = false;
+      if (matched != null) {
+        final scoped = ref.watch(variationDeliveryProvider(
+          (id: widget.productId, variationId: matched.variationId),
+        ));
+        availabilityRefreshing = scoped.isLoading;
+        final scopedData = scoped.value;
+        if (scopedData != null) {
+          data = data.withAvailability(scopedData.delivery, scopedData.perWarehouse);
+        }
+      }
+
       return _Loaded(
         detail: data,
         selection: _selection,
@@ -135,7 +152,8 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         adding: _adding,
         price: _price(data),
         maxQty: _maxQty(data),
-        variation: _matchedVariation(data),
+        variation: matched,
+        availabilityRefreshing: availabilityRefreshing,
         onSelect: (attribute, option) => setState(() {
           if (_selection[attribute] == option) {
             _selection.remove(attribute);
@@ -170,10 +188,15 @@ class _Loaded extends ConsumerWidget {
     required this.price,
     required this.maxQty,
     required this.variation,
+    this.availabilityRefreshing = false,
     required this.onSelect,
     required this.onQty,
     required this.onAdd,
   });
+
+  /// True while the variation-scoped availability read is in flight — the
+  /// delivery blocks dim slightly instead of jumping numbers mid-read.
+  final bool availabilityRefreshing;
 
   final ProductDetail detail;
   final Map<String, String> selection;
@@ -265,17 +288,25 @@ class _Loaded extends ConsumerWidget {
             ),
           ],
           Gap.h20,
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DeliveryCard(delivery: detail.delivery),
-          ),
-          if (detail.perWarehouse.isNotEmpty) ...[
-            Gap.h12,
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: WarehousePanel(rows: detail.perWarehouse),
+          AnimatedOpacity(
+            opacity: availabilityRefreshing ? 0.45 : 1,
+            duration: const Duration(milliseconds: 180),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: DeliveryCard(delivery: detail.delivery),
+                ),
+                if (detail.perWarehouse.isNotEmpty) ...[
+                  Gap.h12,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: WarehousePanel(rows: detail.perWarehouse),
+                  ),
+                ],
+              ],
             ),
-          ],
+          ),
           if ((detail.descriptionHtml ?? detail.shortDescription ?? '').isNotEmpty) ...[
             Gap.h24,
             ProductDescription(detail: detail),

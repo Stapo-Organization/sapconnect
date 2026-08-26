@@ -221,8 +221,30 @@ class Zooboxi_Smart_Shipments
             }
             $qty = max(1, (int) ($item['quantity'] ?? 1));
 
-            $plan  = Zooboxi_Fulfillment::resolve($pid, $qty, $lat, $lng);
+            // Stock allocates in PIECES; a pack line (كرتون = N حبة) needs
+            // qty×N of them. The allocation is then regrouped into WHOLE
+            // packs — a carton cannot ship half from one warehouse.
+            $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_cart_item($item) : 1;
+
+            $plan  = Zooboxi_Fulfillment::resolve($pid, $qty * $units, $lat, $lng);
             $alloc = $plan['allocation'];
+
+            if ($units > 1) {
+                $regrouped  = [];
+                $carry      = 0;
+                $used_units = 0;
+                foreach ($alloc as $a) {
+                    $pieces = (int) ($a['qty'] ?? 0) + $carry;
+                    $whole  = min(intdiv($pieces, $units), $qty - $used_units);
+                    $carry  = $pieces - $whole * $units;
+                    if ($whole > 0) {
+                        $a['qty']    = $whole;
+                        $regrouped[] = $a;
+                        $used_units += $whole;
+                    }
+                }
+                $alloc = $regrouped;
+            }
 
             // Guarantee the whole line is covered — any unreachable remainder ships nationally.
             $allocated = 0;
