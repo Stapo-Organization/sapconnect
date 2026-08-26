@@ -461,6 +461,9 @@ class _CampaignSlide extends StatelessWidget {
       art: campaign.artFor(const ['app_hero', 'card', 'hero', 'wide']),
       copy: Column(
         mainAxisSize: MainAxisSize.min,
+        // Centered in the slide's full height — a copy block hugging the top
+        // leaves the bottom half of the canvas reading as dead air.
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if ((campaign.badge ?? '').isNotEmpty) ...[

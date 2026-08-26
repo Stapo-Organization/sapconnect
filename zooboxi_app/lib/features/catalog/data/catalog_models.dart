@@ -57,6 +57,7 @@ class HeroSlide {
     this.theme,
     this.brand,
     this.productImages = const [],
+    this.badge,
   });
 
   /// `manual` — an uploaded banner image. `auto` — a slide the server composed
@@ -85,6 +86,10 @@ class HeroSlide {
   /// Auto slides only: up to four product photos to compose into the slide.
   final List<String> productImages;
 
+  /// Auto slides only: a merchandising kicker with a real number in it
+  /// ("خصم حتى 45%"). Null when the data can't honestly back one.
+  final String? badge;
+
   bool get isAuto => kind == 'auto';
 
   String? get bestImage => imageMobile ?? image;
@@ -102,6 +107,7 @@ class HeroSlide {
         theme: asStringOrNull(json['theme']),
         brand: BrandRef.maybe(json['brand']),
         productImages: asStringList(json['product_images']),
+        badge: asStringOrNull(json['badge']),
       );
 }
 
