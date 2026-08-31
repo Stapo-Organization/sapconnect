@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
+import '../../../core/motion/fly_to_cart.dart';
 import '../../../core/providers.dart';
 import '../../../core/widgets/badge_chip.dart';
 import '../../../core/widgets/error_state.dart';
@@ -44,6 +45,9 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
   int _qty = 1;
   bool _adding = false;
   bool _tracked = false;
+
+  /// The purchase button — where a successful add flies from.
+  final GlobalKey _addKey = GlobalKey();
 
   ProductVariation? _matchedVariation(ProductDetail detail) {
     if (!detail.hasVariations) return null;
@@ -87,7 +91,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
     }
 
     setState(() => _adding = true);
-    await addToCart(
+    final accepted = await addToCart(
       context,
       ref,
       product: detail.card,
@@ -99,7 +103,18 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
       attributes: variation != null || _selection.isEmpty ? null : _selection,
       zone: 'pdp',
     );
-    if (mounted) setState(() => _adding = false);
+    if (!mounted) return;
+    if (accepted) {
+      final box = _addKey.currentContext?.findRenderObject();
+      if (box is RenderBox && box.hasSize) {
+        flyToCart(
+          context,
+          from: box.localToGlobal(Offset.zero) & box.size,
+          image: productThumbnail(variation?.image ?? detail.card.image),
+        );
+      }
+    }
+    setState(() => _adding = false);
   }
 
   void _onLoaded(ProductDetail detail) {
@@ -169,6 +184,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         }),
         onQty: (value) => setState(() => _qty = value),
         onAdd: () => _add(data),
+        addKey: _addKey,
       );
     }
 
@@ -197,6 +213,7 @@ class _Loaded extends ConsumerWidget {
     required this.onSelect,
     required this.onQty,
     required this.onAdd,
+    required this.addKey,
   });
 
   /// True while the variation-scoped availability read is in flight — the
@@ -213,6 +230,7 @@ class _Loaded extends ConsumerWidget {
   final void Function(String attribute, String option) onSelect;
   final ValueChanged<int> onQty;
   final VoidCallback onAdd;
+  final GlobalKey addKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -346,6 +364,7 @@ class _Loaded extends ConsumerWidget {
         busy: adding,
         onQty: onQty,
         onAdd: onAdd,
+        anchorKey: addKey,
       ),
     );
   }

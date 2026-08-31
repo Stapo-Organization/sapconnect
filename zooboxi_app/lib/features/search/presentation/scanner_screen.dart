@@ -5,6 +5,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/icons/zb_icons.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../l10n/app_localizations.dart';
@@ -125,6 +127,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       height: 26,
                       child: CircularProgressIndicator(strokeWidth: 2.6, color: Colors.white),
                     ),
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 14),
+                    child: _ScanPulse(),
                   ),
                 Text(
                   l.scanHint,
@@ -140,6 +147,52 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       ),
     );
   }
+}
+
+/// The app's scan glyph with its line travelling top→bottom and back, so the
+/// screen reads as *looking* while the camera is up. It sits under the frame,
+/// clear of the cut-out, rather than over the barcode.
+class _ScanPulse extends StatefulWidget {
+  const _ScanPulse();
+
+  @override
+  State<_ScanPulse> createState() => _ScanPulseState();
+}
+
+class _ScanPulseState extends State<_ScanPulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 2),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (context.reduceMotion) {
+      _c.stop();
+      _c.value = 0.5;
+    } else if (!_c.isAnimating) {
+      _c.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) => ZbIcon(
+          ZbIconKind.scan,
+          size: 44,
+          ink: Colors.white.withValues(alpha: 0.92),
+          scanY: _c.value,
+        ),
+      );
 }
 
 /// Dimmed surround with a clear cut-out and corner brackets — the standard

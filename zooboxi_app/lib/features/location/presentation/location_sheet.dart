@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/icons/zb_icons.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
@@ -194,10 +195,13 @@ class LocationChip extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                isSet ? Icons.place_rounded : Icons.add_location_alt_outlined,
-                size: 16,
-                color: accent,
+              // Filled once we know where they are — an empty pin is the
+              // app asking, a filled one is the app answering.
+              ZbIcon(
+                ZbIconKind.pin,
+                size: 18,
+                fill: isSet ? 1 : 0,
+                ink: accent,
               ),
               Gap.w6,
               Flexible(

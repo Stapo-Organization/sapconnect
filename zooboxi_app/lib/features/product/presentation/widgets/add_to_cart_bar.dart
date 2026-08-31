@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/qty_stepper.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -21,6 +22,7 @@ class AddToCartBar extends StatelessWidget {
     required this.busy,
     required this.onQty,
     required this.onAdd,
+    this.anchorKey,
   });
 
   final double unitPrice;
@@ -30,6 +32,10 @@ class AddToCartBar extends StatelessWidget {
   final bool busy;
   final ValueChanged<int> onQty;
   final VoidCallback onAdd;
+
+  /// Where a successful add flies *from*. Held by the screen, since the bar
+  /// is rebuilt on every quantity tap.
+  final GlobalKey? anchorKey;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +73,7 @@ class AddToCartBar extends StatelessWidget {
               ],
               Expanded(
                 child: FilledButton(
+                  key: anchorKey,
                   onPressed: outOfStock || busy ? null : onAdd,
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
                   child: busy
@@ -78,6 +85,14 @@ class AddToCartBar extends StatelessWidget {
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            if (!outOfStock) ...[
+                              ZbIcon(
+                                ZbIconKind.plusBox,
+                                size: 24,
+                                ink: cs.onPrimary,
+                              ),
+                              Gap.w8,
+                            ],
                             Text(outOfStock ? l.pdpOutOfStock : l.pdpAddToCart),
                             if (!outOfStock) ...[
                               Gap.w8,

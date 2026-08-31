@@ -1,12 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
+import '../../../core/icons/zb_icons.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/mascot_peek.dart';
 import '../../../core/widgets/sparkles.dart';
@@ -152,15 +155,56 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
   }
 }
 
-/// A check that draws itself, with a paw that lands a beat later.
-class _SuccessMark extends StatelessWidget {
+/// The order, packed and then confirmed.
+///
+/// The check is not the first thing that happens: the box closes its lid
+/// first. That is the actual event — the order was *packed* — and it buys the
+/// confirmation a beat of anticipation instead of a mark that is simply
+/// already there. The check, the paw and the confetti follow it.
+class _SuccessMark extends StatefulWidget {
   const _SuccessMark();
+
+  @override
+  State<_SuccessMark> createState() => _SuccessMarkState();
+}
+
+class _SuccessMarkState extends State<_SuccessMark>
+    with SingleTickerProviderStateMixin {
+  /// The whole sequence: 700ms of packing, then the confirmation.
+  static const Duration _total = Duration(milliseconds: 1400);
+
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: _total,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (context.reduceMotion) {
+        _c.value = 1;
+      } else {
+        _c.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  double _seg(double t, double from, double to) =>
+      ((t - from) / (to - from)).clamp(0.0, 1.0);
 
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
     final zb = context.zb;
-    final still = MediaQuery.disableAnimationsOf(context);
+    final still = context.reduceMotion;
 
     final mark = Container(
       width: 104,
@@ -179,57 +223,75 @@ class _SuccessMark extends StatelessWidget {
       child: const Icon(Icons.check_rounded, size: 54, color: Colors.white),
     );
 
-    final paw = PositionedDirectional(
-      bottom: (_burstSide - 116) / 2 + 2,
-      end: (_burstSide - 120) / 2 + 2,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: cs.surface,
-          shape: BoxShape.circle,
-          border: Border.all(color: cs.outlineVariant),
-        ),
-        child: Icon(Icons.pets_rounded, size: 19, color: zb.sale),
+    final paw = Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: cs.surface,
+        shape: BoxShape.circle,
+        border: Border.all(color: cs.outlineVariant),
       ),
+      child: ZbIcon(ZbIconKind.paw, size: 21, fill: 1, ink: zb.sale),
     );
-
-    if (still) {
-      return SizedBox(
-        width: _burstSide,
-        height: _burstSide,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const SparkleField(sparkles: _successSparkles, twinkle: true),
-            mark,
-            paw,
-          ],
-        ),
-      );
-    }
 
     return SizedBox(
       width: _burstSide,
       height: _burstSide,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const SparkleField(sparkles: _successSparkles, twinkle: true),
-          mark
-              .animate()
-              .scale(
-                begin: const Offset(0.6, 0.6),
-                end: const Offset(1, 1),
-                duration: 420.ms,
-                curve: Curves.easeOutBack,
-              )
-              .fadeIn(duration: 240.ms),
-          paw
-              .animate()
-              .fadeIn(delay: 320.ms, duration: 260.ms)
-              .moveY(begin: 10, end: 0, delay: 320.ms, duration: 300.ms, curve: Curves.easeOut),
-        ],
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) {
+          final t = still ? 1.0 : _c.value;
+
+          final lid = 1 - Curves.easeOutBack.transform(_seg(t, 0, 0.5));
+          // A short settle as the flaps meet — the box lands its own lid.
+          final land = math.sin(math.pi * _seg(t, 0.42, 0.58));
+          final boxOpacity = 1 - _seg(t, 0.56, 0.64);
+
+          final appear = _seg(t, 0.5, 0.8);
+          final checkScale = 0.6 + 0.4 * Curves.easeOutBack.transform(appear);
+          final pawIn = _seg(t, 0.73, 0.95);
+
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              const SparkleField(sparkles: _successSparkles, twinkle: true),
+              if (boxOpacity > 0)
+                Opacity(
+                  opacity: boxOpacity.clamp(0.0, 1.0),
+                  child: Transform(
+                    alignment: Alignment.bottomCenter,
+                    transform: Matrix4.diagonal3Values(
+                      1 + 0.06 * land,
+                      1 - 0.08 * land,
+                      1,
+                    ),
+                    child: ZbIcon(
+                      ZbIconKind.cart,
+                      size: 120,
+                      fill: 1,
+                      lidOpen: lid.clamp(0.0, 1.0),
+                      smile: 1,
+                    ),
+                  ),
+                ),
+              Opacity(
+                opacity: _seg(t, 0.5, 0.67),
+                child: Transform.scale(scale: checkScale, child: mark),
+              ),
+              PositionedDirectional(
+                bottom: (_burstSide - 116) / 2 + 2,
+                end: (_burstSide - 120) / 2 + 2,
+                child: Opacity(
+                  opacity: pawIn,
+                  child: Transform.translate(
+                    offset: Offset(0, 10 * (1 - Curves.easeOut.transform(pawIn))),
+                    child: paw,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -284,11 +346,11 @@ class _OrderChip extends StatelessWidget {
 const double _burstSide = 190;
 
 const List<SparkleSpec> _successSparkles = [
-  SparkleSpec(dx: 0.10, dy: 0.26, size: 14, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 80)),
-  SparkleSpec(dx: 0.50, dy: 0.04, size: 11, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 150), rotation: 0.4),
-  SparkleSpec(dx: 0.90, dy: 0.20, size: 18, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 220)),
-  SparkleSpec(dx: 0.04, dy: 0.66, size: 9, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 290)),
-  SparkleSpec(dx: 0.96, dy: 0.62, size: 12, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 350), rotation: 0.3),
-  SparkleSpec(dx: 0.24, dy: 0.94, size: 20, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 420)),
-  SparkleSpec(dx: 0.74, dy: 0.96, size: 10, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 480)),
+  SparkleSpec(dx: 0.10, dy: 0.26, size: 14, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 780)),
+  SparkleSpec(dx: 0.50, dy: 0.04, size: 11, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 850), rotation: 0.4),
+  SparkleSpec(dx: 0.90, dy: 0.20, size: 18, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 920)),
+  SparkleSpec(dx: 0.04, dy: 0.66, size: 9, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 990)),
+  SparkleSpec(dx: 0.96, dy: 0.62, size: 12, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 1050), rotation: 0.3),
+  SparkleSpec(dx: 0.24, dy: 0.94, size: 20, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 1120)),
+  SparkleSpec(dx: 0.74, dy: 0.96, size: 10, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 1180)),
 ];

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/location/location_controller.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -69,7 +70,7 @@ class AddressNavBar extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   child: Row(
                     children: [
-                      Icon(Icons.place_rounded, size: 17, color: cs.primary),
+                      ZbIcon(ZbIconKind.pin, size: 18, fill: 1, ink: cs.primary),
                       Gap.w6,
                       Flexible(
                         child: Text(

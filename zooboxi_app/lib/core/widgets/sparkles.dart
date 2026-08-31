@@ -38,29 +38,36 @@ class Sparkle extends StatelessWidget {
   }
 }
 
+/// The sparkle outline, fitted to a [side]×[side] box whose top-left is
+/// [origin]. Public so the icon set draws the *same* star instead of defining
+/// a second one that would drift from it.
+///
+/// Where each arm's control point sits along the centre→chord-midpoint line
+/// is what gives the star its character: the chord midpoint is at 0.25, so at
+/// or above it the shape is a diamond; the logo's pointed sparkles sit well
+/// inside, at 0.12.
+Path sparklePath(double side, {Offset origin = Offset.zero}) {
+  final c = side / 2;
+  final p = side * 0.12;
+  final dx = origin.dx;
+  final dy = origin.dy;
+  return Path()
+    ..moveTo(dx + c, dy)
+    ..quadraticBezierTo(dx + c + p, dy + c - p, dx + side, dy + c)
+    ..quadraticBezierTo(dx + c + p, dy + c + p, dx + c, dy + side)
+    ..quadraticBezierTo(dx + c - p, dy + c + p, dx, dy + c)
+    ..quadraticBezierTo(dx + c - p, dy + c - p, dx + c, dy)
+    ..close();
+}
+
 class _SparklePainter extends CustomPainter {
   const _SparklePainter(this.color);
 
   final Color color;
 
-  /// Where each arm's control point sits along the centre→chord-midpoint line,
-  /// as a fraction of size. The chord midpoint is at 0.25: at or above it the
-  /// shape is a diamond (0.28 rendered as a fat rhombus); the logo's pointed
-  /// sparkles sit well inside, at 0.12.
-  static const double _pull = 0.12;
-
   @override
   void paint(Canvas canvas, Size size) {
-    final c = size.width / 2;
-    final p = size.width * _pull;
-    final path = Path()
-      ..moveTo(c, 0)
-      ..quadraticBezierTo(c + p, c - p, size.width, c)
-      ..quadraticBezierTo(c + p, c + p, c, size.height)
-      ..quadraticBezierTo(c - p, c + p, 0, c)
-      ..quadraticBezierTo(c - p, c - p, c, 0)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawPath(sparklePath(size.width), Paint()..color = color);
   }
 
   @override

@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/zb_colors.dart';
 import '../../features/cart/data/cart_controller.dart';
 import '../../features/catalog/data/product_models.dart';
+import '../icons/zb_icons.dart';
+import '../motion/fly_to_cart.dart';
 import '../motion/motion.dart';
 import '../utils/haptics.dart';
 import 'qty_stepper.dart';
@@ -66,6 +68,10 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
   bool _expanded = false;
   Timer? _collapse;
 
+  /// The control's own box, so the thrown thumbnail starts exactly where the
+  /// finger was rather than at the card's corner.
+  final GlobalKey _shellKey = GlobalKey();
+
   /// Overshoot on the way open, clean ease on the way closed.
   Curve _shellCurve = Curves.easeOutBack;
 
@@ -106,6 +112,10 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       return;
     }
 
+    // Captured before the shell morphs into a stepper — after the await the
+    // control is a different size in a different place.
+    final from = _shellRect();
+
     // Expand NOW; the network answers behind the animation.
     unawaited(Haptics.success());
     setState(() {
@@ -121,7 +131,15 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       accepted = false;
     }
     if (!mounted) return;
-    if (!accepted) {
+    if (accepted) {
+      if (from != null) {
+        flyToCart(
+          context,
+          from: from,
+          image: productThumbnail(widget.product.image),
+        );
+      }
+    } else {
       // The shared add path already explained why; just take the claim back.
       setState(() {
         _pending = null;
@@ -130,6 +148,12 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
         _shellCurve = Curves.easeInOutCubic;
       });
     }
+  }
+
+  Rect? _shellRect() {
+    final box = _shellKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   /// The server's line arrived — replay whatever the customer decided while
@@ -239,6 +263,7 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
     // the shell's shoulder — half outside, the way a real badge sits — so it
     // lives OUTSIDE the clipped shell, in this unclipped stack.
     final shell = AnimatedContainer(
+      key: _shellKey,
       duration: const Duration(milliseconds: 320),
       curve: _shellCurve,
       width: open ? _stepperWidth : _size,
@@ -294,24 +319,30 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
       clipBehavior: Clip.none,
       children: [
         shell,
-        PositionedDirectional(
-          top: -4,
-          end: -3,
-          child: AnimatedScale(
-            scale: open ? 0 : 1,
-            duration: context.motion(const Duration(milliseconds: 200)),
-            curve: open ? Curves.easeIn : Curves.easeOutBack,
-            child: _ShoulderBubble(count: qty),
+        // Only once there is a number to show: before that the glyph carries
+        // its own drawn "+" badge, so a second bubble would say it twice.
+        if (qty > 0)
+          PositionedDirectional(
+            top: -4,
+            end: -3,
+            child: AnimatedScale(
+              scale: open ? 0 : 1,
+              duration: context.motion(const Duration(milliseconds: 200)),
+              curve: open ? Curves.easeIn : Curves.easeOutBack,
+              child: _ShoulderBubble(count: qty),
+            ),
           ),
-        ),
       ],
     );
   }
 }
 
-/// The closed face: the app's bag glyph, centred and calm — the same one the
-/// cart tab wears, so the control unmistakably means "cart". Its badge lives
-/// outside, on the shell's shoulder ([_ShoulderBubble]).
+/// The closed face: the logo's own box.
+///
+/// Empty, it wears the drawn teal "+" badge on its shoulder — the add-to-cart
+/// glyph. Once the line exists the badge comes off and the live count bubble
+/// takes that exact corner, so the plus really does *become* the number while
+/// the box itself never moves.
 ///
 /// Drawn transparent so the shell underneath supplies the teal — that is
 /// what lets the shell's own colour morph stay seamless.
@@ -335,15 +366,10 @@ class _BagFace extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Center(
-            // A hair below true centre reads as optically centred for this
-            // glyph — its visual mass sits high.
-            child: Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: Icon(
-                Icons.shopping_bag_rounded,
-                size: 18,
-                color: cs.onPrimary,
-              ),
+            child: ZbIcon(
+              count > 0 ? ZbIconKind.cart : ZbIconKind.plusBox,
+              size: 26,
+              ink: cs.onPrimary,
             ),
           ),
         ),
@@ -352,11 +378,9 @@ class _BagFace extends StatelessWidget {
   }
 }
 
-/// The badge on the shell's shoulder, half outside like a real one: "+"
-/// before the first add, the count after. Only its content flips — the bag
-/// beneath holds still, so the change reads as *the plus becoming the
-/// number*. A ring in the card's surface colour punches it out of both the
-/// teal shell and the artwork behind.
+/// The badge on the shell's shoulder, half outside like a real one. A ring in
+/// the card's surface colour punches it out of both the teal shell and the
+/// artwork behind.
 class _ShoulderBubble extends StatelessWidget {
   const _ShoulderBubble({required this.count});
 
@@ -365,13 +389,12 @@ class _ShoulderBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final hasCount = count > 0;
 
     return Container(
       width: 18,
       height: 18,
       decoration: BoxDecoration(
-        color: hasCount ? context.zb.sale : cs.onPrimary,
+        color: context.zb.sale,
         shape: BoxShape.circle,
         border: Border.all(color: cs.surface, width: 2),
         boxShadow: [
@@ -389,25 +412,18 @@ class _ShoulderBubble extends StatelessWidget {
           scale: animation,
           child: FadeTransition(opacity: animation, child: child),
         ),
-        child: hasCount
-            ? Center(
-                key: ValueKey('n$count'),
-                child: Text(
-                  count > 9 ? '9+' : '$count',
-                  style: TextStyle(
-                    fontSize: count > 9 ? 7 : 9,
-                    height: 1,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            : Icon(
-                Icons.add_rounded,
-                key: const ValueKey('plus'),
-                size: 11,
-                color: cs.primary,
-              ),
+        child: Center(
+          key: ValueKey('n$count'),
+          child: Text(
+            count > 9 ? '9+' : '$count',
+            style: TextStyle(
+              fontSize: count > 9 ? 7 : 9,
+              height: 1,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:math' as math;
+
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/icons/zb_icons.dart';
+import '../../../../core/motion/motion.dart';
 import '../../../../core/session/session_controller.dart';
 import '../../../../core/utils/haptics.dart';
+import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../location/presentation/location_sheet.dart';
 
@@ -43,7 +48,11 @@ class HomeHeader extends ConsumerWidget {
                   Haptics.light();
                   context.push('/wishlist');
                 },
-                icon: Icon(Icons.favorite_border_rounded, color: fg),
+                icon: ZbIcon(
+                  ZbIconKind.heart,
+                  size: 23,
+                  ink: fg ?? context.cs.onSurfaceVariant,
+                ),
                 tooltip: l.wishlistTitle,
               ),
             ],
@@ -78,10 +87,89 @@ class HomeHeader extends ConsumerWidget {
   }
 }
 
-/// The logo, sitting on the header as a small printed sticker. Decor, not a
-/// control — it has no tap target on purpose.
-class _LogoSticker extends StatelessWidget {
+/// The logo, sitting on the header as a small printed sticker.
+///
+/// It navigates nowhere — it is decor. But it *answers*: a tap makes it
+/// wiggle and throw two sparkles, which is the cheapest possible piece of
+/// delight and the one place in the app where the brand is allowed to be
+/// purely playful.
+class _LogoSticker extends StatefulWidget {
   const _LogoSticker();
+
+  @override
+  State<_LogoSticker> createState() => _LogoStickerState();
+}
+
+class _LogoStickerState extends State<_LogoSticker>
+    with SingleTickerProviderStateMixin {
+  /// Three full wiggles, ±6°, then still.
+  static const double _sweep = 6 * math.pi / 180;
+  static const int _cycles = 3;
+
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 500),
+  );
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  void _wiggle() {
+    Haptics.selection();
+    if (context.reduceMotion) return;
+    _c.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _wiggle,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, child) {
+          final t = _c.value;
+          final angle = t == 0 || t == 1
+              ? 0.0
+              : math.sin(_cycles * 2 * math.pi * t) * _sweep * (1 - 0.35 * t);
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Transform.rotate(angle: angle, child: child),
+              if (_c.isAnimating)
+                const Positioned(
+                  left: -10,
+                  top: -9,
+                  width: 62,
+                  height: 54,
+                  child: SparkleField(sparkles: _stickerBurst),
+                ),
+            ],
+          );
+        },
+        child: const _StickerFace(),
+      ),
+    );
+  }
+}
+
+const List<SparkleSpec> _stickerBurst = [
+  SparkleSpec(dx: 0.06, dy: 0.12, size: 9, color: ZbTokens.sparkAmber),
+  SparkleSpec(
+    dx: 0.93,
+    dy: 0.78,
+    size: 7,
+    color: ZbTokens.logoTeal,
+    delay: Duration(milliseconds: 80),
+    rotation: 0.4,
+  ),
+];
+
+class _StickerFace extends StatelessWidget {
+  const _StickerFace();
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +240,7 @@ class _SearchBar extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(start: 14, end: 6, top: 2, bottom: 2),
           child: Row(
             children: [
-              Icon(Icons.search_rounded, size: 20, color: cs.onSurfaceVariant),
+              ZbIcon(ZbIconKind.search, size: 20, ink: cs.onSurfaceVariant),
               Gap.w12,
               Expanded(
                 child: Text(
@@ -167,7 +255,7 @@ class _SearchBar extends StatelessWidget {
                   Haptics.light();
                   onScan();
                 },
-                icon: Icon(Icons.qr_code_scanner_rounded, size: 20, color: cs.primary),
+                icon: ZbIcon(ZbIconKind.scan, size: 20, ink: cs.primary),
                 tooltip: l.searchScan,
               ),
             ],

@@ -13,6 +13,7 @@ import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/motion/motion.dart';
+import '../../../core/icons/zb_icons.dart';
 import '../../../core/notifications/notify_permission.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
@@ -397,9 +398,15 @@ class _GlassTile extends StatelessWidget {
 }
 
 class _PerkRow extends StatelessWidget {
-  const _PerkRow({required this.icon, required this.text});
+  const _PerkRow({this.icon, this.zbIcon, required this.text})
+      : assert(icon != null || zbIcon != null, 'a perk needs a glyph');
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// A painted glyph instead of a Material one, where the perk is one of the
+  /// app's own objects — the bell it is asking permission to ring.
+  final ZbIconKind? zbIcon;
+
   final String text;
 
   @override
@@ -410,7 +417,13 @@ class _PerkRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _GlassTile(size: 34, radius: 11, child: Icon(icon, size: 17, color: fg)),
+          _GlassTile(
+            size: 34,
+            radius: 11,
+            child: zbIcon == null
+                ? Icon(icon, size: 17, color: fg)
+                : ZbIcon(zbIcon!, size: 19, fill: 1, ink: fg),
+          ),
           Gap.w12,
           Expanded(
             child: Text(
@@ -924,6 +937,10 @@ class _LocationStep extends ConsumerWidget {
 }
 
 /// The place pin, sitting inside two rings that echo a signal spreading out.
+///
+/// The pin *drops* and bounces, and the rings pulse outward once as it lands —
+/// the screen is asking for a location, so the motif behaves like one being
+/// dropped on a map rather than like a logo fading in.
 class _PinMotif extends StatelessWidget {
   const _PinMotif({required this.fg});
 
@@ -931,32 +948,44 @@ class _PinMotif extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final motif = SizedBox(
+    final still = context.reduceMotion;
+
+    Widget ring(double size, double alpha, Duration delay) {
+      final r = _Ring(size: size, color: fg.withValues(alpha: alpha), width: 1.4);
+      if (still) return r;
+      return r
+          .animate()
+          .fadeIn(duration: 320.ms)
+          .then(delay: delay)
+          .scaleXY(begin: 1, end: 1.12, duration: 320.ms, curve: Curves.easeOut)
+          .then()
+          .scaleXY(begin: 1, end: 1 / 1.12, duration: 380.ms, curve: Curves.easeOutCubic);
+    }
+
+    final pin = _GlassTile(
+      size: 76,
+      radius: 24,
+      child: ZbIcon(ZbIconKind.pin, size: 34, fill: 1, ink: fg),
+    );
+
+    return SizedBox(
       width: 148,
       height: 148,
       child: Stack(
         alignment: AlignmentDirectional.center,
         children: [
-          _Ring(size: 148, color: fg.withValues(alpha: 0.10), width: 1.4),
-          _Ring(size: 112, color: fg.withValues(alpha: 0.18), width: 1.4),
-          _GlassTile(
-            size: 76,
-            radius: 24,
-            child: Icon(Icons.place_rounded, size: 34, color: fg),
-          ),
+          ring(148, 0.10, 560.ms),
+          ring(112, 0.18, 500.ms),
+          if (still)
+            pin
+          else
+            pin
+                .animate()
+                .fadeIn(duration: 260.ms)
+                .moveY(begin: -18, end: 0, duration: 640.ms, curve: Curves.bounceOut),
         ],
       ),
     );
-
-    return motif
-        .animate(target: context.reduceMotion ? 1 : null)
-        .fadeIn(duration: 420.ms)
-        .scale(
-          begin: const Offset(0.86, 0.86),
-          end: const Offset(1, 1),
-          duration: 560.ms,
-          curve: Motion.spring,
-        );
   }
 }
 
@@ -1095,7 +1124,7 @@ class _NotificationsStep extends StatelessWidget {
         Gap.h24,
         _PerkRow(icon: Icons.local_shipping_rounded, text: l.onbNotifPerk1),
         _PerkRow(icon: Icons.local_offer_rounded, text: l.onbNotifPerk2),
-        _PerkRow(icon: Icons.notifications_active_rounded, text: l.onbNotifPerk3),
+        _PerkRow(zbIcon: ZbIconKind.bell, text: l.onbNotifPerk3),
       ],
       footer: [
         _CanvasButton(label: l.onbNotifCta, busy: asking, onPressed: onAllow),

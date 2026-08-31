@@ -4,7 +4,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/icons/cart_box_icon.dart';
+import '../../core/icons/zb_icons.dart';
+import '../../core/motion/anchors.dart';
 import '../../core/motion/motion.dart';
+import '../../core/widgets/sparkles.dart';
 import '../../features/cart/data/cart_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/zb_colors.dart';
@@ -55,27 +59,10 @@ class GlassNavBar extends ConsumerWidget {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     final destinations = <_Destination>[
-      _Destination(
-        icon: Icons.home_outlined,
-        activeIcon: Icons.home_rounded,
-        label: l.navHome,
-      ),
-      _Destination(
-        icon: Icons.grid_view_outlined,
-        activeIcon: Icons.grid_view_rounded,
-        label: l.navCategories,
-      ),
-      _Destination(
-        icon: Icons.shopping_bag_outlined,
-        activeIcon: Icons.shopping_bag_rounded,
-        label: l.navCart,
-        badge: cartCount,
-      ),
-      _Destination(
-        icon: Icons.person_outline_rounded,
-        activeIcon: Icons.person_rounded,
-        label: l.navAccount,
-      ),
+      _Destination(kind: ZbIconKind.home, label: l.navHome),
+      _Destination(kind: ZbIconKind.categories, label: l.navCategories),
+      _Destination(kind: ZbIconKind.cart, label: l.navCart, badge: cartCount),
+      _Destination(kind: ZbIconKind.account, label: l.navAccount),
     ];
 
     // -1 at the start edge, +1 at the end edge — directional, so the pill
@@ -182,14 +169,12 @@ class GlassNavBar extends ConsumerWidget {
 @immutable
 class _Destination {
   const _Destination({
-    required this.icon,
-    required this.activeIcon,
+    required this.kind,
     required this.label,
     this.badge = 0,
   });
 
-  final IconData icon;
-  final IconData activeIcon;
+  final ZbIconKind kind;
   final String label;
   final int badge;
 }
@@ -248,9 +233,11 @@ class _NavItem extends StatelessWidget {
 
 /// The tab glyph, plus the cart's unit-count badge.
 ///
-/// The badge animates in and bumps on change, which is the app's confirmation
-/// that "add to cart" landed even when the customer is three screens away from
-/// the cart — the one piece of the old Material bar worth carrying over intact.
+/// Selection is not a swap between two icons: the *same* painted glyph fills
+/// in, and squashes as it does, so the tab reads as coming to life under the
+/// finger. The badge animates in and bumps on change, which is the app's
+/// confirmation that "add to cart" landed even when the customer is three
+/// screens away from the cart.
 class _Glyph extends StatelessWidget {
   const _Glyph({
     required this.destination,
@@ -271,16 +258,18 @@ class _Glyph extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(selected ? destination.activeIcon : destination.icon, size: 23, color: color),
+        _TabGlyph(kind: destination.kind, selected: selected, quiet: color),
         if (count > 0)
           PositionedDirectional(
             top: -5,
             end: -7,
             child: TweenAnimationBuilder<double>(
               key: ValueKey(count),
-              tween: Tween(begin: context.reduceMotion ? 1 : 0.6, end: 1),
+              // A bump, not a grow-in: the badge is already there, it just
+              // got bigger by one.
+              tween: Tween(begin: context.reduceMotion ? 1 : 1.35, end: 1),
               duration: Motion.select,
-              curve: Motion.spring,
+              curve: Motion.decelerate,
               builder: (context, scale, child) =>
                   Transform.scale(scale: scale, child: child),
               child: Container(
@@ -309,3 +298,120 @@ class _Glyph extends StatelessWidget {
     );
   }
 }
+
+/// One painted tab icon and its selection move.
+class _TabGlyph extends StatefulWidget {
+  const _TabGlyph({
+    required this.kind,
+    required this.selected,
+    required this.quiet,
+  });
+
+  final ZbIconKind kind;
+  final bool selected;
+
+  /// The unselected outline colour — the glyph walks from this to the logo's
+  /// own ink as it fills.
+  final Color quiet;
+
+  static const double size = 23;
+
+  @override
+  State<_TabGlyph> createState() => _TabGlyphState();
+}
+
+class _TabGlyphState extends State<_TabGlyph>
+    with SingleTickerProviderStateMixin {
+  static const Duration _in = Duration(milliseconds: 420);
+  static const Duration _out = Duration(milliseconds: 240);
+
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: _in,
+    reverseDuration: _out,
+    value: widget.selected ? 1 : 0,
+  );
+
+  @override
+  void didUpdateWidget(_TabGlyph old) {
+    super.didUpdateWidget(old);
+    if (widget.selected == old.selected) return;
+    _c.duration = context.motion(_in);
+    _c.reverseDuration = context.motion(_out);
+    if (widget.selected) {
+      _c.forward();
+    } else {
+      _c.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final fill = _c.value;
+        final ink = Color.lerp(widget.quiet, resolveZbInk(context), fill)!;
+        final glyph = widget.kind == ZbIconKind.cart
+            ? CartBoxIcon(
+                key: cartTabAnchorKey,
+                size: _TabGlyph.size,
+                fill: fill,
+                ink: ink,
+              )
+            : ZbIcon(widget.kind, size: _TabGlyph.size, fill: fill, ink: ink);
+
+        // Squash only on the way in. Coming back out is a fade, not a move —
+        // two tabs bouncing at once would read as a glitch.
+        final squashing = _c.status == AnimationStatus.forward;
+        final e = squashing ? math.sin(math.pi * fill) : 0.0;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.diagonal3Values(1 + 0.18 * e, 1 - 0.18 * e, 1),
+              child: glyph,
+            ),
+            if (squashing)
+              const Positioned(
+                left: -9,
+                top: -8,
+                width: 41,
+                height: 39,
+                child: SparkleField(sparkles: _selectBurst),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Three sparkles around the tab that just woke up. Logical `dx`, so the burst
+/// mirrors itself in Arabic.
+const List<SparkleSpec> _selectBurst = [
+  SparkleSpec(dx: 0.05, dy: 0.16, size: 8, color: ZbTokens.sparkAmber),
+  SparkleSpec(
+    dx: 0.94,
+    dy: 0.26,
+    size: 6,
+    color: ZbTokens.logoTeal,
+    delay: Duration(milliseconds: 60),
+    rotation: 0.4,
+  ),
+  SparkleSpec(
+    dx: 0.78,
+    dy: 0.93,
+    size: 9,
+    color: ZbTokens.logoCoral,
+    delay: Duration(milliseconds: 110),
+  ),
+];
