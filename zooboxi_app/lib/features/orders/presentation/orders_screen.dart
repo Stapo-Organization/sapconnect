@@ -43,6 +43,7 @@ class OrdersScreen extends ConsumerWidget {
                 message: l.ordersEmptyHint,
                 actionLabel: l.cartStartShopping,
                 onAction: () => context.go('/home'),
+                mascot: true,
               );
             }
             return ListView.separated(

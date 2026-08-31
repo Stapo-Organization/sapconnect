@@ -1,14 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
-import '../../../l10n/app_localizations.dart';
+import '../../../core/widgets/sparkles.dart';
 
 /// The launch screen.
 ///
@@ -46,60 +46,83 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
-    final cs = context.cs;
-    final zb = context.zb;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final logoWidth = math.min(MediaQuery.sizeOf(context).width * 0.72, 300.0);
 
-    final mark = Container(
-      width: 108,
-      height: 108,
-      decoration: BoxDecoration(
-        gradient: zb.brandGradient,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: cs.primary.withValues(alpha: 0.30),
-            blurRadius: 34,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(22),
-      child: SvgPicture.asset(
-        'assets/brand/submark.svg',
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-      ),
+    final logo = Image.asset(
+      'assets/brand/logo_full.png',
+      width: logoWidth,
+      fit: BoxFit.contain,
     );
 
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (reduceMotion)
-              mark
-            else
-              mark
-                  .animate()
-                  .scale(
-                    begin: const Offset(0.72, 0.72),
-                    end: const Offset(1, 1),
-                    duration: 620.ms,
-                    curve: Curves.easeOutBack,
-                  )
-                  .fadeIn(duration: 400.ms),
-            Gap.h24,
-            Text(
-              l.appName,
-              style: context.tt.headlineMedium?.copyWith(letterSpacing: -0.4),
-            )
-                .animate(target: reduceMotion ? 1 : null)
-                .fadeIn(delay: 240.ms, duration: 420.ms)
-                .moveY(begin: 8, end: 0, delay: 240.ms, duration: 420.ms),
-          ],
+        child: SizedBox(
+          // The sparkle field needs a bounded box to place fractions in; it is
+          // padded out around the logo so the confetti orbits rather than
+          // overlaps the wordmark.
+          width: logoWidth * 1.34,
+          height: logoWidth * 1.34,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const SparkleField(sparkles: _splashSparkles, twinkle: true),
+              if (reduceMotion)
+                logo
+              else
+                logo
+                    .animate()
+                    .scale(
+                      begin: const Offset(0.82, 0.82),
+                      end: const Offset(1, 1),
+                      duration: 620.ms,
+                      curve: Curves.easeOutBack,
+                    )
+                    .fadeIn(duration: 400.ms),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+const List<SparkleSpec> _splashSparkles = [
+  SparkleSpec(
+    dx: 0.13,
+    dy: 0.22,
+    size: 16,
+    color: ZbTokens.sparkAmber,
+    delay: Duration(milliseconds: 120),
+  ),
+  SparkleSpec(
+    dx: 0.86,
+    dy: 0.17,
+    size: 12,
+    color: ZbTokens.logoTeal,
+    delay: Duration(milliseconds: 200),
+    rotation: 0.4,
+  ),
+  SparkleSpec(
+    dx: 0.92,
+    dy: 0.66,
+    size: 18,
+    color: ZbTokens.logoCoral,
+    delay: Duration(milliseconds: 280),
+  ),
+  SparkleSpec(
+    dx: 0.20,
+    dy: 0.78,
+    size: 13,
+    color: ZbTokens.logoTeal,
+    delay: Duration(milliseconds: 350),
+    rotation: 0.3,
+  ),
+  SparkleSpec(
+    dx: 0.52,
+    dy: 0.90,
+    size: 10,
+    color: ZbTokens.sparkAmber,
+    delay: Duration(milliseconds: 420),
+  ),
+];

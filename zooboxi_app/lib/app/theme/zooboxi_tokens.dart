@@ -85,6 +85,18 @@ abstract final class ZbTokens {
   static const Color shippingFgDark = Color(0xFFA9B4BB);
   static const Color shippingBgDark = Color(0xFF272E31);
 
+  // ── Logo family — decor and mascot moments only ────────────────────
+  // Sampled from the Zooboxi mascot logo (cardboard box + dog + cat). These
+  // are NOT part of the system palette: they never colour a surface, a CTA or
+  // a text style. Use them only for sparkles, hearts, mascot cards and the
+  // logo sticker, so the logo's warmth stays a decorative accent.
+  static const Color logoCoral = Color(0xFFE67746);
+  static const Color logoTeal = Color(0xFF5DAEA7);
+  static const Color cardboard = Color(0xFFE49859);
+  static const Color inkWarm = Color(0xFF5A2C2F);
+  static const Color creamLogo = Color(0xFFF4EBDA);
+  static const Color sparkAmber = Color(0xFFE9B36A);
+
   // ── Radius · الاستدارة ─────────────────────────────────────────────
   static const double rXs = 8;
   static const double rSm = 12;
@@ -142,6 +154,7 @@ abstract final class Gap {
   static const Widget w4 = SizedBox(width: 4);
   static const Widget w6 = SizedBox(width: 6);
   static const Widget w8 = SizedBox(width: 8);
+  static const Widget w10 = SizedBox(width: 10);
   static const Widget w12 = SizedBox(width: 12);
   static const Widget w16 = SizedBox(width: 16);
 }

@@ -33,6 +33,10 @@ class HomeHeader extends ConsumerWidget {
         children: [
           Row(
             children: [
+              const _LogoSticker(),
+              Gap.w10,
+              // The chip stays Expanded, so the sticker's fixed width is the
+              // only thing it gives up.
               Expanded(child: LocationChip(onCanvas: onCanvas)),
               IconButton(
                 onPressed: () {
@@ -69,6 +73,40 @@ class HomeHeader extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The logo, sitting on the header as a small printed sticker. Decor, not a
+/// control — it has no tap target on purpose.
+class _LogoSticker extends StatelessWidget {
+  const _LogoSticker();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: context.isDark ? Colors.white.withValues(alpha: 0.92) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.14),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      // The sticker is height-driven; the aspect gives the Row a finite width
+      // instead of the asset's intrinsic 1400px.
+      child: const AspectRatio(
+        aspectRatio: 1400 / 1204,
+        child: Image(
+          image: AssetImage('assets/brand/logo_full.png'),
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

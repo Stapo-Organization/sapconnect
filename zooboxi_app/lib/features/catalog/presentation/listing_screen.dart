@@ -114,6 +114,7 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
           onAction: _query.hasFilters
               ? () => setState(() => _query = _query.cleared())
               : null,
+          mascot: true,
         ),
       ),
     );

@@ -100,6 +100,7 @@ class _Loaded extends ConsumerWidget {
         message: l.cartEmptyHint,
         actionLabel: l.cartStartShopping,
         onAction: () => context.go('/home'),
+        mascot: true,
       );
     }
 

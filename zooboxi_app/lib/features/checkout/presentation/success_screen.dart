@@ -8,6 +8,8 @@ import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
+import '../../../core/widgets/mascot_peek.dart';
+import '../../../core/widgets/sparkles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/checkout_models.dart';
 import 'widgets/promise_recap.dart';
@@ -76,26 +78,47 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                     textAlign: TextAlign.center,
                   ),
                   Gap.h20,
-                  Center(
-                    child: _OrderChip(
-                      number: order.orderNumber,
-                      total: Fmt.price(order.total, locale: locale),
-                    ),
-                  ),
-                  if (!order.paymentRequired && order.paymentMethod == 'cod') ...[
-                    Gap.h12,
-                    Center(
-                      child: Text(
-                        l.successCodNote,
-                        style: context.tt.bodySmall
-                            ?.copyWith(color: cs.onSurfaceVariant),
+                  // The receipt block is a card so the mascots have an edge to
+                  // peek over — the screen had no card of its own.
+                  MascotPeek(
+                    widthFactor: 0.70,
+                    maxWidth: 280,
+                    delay: const Duration(milliseconds: 520),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 32, 16, 18),
+                      decoration: BoxDecoration(
+                        color: context.isDark
+                            ? cs.surfaceContainerLow
+                            : ZbTokens.creamLogo,
+                        borderRadius: BorderRadius.circular(ZbTokens.rXl),
+                      ),
+                      child: Column(
+                        children: [
+                          Center(
+                            child: _OrderChip(
+                              number: order.orderNumber,
+                              total: Fmt.price(order.total, locale: locale),
+                            ),
+                          ),
+                          if (!order.paymentRequired && order.paymentMethod == 'cod') ...[
+                            Gap.h12,
+                            Center(
+                              child: Text(
+                                l.successCodNote,
+                                style: context.tt.bodySmall
+                                    ?.copyWith(color: cs.onSurfaceVariant),
+                              ),
+                            ),
+                          ],
+                          if (!order.promise.isEmpty) ...[
+                            Gap.h16,
+                            PromiseRecap(promise: order.promise),
+                          ],
+                        ],
                       ),
                     ),
-                  ],
-                  if (!order.promise.isEmpty) ...[
-                    Gap.h24,
-                    PromiseRecap(promise: order.promise),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -157,8 +180,8 @@ class _SuccessMark extends StatelessWidget {
     );
 
     final paw = PositionedDirectional(
-      bottom: 2,
-      end: 2,
+      bottom: (_burstSide - 116) / 2 + 2,
+      end: (_burstSide - 120) / 2 + 2,
       child: Container(
         width: 38,
         height: 38,
@@ -173,18 +196,26 @@ class _SuccessMark extends StatelessWidget {
 
     if (still) {
       return SizedBox(
-        width: 120,
-        height: 116,
-        child: Stack(alignment: Alignment.center, children: [mark, paw]),
+        width: _burstSide,
+        height: _burstSide,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const SparkleField(sparkles: _successSparkles, twinkle: true),
+            mark,
+            paw,
+          ],
+        ),
       );
     }
 
     return SizedBox(
-      width: 120,
-      height: 116,
+      width: _burstSide,
+      height: _burstSide,
       child: Stack(
         alignment: Alignment.center,
         children: [
+          const SparkleField(sparkles: _successSparkles, twinkle: true),
           mark
               .animate()
               .scale(
@@ -221,23 +252,43 @@ class _OrderChip extends StatelessWidget {
         color: cs.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(ZbTokens.rLg),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l.successOrderNumber(number),
-            style: context.tt.titleSmall,
-            textDirection: TextDirection.ltr,
-          ),
-          Gap.w12,
-          Container(width: 1, height: 16, color: cs.outlineVariant),
-          Gap.w12,
-          Text(
-            total,
-            style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ],
+      // Scaled down rather than wrapped or clipped: an order number that
+      // ellipsises is worse than one a hair smaller, and the card it now sits
+      // in leaves less room than the bare screen did.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l.successOrderNumber(number),
+              style: context.tt.titleSmall,
+              textDirection: TextDirection.ltr,
+            ),
+            Gap.w12,
+            Container(width: 1, height: 16, color: cs.outlineVariant),
+            Gap.w12,
+            Text(
+              total,
+              style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+/// The check circle plus its confetti halo. Bigger than the mark so the
+/// sparkles orbit it instead of landing on it.
+const double _burstSide = 190;
+
+const List<SparkleSpec> _successSparkles = [
+  SparkleSpec(dx: 0.10, dy: 0.26, size: 14, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 80)),
+  SparkleSpec(dx: 0.50, dy: 0.04, size: 11, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 150), rotation: 0.4),
+  SparkleSpec(dx: 0.90, dy: 0.20, size: 18, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 220)),
+  SparkleSpec(dx: 0.04, dy: 0.66, size: 9, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 290)),
+  SparkleSpec(dx: 0.96, dy: 0.62, size: 12, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 350), rotation: 0.3),
+  SparkleSpec(dx: 0.24, dy: 0.94, size: 20, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 420)),
+  SparkleSpec(dx: 0.74, dy: 0.96, size: 10, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 480)),
+];

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,7 @@ import '../../../core/session/session_controller.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
 import '../../../core/widgets/press_scale.dart';
+import '../../../core/widgets/sparkles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/data/addresses_controller.dart';
 import '../../account/presentation/address_editor_screen.dart';
@@ -371,12 +373,11 @@ class _StepBody extends StatelessWidget {
 }
 
 class _GlassTile extends StatelessWidget {
-  const _GlassTile({required this.child, this.size = 44, this.radius = 14, this.padding});
+  const _GlassTile({required this.child, this.size = 44, this.radius = 14});
 
   final Widget child;
   final double size;
   final double radius;
-  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -384,7 +385,6 @@ class _GlassTile extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      padding: padding,
       alignment: AlignmentDirectional.center,
       decoration: BoxDecoration(
         color: fg.withValues(alpha: 0.14),
@@ -535,29 +535,34 @@ class _WelcomeStep extends StatelessWidget {
     final fg = _canvasFg(context);
     final still = context.reduceMotion;
 
+    // The wordmark *is* the app name, so the sticker replaces the name text.
     final hero = Column(
       children: [
-        _GlassTile(
-          size: 96,
-          radius: 26,
-          padding: const EdgeInsets.all(20),
-          child: SvgPicture.asset(
-            'assets/brand/submark.svg',
-            colorFilter: ColorFilter.mode(fg, BlendMode.srcIn),
+        Transform.rotate(
+          angle: (context.isRtl ? 2.5 : -2.5) * math.pi / 180,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.isDark
+                  ? Colors.white.withValues(alpha: 0.94)
+                  : ZbTokens.creamLogo,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Image.asset(
+              'assets/brand/logo_full.png',
+              width: math.min(MediaQuery.sizeOf(context).width * 0.62, 260.0),
+              fit: BoxFit.contain,
+            ),
           ),
         ),
         Gap.h20,
-        Text(
-          l.appName,
-          textAlign: TextAlign.center,
-          style: context.tt.displaySmall?.copyWith(
-            color: fg,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.6,
-            fontSize: 34,
-          ),
-        ),
-        Gap.h8,
         Text(
           l.onbWelcomeTitle,
           textAlign: TextAlign.center,
@@ -681,8 +686,9 @@ class _LanguageCard extends StatelessWidget {
   }
 }
 
-/// Soft brand furniture behind the welcome step — rings, blobs and a paw, all
-/// at an alpha that reads as texture rather than as content.
+/// Soft brand furniture behind the welcome step — the logo's own vocabulary
+/// (sparkles, hearts, a paw, one ring) at an alpha that reads as texture
+/// rather than as content.
 class _WelcomeDecor extends StatelessWidget {
   const _WelcomeDecor();
 
@@ -697,44 +703,80 @@ class _WelcomeDecor extends StatelessWidget {
             end: -62,
             child: _Ring(size: 236, color: fg.withValues(alpha: 0.10)),
           ),
-          PositionedDirectional(
-            top: 96,
-            start: -96,
-            child: _Blob(size: 196, color: fg.withValues(alpha: 0.07)),
+          SparkleField(
+            sparkles: [
+              SparkleSpec(
+                dx: 0.12,
+                dy: 0.13,
+                size: 18,
+                color: fg.withValues(alpha: 0.45),
+                delay: const Duration(milliseconds: 160),
+              ),
+              SparkleSpec(
+                dx: 0.80,
+                dy: 0.24,
+                size: 13,
+                color: ZbTokens.sparkAmber.withValues(alpha: 0.55),
+                delay: const Duration(milliseconds: 240),
+                rotation: 0.35,
+              ),
+              SparkleSpec(
+                dx: 0.90,
+                dy: 0.52,
+                size: 16,
+                color: ZbTokens.logoTeal.withValues(alpha: 0.45),
+                delay: const Duration(milliseconds: 320),
+              ),
+              SparkleSpec(
+                dx: 0.07,
+                dy: 0.58,
+                size: 11,
+                color: fg.withValues(alpha: 0.35),
+                delay: const Duration(milliseconds: 380),
+                rotation: 0.5,
+              ),
+              SparkleSpec(
+                dx: 0.68,
+                dy: 0.86,
+                size: 15,
+                color: ZbTokens.sparkAmber.withValues(alpha: 0.40),
+                delay: const Duration(milliseconds: 440),
+              ),
+              SparkleSpec(
+                dx: 0.30,
+                dy: 0.93,
+                size: 10,
+                color: ZbTokens.logoTeal.withValues(alpha: 0.38),
+                delay: const Duration(milliseconds: 500),
+              ),
+            ],
           ),
           PositionedDirectional(
-            bottom: -54,
-            end: 26,
-            child: _Blob(size: 168, color: fg.withValues(alpha: 0.06)),
+            top: 118,
+            start: 30,
+            child: Heart(
+              size: 20,
+              color: ZbTokens.logoCoral.withValues(alpha: 0.50),
+            ),
+          ),
+          PositionedDirectional(
+            bottom: 176,
+            end: 44,
+            child: Heart(
+              size: 14,
+              color: ZbTokens.logoCoral.withValues(alpha: 0.50),
+              rotation: -0.3,
+            ),
           ),
           PositionedDirectional(
             bottom: 112,
             start: 22,
             child: _Paw(size: 62, color: fg.withValues(alpha: 0.08)),
           ),
-          PositionedDirectional(
-            top: 44,
-            start: 74,
-            child: _Paw(size: 34, color: fg.withValues(alpha: 0.07)),
-          ),
         ],
       ),
     );
   }
-}
-
-class _Blob extends StatelessWidget {
-  const _Blob({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      );
 }
 
 class _Ring extends StatelessWidget {

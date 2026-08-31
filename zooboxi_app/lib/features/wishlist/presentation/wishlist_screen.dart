@@ -71,6 +71,7 @@ class _List extends ConsumerWidget {
               message: l.wishlistEmptyHint,
               actionLabel: l.cartStartShopping,
               onAction: () => context.go('/home'),
+              mascot: true,
             );
           }
           return GridView.builder(

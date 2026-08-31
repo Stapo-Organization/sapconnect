@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../app/theme/zb_colors.dart';
 import '../../app/theme/zooboxi_tokens.dart';
+import 'mascot_peek.dart';
 
 /// The illustrated empty state.
 ///
@@ -18,6 +19,7 @@ class EmptyState extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.compact = false,
+    this.mascot = false,
   });
 
   final IconData icon;
@@ -26,6 +28,12 @@ class EmptyState extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final bool compact;
+
+  /// Puts the state on a cream card with the logo's dog and cat peeking over
+  /// its top edge. Reserved for the screens a customer *expected* to have
+  /// something on them — cart, wishlist, orders, search results. Ignored when
+  /// [compact], which has no room for it.
+  final bool mascot;
 
   @override
   Widget build(BuildContext context) {
@@ -98,15 +106,39 @@ class EmptyState extends StatelessWidget {
       ],
     );
 
+    final still = MediaQuery.disableAnimationsOf(context);
+    final body = still
+        ? content
+        : content
+            .animate()
+            .fadeIn(duration: 320.ms, curve: Curves.easeOut)
+            .moveY(begin: 12, end: 0, duration: 320.ms, curve: Curves.easeOut);
+
+    if (!mascot || compact) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: body,
+        ),
+      );
+    }
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-        child: MediaQuery.disableAnimationsOf(context)
-            ? content
-            : content
-                .animate()
-                .fadeIn(duration: 320.ms, curve: Curves.easeOut)
-                .moveY(begin: 12, end: 0, duration: 320.ms, curve: Curves.easeOut),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: MascotPeek(
+          delay: const Duration(milliseconds: 260),
+          child: Container(
+            width: double.infinity,
+            // Extra top padding leaves the illustration clear of the heads.
+            padding: const EdgeInsets.fromLTRB(20, 34, 20, 20),
+            decoration: BoxDecoration(
+              color: context.isDark ? cs.surfaceContainerHigh : ZbTokens.creamLogo,
+              borderRadius: BorderRadius.circular(ZbTokens.rLg),
+            ),
+            child: body,
+          ),
+        ),
       ),
     );
   }
