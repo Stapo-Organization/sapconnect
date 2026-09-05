@@ -75,16 +75,16 @@ abstract final class HeroMetrics {
   // header fused in, the whole canvas unit was passing half the screen; the
   // slide band is the only part with room to give — the compositions center
   // and crop, so they absorb a lower band without redesign.
-  static const double aspect = 2.75;
+  static const double aspect = 3.2;
   static const double maxTextScale = 1.3;
 
   /// How much taller the slide area gets at the top of the text-scale range.
-  /// Raised with the 2.75 aspect: the compact band fits scale 1.0 exactly, so
+  /// Raised with each aspect cut: the compact band fits scale 1.0 exactly, so
   /// enlarged text needs the whole difference back from here.
-  static const double scaleHeadroom = 132;
+  static const double scaleHeadroom = 200;
 
   /// The strip under the slide copy that the page dots live in.
-  static const double dotsBand = 22;
+  static const double dotsBand = 20;
 
   static double height(BuildContext context, double width) {
     final factor =
@@ -513,6 +513,9 @@ class _CampaignSlide extends StatelessWidget {
       panel: panel,
       // The page already painted the panel gradient from the status bar down.
       paintBackground: false,
+      // The hero band is short by design (owner-tuned aspect); the copy's
+      // vertical breathing room comes from centering, not from padding.
+      padding: const EdgeInsetsDirectional.only(start: 16, end: 12, top: 6, bottom: 6),
       art: campaign.artFor(const ['app_hero', 'card', 'hero', 'wide']),
       copy: Column(
         mainAxisSize: MainAxisSize.min,

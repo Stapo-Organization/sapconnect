@@ -8,7 +8,6 @@ import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/motion/motion.dart';
-import '../../../../core/session/session_controller.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -28,7 +27,6 @@ class HomeHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
-    final user = ref.watch(sessionProvider).user;
     final fg = onCanvas ? _canvasFg(context) : null;
 
     return Padding(
@@ -43,6 +41,10 @@ class HomeHeader extends ConsumerWidget {
               // The chip stays Expanded, so the sticker's fixed width is the
               // only thing it gives up.
               Expanded(child: LocationChip(onCanvas: onCanvas)),
+              // The delivery promise rides the top row, shoulder to shoulder
+              // with the wishlist — owner's call: no greeting line, the
+              // header is address, promise, heart, search.
+              PromiseLine(onCanvas: onCanvas),
               IconButton(
                 onPressed: () {
                   Haptics.light();
@@ -57,22 +59,7 @@ class HomeHeader extends ConsumerWidget {
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 8, end: 8, top: 4, bottom: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    user == null ? l.homeGreeting : '${l.homeGreeting.split(' ').first} ${user.firstName}',
-                    style: context.tt.headlineSmall?.copyWith(color: fg),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                PromiseLine(onCanvas: onCanvas),
-              ],
-            ),
-          ),
+          Gap.h8,
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
             child: _SearchBar(

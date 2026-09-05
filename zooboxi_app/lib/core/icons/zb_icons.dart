@@ -35,6 +35,7 @@ enum ZbIconKind {
   bell,
   paw,
   plusBox,
+  plus,
   sparkle,
 }
 
@@ -126,6 +127,8 @@ class ZbIcon extends StatelessWidget {
           lidOpen: lidOpen.clamp(0.0, 1.0),
           smile: smile.clamp(0.0, 1.0),
         ),
+      ZbIconKind.plus =>
+        ZbPlusPainter(ink: resolved, fill: f, size: s, tint: tint, rtl: rtl),
       ZbIconKind.bag =>
         ZbBagPainter(ink: resolved, fill: f, size: s, tint: tint, rtl: rtl),
       ZbIconKind.account =>

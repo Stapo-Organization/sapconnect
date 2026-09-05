@@ -418,7 +418,9 @@ class _BagFace extends StatelessWidget {
           onTap: onTap,
           child: Center(
             child: ZbIcon(
-              count > 0 ? ZbIconKind.bag : ZbIconKind.plusBox,
+              // A plain «+» when empty — the round teal button already says
+              // "cart"; drawing a bag on it too was one glyph too many.
+              count > 0 ? ZbIconKind.bag : ZbIconKind.plus,
               size: 26,
               ink: cs.onPrimary,
             ),

@@ -10,7 +10,7 @@ import 'package:zooboxi_app/core/icons/zb_icons.dart';
 /// the whole language can be judged on one page. Refresh it with
 /// `flutter test test/zb_icons_sheet_test.dart --update-goldens`.
 
-const double _sheetWidth = 1300;
+const double _sheetWidth = 1400;
 const double _sheetHeight = 880;
 
 const List<ZbIconKind> _all = ZbIconKind.values;

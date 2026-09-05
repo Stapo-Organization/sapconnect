@@ -288,3 +288,22 @@ class ZbSparklePainter extends ZbIconPainter {
     );
   }
 }
+
+
+/// A plain, chunky «+»: the add-to-cart glyph on a button that is already
+/// the cart's colour. Two rounded strokes, nothing else — simplicity was the
+/// owner's exact word for it.
+class ZbPlusPainter extends ZbIconPainter {
+  const ZbPlusPainter({required super.ink,
+    required super.fill,
+    required super.size,
+    super.tint,
+    super.rtl});
+
+  @override
+  void draw(Canvas canvas) {
+    final stroke = strokePaint(width: detailed ? 2.8 : 3.1);
+    canvas.drawLine(const Offset(12, 5.6), const Offset(12, 18.4), stroke);
+    canvas.drawLine(const Offset(5.6, 12), const Offset(18.4, 12), stroke);
+  }
+}
