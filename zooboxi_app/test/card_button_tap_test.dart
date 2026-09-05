@@ -4,9 +4,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zooboxi_app/core/widgets/paginated_grid.dart';
 import 'package:zooboxi_app/core/widgets/product_card.dart';
 import 'package:zooboxi_app/core/widgets/product_card_foot.dart';
+import 'package:zooboxi_app/features/cart/data/cart_controller.dart';
+import 'package:zooboxi_app/features/cart/data/cart_models.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
+
+/// A cart that stays empty no matter what — stands in for the server trimming
+/// an add (unreachable, or clamped straight back out): the request "succeeds"
+/// but no line is ever created.
+class _EmptyCart extends CartController {
+  @override
+  Future<CartData> build() async => CartData.empty;
+}
 
 ProductCard _p(int id) => ProductCard.fromJson({
       'id': id,
@@ -21,14 +31,14 @@ ProductCard _p(int id) => ProductCard.fromJson({
       'wishlisted': false,
     });
 
-Widget _host(Widget child) => ProviderScope(
-      child: MaterialApp(
-        locale: const Locale('ar'),
-        supportedLocales: L.supportedLocales,
-        localizationsDelegates: L.localizationsDelegates,
-        home: Scaffold(body: child),
-      ),
+Widget _app(Widget child) => MaterialApp(
+      locale: const Locale('ar'),
+      supportedLocales: L.supportedLocales,
+      localizationsDelegates: L.localizationsDelegates,
+      home: Scaffold(body: child),
     );
+
+Widget _host(Widget child) => ProviderScope(child: _app(child));
 
 void main() {
   testWidgets('bag button fires onAdd on a bare card', (tester) async {
@@ -82,5 +92,34 @@ void main() {
     await tester.tap(overlays.first, warnIfMissed: true);
     await tester.pump(const Duration(milliseconds: 400));
     expect(fired, 1, reason: 'grid card: onAdd must fire');
+  });
+
+  testWidgets('a successful add that leaves no cart line shows no ghost count',
+      (tester) async {
+    await tester.pumpWidget(ProviderScope(
+      overrides: [cartControllerProvider.overrideWith(_EmptyCart.new)],
+      child: _app(
+        Center(
+          child: SizedBox(
+            width: 180,
+            child: ProductCardView(
+              product: _p(1),
+              // The server said yes, but the cart stays empty — the line was
+              // trimmed as unreachable. The card must not keep an optimistic 1.
+              onAdd: (_) async => true,
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(ProductCardAddOverlay), warnIfMissed: true);
+    // Past the optimistic open, the await, and the collapse timer.
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle(const Duration(seconds: 4));
+
+    expect(find.text('1'), findsNothing,
+        reason: 'no line landed, so the card must not show a count');
   });
 }

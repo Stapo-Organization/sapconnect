@@ -132,6 +132,29 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
     }
     if (!mounted) return;
     if (accepted) {
+      // The add already updated the cart synchronously. Whether it left a
+      // live line for THIS product decides what the optimism does next.
+      final hasLine = ref.read(cartControllerProvider).value?.items.any(
+                (i) => i.productId == widget.product.id &&
+                    i.variationId == null &&
+                    i.qty > 0,
+              ) ??
+          false;
+      if (!hasLine) {
+        // A 200 that left no line — an unreachable trim, or a clamp that took
+        // it straight back out. The pending 1 would bridge to nothing and
+        // sit on the card as a ghost count forever; drop it.
+        setState(() {
+          _pending = null;
+          _cancelOnLand = false;
+          _expanded = false;
+          _shellCurve = Curves.easeInOutCubic;
+        });
+      } else if (_pending == 1 && !_cancelOnLand) {
+        // The line is real and the customer didn't re-tap mid-flight: hand the
+        // count to the cart so a LATER removal can't be masked by a stale 1.
+        setState(() => _pending = null);
+      }
       if (from != null) {
         flyToCart(
           context,
