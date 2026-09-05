@@ -2154,6 +2154,30 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'هذا المنتج لا يمكن توصيله إلى موقعك حاليًا'**
   String get cartItemUnreachable;
+
+  /// No description provided for @driftTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'يبدو أنك في مكان جديد'**
+  String get driftTitle;
+
+  /// No description provided for @driftBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقعك الحالي: {here}\nعنوان التوصيل المحدد: {saved}'**
+  String driftBody(String here, String saved);
+
+  /// No description provided for @driftUseHere.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصّلوا لموقعي الحالي'**
+  String get driftUseHere;
+
+  /// No description provided for @driftKeep.
+  ///
+  /// In ar, this message translates to:
+  /// **'إبقاء العنوان المحدد'**
+  String get driftKeep;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

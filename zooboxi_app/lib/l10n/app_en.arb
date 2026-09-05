@@ -496,5 +496,19 @@
   "brandProductCount": "{count, plural, =0{No products} =1{1 product} other{{count} products}}",
   "brandShopAll": "All {brand} products",
   "brandsTitle": "All brands",
-  "cartItemUnreachable": "This product can't be delivered to your location right now"
+  "cartItemUnreachable": "This product can't be delivered to your location right now",
+  "driftTitle": "Looks like you're somewhere new",
+  "driftBody": "You are at: {here}\nDelivery address: {saved}",
+  "driftUseHere": "Deliver to where I am",
+  "driftKeep": "Keep my saved address",
+  "@driftBody": {
+    "placeholders": {
+      "here": {
+        "type": "String"
+      },
+      "saved": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1189,4 +1189,18 @@ class LEn extends L {
   @override
   String get cartItemUnreachable =>
       'This product can\'t be delivered to your location right now';
+
+  @override
+  String get driftTitle => 'Looks like you\'re somewhere new';
+
+  @override
+  String driftBody(String here, String saved) {
+    return 'You are at: $here\nDelivery address: $saved';
+  }
+
+  @override
+  String get driftUseHere => 'Deliver to where I am';
+
+  @override
+  String get driftKeep => 'Keep my saved address';
 }

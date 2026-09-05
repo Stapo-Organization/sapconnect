@@ -48,10 +48,10 @@ class ProductCardAddOverlay extends ConsumerStatefulWidget {
 /// The cart's view of this exact product, reduced to the values the control
 /// renders. A record so `select` compares by value — a cart refresh that did
 /// not touch this line must not rebuild every card in the grid.
-/// [direct] is true when the product sits in the cart as its one simple line —
-/// the only case the card's inline stepper can operate on. A variable product
-/// (units, flavours) may carry several variation lines: the bubble shows their
-/// SUM, and quantity edits belong to the product page.
+/// [direct] is true when the product sits in the cart as exactly ONE line
+/// (simple, or a single variation) — the case the card's inline stepper can
+/// operate on. Several variation lines at once: the bubble shows their SUM,
+/// and quantity edits belong to the product page.
 typedef _CartLine = ({String key, int qty, int? max, bool direct});
 
 class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
@@ -219,7 +219,9 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
                 .toList() ??
             const [];
         if (items.isEmpty) return null;
-        final direct = items.length == 1 && items.first.variationId == null;
+        // One line — simple OR a single variation (a كرتون) — is steerable
+        // right here; only several variation lines need the product page.
+        final direct = items.length == 1;
         var qty = 0;
         for (final item in items) {
           qty += item.qty;

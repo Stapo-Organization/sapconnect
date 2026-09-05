@@ -17,6 +17,8 @@ import '../../cart/presentation/widgets/free_shipping_bar.dart';
 import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
+import '../../../core/location/location_controller.dart';
+import '../../location/presentation/location_drift_sheet.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/address_nav_bar.dart';
 import 'widgets/animal_nav.dart';
@@ -45,7 +47,49 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
+  /// The drift offer runs on launch and on every return from the background,
+  /// but not more often than this — a customer flipping between apps at a
+  /// café is not moving house.
+  static const Duration _driftCooldown = Duration(minutes: 20);
+  static DateTime? _lastDriftCheck;
+  bool _driftSheetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOfferDrift());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _maybeOfferDrift();
+  }
+
+  Future<void> _maybeOfferDrift() async {
+    if (_driftSheetOpen) return;
+    final last = _lastDriftCheck;
+    if (last != null && DateTime.now().difference(last) < _driftCooldown) return;
+    _lastDriftCheck = DateTime.now();
+
+    final drift = await ref.read(locationProvider.notifier).detectDrift();
+    if (drift == null || !mounted) return;
+    _driftSheetOpen = true;
+    try {
+      await showLocationDriftSheet(context, drift);
+    } finally {
+      _driftSheetOpen = false;
+    }
+  }
+
   /// True once the canvas' own address row has scrolled out of reach — the
   /// compact address bar slides in and the status-bar clock flips back dark.
   bool _navVisible = false;

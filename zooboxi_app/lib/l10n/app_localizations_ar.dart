@@ -1197,4 +1197,18 @@ class LAr extends L {
   @override
   String get cartItemUnreachable =>
       'هذا المنتج لا يمكن توصيله إلى موقعك حاليًا';
+
+  @override
+  String get driftTitle => 'يبدو أنك في مكان جديد';
+
+  @override
+  String driftBody(String here, String saved) {
+    return 'موقعك الحالي: $here\nعنوان التوصيل المحدد: $saved';
+  }
+
+  @override
+  String get driftUseHere => 'وصّلوا لموقعي الحالي';
+
+  @override
+  String get driftKeep => 'إبقاء العنوان المحدد';
 }

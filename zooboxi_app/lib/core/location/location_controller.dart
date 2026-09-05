@@ -121,6 +121,35 @@ class ZbLocation {
       value.codeUnits.every((u) => u >= 0x20 && u < 0x7f) ? value : Uri.encodeComponent(value);
 }
 
+/// A device fix that no longer matches the saved delivery point, already
+/// resolved so the offer can name the place. Nothing is applied until the
+/// customer says so — a home address stays home while they sit at work.
+@immutable
+class LocationDrift {
+  const LocationDrift({
+    required this.lat,
+    required this.lng,
+    this.city,
+    this.district,
+    this.promiseLabel,
+  });
+
+  final double lat;
+  final double lng;
+  final String? city;
+  final String? district;
+  final String? promiseLabel;
+
+  String? label(String locale) {
+    final parts = [
+      if (district != null && district!.trim().isNotEmpty) district!.trim(),
+      if (city != null && city!.trim().isNotEmpty) city!.trim(),
+    ];
+    if (parts.isEmpty) return null;
+    return parts.join(locale == 'ar' ? '، ' : ', ');
+  }
+}
+
 /// How the last location resolution went — drives the welcome step and the
 /// location sheet without either needing a second piece of state.
 enum LocationPhase { idle, locating, denied, failed }
@@ -225,6 +254,66 @@ class LocationController extends Notifier<LocationState> {
     // real tier + branch when it can.
     if (city.lat != null && city.lng != null) {
       unawaited(resolve(city.lat!, city.lng!));
+    }
+  }
+
+  /// Far enough from the saved point to be a different neighbourhood.
+  static const double driftMeters = 1200;
+
+  /// Quietly checks whether the device has moved away from the saved delivery
+  /// point. Never prompts for permission — an app that asks for location on
+  /// every launch trains people to say no. Returns null when there is nothing
+  /// to offer: no saved coordinates, no permission, no fix, no real distance,
+  /// the same spot already waved away today, or the place could not be named.
+  Future<LocationDrift?> detectDrift() async {
+    final saved = state.location;
+    if (!saved.hasCoordinates) return null;
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return null;
+      final permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        return null;
+      }
+      final fix = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 6),
+        ),
+      );
+      final moved = Geolocator.distanceBetween(
+        saved.lat!, saved.lng!, fix.latitude, fix.longitude,
+      );
+      if (moved < driftMeters) return null;
+
+      final dismissed = ref.read(localStoreProvider).driftDismissed;
+      if (dismissed != null) {
+        final at = asDate(dismissed['at']);
+        final near = Geolocator.distanceBetween(
+              asDoubleOrNull(dismissed['lat']) ?? 0,
+              asDoubleOrNull(dismissed['lng']) ?? 0,
+              fix.latitude,
+              fix.longitude,
+            ) <
+            300;
+        if (near && at != null && DateTime.now().difference(at) < const Duration(hours: 24)) {
+          return null;
+        }
+      }
+
+      final result = await ref
+          .read(locationRepositoryProvider)
+          .resolve(lat: fix.latitude, lng: fix.longitude);
+      final drift = LocationDrift(
+        lat: fix.latitude,
+        lng: fix.longitude,
+        city: result.city,
+        district: result.district,
+        promiseLabel: result.best?.promiseLabel,
+      );
+      return drift.label('ar') == null ? null : drift;
+    } catch (_) {
+      return null;
     }
   }
 

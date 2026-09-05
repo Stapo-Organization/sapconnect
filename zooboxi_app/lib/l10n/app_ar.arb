@@ -533,5 +533,19 @@
     }
   },
   "brandsTitle": "كل الماركات",
-  "cartItemUnreachable": "هذا المنتج لا يمكن توصيله إلى موقعك حاليًا"
+  "cartItemUnreachable": "هذا المنتج لا يمكن توصيله إلى موقعك حاليًا",
+  "driftTitle": "يبدو أنك في مكان جديد",
+  "driftBody": "موقعك الحالي: {here}\nعنوان التوصيل المحدد: {saved}",
+  "driftUseHere": "وصّلوا لموقعي الحالي",
+  "driftKeep": "إبقاء العنوان المحدد",
+  "@driftBody": {
+    "placeholders": {
+      "here": {
+        "type": "String"
+      },
+      "saved": {
+        "type": "String"
+      }
+    }
+  }
 }

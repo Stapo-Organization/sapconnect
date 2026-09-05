@@ -17,6 +17,7 @@ class LocalStore {
   static const _kLocale = 'settings.locale';
   static const _kWelcomeSeen = 'settings.onboarded.v2';
   static const _kLocation = 'location.current';
+  static const _kDriftDismissed = 'location.drift_dismissed';
   static const _kPendingAddress = 'address.pending';
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
@@ -59,6 +60,13 @@ class LocalStore {
   // ── Delivery location ────────────────────────────────────────────────
 
   Map<String, dynamic>? get location => _json(_kLocation);
+
+  /// The last "you're somewhere new" offer the customer waved away:
+  /// `{lat, lng, at}`. The same spot isn't offered again for a day.
+  Map<String, dynamic>? get driftDismissed => _json(_kDriftDismissed);
+  Future<void> setDriftDismissed(Map<String, dynamic>? value) => value == null
+      ? _prefs.remove(_kDriftDismissed)
+      : _prefs.setString(_kDriftDismissed, jsonEncode(value));
 
   Future<void> setLocation(Map<String, dynamic>? value) => value == null
       ? _prefs.remove(_kLocation)
