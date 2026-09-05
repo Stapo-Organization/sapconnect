@@ -111,14 +111,18 @@ class Zooboxi_V2_Loyalty_Controller
         }
 
         $history = Zooboxi_Loyalty_Missions::history($user_id);
+        $pending = $this->pending_orders($user_id);
 
         return Zooboxi_V2_Bootstrap::ok([
             'member' => Zooboxi_Loyalty_Members::dto($user_id),
             'paws'   => [
                 'balance'    => Zooboxi_Loyalty_Ledger::balance($user_id),
+                // Revealed prizes still waiting on a delivery. In-flight order paws are
+                // listed per order below so the app can say WHICH order is on its way.
                 'pending'    => $holdout ? 0 : Zooboxi_Loyalty_Scratch::pending_paws($user_id),
                 'expires_at' => $this->paws_expiry($user_id),
             ],
+            'pending_orders' => $pending,
             'tier'     => Zooboxi_Loyalty_Tiers::dto($user_id),
             'missions' => [
                 'period'    => Zooboxi_Loyalty::period(),
@@ -137,6 +141,50 @@ class Zooboxi_V2_Loyalty_Controller
                 'orders_app'   => (int) ($history['app_orders'] ?? 0),
             ],
         ]);
+    }
+
+    /**
+     * Orders placed but not yet delivered, newest first, with the paws each will pay.
+     *
+     * The whole program settles on delivery; a customer who has just placed their
+     * first order sees nothing land and needs to be told, per order, that it is on
+     * its way — not left to wonder whether the program is broken.
+     *
+     * @return array<int,array{id:int,number:string,paws:int,is_app:bool,created_at:?string}>
+     */
+    private function pending_orders(int $user_id): array
+    {
+        if (!function_exists('wc_get_orders')) {
+            return [];
+        }
+        try {
+            $orders = wc_get_orders([
+                'customer_id' => $user_id,
+                'status'      => ['pending', 'on-hold', 'processing'],
+                'limit'       => 5,
+                'orderby'     => 'date',
+                'order'       => 'DESC',
+                'date_after'  => gmdate('Y-m-d', time() - 60 * DAY_IN_SECONDS),
+            ]);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($orders as $order) {
+            if (!$order instanceof \WC_Order) {
+                continue;
+            }
+            $created = $order->get_date_created();
+            $out[] = [
+                'id'         => (int) $order->get_id(),
+                'number'     => (string) $order->get_order_number(),
+                'paws'       => Zooboxi_Loyalty_Ledger::order_paws($order),
+                'is_app'     => (string) $order->get_meta('_zooboxi_app_order') !== '',
+                'created_at' => $created ? $created->date('c') : null,
+            ];
+        }
+        return $out;
     }
 
     /** When the current balance would lapse if the customer never earned again. */

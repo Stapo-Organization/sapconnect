@@ -210,7 +210,7 @@ class Zooboxi_Loyalty_Tiers
         // would re-enter this class's own filter while building its own copy.
         $base_min = (float) get_option('zooboxi_free_shipping_min', 200);
 
-        return [
+        $perks = [
             [
                 'key'       => 'free_min_150',
                 'text'      => Zooboxi_Loyalty::pick(
@@ -251,6 +251,15 @@ class Zooboxi_Loyalty_Tiers
                 'from_tier' => 'amb',
             ],
         ];
+
+        // The app prints «من مستوى ذهبي», never «من مستوى gold»: hand it the name in
+        // the request's language next to the key it keys on.
+        foreach ($perks as &$perk) {
+            $perk['from_tier_name'] = self::name((string) $perk['from_tier']);
+        }
+        unset($perk);
+
+        return $perks;
     }
 
     private static function num(float $v): string
