@@ -29,6 +29,7 @@ class Zooboxi_Loyalty_Missions
         'first_app_order'  => ['kind' => 'welcome',   'paws' => 150, 'target' => 1, 'reward_key' => 'welcome_gift'],
         'on_time'          => ['kind' => 'regular',   'paws' => 100, 'target' => 1],
         'frequency'        => ['kind' => 'frequency', 'paws' => 300, 'target' => 2],
+        'weigh_in'         => ['kind' => 'care',      'paws' => 50,  'target' => 1],
         'try_new_brand'    => ['kind' => 'trial',     'paws' => 150, 'target' => 1],
         'refer_friend'     => ['kind' => 'growth',    'paws' => 100, 'target' => 1],
         'species_category' => ['kind' => 'category',  'paws' => 150, 'target' => 1],
@@ -303,6 +304,27 @@ class Zooboxi_Loyalty_Missions
                     'body_en'  => 'Earn bonus paws when you finish the month\'s orders.',
                     'target'   => $target,
                     'params'   => [],
+                    'reward'   => $reward,
+                ];
+
+            case 'weigh_in':
+                // A fresh weight is a correct feeding plan — only for the species that have one.
+                if (!class_exists('Zooboxi_Loyalty_Care') || !Zooboxi_Loyalty_Care::enabled()) {
+                    return null;
+                }
+                $weighable = Zooboxi_Loyalty_Care::weighable_pet($user_id);
+                if ($weighable === null || Zooboxi_Loyalty_Care::logged_this_period($user_id)) {
+                    return null;
+                }
+                $who = trim((string) $weighable['name']) !== '' ? (string) $weighable['name'] : $pet;
+                return [
+                    'kind'     => 'care',
+                    'title_ar' => sprintf('سجّل وزن %s', $who),
+                    'title_en' => sprintf('Log %s\'s weight', $who),
+                    'body_ar'  => 'وزن محدّث يعني كمية أكل أدق وعدّاداً أصدق. إدخال واحد هذا الشهر يكفي.',
+                    'body_en'  => 'A fresh weight means a more accurate feeding plan and an honest gauge. One entry this month is enough.',
+                    'target'   => 1,
+                    'params'   => ['pet_id' => (int) $weighable['id']],
                     'reward'   => $reward,
                 ];
 

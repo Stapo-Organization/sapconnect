@@ -428,6 +428,15 @@ class Zooboxi_Loyalty_Supply
         if ($pack_kg === null || $pack_kg <= 0 || $species === '' || $kind === 'other') {
             return null;
         }
+        // Phase 3a: a pet with a feeding plan (or a hand-set grams/day) beats the
+        // generic per-kilo table — the forecast becomes THIS animal's.
+        if ($pet !== null && class_exists('Zooboxi_Loyalty_Care') && in_array($kind, ['dry', 'wet'], true)) {
+            $own = Zooboxi_Loyalty_Care::grams_per_day($pet, $kind);
+            if ($own !== null && $own > 0) {
+                return ($pack_kg * 1000.0) / $own;
+            }
+        }
+
         $table = self::feeding_table();
         $spec  = $table[$species][$kind] ?? null;
         if (!is_array($spec)) {

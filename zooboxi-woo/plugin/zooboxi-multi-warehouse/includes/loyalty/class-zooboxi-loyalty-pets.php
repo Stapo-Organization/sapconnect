@@ -215,6 +215,54 @@ class Zooboxi_Loyalty_Pets
             $formats[]     = '%s';
         }
 
+        // ── Phase 3a «الرفيق»: the feeding plan's inputs ──
+        if ($has('activity')) {
+            $activity = sanitize_key((string) $input['activity']);
+            if (!in_array($activity, ['', 'low', 'normal', 'high'], true)) {
+                $errors['activity'] = Zooboxi_Loyalty::pick('مستوى النشاط غير صالح', 'Invalid activity level.');
+            } else {
+                $data['activity'] = $activity;
+                $formats[]        = '%s';
+            }
+        }
+        if ($has('body_condition')) {
+            $cond = sanitize_key((string) $input['body_condition']);
+            if (!in_array($cond, ['', 'under', 'ideal', 'over'], true)) {
+                $errors['body_condition'] = Zooboxi_Loyalty::pick('حالة الجسم غير صالحة', 'Invalid body condition.');
+            } else {
+                $data['body_condition'] = $cond;
+                $formats[]              = '%s';
+            }
+        }
+        if (array_key_exists('feed_g_day', $input)) {
+            if ($input['feed_g_day'] === null || $input['feed_g_day'] === '' || (float) $input['feed_g_day'] <= 0) {
+                $data['feed_g_day'] = null;
+                $formats[]          = '%s';
+            } else {
+                $grams = (float) $input['feed_g_day'];
+                if ($grams < 1 || $grams > 2000) {
+                    $errors['feed_g_day'] = Zooboxi_Loyalty::pick('الكمية بين 1 و2000 غرام في اليوم', 'Between 1 and 2000 grams a day.');
+                } else {
+                    $data['feed_g_day'] = round($grams, 1);
+                    $formats[]          = '%f';
+                }
+            }
+        }
+        if (array_key_exists('food_kcal', $input)) {
+            if ($input['food_kcal'] === null || $input['food_kcal'] === '' || (int) $input['food_kcal'] <= 0) {
+                $data['food_kcal'] = null;
+                $formats[]         = '%s';
+            } else {
+                $kcal = (int) $input['food_kcal'];
+                if ($kcal < 100 || $kcal > 700) {
+                    $errors['food_kcal'] = Zooboxi_Loyalty::pick('السعرات بين 100 و700 لكل 100غ', 'Between 100 and 700 kcal per 100 g.');
+                } else {
+                    $data['food_kcal'] = $kcal;
+                    $formats[]         = '%d';
+                }
+            }
+        }
+
         // ── photo (an existing attachment id only) ──
         if (array_key_exists('photo_id', $input)) {
             $pid = absint($input['photo_id'] ?? 0);
@@ -272,6 +320,7 @@ class Zooboxi_Loyalty_Pets
         $pet_id = (int) $wpdb->insert_id;
         self::forget($user_id);
         $pet    = self::find($pet_id, $user_id);
+        self::echo_weight($user_id, $pet_id, $data);
 
         $paws = self::award_for_pet($user_id, $pet_id);
         $paws += self::maybe_award_profile($user_id);
@@ -307,6 +356,7 @@ class Zooboxi_Loyalty_Pets
         global $wpdb;
         $wpdb->update(Zooboxi_Loyalty_Schema::pets(), $data, ['id' => $pet_id, 'user_id' => $user_id]);
         self::forget($user_id);
+        self::echo_weight($user_id, $pet_id, $data);
 
         $paws = self::maybe_award_profile($user_id);
         self::after_save($user_id);
@@ -330,6 +380,14 @@ class Zooboxi_Loyalty_Pets
         );
         self::forget($user_id);
         return $ok;
+    }
+
+    /** A weight typed into the profile is a reading too — the chart should have it. */
+    private static function echo_weight(int $user_id, int $pet_id, array $data): void
+    {
+        if (isset($data['weight_kg']) && $data['weight_kg'] !== null && (float) $data['weight_kg'] > 0 && class_exists('Zooboxi_Loyalty_Care')) {
+            Zooboxi_Loyalty_Care::record_profile_weight($user_id, $pet_id, (float) $data['weight_kg']);
+        }
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -429,6 +487,12 @@ class Zooboxi_Loyalty_Pets
             'photo_url'         => !empty($pet['photo_id']) ? (wp_get_attachment_image_url((int) $pet['photo_id'], 'medium') ?: null) : null,
             'is_complete'       => self::is_complete($pet),
             'birthday_in_days'  => $birth ? self::birthday_in_days($birth) : null,
+            // Phase 3a «الرفيق»
+            'activity'          => (string) ($pet['activity'] ?? ''),
+            'body_condition'    => (string) ($pet['body_condition'] ?? ''),
+            'feed_g_day'        => isset($pet['feed_g_day']) && $pet['feed_g_day'] !== null && (float) $pet['feed_g_day'] > 0 ? (float) $pet['feed_g_day'] : null,
+            'food_kcal'         => isset($pet['food_kcal']) && (int) $pet['food_kcal'] > 0 ? (int) $pet['food_kcal'] : null,
+            'plan_ok'           => in_array((string) $pet['species'], ['cat', 'dog'], true) && $pet['weight_kg'] !== null && (float) $pet['weight_kg'] > 0,
         ];
     }
 

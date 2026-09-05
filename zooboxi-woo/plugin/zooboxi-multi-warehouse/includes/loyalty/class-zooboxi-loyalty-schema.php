@@ -2,7 +2,7 @@
 /**
  * Zooboxi_Loyalty_Schema — the tables behind «عائلة زوبوكسي» (seven in Phase 1, six more
  * for Phase 2 «العادة»: subscriptions, supply events, referrals, stamp programs, stamps,
- * notices).
+ * notices; two more for Phase 3a «الرفيق»: pet weights and care reminders).
  *
  * WHY LAZY: this store is deployed by scp, so `register_activation_hook` never fires.
  * Exactly like Zooboxi_App_Tokens, one cheap option read guards a dbDelta run, and
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 class Zooboxi_Loyalty_Schema
 {
     /** ONE version for the whole module — bump when any table below changes. */
-    public const DB_VERSION = 2;
+    public const DB_VERSION = 3;
 
     /** Option holding the installed schema version. */
     public const DB_OPTION = 'zooboxi_loyalty_db_version';
@@ -105,6 +105,20 @@ class Zooboxi_Loyalty_Schema
         return $wpdb->prefix . 'zb_notices';
     }
 
+    /* ── Phase 3a «الرفيق» ── */
+
+    public static function pet_weights(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_pet_weights';
+    }
+
+    public static function pet_care(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_pet_care';
+    }
+
     /** All tables, keyed by short name (used by the admin health box). */
     public static function all(): array
     {
@@ -122,6 +136,8 @@ class Zooboxi_Loyalty_Schema
             'stamp_programs' => self::stamp_programs(),
             'stamps'         => self::stamps(),
             'notices'        => self::notices(),
+            'pet_weights'    => self::pet_weights(),
+            'pet_care'       => self::pet_care(),
         ];
     }
 
@@ -161,6 +177,8 @@ class Zooboxi_Loyalty_Schema
         $stamp_programs = self::stamp_programs();
         $stamps         = self::stamps();
         $notices        = self::notices();
+        $pet_weights    = self::pet_weights();
+        $pet_care       = self::pet_care();
 
         $sql = [];
 
@@ -197,6 +215,10 @@ class Zooboxi_Loyalty_Schema
             photo_id BIGINT UNSIGNED NULL DEFAULT NULL,
             avatar VARCHAR(24) NOT NULL DEFAULT '',
             notes VARCHAR(200) NOT NULL DEFAULT '',
+            activity VARCHAR(8) NOT NULL DEFAULT '',
+            body_condition VARCHAR(8) NOT NULL DEFAULT '',
+            feed_g_day DECIMAL(6,1) NULL DEFAULT NULL,
+            food_kcal SMALLINT UNSIGNED NULL DEFAULT NULL,
             created_at DATETIME NOT NULL,
             updated_at DATETIME NOT NULL,
             deleted_at DATETIME NULL DEFAULT NULL,
@@ -409,6 +431,40 @@ class Zooboxi_Loyalty_Schema
             PRIMARY KEY  (id),
             UNIQUE KEY once (user_id, kind, ref),
             KEY user_sent (user_id, sent_at)
+        ) {$charset};";
+
+        // Phase 3a «الرفيق»: one weight per pet per day; a profile edit writes one too,
+        // so the chart fills up without the customer ever "keeping a log".
+        $sql[] = "CREATE TABLE {$pet_weights} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            pet_id BIGINT UNSIGNED NOT NULL,
+            weight_kg DECIMAL(5,2) NOT NULL,
+            noted_on DATE NOT NULL,
+            source VARCHAR(8) NOT NULL DEFAULT 'log',
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY pet_day (pet_id, noted_on),
+            KEY user_id (user_id)
+        ) {$charset};";
+
+        // Care reminders are lazy rows: a kind without a row is simply "not set".
+        $sql[] = "CREATE TABLE {$pet_care} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            pet_id BIGINT UNSIGNED NOT NULL,
+            kind VARCHAR(16) NOT NULL,
+            interval_days SMALLINT UNSIGNED NOT NULL DEFAULT 90,
+            last_on DATE NULL DEFAULT NULL,
+            next_on DATE NULL DEFAULT NULL,
+            enabled TINYINT(1) NOT NULL DEFAULT 1,
+            done_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY pet_kind (pet_id, kind),
+            KEY user_id (user_id),
+            KEY user_next (user_id, enabled, next_on)
         ) {$charset};";
 
         foreach ($sql as $statement) {

@@ -68,6 +68,9 @@ class Zooboxi_Loyalty
         'winback_paws'           => 200,
         'mail_enabled'           => 'yes',
         'mail_weekly_cap'        => 2,
+        // ── Phase 3a «الرفيق» ──
+        'care_enabled'           => 'yes',
+        'care_ahead_days'        => 3,
     ];
 
     private static ?bool $enabled = null;
@@ -174,6 +177,8 @@ class Zooboxi_Loyalty
             'sub_bonus_pct'         => self::opt_int('sub_bonus_pct'),
             'sub_gift_every'        => self::opt_int('sub_gift_every'),
             'max_subscriptions'     => self::opt_int('max_subscriptions'),
+            // Phase 3a
+            'care_enabled'          => self::opt('care_enabled') === 'yes',
         ];
     }
 
@@ -390,6 +395,7 @@ class Zooboxi_Loyalty
             'cards_revealed' => $cards_revealed,
             'missions_done'  => $missions_done,
             'habit'          => $habit,
+            'care'           => class_exists('Zooboxi_Loyalty_Care') ? Zooboxi_Loyalty_Care::metrics($month_start, $next_month) : [],
             'cost_sar'       => round($cost, 2),
             'cost_rewards'   => round($redeemed_cost, 2),
             'cost_paws'      => round($paw_cost, 2),

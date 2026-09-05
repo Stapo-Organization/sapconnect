@@ -43,6 +43,7 @@ class Zooboxi_V2_Meta_Controller
                 'subscriptions'   => class_exists('Zooboxi_Loyalty_Subscriptions') && Zooboxi_Loyalty_Subscriptions::enabled(),
                 'referral'        => class_exists('Zooboxi_Loyalty_Referrals') && Zooboxi_Loyalty_Referrals::enabled(),
                 'stamps'          => class_exists('Zooboxi_Loyalty_Stamps') && Zooboxi_Loyalty::is_enabled() && !empty(Zooboxi_Loyalty_Stamps::programs(true)),
+                'care'            => class_exists('Zooboxi_Loyalty_Care') && Zooboxi_Loyalty_Care::enabled(),
             ],
             // The program's public constants, so the app never hardcodes a rate or a
             // name. Absent (null) when the module is off — the app hides the tab.

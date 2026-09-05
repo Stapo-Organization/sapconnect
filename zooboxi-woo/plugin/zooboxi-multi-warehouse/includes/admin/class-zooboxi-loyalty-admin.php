@@ -27,7 +27,9 @@ class Zooboxi_Loyalty_Admin
         'missions' => ['🎯', 'المهمات'],
         'habit'    => ['🔁', 'العادة'],
         'stamps'   => ['🏷️', 'بطاقات الماركات'],
+        'care'     => ['🩺', 'الرفيق'],
         'metrics'  => ['📊', 'المؤشرات'],
+        'cohorts'  => ['📈', 'الأفواج'],
         'member'   => ['🔎', 'بحث عن عضو'],
     ];
 
@@ -122,6 +124,12 @@ class Zooboxi_Loyalty_Admin
                 case 'stamps':
                     self::tab_stamps();
                     break;
+                case 'care':
+                    self::tab_care();
+                    break;
+                case 'cohorts':
+                    self::tab_cohorts();
+                    break;
                 case 'metrics':
                     self::tab_metrics();
                     break;
@@ -172,6 +180,14 @@ class Zooboxi_Loyalty_Admin
                 $id = absint($_POST['program_id'] ?? 0);
                 Zooboxi_Loyalty_Stamps::toggle($id, !empty($_POST['active']));
                 return __('تم تحديث البرنامج', 'zooboxi');
+            case 'care':
+                return self::save_care();
+            case 'cohorts':
+                return self::save_cohorts();
+            case 'cohorts_refresh':
+                $days = absint($_POST['days'] ?? 90);
+                Zooboxi_Loyalty_Cohorts::report($days, true);
+                return __('تم تحديث لوحة الأفواج', 'zooboxi');
             case 'habit_daily':
                 $r = Zooboxi_Loyalty_Moments::run_daily();
                 return sprintf(__('تم تشغيل مهام العادة: تذكيرات %d · إحالات %d · أعياد ميلاد %d · استرجاع %d', 'zooboxi'), (int) $r['sub_reminders'], (int) $r['referrals_paid'], (int) $r['birthdays'], (int) $r['winbacks']);
@@ -768,6 +784,18 @@ class Zooboxi_Loyalty_Admin
                 ?>
             </div>
 
+            <h3><?php esc_html_e('الرفيق (المرحلة 3أ)', 'zooboxi'); ?></h3>
+            <div class="zbl-stats">
+                <?php
+                $c = $m['care'] ?? [];
+                self::stat(__('أوزان مسجّلة هذا الشهر', 'zooboxi'), (string) ($c['weights_logged'] ?? 0));
+                self::stat(__('حيوانات بخطة تغذية', 'zooboxi'), (string) ($c['pets_with_plan'] ?? 0));
+                self::stat(__('تذكيرات مضبوطة', 'zooboxi'), (string) ($c['reminders_set'] ?? 0));
+                self::stat(__('«تم» هذا الشهر', 'zooboxi'), (string) ($c['reminders_done'] ?? 0));
+                self::stat(__('مستحقة خلال أسبوع', 'zooboxi'), (string) ($c['reminders_due'] ?? 0));
+                ?>
+            </div>
+
             <h3><?php esc_html_e('المنح', 'zooboxi'); ?></h3>
             <p><?php
                 $parts = [];
@@ -1038,6 +1066,7 @@ class Zooboxi_Loyalty_Admin
             'species_category' => __('جرّب تصنيفاً جديداً', 'zooboxi'),
             'on_time'          => __('اطلب في وقتك', 'zooboxi'),
             'refer_friend'     => __('ادعُ صديقاً', 'zooboxi'),
+            'weigh_in'         => __('سجّل الوزن', 'zooboxi'),
         ];
         return $map[$key] ?? $key;
     }
@@ -1333,6 +1362,320 @@ class Zooboxi_Loyalty_Admin
         <?php
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       PHASE 3a — «الرفيق»
+       ══════════════════════════════════════════════════════════════ */
+
+    private static function save_care(): string
+    {
+        $post = wp_unslash($_POST);
+        update_option('zooboxi_loyalty_care_enabled', !empty($post['care_enabled']) ? 'yes' : 'no');
+        if (isset($post['care_ahead_days'])) {
+            update_option('zooboxi_loyalty_care_ahead_days', min(14, absint($post['care_ahead_days'])));
+        }
+
+        foreach (['care_intervals', 'care_kcal', 'care_products'] as $key) {
+            $json = trim((string) ($post[$key] ?? ''));
+            if ($json === '') {
+                delete_option('zooboxi_loyalty_' . $key);
+                continue;
+            }
+            $decoded = json_decode($json, true);
+            if (!is_array($decoded)) {
+                return sprintf(__('%s ليس JSON صالحاً — لم يُحفظ', 'zooboxi'), $key);
+            }
+            update_option('zooboxi_loyalty_' . $key, wp_json_encode($decoded, JSON_UNESCAPED_UNICODE));
+        }
+
+        // Pinned products changed → the suggestion cache must not outlive them.
+        global $wpdb;
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_zb_care_prod_%' OR option_name LIKE '_transient_timeout_zb_care_prod_%'");
+
+        return __('تم حفظ إعدادات الرفيق', 'zooboxi');
+    }
+
+    private static function tab_care(): void
+    {
+        $intervals = Zooboxi_Loyalty::opt_json('care_intervals', []);
+        $kcal      = Zooboxi_Loyalty::opt_json('care_kcal', []);
+        $products  = Zooboxi_Loyalty::opt_json('care_products', []);
+        $m         = Zooboxi_Loyalty::metrics();
+        $c         = $m['care'] ?? [];
+        ?>
+        <form method="post" class="zbl-card">
+            <?php wp_nonce_field('zbl_care'); ?>
+            <input type="hidden" name="zbl_action" value="care">
+
+            <h2><?php esc_html_e('الرفيق — حاسبة التغذية، سجل الوزن، تذكيرات الرعاية', 'zooboxi'); ?></h2>
+            <p class="zbl-hint"><?php esc_html_e('سبب لفتح التطبيق بلا شراء. خطة الغذاء تُحسب من وزن الحيوان وعمره وتعقيمه ونشاطه (RER = 70 × كغ^0.75 × معامل المرحلة) وتغذّي عدّاد الأكل مباشرة بدل الجدول العام.', 'zooboxi'); ?></p>
+            <?php self::check_field('care_enabled', __('تفعيل أدوات الرفيق', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <?php self::number_field('care_ahead_days', __('التنبيه قبل الموعد (أيام)', 'zooboxi'), __('إشعار محلي على الجوال قبل موعد التذكير بهذا العدد من الأيام، ثم في اليوم نفسه.', 'zooboxi')); ?>
+            </div>
+
+            <div class="zbl-stats">
+                <?php
+                self::stat(__('أوزان مسجّلة هذا الشهر', 'zooboxi'), (string) ($c['weights_logged'] ?? 0));
+                self::stat(__('حيوانات بخطة تغذية', 'zooboxi'), (string) ($c['pets_with_plan'] ?? 0));
+                self::stat(__('تذكيرات مضبوطة', 'zooboxi'), (string) ($c['reminders_set'] ?? 0));
+                self::stat(__('«تم» هذا الشهر', 'zooboxi'), (string) ($c['reminders_done'] ?? 0));
+                self::stat(__('مستحقة خلال أسبوع', 'zooboxi'), (string) ($c['reminders_due'] ?? 0));
+                ?>
+            </div>
+
+            <h3><?php esc_html_e('فواصل التذكيرات (أيام) — JSON', 'zooboxi'); ?></h3>
+            <p class="zbl-hint"><?php esc_html_e('لكل نوع حيوان: vaccine, deworm, flea_tick, grooming, checkup. المفتاح "*" لبقية الأنواع. اتركه فارغاً للافتراضي.', 'zooboxi'); ?></p>
+            <textarea class="zbl-textarea" name="care_intervals" rows="8" placeholder="<?php echo esc_attr(wp_json_encode(Zooboxi_Loyalty_Care::DEFAULT_INTERVALS, JSON_PRETTY_PRINT)); ?>"><?php echo esc_textarea($intervals ? wp_json_encode($intervals, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : ''); ?></textarea>
+
+            <h3><?php esc_html_e('كثافة السعرات (kcal لكل 100غ) — JSON', 'zooboxi'); ?></h3>
+            <p class="zbl-hint"><?php esc_html_e('الافتراضي: قط جاف 375 / رطب 90؛ كلب جاف 360 / رطب 100. العميل يستطيع تجاوز الجاف من ملف الحيوان.', 'zooboxi'); ?></p>
+            <textarea class="zbl-textarea" name="care_kcal" rows="5" placeholder="<?php echo esc_attr(wp_json_encode(Zooboxi_Loyalty_Care::DEFAULT_KCAL)); ?>"><?php echo esc_textarea($kcal ? wp_json_encode($kcal, JSON_PRETTY_PRINT) : ''); ?></textarea>
+
+            <h3><?php esc_html_e('منتجات مثبّتة للتذكيرات — JSON', 'zooboxi'); ?></h3>
+            <p class="zbl-hint"><?php esc_html_e('معرّفات منتجات لكل نوع × تذكير، مثال: {"cat":{"deworm":[17203],"flea_tick":[17203]},"dog":{"deworm":[17175,17177]}}. بدونها يُقترح المنتج ببحث العنوان (ديدان / البراغيث / شامبو) مرشّحاً بنوع الحيوان.', 'zooboxi'); ?></p>
+            <textarea class="zbl-textarea" name="care_products" rows="5"><?php echo esc_textarea($products ? wp_json_encode($products, JSON_PRETTY_PRINT) : ''); ?></textarea>
+
+            <p><button type="submit" class="button button-primary button-large"><?php esc_html_e('حفظ إعدادات الرفيق', 'zooboxi'); ?></button></p>
+        </form>
+
+        <div class="zbl-card">
+            <h2><?php esc_html_e('كيف تُحسب الخطة', 'zooboxi'); ?></h2>
+            <table class="widefat striped zbl-table">
+                <thead><tr><th><?php esc_html_e('المرحلة', 'zooboxi'); ?></th><th><?php esc_html_e('قط', 'zooboxi'); ?></th><th><?php esc_html_e('كلب', 'zooboxi'); ?></th></tr></thead>
+                <tbody>
+                    <tr><td><?php esc_html_e('أقل من 4 أشهر', 'zooboxi'); ?></td><td>× 2.5</td><td>× 3.0</td></tr>
+                    <tr><td><?php esc_html_e('4–12 شهراً', 'zooboxi'); ?></td><td>× 2.0</td><td>× 2.0</td></tr>
+                    <tr><td><?php esc_html_e('بالغ معقّم / غير معقّم', 'zooboxi'); ?></td><td>× 1.2 / 1.4</td><td>× 1.6 / 1.8</td></tr>
+                    <tr><td><?php esc_html_e('كبير السن', 'zooboxi'); ?></td><td>× 1.1 (≥ 11 سنة)</td><td>× 1.4 (≥ 8 سنوات)</td></tr>
+                    <tr><td><?php esc_html_e('نشاط عالٍ / منخفض', 'zooboxi'); ?></td><td>+0.2 / −0.1</td><td>+0.4 / −0.2</td></tr>
+                    <tr><td><?php esc_html_e('وزن زائد / نحيف', 'zooboxi'); ?></td><td colspan="2"><?php esc_html_e('زائد: المعامل لا يتجاوز 1.0 (خفض لطيف) · نحيف: +0.2', 'zooboxi'); ?></td></tr>
+                </tbody>
+            </table>
+            <p class="zbl-hint"><?php esc_html_e('مثال: قط 4.2 كغ بالغ معقّم → RER ≈ 205، MER ≈ 246 kcal → ≈ 65غ جاف/يوم → عبوة 2 كغ تكفي ≈ 31 يوماً في العدّاد.', 'zooboxi'); ?></p>
+        </div>
+        <?php
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PHASE 3a — «لوحة الأفواج»
+       ══════════════════════════════════════════════════════════════ */
+
+    private static function save_cohorts(): string
+    {
+        $raw = trim((string) wp_unslash($_POST['launched_at'] ?? ''));
+        if ($raw === '') {
+            delete_option('zooboxi_loyalty_launched_at');
+        } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw) && strtotime($raw)) {
+            update_option('zooboxi_loyalty_launched_at', $raw, false);
+        } else {
+            return __('تاريخ الإطلاق غير صالح', 'zooboxi');
+        }
+        foreach (Zooboxi_Loyalty_Cohorts::WINDOWS as $d) {
+            delete_transient('zb_loyalty_cohorts_' . $d);
+        }
+        return __('تم حفظ تاريخ الإطلاق', 'zooboxi');
+    }
+
+    private static function arm_label(string $arm): string
+    {
+        switch ($arm) {
+            case 'players':
+                return __('لاعبون (أعضاء يرون اللعبة)', 'zooboxi');
+            case 'holdout':
+                return __('ضابطة (أعضاء بلا لعبة)', 'zooboxi');
+            case 'none':
+                return __('غير أعضاء', 'zooboxi');
+        }
+        return $arm;
+    }
+
+    private static function pct_cell($value, string $unit = '%'): string
+    {
+        if ($value === null) {
+            return '—';
+        }
+        $v = (float) $value;
+        $class = $v > 0 ? 'zbl-pos' : ($v < 0 ? 'zbl-neg' : '');
+        return '<strong class="' . esc_attr($class) . '">' . esc_html(($v > 0 ? '+' : '') . $v . $unit) . '</strong>';
+    }
+
+    private static function tab_cohorts(): void
+    {
+        $days = isset($_GET['days']) ? absint($_GET['days']) : 90;
+        if (!in_array($days, Zooboxi_Loyalty_Cohorts::WINDOWS, true)) {
+            $days = 90;
+        }
+        $r = Zooboxi_Loyalty_Cohorts::report($days);
+        $base = admin_url('admin.php?page=' . self::SLUG . '&tab=cohorts');
+        ?>
+        <div class="zbl-card">
+            <h2><?php esc_html_e('لوحة الأفواج — هل يحرّك البرنامج شيئاً؟', 'zooboxi'); ?></h2>
+            <p class="zbl-hint"><?php esc_html_e('المقارنة الصادقة الوحيدة هي «لاعبون» مقابل «ضابطة»: كلاهما أعضاء يكسبون بصمات ولهم مستوى، والفرق بينهما هو اللعبة فقط (الخدش والمهمات والعدّاد). فرق «الأعضاء» عن «غير الأعضاء» فيه انتقاء ذاتي — من يفتح التطبيق يشتري أكثر أصلاً.', 'zooboxi'); ?></p>
+
+            <p>
+                <?php foreach (Zooboxi_Loyalty_Cohorts::WINDOWS as $d): ?>
+                    <a class="zbl-tab<?php echo $d === $days ? ' is-active' : ''; ?>" href="<?php echo esc_url($base . '&days=' . $d); ?>"><?php echo esc_html(sprintf(__('%d يوماً', 'zooboxi'), $d)); ?></a>
+                <?php endforeach; ?>
+                <form method="post" style="display:inline-block;margin-inline-start:12px"><?php wp_nonce_field('zbl_cohorts_refresh'); ?><input type="hidden" name="zbl_action" value="cohorts_refresh"><input type="hidden" name="days" value="<?php echo (int) $days; ?>"><button class="button"><?php esc_html_e('تحديث الآن', 'zooboxi'); ?></button></form>
+            </p>
+
+            <?php if (empty($r['available'])): ?>
+                <p class="zbl-warn"><?php esc_html_e('جداول تحليلات WooCommerce غير موجودة — لا يمكن بناء اللوحة.', 'zooboxi'); ?></p>
+                <?php return; ?>
+            <?php endif; ?>
+
+            <?php $lift = $r['lift']; ?>
+            <?php if (!empty($lift['small_sample'])): ?>
+                <p class="zbl-warn">⚠️ <?php printf(esc_html__('عيّنة صغيرة: %1$d لاعباً و%2$d في الضابطة خلال النافذة. الفوارق أدناه إشارة لا حكم حتى يتجاوز كل ذراع %3$d عميلاً.', 'zooboxi'), (int) $lift['n_players'], (int) $lift['n_holdout'], (int) Zooboxi_Loyalty_Cohorts::SMALL); ?></p>
+            <?php endif; ?>
+
+            <div class="zbl-lift">
+                <div class="zbl-lift__box"><span><?php esc_html_e('طلبات لكل عميل', 'zooboxi'); ?></span><strong><?php echo esc_html((string) $lift['orders_per_customer']['players']); ?></strong><em><?php esc_html_e('الضابطة', 'zooboxi'); ?> <?php echo esc_html((string) $lift['orders_per_customer']['holdout']); ?> · <?php echo wp_kses_post(self::pct_cell($lift['orders_per_customer']['lift_pct'])); ?></em></div>
+                <div class="zbl-lift__box"><span><?php esc_html_e('نسبة المكرّرين', 'zooboxi'); ?></span><strong><?php echo esc_html((string) $lift['repeat_rate']['players']); ?>%</strong><em><?php esc_html_e('الضابطة', 'zooboxi'); ?> <?php echo esc_html((string) $lift['repeat_rate']['holdout']); ?>% · <?php echo wp_kses_post(self::pct_cell($lift['repeat_rate']['lift_pts'], ' نقطة')); ?></em></div>
+                <div class="zbl-lift__box"><span><?php esc_html_e('متوسط الطلب', 'zooboxi'); ?></span><strong><?php echo esc_html(number_format((float) $lift['aov']['players'], 0)); ?> ﷼</strong><em><?php esc_html_e('الضابطة', 'zooboxi'); ?> <?php echo esc_html(number_format((float) $lift['aov']['holdout'], 0)); ?> ﷼ · <?php echo wp_kses_post(self::pct_cell($lift['aov']['lift_pct'])); ?></em></div>
+                <div class="zbl-lift__box"><span><?php esc_html_e('نشط آخر 30 يوماً', 'zooboxi'); ?></span><strong><?php echo esc_html((string) $lift['active_30_rate']['players']); ?>%</strong><em><?php esc_html_e('الضابطة', 'zooboxi'); ?> <?php echo esc_html((string) $lift['active_30_rate']['holdout']); ?>% · <?php echo wp_kses_post(self::pct_cell($lift['active_30_rate']['lift_pts'], ' نقطة')); ?></em></div>
+            </div>
+
+            <h3><?php echo esc_html(sprintf(__('الأذرع — آخر %d يوماً', 'zooboxi'), (int) $r['window_days'])); ?></h3>
+            <table class="widefat striped zbl-table">
+                <thead><tr>
+                    <th><?php esc_html_e('الذراع', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('عملاء', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('طلبات', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('إيراد', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('متوسط الطلب', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('طلبات/عميل', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('مكرّرون', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('نشط 30ي', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('من التطبيق', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('تكلفة البرنامج', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('تكلفة/عميل', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('% من الإيراد', 'zooboxi'); ?></th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($r['arms'] as $arm => $a): ?>
+                    <tr>
+                        <td><strong><?php echo esc_html(self::arm_label($arm)); ?></strong></td>
+                        <td><?php echo esc_html(number_format((int) $a['customers'])); ?></td>
+                        <td><?php echo esc_html(number_format((int) $a['orders'])); ?></td>
+                        <td><?php echo esc_html(number_format((float) $a['revenue'], 0)); ?> ﷼</td>
+                        <td><?php echo esc_html(number_format((float) $a['aov'], 0)); ?> ﷼</td>
+                        <td><?php echo esc_html((string) $a['orders_per_customer']); ?></td>
+                        <td><?php echo esc_html((string) $a['repeat_rate']); ?>%</td>
+                        <td><?php echo esc_html((string) $a['active_30_rate']); ?>%</td>
+                        <td><?php echo esc_html((string) $a['app_share']); ?>%</td>
+                        <td><?php echo $arm === 'none' ? '—' : esc_html(number_format((float) $a['cost_sar'], 2)) . ' ﷼'; ?></td>
+                        <td><?php echo $arm === 'none' ? '—' : esc_html(number_format((float) $a['cost_per_customer'], 2)) . ' ﷼'; ?></td>
+                        <td><?php echo $arm === 'none' || $a['cost_pct'] === null ? '—' : esc_html((string) $a['cost_pct']) . '%'; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="zbl-card">
+            <h2><?php esc_html_e('أفواج الانضمام', 'zooboxi'); ?></h2>
+            <p class="zbl-hint"><?php esc_html_e('لكل شهر انضمام: كم عضواً، وكم منهم طلب مرة أخرى خلال 30 / 60 / 90 يوماً بعد الانضمام. النسبة تُحسب فقط على من أكملوا المدة، فالشهر الجديد لا يُقرأ «صفر احتفاظ».', 'zooboxi'); ?></p>
+            <?php if (empty($r['cohorts'])): ?>
+                <p class="zbl-hint"><?php esc_html_e('لا أعضاء بعد.', 'zooboxi'); ?></p>
+            <?php else: ?>
+            <table class="widefat striped zbl-table">
+                <thead><tr>
+                    <th><?php esc_html_e('شهر الانضمام', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('الذراع', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('أعضاء', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('طلبوا خلال 30ي', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('60ي', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('90ي', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('طلبات/عضو', 'zooboxi'); ?></th>
+                    <th><?php esc_html_e('إيراد/عضو', 'zooboxi'); ?></th>
+                </tr></thead>
+                <tbody>
+                <?php foreach ($r['cohorts'] as $c): ?>
+                    <tr>
+                        <td><strong><?php echo esc_html($c['month']); ?></strong></td>
+                        <td><?php echo esc_html($c['arm'] === 'holdout' ? __('ضابطة', 'zooboxi') : __('لاعبون', 'zooboxi')); ?></td>
+                        <td><?php echo (int) $c['members']; ?></td>
+                        <?php foreach (['30', '60', '90'] as $n): ?>
+                            <td><?php echo $c['retention'][$n] === null ? '<span class="zbl-hint">' . esc_html__('لم ينضج', 'zooboxi') . '</span>' : esc_html((string) $c['retention'][$n]) . '% <span class="zbl-hint">(' . (int) $c['matured'][$n] . ')</span>'; ?></td>
+                        <?php endforeach; ?>
+                        <td><?php echo esc_html((string) $c['orders_per_member']); ?></td>
+                        <td><?php echo esc_html(number_format((float) $c['revenue_per_member'], 0)); ?> ﷼</td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php endif; ?>
+        </div>
+
+        <div class="zbl-card">
+            <h2><?php esc_html_e('قبل الإطلاق / بعده', 'zooboxi'); ?></h2>
+            <?php $L = $r['launch']; ?>
+            <p class="zbl-hint"><?php printf(esc_html__('تاريخ الإطلاق %1$s — نافذة بعد الإطلاق %2$d يوماً مقابل نفس المدة قبله. كل العملاء المسجّلين، بلا تمييز أذرع.', 'zooboxi'), esc_html(substr((string) $r['launched_at'], 0, 10)), (int) $L['days']); ?></p>
+            <table class="widefat striped zbl-table">
+                <thead><tr><th></th><th><?php esc_html_e('قبل', 'zooboxi'); ?></th><th><?php esc_html_e('بعد', 'zooboxi'); ?></th><th><?php esc_html_e('الفرق', 'zooboxi'); ?></th></tr></thead>
+                <tbody>
+                <?php
+                $rows = [
+                    ['label' => __('عملاء نشطون', 'zooboxi'), 'key' => 'customers', 'fmt' => 'int'],
+                    ['label' => __('طلبات', 'zooboxi'), 'key' => 'orders', 'fmt' => 'int'],
+                    ['label' => __('إيراد', 'zooboxi'), 'key' => 'revenue', 'fmt' => 'sar'],
+                    ['label' => __('متوسط الطلب', 'zooboxi'), 'key' => 'aov', 'fmt' => 'sar'],
+                    ['label' => __('طلبات لكل عميل', 'zooboxi'), 'key' => 'orders_per_customer', 'fmt' => 'num'],
+                    ['label' => __('نسبة المكرّرين', 'zooboxi'), 'key' => 'repeat_rate', 'fmt' => 'pct'],
+                ];
+                foreach ($rows as $row):
+                    $b = (float) $L['before'][$row['key']];
+                    $a = (float) $L['after'][$row['key']];
+                    $fmt = static function (float $v) use ($row): string {
+                        switch ($row['fmt']) {
+                            case 'int': return number_format($v);
+                            case 'sar': return number_format($v, 0) . ' ﷼';
+                            case 'pct': return $v . '%';
+                        }
+                        return (string) $v;
+                    };
+                    $diff = $row['fmt'] === 'pct' ? self::pct_cell($b > 0 || $a > 0 ? round($a - $b, 1) : null, ' نقطة') : self::pct_cell($b > 0 ? round(($a - $b) / $b * 100, 1) : null);
+                    ?>
+                    <tr><td><strong><?php echo esc_html($row['label']); ?></strong></td><td><?php echo esc_html($fmt($b)); ?></td><td><?php echo esc_html($fmt($a)); ?></td><td><?php echo wp_kses_post($diff); ?></td></tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+            <form method="post" style="margin-top:12px"><?php wp_nonce_field('zbl_cohorts'); ?><input type="hidden" name="zbl_action" value="cohorts">
+                <label class="zbl-field" style="max-width:280px"><span><?php esc_html_e('تاريخ الإطلاق (اتركه فارغاً = أول انضمام)', 'zooboxi'); ?></span>
+                    <input type="date" name="launched_at" value="<?php echo esc_attr((string) get_option('zooboxi_loyalty_launched_at', '')); ?>"></label>
+                <p><button class="button"><?php esc_html_e('حفظ', 'zooboxi'); ?></button></p>
+            </form>
+        </div>
+
+        <div class="zbl-card">
+            <h2><?php esc_html_e('آخر 12 أسبوعاً', 'zooboxi'); ?></h2>
+            <?php
+            $weeks = $r['weekly'];
+            $max_o = 1;
+            $max_m = 1;
+            foreach ($weeks as $w) {
+                $max_o = max($max_o, (int) $w['orders']);
+                $max_m = max($max_m, (int) $w['members']);
+            }
+            ?>
+            <p class="zbl-hint"><span style="display:inline-block;width:10px;height:10px;background:#429d9c;border-radius:2px"></span> <?php esc_html_e('طلبات', 'zooboxi'); ?> &nbsp; <span style="display:inline-block;width:10px;height:10px;background:#d46856;border-radius:2px"></span> <?php esc_html_e('أعضاء جدد', 'zooboxi'); ?></p>
+            <div class="zbl-bars">
+                <?php foreach ($weeks as $w): ?>
+                    <div class="zbl-bar" title="<?php echo esc_attr($w['week'] . ' · ' . $w['orders'] . ' / ' . number_format((float) $w['revenue'], 0) . ' ﷼ / +' . $w['members']); ?>">
+                        <div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%">
+                            <div class="zbl-bar__fill" style="height:<?php echo (int) round((int) $w['orders'] / $max_o * 100); ?>%"></div>
+                            <div class="zbl-bar__fill zbl-bar__fill--members" style="height:<?php echo (int) round((int) $w['members'] / $max_m * 100); ?>%"></div>
+                        </div>
+                        <span class="zbl-bar__label"><?php echo esc_html(substr((string) $w['week'], 5)); ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <p class="zbl-hint"><?php esc_html_e('احتُسب في:', 'zooboxi'); ?> <?php echo esc_html((string) $r['computed_at']); ?> UTC</p>
+        </div>
+        <?php
+    }
+
     private static function styles(): void
     {
         ?>
@@ -1364,6 +1707,18 @@ class Zooboxi_Loyalty_Admin
         .zbl-stat strong { font-size:20px; }
         .zbl-big { font-size:17px; }
         .zbl-pets { margin:0; padding-inline-start:18px; }
+        .zbl-bars { display:flex; gap:6px; align-items:flex-end; height:140px; margin:14px 0 4px; }
+        .zbl-bar { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px; height:100%; }
+        .zbl-bar__fill { width:100%; background:#429d9c; border-radius:6px 6px 0 0; min-height:2px; }
+        .zbl-bar__fill--members { background:#d46856; }
+        .zbl-bar__label { font-size:10px; color:#646970; white-space:nowrap; }
+        .zbl-lift { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin:12px 0; }
+        .zbl-lift__box { background:#f6f7f7; border-radius:10px; padding:12px 14px; }
+        .zbl-lift__box span { display:block; color:#646970; font-size:12px; }
+        .zbl-lift__box strong { font-size:22px; }
+        .zbl-lift__box em { font-style:normal; font-size:12px; color:#646970; display:block; margin-top:4px; }
+        .zbl-pos { color:#046b2f; } .zbl-neg { color:#b32d2e; }
+        .zbl-arm { text-transform:none; }
         </style>
         <?php
     }

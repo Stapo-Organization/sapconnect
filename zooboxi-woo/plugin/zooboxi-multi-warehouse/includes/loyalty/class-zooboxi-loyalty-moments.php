@@ -495,8 +495,19 @@ class Zooboxi_Loyalty_Moments
             }
         }
 
+        // Care reminders (Phase 3a): three days before and on the day.
+        if (class_exists('Zooboxi_Loyalty_Care')) {
+            try {
+                foreach (Zooboxi_Loyalty_Care::nudges($user_id) as $n) {
+                    $out[] = $n;
+                }
+            } catch (\Throwable $e) {
+                error_log('[Zooboxi Loyalty] care nudges failed: ' . $e->getMessage());
+            }
+        }
+
         usort($out, static fn ($a, $b) => strcmp($a['at'], $b['at']));
-        return array_slice($out, 0, 12);
+        return array_slice($out, 0, 16);
     }
 
     /* ══════════════════════════════════════════════════════════════

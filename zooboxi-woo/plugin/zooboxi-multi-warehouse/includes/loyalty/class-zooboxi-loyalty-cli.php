@@ -135,6 +135,58 @@ class Zooboxi_Loyalty_CLI
     }
 
     /**
+     * Print one pet's care payload (plan, weight log, reminders) as JSON.
+     *
+     * ## OPTIONS
+     *
+     * <user_id>
+     * : The customer's user id.
+     *
+     * <pet_id>
+     * : The pet id.
+     *
+     * ## EXAMPLES
+     *
+     *     wp zooboxi loyalty care 3 7
+     *
+     * @when after_wp_load
+     */
+    public function care($args, $assoc_args): void
+    {
+        Zooboxi_Loyalty_Schema::maybe_install();
+        $user_id = (int) ($args[0] ?? 0);
+        $pet     = Zooboxi_Loyalty_Pets::find((int) ($args[1] ?? 0), $user_id);
+        if ($pet === null) {
+            \WP_CLI::error('pet not found');
+        }
+        \WP_CLI::line(wp_json_encode(Zooboxi_Loyalty_Care::payload($user_id, $pet), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Print the cohort report (arms, join cohorts, before/after launch) as JSON.
+     *
+     * ## OPTIONS
+     *
+     * [--days=<days>]
+     * : Window: 30, 90, 180 or 365. Default 90.
+     *
+     * [--fresh]
+     * : Rebuild instead of reading the 6-hour cache.
+     *
+     * ## EXAMPLES
+     *
+     *     wp zooboxi loyalty cohorts --days=90 --fresh
+     *
+     * @when after_wp_load
+     */
+    public function cohorts($args, $assoc_args): void
+    {
+        Zooboxi_Loyalty_Schema::maybe_install();
+        $days = (int) ($assoc_args['days'] ?? 90);
+        \WP_CLI::line(wp_json_encode(Zooboxi_Loyalty_Cohorts::report($days, isset($assoc_args['fresh'])), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
      * Print the current program metrics as JSON.
      *
      * ## EXAMPLES

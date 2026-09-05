@@ -119,6 +119,8 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-referrals.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-moments.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-stamps.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-care.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-cohorts.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-hooks.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-cli.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty.php';

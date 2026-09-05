@@ -52,6 +52,13 @@ class Zooboxi_V2_Loyalty_Controller
         Zooboxi_V2_Bootstrap::route('/loyalty/referral/apply', 'POST', [$this, 'apply_referral']);
 
         Zooboxi_V2_Bootstrap::route('/loyalty/stamps', 'GET', [$this, 'stamps']);
+
+        // Phase 3a «الرفيق»: the pet's care profile.
+        Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)/care', 'GET', [$this, 'care']);
+        Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)/weights', 'POST', [$this, 'log_weight']);
+        Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)/weights/(?P<wid>\d+)', 'DELETE', [$this, 'delete_weight']);
+        Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)/care/(?P<kind>[a-z_]+)', 'PATCH,PUT', [$this, 'set_care']);
+        Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)/care/(?P<kind>[a-z_]+)/done', 'POST', [$this, 'care_done']);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -174,6 +181,7 @@ class Zooboxi_V2_Loyalty_Controller
             'moments'       => ['birthday' => null],
             'referral'      => null,
             'stamps'        => [],
+            'care'          => ['enabled' => false, 'due' => [], 'due_count' => 0, 'weigh_in' => false],
             'nudges'        => [],
         ];
         $supply_rows = [];
@@ -217,6 +225,13 @@ class Zooboxi_V2_Loyalty_Controller
             }
         } catch (\Throwable $e) {
             error_log('[Zooboxi Loyalty] summary stamps failed: ' . $e->getMessage());
+        }
+        try {
+            if (class_exists('Zooboxi_Loyalty_Care')) {
+                $out['care'] = Zooboxi_Loyalty_Care::summary_block($user_id, $holdout ? [] : $missions);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary care failed: ' . $e->getMessage());
         }
         try {
             if (class_exists('Zooboxi_Loyalty_Moments')) {
@@ -804,11 +819,121 @@ class Zooboxi_V2_Loyalty_Controller
         return Zooboxi_V2_Bootstrap::ok(['items' => Zooboxi_Loyalty_Stamps::wallet($user_id)]);
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       PHASE 3a — «الرفيق»
+       ══════════════════════════════════════════════════════════════ */
+
+    /** @return array{0:int,1:?array,2:?\WP_REST_Response} user, pet row, refusal */
+    private function care_guard(\WP_REST_Request $request): array
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return [0, null, $refused];
+        }
+        if (!class_exists('Zooboxi_Loyalty_Care') || !Zooboxi_Loyalty_Care::enabled()) {
+            return [0, null, Zooboxi_V2_Bootstrap::fail('care_disabled', __('أدوات الرفيق غير متاحة حالياً', 'zooboxi'), 'Care tools are not available right now.', 404)];
+        }
+        $pet = Zooboxi_Loyalty_Pets::find(absint($request->get_param('id')), $user_id);
+        if ($pet === null) {
+            return [0, null, Zooboxi_V2_Bootstrap::fail('pet_not_found', __('هذا الحيوان غير موجود', 'zooboxi'), 'That pet does not exist.', 404)];
+        }
+        return [$user_id, $pet, null];
+    }
+
+    private function care_payload(int $user_id, int $pet_id, int $paws = 0): \WP_REST_Response
+    {
+        Zooboxi_Loyalty_Pets::forget($user_id);
+        $pet = Zooboxi_Loyalty_Pets::find($pet_id, $user_id);
+        if ($pet === null) {
+            return Zooboxi_V2_Bootstrap::fail('pet_not_found', __('هذا الحيوان غير موجود', 'zooboxi'), 'That pet does not exist.', 404);
+        }
+        return Zooboxi_V2_Bootstrap::ok(Zooboxi_Loyalty_Care::payload($user_id, $pet) + ['paws_earned' => $paws]);
+    }
+
+    private function care_error(array $result): \WP_REST_Response
+    {
+        switch ((string) $result['code']) {
+            case 'pet_not_found':
+                return Zooboxi_V2_Bootstrap::fail('pet_not_found', __('هذا الحيوان غير موجود', 'zooboxi'), 'That pet does not exist.', 404);
+            case 'care_kind':
+                return Zooboxi_V2_Bootstrap::fail('care_kind', __('هذا التذكير لا يناسب نوع الحيوان', 'zooboxi'), 'That reminder does not apply to this species.', 422);
+            case 'weight_invalid':
+                return Zooboxi_V2_Bootstrap::fail('weight_invalid', __('الوزن أو التاريخ غير منطقي', 'zooboxi'), 'That weight or date is not plausible.', 422);
+            case 'care_invalid':
+                return Zooboxi_V2_Bootstrap::fail('care_invalid', __('راجع بيانات التذكير', 'zooboxi'), 'Please check the reminder.', 422, ['fields' => $result['errors'] ?? []]);
+        }
+        return Zooboxi_V2_Bootstrap::fail('care_failed', __('تعذّر الحفظ', 'zooboxi'), 'Could not save.', 500);
+    }
+
+    public function care(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $pet, $refused] = $this->care_guard($request);
+        if ($refused !== null) {
+            return $refused;
+        }
+        return Zooboxi_V2_Bootstrap::ok(Zooboxi_Loyalty_Care::payload($user_id, $pet));
+    }
+
+    public function log_weight(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $pet, $refused] = $this->care_guard($request);
+        if ($refused !== null) {
+            return $refused;
+        }
+        $result = Zooboxi_Loyalty_Care::log_weight($user_id, (int) $pet['id'], $request->get_param('weight_kg'), $request->get_param('on'));
+        if (!$result['ok']) {
+            return $this->care_error($result);
+        }
+        return $this->care_payload($user_id, (int) $pet['id'], (int) $result['paws']);
+    }
+
+    public function delete_weight(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $pet, $refused] = $this->care_guard($request);
+        if ($refused !== null) {
+            return $refused;
+        }
+        Zooboxi_Loyalty_Care::delete_weight($user_id, (int) $pet['id'], absint($request->get_param('wid')));
+        return $this->care_payload($user_id, (int) $pet['id']);
+    }
+
+    public function set_care(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $pet, $refused] = $this->care_guard($request);
+        if ($refused !== null) {
+            return $refused;
+        }
+        $input = [];
+        foreach (['last_on', 'next_on', 'interval_days', 'enabled'] as $key) {
+            if ($request->has_param($key)) {
+                $input[$key] = $request->get_param($key);
+            }
+        }
+        $result = Zooboxi_Loyalty_Care::set($user_id, (int) $pet['id'], sanitize_key((string) $request->get_param('kind')), $input);
+        if (!$result['ok']) {
+            return $this->care_error($result);
+        }
+        return $this->care_payload($user_id, (int) $pet['id']);
+    }
+
+    public function care_done(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $pet, $refused] = $this->care_guard($request);
+        if ($refused !== null) {
+            return $refused;
+        }
+        $result = Zooboxi_Loyalty_Care::done($user_id, (int) $pet['id'], sanitize_key((string) $request->get_param('kind')), $request->get_param('on'));
+        if (!$result['ok']) {
+            return $this->care_error($result);
+        }
+        return $this->care_payload($user_id, (int) $pet['id']);
+    }
+
     /** Only the fields a pet actually has — never the whole request body. */
     private function pet_input(\WP_REST_Request $request): array
     {
         $out = [];
-        foreach (['name', 'species', 'breed', 'sex', 'weight_kg', 'birth_date', 'neutered', 'avatar', 'notes', 'photo_id'] as $key) {
+        foreach (['name', 'species', 'breed', 'sex', 'weight_kg', 'birth_date', 'neutered', 'avatar', 'notes', 'photo_id', 'activity', 'body_condition', 'feed_g_day', 'food_kcal'] as $key) {
             $value = $request->get_param($key);
             if ($value !== null) {
                 $out[$key] = $value;
