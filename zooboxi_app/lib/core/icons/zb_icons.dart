@@ -26,6 +26,7 @@ enum ZbIconKind {
   home,
   categories,
   cart,
+  bag,
   account,
   heart,
   search,
@@ -125,6 +126,8 @@ class ZbIcon extends StatelessWidget {
           lidOpen: lidOpen.clamp(0.0, 1.0),
           smile: smile.clamp(0.0, 1.0),
         ),
+      ZbIconKind.bag =>
+        ZbBagPainter(ink: resolved, fill: f, size: s, tint: tint, rtl: rtl),
       ZbIconKind.account =>
         ZbAccountPainter(ink: resolved, fill: f, size: s, tint: tint, rtl: rtl),
       ZbIconKind.heart =>

@@ -84,8 +84,7 @@ void main() {
             for (final direction in TextDirection.values) {
               await tester.pumpWidget(
                 _host(
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
+                  Wrap(
                     children: [
                       for (final kind in ZbIconKind.values)
                         ZbIcon(
@@ -169,37 +168,49 @@ void main() {
           stillMotion: false,
         );
 
-    double lidOf(WidgetTester tester) =>
-        tester.widget<ZbIcon>(find.byType(ZbIcon)).lidOpen;
+    // The vertical travel the animation is applying right now: the sum of the
+    // Transform translations above the glyph (rotation and squash carry none).
+    double dyOf(WidgetTester tester) {
+      final transforms = tester.widgetList<Transform>(find.ancestor(
+        of: find.byType(ZbIcon),
+        matching: find.byType(Transform),
+      ));
+      var dy = 0.0;
+      for (final t in transforms) {
+        dy += t.transform.getTranslation().y;
+      }
+      return dy;
+    }
 
-    testWidgets('opens its lid when a line lands, then closes it',
+    testWidgets('hops when a line lands, then comes back down',
         (tester) async {
       await tester.pumpWidget(cartAt(0));
       await tester.pump();
-      expect(lidOf(tester), 0, reason: 'an idle cart is a closed box');
+      expect(dyOf(tester), 0, reason: 'an idle bag sits still');
 
       await tester.pumpWidget(cartAt(1));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
       expect(
-        lidOf(tester),
-        greaterThan(0.2),
-        reason: 'the box opens for what arrived',
+        dyOf(tester),
+        lessThan(-1),
+        reason: 'the bag jumps for what arrived',
       );
 
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(lidOf(tester), 0, reason: 'and shuts again');
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(dyOf(tester).abs(), lessThan(0.5), reason: 'and lands again');
       await tester.pumpAndSettle();
     });
 
-    testWidgets('a removal only dips — no lid, no celebration', (tester) async {
+    testWidgets('a removal only dips — down, not a celebration',
+        (tester) async {
       await tester.pumpWidget(cartAt(2));
       await tester.pump();
 
       await tester.pumpWidget(cartAt(1));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
-      expect(lidOf(tester), 0);
+      expect(dyOf(tester), greaterThan(1));
       await tester.pumpAndSettle();
     });
   });

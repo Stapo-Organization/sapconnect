@@ -2148,6 +2148,12 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'كل الماركات'**
   String get brandsTitle;
+
+  /// No description provided for @cartItemUnreachable.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا المنتج لا يمكن توصيله إلى موقعك حاليًا'**
+  String get cartItemUnreachable;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

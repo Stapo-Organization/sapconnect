@@ -8,6 +8,11 @@ import '../../../core/session/session_controller.dart';
 import 'cart_models.dart';
 import 'cart_repository.dart';
 
+/// What an add attempt actually did. [added] is the honest answer: the line
+/// exists in the returned cart. A 200 whose cart lacks the product — the
+/// fulfilment guard trims what can't reach this location — is NOT an add.
+typedef AddResult = ({bool added, List<CartNotice> notices});
+
 /// The server owns the cart; this controller owns *responsiveness*.
 ///
 /// A quantity tap must move the number now, not in 300ms — but the server is
@@ -15,8 +20,47 @@ import 'cart_repository.dart';
 /// customer. So taps apply locally, coalesce for [_debounce], then post once;
 /// if the server disagrees, its answer replaces the optimistic state and its
 /// notice is surfaced rather than swallowed.
+///
+/// Every network call runs through one serial queue. The WC session is a
+/// single blob: two concurrent requests each load it, and whichever saves
+/// last resurrects what the other deleted — and even without that, adopting
+/// responses out of order replays an old cart over a newer one. One request
+/// in flight at a time removes both failure modes at the root.
 class CartController extends AsyncNotifier<CartData> {
   static const Duration _debounce = Duration(milliseconds: 400);
+
+  /// The tail of the serial queue. Errors are contained per-op, so one failed
+  /// call never poisons the chain for the next.
+  Future<void> _chain = Future<void>.value();
+
+  Future<T> _serial<T>(Future<T> Function() op) {
+    final run = _chain.then((_) => op());
+    _chain = run.then<void>((_) {}, onError: (_) {});
+    return run;
+  }
+
+  /// Adopts a server cart, re-applying any quantity the customer has tapped
+  /// since that request was posted — server truth for the lines, the
+  /// customer's newer intent for the numbers still in flight.
+  void _adopt(CartData cart, {bool collect = true}) {
+    var next = cart;
+    _targetQty.forEach((key, qty) => next = next.withItemQty(key, qty));
+    state = AsyncValue.data(next);
+    // `add` hands its notices straight back to the toast; collecting them
+    // here as well would show the same message twice.
+    if (collect) _collect(cart.notices);
+  }
+
+  /// Replaces whatever optimism is on screen with the server's actual cart —
+  /// the recovery move after a failed write, instead of restoring a stale
+  /// snapshot that may predate other successful changes.
+  Future<void> _adoptTruth() async {
+    try {
+      _adopt(await ref.read(cartRepositoryProvider).fetch());
+    } catch (_) {
+      // Leave the screen as is; the next successful call resyncs.
+    }
+  }
 
   final Map<String, Timer> _pending = {};
 
@@ -57,7 +101,8 @@ class CartController extends AsyncNotifier<CartData> {
 
   Future<void> refresh() async {
     try {
-      state = AsyncValue.data(await ref.read(cartRepositoryProvider).fetch());
+      final result = await _serial(() => ref.read(cartRepositoryProvider).fetch());
+      _adopt(result);
     } catch (e, st) {
       // A failed refresh must not blank a cart the customer is looking at.
       if (!state.hasValue) state = AsyncValue.error(e, st);
@@ -80,22 +125,33 @@ class CartController extends AsyncNotifier<CartData> {
     _collect(cart.notices);
   }
 
-  /// Adds to the cart and returns the notices the server raised (usually
-  /// empty). Throws [ApiException] so the caller can show the real reason.
-  Future<List<CartNotice>> add({
+  /// Adds to the cart. Throws [ApiException] on a refused request; a request
+  /// the server accepted but whose cart came back WITHOUT the product (the
+  /// fulfilment guard trimmed it for this location) returns `added: false`
+  /// with the server's notice — so no caller can celebrate an add that never
+  /// happened.
+  Future<AddResult> add({
     required int productId,
     int? variationId,
     int quantity = 1,
     Map<String, String>? attributes,
   }) async {
-    final result = await ref.read(cartRepositoryProvider).addItem(
-          productId: productId,
-          variationId: variationId,
-          quantity: quantity,
-          attributes: attributes,
-        );
-    state = AsyncValue.data(result);
-    return result.notices;
+    final result = await _serial(
+      () => ref.read(cartRepositoryProvider).addItem(
+            productId: productId,
+            variationId: variationId,
+            quantity: quantity,
+            attributes: attributes,
+          ),
+    );
+    _adopt(result, collect: false);
+    final added = result.items.any(
+      (item) =>
+          item.productId == productId &&
+          (variationId == null || item.variationId == variationId) &&
+          item.qty > 0,
+    );
+    return (added: added, notices: result.notices);
   }
 
   /// Optimistic quantity change. Returns immediately; the network settles later.
@@ -112,56 +168,60 @@ class CartController extends AsyncNotifier<CartData> {
     state = AsyncValue.data(snapshot.withItemQty(key, clamped));
 
     _pending[key]?.cancel();
-    _pending[key] = Timer(_debounce, () => _flushQuantity(key, snapshot));
+    _pending[key] = Timer(_debounce, () => _flushQuantity(key));
   }
 
-  Future<void> _flushQuantity(String key, CartData rollbackTo) async {
+  Future<void> _flushQuantity(String key) async {
     _pending.remove(key);
-    final target = _targetQty.remove(key);
-    if (target == null) return;
-
     try {
-      final result = await ref.read(cartRepositoryProvider).setQuantity(key, target);
-      state = AsyncValue.data(result);
-      _collect(result.notices);
+      final result = await _serial(() async {
+        // Read the target inside the queue slot: taps that landed while an
+        // earlier call held the queue collapse into this one post.
+        final target = _targetQty[key];
+        if (target == null) return null;
+        final posted = await ref.read(cartRepositoryProvider).setQuantity(key, target);
+        // Only clear if the customer hasn't tapped again meanwhile.
+        if (_targetQty[key] == target) _targetQty.remove(key);
+        return posted;
+      });
+      if (result != null) _adopt(result);
     } on ApiException catch (e) {
-      // Roll back to what the customer saw before this burst of taps, and
-      // surface why — silently reverting a number is worse than an error.
-      state = AsyncValue.data(rollbackTo);
+      // The truth, not a stale snapshot: rolling back to a capture from
+      // before this burst would also erase every OTHER change that landed
+      // since — which is exactly how "added items vanish" looked.
+      _targetQty.remove(key);
+      await _adoptTruth();
       _collect([
         CartNotice(type: 'error', text: e.messageAr ?? e.messageEn ?? ''),
       ]);
     } catch (_) {
-      state = AsyncValue.data(rollbackTo);
+      _targetQty.remove(key);
+      await _adoptTruth();
     }
   }
 
   Future<void> remove(String key) async {
-    final snapshot = _current;
     _pending.remove(key)?.cancel();
     _targetQty.remove(key);
 
-    state = AsyncValue.data(snapshot.withoutItem(key));
+    state = AsyncValue.data(_current.withoutItem(key));
     try {
-      final result = await ref.read(cartRepositoryProvider).removeItem(key);
-      state = AsyncValue.data(result);
-      _collect(result.notices);
+      final result = await _serial(() => ref.read(cartRepositoryProvider).removeItem(key));
+      _adopt(result);
     } catch (_) {
-      state = AsyncValue.data(snapshot);
+      await _adoptTruth();
       rethrow;
     }
   }
 
   Future<void> applyCoupon(String code) async {
-    final result = await ref.read(cartRepositoryProvider).applyCoupon(code);
-    state = AsyncValue.data(result);
-    _collect(result.notices);
+    final result = await _serial(() => ref.read(cartRepositoryProvider).applyCoupon(code));
+    _adopt(result);
   }
 
   Future<void> removeCoupon(String code) async {
-    final result = await ref.read(cartRepositoryProvider).removeCoupon(code);
-    state = AsyncValue.data(result);
-    _collect(result.notices);
+    final result = await _serial(() => ref.read(cartRepositoryProvider).removeCoupon(code));
+    _adopt(result);
   }
 
   void _collect(List<CartNotice> notices) {

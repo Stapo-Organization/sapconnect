@@ -1193,4 +1193,8 @@ class LAr extends L {
 
   @override
   String get brandsTitle => 'كل الماركات';
+
+  @override
+  String get cartItemUnreachable =>
+      'هذا المنتج لا يمكن توصيله إلى موقعك حاليًا';
 }

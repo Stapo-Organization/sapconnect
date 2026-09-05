@@ -1185,4 +1185,8 @@ class LEn extends L {
 
   @override
   String get brandsTitle => 'All brands';
+
+  @override
+  String get cartItemUnreachable =>
+      'This product can\'t be delivered to your location right now';
 }

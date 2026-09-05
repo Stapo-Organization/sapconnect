@@ -31,12 +31,25 @@ Future<bool> addToCart(
 }) async {
   final l = L.of(context);
   try {
-    final notices = await ref.read(cartControllerProvider.notifier).add(
+    final result = await ref.read(cartControllerProvider.notifier).add(
           productId: product.id,
           variationId: variationId,
           quantity: quantity,
           attributes: attributes,
         );
+    final notice =
+        result.notices.where((n) => n.text.trim().isNotEmpty).firstOrNull;
+
+    // A 200 whose cart came back without the product is a refusal wearing a
+    // success code — the fulfilment guard trimmed it for this location. Say
+    // so with the server's own words, and report failure so the card takes
+    // its optimistic claim back.
+    if (!result.added) {
+      if (!context.mounted) return false;
+      Haptics.warning();
+      AppToast.error(context, notice?.text ?? l.cartItemUnreachable);
+      return false;
+    }
 
     ref.track(ZbEvent(
       type: ZbEvents.addToCart,
@@ -48,7 +61,6 @@ Future<bool> addToCart(
     await Haptics.success();
     if (!context.mounted) return true;
 
-    final notice = notices.where((n) => n.text.trim().isNotEmpty).firstOrNull;
     if (notice != null) {
       if (notice.isError) {
         AppToast.error(context, notice.text);

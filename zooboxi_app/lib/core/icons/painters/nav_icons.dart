@@ -184,6 +184,77 @@ mixin BoxDrawing on ZbIconPainter {
   }
 }
 
+/// The shopping bag shared by the cart glyphs: a bubbly gift-bag silhouette —
+/// slightly wider at the shoulders, rounded seat, one rope handle — with the
+/// brand paw stamped on the front when there is room for it.
+mixin BagDrawing on ZbIconPainter {
+  void drawShoppingBag(
+    Canvas canvas, {
+    double strokeWidth = ZbIconPainter.strokeUnits,
+  }) {
+    final outline = strokePaint(width: strokeWidth);
+
+    // The rope handle: flat-topped so it reads as a handle and not as an ear.
+    final handle = Path()
+      ..moveTo(8.7, 10.2)
+      ..quadraticBezierTo(8.7, 4.9, 12, 4.9)
+      ..quadraticBezierTo(15.3, 4.9, 15.3, 10.2);
+    canvas.drawPath(handle, outline);
+
+    final body = Path()
+      ..moveTo(6.9, 9.6)
+      ..lineTo(17.1, 9.6)
+      ..quadraticBezierTo(18.6, 9.6, 18.5, 11.1)
+      ..lineTo(17.9, 18.8)
+      ..quadraticBezierTo(17.7, 21.4, 15.1, 21.4)
+      ..lineTo(8.9, 21.4)
+      ..quadraticBezierTo(6.3, 21.4, 6.1, 18.8)
+      ..lineTo(5.5, 11.1)
+      ..quadraticBezierTo(5.4, 9.6, 6.9, 9.6)
+      ..close();
+    if (fill > 0.02) {
+      canvas.drawPath(body, fillPaint(tint ?? ZbTokens.cardboard));
+    }
+    canvas.drawPath(body, outline);
+
+    // The paw needs real pixels to survive; below the detail floor a plain
+    // bag is crisper than a smudged stamp.
+    if (fill > 0.4 && detailed) {
+      final paw = fillPaint(ZbTokens.creamLogo, opacity: fill);
+      canvas.drawOval(
+        Rect.fromCenter(center: const Offset(12, 16.4), width: 4.6, height: 3.6),
+        paw,
+      );
+      for (final toe in const [Offset(9.7, 13.9), Offset(12, 13.2), Offset(14.3, 13.9)]) {
+        canvas.drawCircle(toe, 1.0, paw);
+      }
+    }
+
+    final shine = gloss;
+    if (shine > 0) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(7.6, 12.2)
+          ..quadraticBezierTo(7.9, 10.9, 9.2, 10.8),
+        strokePaint(width: 1.3, color: ZbTokens.creamLogo.withValues(alpha: 0.75 * shine)),
+      );
+    }
+  }
+}
+
+/// The cart glyph everywhere the *basket* is meant: the shopping bag. (The
+/// smiling box below stays the parcel — checkout's "packed" moment.)
+class ZbBagPainter extends ZbIconPainter with BagDrawing {
+  const ZbBagPainter({required super.ink,
+    required super.fill,
+    required super.size,
+    super.tint,
+    super.rtl});
+
+  @override
+  void draw(Canvas canvas) => drawShoppingBag(canvas);
+}
+
 /// The cart tab: the logo's box, with a lid that can open and a smile that can
 /// widen — both driven from outside so the tab can celebrate an add.
 class ZbCartPainter extends ZbIconPainter with BoxDrawing {
@@ -286,14 +357,14 @@ class ZbAccountPainter extends ZbIconPainter {
 
 /// The add-to-cart glyph: the same smiling box with its lid shut, wearing a
 /// teal "+" badge on its end shoulder.
-class ZbPlusBoxPainter extends ZbIconPainter with BoxDrawing {
+class ZbPlusBoxPainter extends ZbIconPainter with BagDrawing {
   const ZbPlusBoxPainter({required super.ink,
     required super.fill,
     required super.size,
     super.tint,
     super.rtl});
 
-  /// The box shrinks so the badge has a corner of its own to sit in.
+  /// The bag shrinks so the badge has a corner of its own to sit in.
   static const double _boxScale = 0.86;
 
   @override
@@ -305,10 +376,8 @@ class ZbPlusBoxPainter extends ZbIconPainter with BoxDrawing {
     canvas.translate(12, 21.8);
     canvas.scale(_boxScale);
     canvas.translate(-12, -21.8);
-    drawSmilingBox(
+    drawShoppingBag(
       canvas,
-      lidOpen: 0,
-      smile: 0.6,
       strokeWidth: ZbIconPainter.strokeUnits / _boxScale,
     );
     canvas.restore();

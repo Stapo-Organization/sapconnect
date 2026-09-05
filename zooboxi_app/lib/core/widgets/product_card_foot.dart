@@ -367,7 +367,7 @@ class _BagFace extends StatelessWidget {
           onTap: onTap,
           child: Center(
             child: ZbIcon(
-              count > 0 ? ZbIconKind.cart : ZbIconKind.plusBox,
+              count > 0 ? ZbIconKind.bag : ZbIconKind.plusBox,
               size: 26,
               ink: cs.onPrimary,
             ),

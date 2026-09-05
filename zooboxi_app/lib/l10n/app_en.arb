@@ -495,5 +495,6 @@
   "brandSince": "Since {year}",
   "brandProductCount": "{count, plural, =0{No products} =1{1 product} other{{count} products}}",
   "brandShopAll": "All {brand} products",
-  "brandsTitle": "All brands"
+  "brandsTitle": "All brands",
+  "cartItemUnreachable": "This product can't be delivered to your location right now"
 }
