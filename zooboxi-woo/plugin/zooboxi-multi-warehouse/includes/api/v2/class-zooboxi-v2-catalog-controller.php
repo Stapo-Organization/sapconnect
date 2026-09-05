@@ -635,12 +635,14 @@ class Zooboxi_V2_Catalog_Controller
             ], Zooboxi_V2_Bootstrap::TTL_CATEGORIES);
         }
 
-        $terms = get_terms([
+        $parent_term = get_term($parent, 'product_cat');
+        $terms       = get_terms([
             'taxonomy'   => 'product_cat',
             'parent'     => $parent,
             'hide_empty' => true,
             'orderby'    => 'name',
             'order'      => 'ASC',
+            'lang'       => $parent_term instanceof WP_Term ? self::term_lang($parent_term) : '',
         ]);
         if (is_wp_error($terms)) {
             $terms = [];
@@ -658,6 +660,21 @@ class Zooboxi_V2_Catalog_Controller
             'parent'     => $parent,
             'categories' => $out,
         ], Zooboxi_V2_Bootstrap::TTL_CATEGORIES);
+    }
+
+    /**
+     * The Polylang language a term is filed under — the language its children
+     * share. `''` (no filter) when Polylang is absent or the term is untagged.
+     *
+     * @param \WP_Term $term
+     */
+    private static function term_lang($term): string
+    {
+        if (!function_exists('pll_get_term_language')) {
+            return '';
+        }
+        $lang = pll_get_term_language((int) $term->term_id);
+        return is_string($lang) ? $lang : '';
     }
 
     /** @param \WP_Term $term */
@@ -707,6 +724,11 @@ class Zooboxi_V2_Catalog_Controller
                 'hide_empty' => true,
                 'orderby'    => 'name',
                 'order'      => 'ASC',
+                // Children live in their parent's language. Without this,
+                // Polylang filters by the REQUEST language — and an English
+                // request for an untranslated Arabic root (all four pets)
+                // came back with zero departments.
+                'lang'       => self::term_lang($t),
             ]);
             if (!is_wp_error($kids)) {
                 foreach ($kids as $k) {
