@@ -1,8 +1,8 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../core/icons/cart_box_icon.dart';
 import '../../core/icons/zb_icons.dart';
@@ -79,24 +79,13 @@ class GlassNavBar extends ConsumerWidget {
           bottom: math.max(bottomInset, _minBottomMargin),
         ),
         child: DecoratedBox(
-          // The hairline: an outer gradient showing through 1.2pt of padding.
-          // Painting it as a border would give the whole edge one flat colour;
-          // as a gradient it catches the light at the top lip and fades out.
+          // Depth stays ours; the surface itself is the liquid-glass shader —
+          // real refraction and edge lensing instead of a flat blur, with a
+          // tint just strong enough to keep the glyphs legible over product
+          // photography. The old hand-built hairline is gone: the shader
+          // draws its own specular rim, and two rims read as a smudge.
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: dark
-                  ? [
-                      Colors.white.withValues(alpha: 0.14),
-                      Colors.white.withValues(alpha: 0.02),
-                    ]
-                  : [
-                      Colors.white.withValues(alpha: 0.45),
-                      Colors.white.withValues(alpha: 0.06),
-                    ],
-            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: dark ? 0.34 : 0.14),
@@ -105,19 +94,22 @@ class GlassNavBar extends ConsumerWidget {
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(1.2),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(_radius - 1.2),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-                child: SizedBox(
-                  height: barHeight,
-                  child: ColoredBox(
-                    color: dark
-                        ? ZbTokens.graphiteRaised.withValues(alpha: 0.58)
-                        : cs.surface.withValues(alpha: 0.62),
-                    child: Stack(
+          child: GlassContainer(
+            shape: const LiquidRoundedSuperellipse(borderRadius: _radius),
+            // Standard, not premium: this surface floats over every scrolling
+            // list in the app, exactly the case the package's own guidance
+            // reserves the heavier tier against.
+            quality: GlassQuality.standard,
+            clipBehavior: Clip.antiAlias,
+            settings: LiquidGlassSettings(
+              glassColor: dark
+                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.44)
+                  : cs.surface.withValues(alpha: 0.42),
+              blur: 14,
+            ),
+            child: SizedBox(
+              height: barHeight,
+              child: Stack(
                       children: [
                         AnimatedAlign(
                           key: pillKey,
@@ -159,9 +151,6 @@ class GlassNavBar extends ConsumerWidget {
                 ),
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
