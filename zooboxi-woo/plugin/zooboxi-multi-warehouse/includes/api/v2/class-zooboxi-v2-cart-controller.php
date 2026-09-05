@@ -477,8 +477,17 @@ class Zooboxi_V2_Cart_Controller
                     : Zooboxi_Units::units_from_pieces((int) $product->get_stock_quantity(), $units));
             $max_reachable = $raw_reachable === null ? null : min(max($raw_reachable, 0), max(99, $qty));
 
+            // A gift line is a real line at price zero — the app renders it without a
+            // stepper and with a «هدية» badge, and removing it releases the reward.
+            $grant_id = class_exists('Zooboxi_Loyalty_Rewards')
+                ? Zooboxi_Loyalty_Rewards::line_grant_id($item)
+                : 0;
+
             $items[] = [
                 'key'              => (string) $key,
+                'is_gift'          => $grant_id > 0,
+                'grant_id'         => $grant_id ?: null,
+                'locked_qty'       => $grant_id > 0,
                 'product_id'       => $pid,
                 'variation_id'     => (int) ($item['variation_id'] ?? 0),
                 'name'             => wp_strip_all_tags($product->get_name()),
@@ -498,7 +507,7 @@ class Zooboxi_V2_Cart_Controller
             ];
         }
 
-        $free_min  = (float) get_option('zooboxi_free_shipping_min', 200);
+        $free_min  = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
         $subtotal  = (float) $cart->get_subtotal();
         $qualified = $subtotal >= $free_min;
 
@@ -530,6 +539,12 @@ class Zooboxi_V2_Cart_Controller
             'coupons'       => $coupons,
             'notices'       => self::drain_notices(),
         ];
+
+        // «عائلة زوبوكسي»: what this basket earns, what is claimed into it, and why
+        // delivery/express is free. Absent when the module is off.
+        if (class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled()) {
+            $dto['loyalty'] = Zooboxi_Loyalty_Rewards::cart_block($cart);
+        }
 
         return array_merge($dto, $extra);
     }
@@ -609,7 +624,7 @@ class Zooboxi_V2_Cart_Controller
     {
         switch ($tier) {
             case Zooboxi_Delivery_Engine::TYPE_EXPRESS:
-                return (float) get_option('zooboxi_express_fee', 15);
+                return (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15));
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
                 return (float) get_option('zooboxi_standard_fee', 10);
             default:

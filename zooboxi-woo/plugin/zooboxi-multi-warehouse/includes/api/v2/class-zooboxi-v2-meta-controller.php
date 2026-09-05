@@ -24,9 +24,9 @@ class Zooboxi_V2_Meta_Controller
                 'ios'     => (string) get_option('zooboxi_min_app_ios', '0.0.0'),
                 'android' => (string) get_option('zooboxi_min_app_android', '0.0.0'),
             ],
-            'free_shipping_min' => (float) get_option('zooboxi_free_shipping_min', 200),
+            'free_shipping_min' => (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200)),
             'fees' => [
-                'express'  => (float) get_option('zooboxi_express_fee', 15),
+                'express'  => (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15)),
                 'standard' => (float) get_option('zooboxi_standard_fee', 10),
                 'shipping' => (float) get_option('zooboxi_shipping_fee', 25),
             ],
@@ -36,7 +36,14 @@ class Zooboxi_V2_Meta_Controller
                 'wishlist'        => true,
                 'clearance'       => get_option('zooboxi_clearance_collection', 'yes') === 'yes',
                 'badges'          => get_option('zooboxi_dynamic_badges', 'yes') === 'yes',
+                'loyalty'         => class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled(),
+                'pets'            => class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled(),
             ],
+            // The program's public constants, so the app never hardcodes a rate or a
+            // name. Absent (null) when the module is off — the app hides the tab.
+            'loyalty' => (class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled())
+                ? Zooboxi_Loyalty::meta_block()
+                : null,
             'maintenance' => get_option('zooboxi_v2_maintenance', 'no') === 'yes',
             'lang'        => Zooboxi_V2_Bootstrap::lang(),
         ], Zooboxi_V2_Bootstrap::TTL_META);

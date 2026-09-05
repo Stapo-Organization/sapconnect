@@ -116,7 +116,47 @@ class Zooboxi_V2_Orders_Controller
             'timeline' => $this->timeline($order),
             'tracking' => $this->tracking($order),
             'notes'    => (string) $order->get_customer_note(),
+            'loyalty'  => $this->loyalty($order),
         ]);
+    }
+
+    /**
+     * What «عائلة زوبوكسي» did with this order: the paws it actually paid (null until
+     * it is delivered), the scratch card it produced, and the gifts it carried.
+     *
+     * Returns null when the module is off, so the app can hide the section entirely.
+     */
+    private function loyalty(\WC_Order $order): ?array
+    {
+        if (!class_exists('Zooboxi_Loyalty') || !Zooboxi_Loyalty::is_enabled()) {
+            return null;
+        }
+
+        try {
+            $user_id = (int) $order->get_customer_id();
+            $earned  = $user_id > 0
+                ? Zooboxi_Loyalty_Ledger::entry_delta($user_id, 'order_earn', 'order', (int) $order->get_id())
+                : 0;
+
+            $card = Zooboxi_Loyalty_Scratch::by_order((int) $order->get_id());
+
+            $gifts = [];
+            foreach ($order->get_items() as $item) {
+                if ($item instanceof \WC_Order_Item_Product
+                    && (string) $item->get_meta(Zooboxi_Loyalty::ORDER_GRANT_META) !== '') {
+                    $gifts[] = wp_strip_all_tags($item->get_name());
+                }
+            }
+
+            return [
+                'paws_earned'     => $earned > 0 ? $earned : null,
+                'scratch_card_id' => $card ? (int) $card['id'] : null,
+                'gift_lines'      => $gifts,
+            ];
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi v2] order loyalty block failed: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /* ── POST /orders/{id}/reorder ─────────────────── */

@@ -539,7 +539,7 @@ add_action('woocommerce_before_cart_totals', function() {
     $cart_subtotal = WC()->cart->get_subtotal();
     // Single source of truth: read the same threshold the shipping methods use
     // (Zooboxi plugin option), so the bar and the actual free-shipping never disagree.
-    $free_shipping_threshold = (float) get_option('zooboxi_free_shipping_min', 200);
+    $free_shipping_threshold = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
     
     echo '<div class="zooboxi-shipping-progress-wrapper">';
     if ($cart_subtotal >= $free_shipping_threshold) {

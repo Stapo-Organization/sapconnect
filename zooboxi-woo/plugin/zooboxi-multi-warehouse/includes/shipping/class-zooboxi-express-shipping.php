@@ -103,8 +103,8 @@ class Zooboxi_Express_Shipping extends WC_Shipping_Method
             if (!$allAvailable) continue; // Try next express warehouse
 
             // 4. All items available — add express rate
-            $fee = (float) get_option('zooboxi_express_fee', 15);
-            $freeMin = (float) get_option('zooboxi_free_shipping_min', 200);
+            $fee = (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15));
+            $freeMin = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
             // Order-level free shipping: if the WHOLE order qualifies, every shipment (incl. express)
             // is free — so splitting into baskets never adds a surprise charge.
             $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);

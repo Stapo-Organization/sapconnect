@@ -139,3 +139,137 @@ Deploy by surgical scp (this checkout is diverged from prod). Copy the new
 `/wp-json/zooboxi/v2/meta` once to trigger the lazy table creation, then run
 `scripts/v2_smoke.sh`. Allowlist `/wp-json/zooboxi/v2/*` in Wordfence before the burst test.
 Rollback = `update_option('zooboxi_v2_enabled','no')`.
+
+---
+
+# Changeset — Loyalty «عائلة زوبوكسي» Phase 1
+
+Spec: `13-LOYALTY-PHASE1-SPEC.md`. Contract: `10-APP-API-V2.md` §14.
+
+**Kill switch:** `update_option('zooboxi_loyalty_enabled', 'no')`. It is checked in three
+places — the requires, the module instantiation, and the v2 route registration — so with it
+off nothing is loaded, no hook is registered, no filter is added and no table is read. The
+web store behaves exactly as it did before the module existed.
+
+## Files created — `includes/loyalty/`
+
+| File | What it is |
+|---|---|
+| `class-zooboxi-loyalty.php` | The registrar and façade: options (`Zooboxi_Loyalty::opt*`), the daily cron, UTC/ISO/period helpers, `meta_block()`, and the two measurement readers `metrics()` (this month's cost vs sales vs the 4% ceiling) and `baseline()` (365 days from `wc_order_stats`, cached 6 h). |
+| `class-zooboxi-loyalty-schema.php` | The seven tables (`zb_members`, `zb_pets`, `zb_paws_ledger`, `zb_rewards`, `zb_grants`, `zb_scratch_cards`, `zb_missions`) behind one lazy `dbDelta` guarded by `zooboxi_loyalty_db_version`, plus `seed_defaults()` (idempotent, keyed on `reward_key`) and a `table_exists()` used before any `wc_order_stats` read. |
+| `class-zooboxi-loyalty-members.php` | `ensure()` on first touch, the one-time deterministic holdout draw (`crc32(user_id . salt) % 100 < holdout_pct`, salt stored once), the referral code, and the tier cache with a 24 h freshness window plus invalidation on every order transition. |
+| `class-zooboxi-loyalty-ledger.php` | The append-only book. `add()` is idempotent through `UNIQUE (user_id, reason, ref_type, ref_id)` — a duplicate insert is detected and treated as a no-op rather than an error. `order_paws()`, `earn_for_order()`, `reverse_for_order()`, `expire_dormant()`, paging, and the admin totals. |
+| `class-zooboxi-loyalty-tiers.php` | The five levels, `count_completed_12m()` (`wc_get_orders`, HPOS-safe), the summary DTO with progress, the honest `perks[]`, and **both** fee filters. |
+| `class-zooboxi-loyalty-pets.php` | CRUD + validation + soft delete, the paws they pay, and the localised `age_label` / `birthday_in_days` / `is_complete`. |
+| `class-zooboxi-loyalty-rewards.php` | Catalogue reads, `redeemability()` (with the reason the customer sees), grants (`grant`/`activate`/`cancel`/`expire`/`restore`), `redeem()`, the basket claim lifecycle in the WC session, the zero-price gift line, and `cart_block()`. |
+| `class-zooboxi-loyalty-scratch.php` | Card creation (app orders only, non-holdout only, `UNIQUE order_id`), the weighted draw over `random_int`, `odds()` for the admin preview, idempotent `reveal()`, and `settle_for_order()`. |
+| `class-zooboxi-loyalty-missions.php` | Five templates, lazy monthly assignment under a transient lock, the bounded 12-month `history()` (cached 6 h), progress from a delivered order, and completion + immediate payout guarded by a conditional UPDATE. |
+| `class-zooboxi-loyalty-hooks.php` | Every WooCommerce touch point, each one total (module check, table check, `customer_id > 0`, try/catch). |
+| `class-zooboxi-loyalty-cli.php` | `wp zooboxi loyalty baseline|daily|seed-defaults|metrics|odds`, registered only under `WP_CLI`. |
+
+## Files created — elsewhere
+
+| File | What it is |
+|---|---|
+| `includes/api/v2/class-zooboxi-v2-loyalty-controller.php` | 13 bearer-only routes: `/loyalty/summary|ledger|rewards|rewards/{id}/redeem|grants/{id}/claim (POST+DELETE)|missions|scratch|scratch/{id}/reveal` and `/pets` CRUD. |
+| `includes/admin/class-zooboxi-loyalty-admin.php` | `Zooboxi → 🐾 عائلة زوبوكسي`, six tabs (عام · الهدايا · اخدش واربح · المهمات · المؤشرات · بحث عن عضو), `manage_woocommerce` + a nonce on every form. |
+
+## Files modified (12)
+
+| File | Edit |
+|---|---|
+| `includes/class-zooboxi-plugin.php` | Requires the 11 loyalty classes, the admin page and the v2 controller behind `zooboxi_loyalty_enabled`; instantiates `Zooboxi_Loyalty` next to `Zooboxi_Intelligence`. |
+| `includes/api/v2/class-zooboxi-v2-bootstrap.php` | Registers the loyalty controller's routes (only when the module is on). |
+| `includes/api/v2/class-zooboxi-v2-meta-controller.php` | `features.loyalty` + `features.pets` + the `loyalty` constants block; both fee reads made filterable. |
+| `includes/api/v2/class-zooboxi-v2-cart-controller.php` | `loyalty` block on the DTO, `is_gift`/`grant_id`/`locked_qty` per line; both fee reads made filterable. |
+| `includes/api/v2/class-zooboxi-v2-checkout-controller.php` | Stamps `_zooboxi_app_order = 1` **before** the classic hook fires (`_zooboxi_source` already said the same, but the spec names this key), and returns `scratch_card` + `paws_to_earn`. |
+| `includes/api/v2/class-zooboxi-v2-orders-controller.php` | `loyalty` block on `show()`. |
+| `includes/api/v2/class-zooboxi-v2-catalog-controller.php` | `DEFAULT_LAYOUT` gains `family` (after `hero`) and `missions` (after `personal`). |
+| `includes/intelligence/class-zooboxi-intelligence.php` | Six loyalty event types added to `EVENT_TYPES` — without this the plugin would drop them before Laravel ever saw them. |
+| `includes/core/class-zooboxi-delivery-engine.php` | 1 free-min + 2 express-fee reads made filterable. |
+| `includes/core/class-zooboxi-fulfillment.php` | 1 express-fee read made filterable. |
+| `includes/frontend/class-zooboxi-smart-shipments.php` | 1 free-min + 1 express-fee read made filterable. |
+| `includes/shipping/class-zooboxi-{express,standard,national}-shipping.php` | 3 free-min + 1 express-fee reads made filterable. |
+| `scripts/v2_smoke.sh` | Loyalty section: meta flags, layout slots, cart block, five guest 401s, the no-store header, and nine authenticated reads incl. a `pet_invalid` 422. |
+
+### The two filter seams
+
+Every fee decision in the store now passes through one of two filters, and the loyalty
+module is the only thing that hooks them:
+
+```php
+// 7 sites: delivery-engine, smart-shipments, shipping ×3, v2 cart, v2 meta
+apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200))
+// 7 sites: fulfillment, delivery-engine ×2, smart-shipments, express-shipping, v2 meta, v2 cart
+apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15))
+```
+
+Nothing else changed in those files — each edit is one expression wrapped in one call. A
+guest, or a store with the module off, gets the raw option back unchanged. **No fee value is
+assumed anywhere:** `zooboxi_express_fee` is 0 today only as a trial and will become paid
+again, which is exactly why `express_free` is a reward worth granting.
+
+## New options
+
+| Name | Default | Purpose |
+|---|---|---|
+| `zooboxi_loyalty_enabled` | `yes` | Kill switch. |
+| `zooboxi_loyalty_db_version` | — | Schema version for all seven tables. |
+| `zooboxi_loyalty_points_per_riyal` | `1` | Paws per riyal of line total. |
+| `zooboxi_loyalty_paw_value_sar` | `0.03` | Assumed cost of a paw (budget maths only). |
+| `zooboxi_loyalty_expiry_months` | `12` | Dormancy before the balance lapses. |
+| `zooboxi_loyalty_holdout_pct` | `10` | Control-group share. |
+| `zooboxi_loyalty_holdout_salt` | generated | Makes the draw stable and unguessable. |
+| `zooboxi_loyalty_max_pets` | `3` | Active pets per customer. |
+| `zooboxi_loyalty_budget_pct` | `4` | Cost ceiling shown on the metrics tab. |
+| `zooboxi_loyalty_star_free_min` | `150` | The `star`+ free-shipping threshold. |
+| `zooboxi_loyalty_profile_paws` / `_pet_paws` | `100` / `50` | Profile + per-pet awards. |
+| `zooboxi_loyalty_scratch_enabled` / `_missions_enabled` | `yes` | Per-feature switches. |
+| `zooboxi_loyalty_tiers` | JSON | Thresholds `{new:0, friend:2, star:4, gold:8, amb:14}`. |
+| `zooboxi_loyalty_scratch_table` | JSON | Prize weights. |
+| `zooboxi_loyalty_missions` | JSON | Per-template enable + reward + frequency target. |
+| `zooboxi_loyalty_species_categories` | JSON | `species → product_cat slug` for the category mission. |
+| `zooboxi_loyalty_daily_ran_at` | — | Last daily-job stamp. |
+
+New transients: `zb_loyalty_baseline` (6 h), `zb_loy_hist_{uid}` (6 h),
+`zb_loy_assign_{uid}_{period}` (60 s assignment lock).
+
+New order-item meta: `_zb_gift_grant` (the grant id behind a gift line) plus a visible
+«هدية» meta row. New order meta: `_zooboxi_app_order`. New cart-item key: `zb_grant_id`.
+New WC session key: `zb_loyalty_claims`. New cron: `zooboxi_loyalty_daily`.
+
+## Laravel (1 file)
+
+`app/Http/Controllers/Api/ZooboxiIntelligenceController.php` — the `storeEvent` validator's
+`event_type` allowlist gains `loyalty_scratch`, `loyalty_mission`, `loyalty_redeem`,
+`loyalty_claim`, `pet_added`, `family_card`. One line; nothing else touched.
+
+## Verification
+
+- `php -l` clean on all 13 created PHP files and all 13 modified ones.
+- `bash -n scripts/v2_smoke.sh` clean.
+- 86 offline assertions pass against the **real** classes through a small WordPress shim:
+  tier thresholds and the spec's worked progress example, both fee filters across every
+  tier/claim combination (including the module-off pass-through and a raised express fee),
+  the paws calculation (floor, gift exclusion, rate changes), the Arabic `age_label` dual and
+  plural forms, birthday countdown, pet validation, and a 200 000-draw check that the weighted
+  scratch distribution matches its weights to within 5% — including fractional weights.
+- Fee-read counts verified mechanically: exactly 7 `zooboxi_free_shipping_min` and exactly 7
+  `zooboxi_express_fee` reads wrapped, matching the spec's inventory.
+
+## Deploy
+
+Surgical scp (this checkout is diverged from prod), then:
+
+```bash
+wp eval 'Zooboxi_Loyalty_Schema::maybe_install();'
+wp zooboxi loyalty seed-defaults
+wp cron event run zooboxi_loyalty_daily     # or: wp zooboxi loyalty daily
+TOKEN_USER3=zbat_… BASE=https://store.zooboxi.com/wp-json/zooboxi/v2 ./scripts/v2_smoke.sh
+```
+
+Then attach a real product to each gift reward in **Zooboxi → 🐾 عائلة زوبوكسي → الهدايا**:
+until a gift has a product it is skipped by the scratch draw and shown as non-redeemable, by
+design — the program never promises a gift it cannot ship.
+
+Rollback: `update_option('zooboxi_loyalty_enabled','no')`. The tables stay; nothing reads them.

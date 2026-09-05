@@ -105,6 +105,9 @@ expect_jq '.data.currency == "SAR"' "currency is SAR"
 expect_jq '.data.min_app_version.ios and .data.min_app_version.android' "min_app_version present"
 expect_jq '.data.free_shipping_min | numbers' "free_shipping_min is numeric"
 expect_jq '.data.features | has("smart_shipments") and has("wishlist")' "feature flags present"
+expect_jq '.data.features | has("loyalty") and has("pets")' "loyalty feature flags present"
+# The program's constants must be present whenever it is on — the app never hardcodes them.
+expect_jq '.data.features.loyalty == false or (.data.loyalty | has("program_name_ar") and has("points_per_riyal") and has("paw_value_sar"))' "loyalty meta block shaped when enabled"
 
 # ─────────────────────────────────────────────────────── cities
 c_head "GET /location/cities"
@@ -132,6 +135,9 @@ expect_jq '(.data.rails | length) == 0 or (.data.rails[0].products | type == "ar
 # The app renders sections in the order the server dictates.
 expect_jq '.data.layout | type == "array" and length >= 10' "layout is an array of 10+ sections"
 expect_jq '[.data.layout[] | has("type")] | all' "every layout entry names a type"
+expect_jq '[.data.layout[].type] | index("family") != null and index("missions") != null' "layout carries the family + missions slots"
+expect_jq '[.data.layout[].type] | index("family") == 1' "family sits directly after the hero"
+expect_jq '[.data.layout[].type] | index("missions") == (index("personal") + 1)' "missions sits directly after personal"
 
 # Never show the same product twice across the home rails.
 expect_jq '[.data.rails[].products[].id] | length == (unique | length)' "no duplicate products across rails"
@@ -280,6 +286,9 @@ if [ -n "$PID" ]; then
     c_ok "cart add (HTTP 200)"
     expect_jq '.data | has("items") and has("totals") and has("shipments") and has("free_shipping")' "cart DTO shape"
     expect_jq '.data.count >= 1' "cart count incremented"
+    # Loyalty rides along only when the module is on; a gift line is flagged per item.
+    expect_jq '(.data | has("loyalty") | not) or (.data.loyalty | has("paws_to_earn") and has("claims") and has("free_delivery_reason") and has("express_free_reason"))' "cart loyalty block shaped"
+    expect_jq '(.data.items | length) == 0 or ([.data.items[] | has("is_gift") and has("locked_qty")] | all)' "cart lines declare gift status"
   elif [ "$code" = "409" ]; then
     # A variable product or an out-of-area item legitimately refuses.
     c_ok "cart add refused with a clean envelope (HTTP 409)"
@@ -323,6 +332,84 @@ expect_jq '.error.code == "unauthorized"' "401 envelope"
 
 code=$(call GET "/wishlist")
 expect_status "$code" 401 "/wishlist is 401 for a guest"
+
+# ────────────────────────────────────── loyalty (عائلة زوبوكسي)
+c_head "Loyalty routes reject a guest"
+code=$(call GET "/loyalty/summary")
+if [ "$code" = "503" ]; then
+  c_ok "loyalty module is switched off on this store (503) — guard checks skipped"
+  expect_jq '.error.code == "loyalty_disabled"' "disabled envelope"
+  LOYALTY_ON=0
+else
+  LOYALTY_ON=1
+  expect_status "$code" 401 "/loyalty/summary is 401 for a guest"
+  expect_jq '.error.code == "unauthorized"' "401 envelope"
+
+  code=$(call GET "/pets")
+  expect_status "$code" 401 "/pets is 401 for a guest"
+
+  code=$(call GET "/loyalty/rewards")
+  expect_status "$code" 401 "/loyalty/rewards is 401 for a guest"
+
+  code=$(call GET "/loyalty/ledger")
+  expect_status "$code" 401 "/loyalty/ledger is 401 for a guest"
+
+  code=$(call GET "/loyalty/scratch")
+  expect_status "$code" 401 "/loyalty/scratch is 401 for a guest"
+
+  # A balance and a pet's birth date must never sit in a shared cache.
+  CC=$(headers "/loyalty/summary" | awk '/^cache-control:/{ $1=""; print }')
+  case "$CC" in
+    *no-store*) c_ok "loyalty is private, no-store" ;;
+    *)          c_bad "loyalty Cache-Control is missing no-store (got:${CC:-<none>})" ;;
+  esac
+fi
+
+c_head "Loyalty (bearer)"
+if [ -n "$TOKEN_USER3" ] && [ "${LOYALTY_ON:-0}" = "1" ]; then
+  code=$(call_auth GET "/loyalty/summary")
+  expect_status "$code" 200 "summary responds"
+  expect_jq '.data | has("member") and has("paws") and has("tier") and has("missions") and has("rewards") and has("pets") and has("counters")' "summary sections present"
+  expect_jq '.data.paws | has("balance") and has("pending")' "paws block shaped"
+  expect_jq '.data.tier | has("key") and has("orders_12m") and has("progress") and has("perks")' "tier block shaped"
+  expect_jq '[.data.tier.perks[] | has("key") and has("active") and has("from_tier")] | all' "every perk declares its tier"
+  expect_jq '.data.missions | has("period") and has("items")' "missions block shaped"
+  # The holdout group plays nothing — that is the whole point of the group.
+  expect_jq '.data.member.holdout == false or ((.data.missions.items | length) == 0 and (.data.rewards.sealed_scratch | length) == 0)' "a holdout member gets no game"
+
+  code=$(call_auth GET "/loyalty/rewards")
+  expect_status "$code" 200 "rewards respond"
+  expect_jq '.data | has("catalog") and has("grants")' "catalogue + grants present"
+  expect_jq '(.data.catalog | length) == 0 or ([.data.catalog[] | has("kind") and has("paws_cost") and has("redeemable")] | all)' "reward DTO shape"
+
+  code=$(call_auth GET "/loyalty/ledger?page=1")
+  expect_status "$code" 200 "ledger responds"
+  expect_jq '.data | has("items") and has("page") and has("has_more")' "ledger paginates"
+
+  code=$(call_auth GET "/loyalty/missions")
+  expect_status "$code" 200 "missions respond"
+  expect_jq '.data | has("period") and has("items")' "missions listing shaped"
+
+  code=$(call_auth GET "/loyalty/scratch")
+  expect_status "$code" 200 "scratch cards respond"
+  expect_jq '.data.cards | type == "array"' "cards is an array"
+
+  code=$(call_auth GET "/pets")
+  expect_status "$code" 200 "pets respond"
+  expect_jq '.data | has("pets") and has("max")' "pets listing shaped"
+  expect_jq '.data.max >= 1' "a pet limit is published"
+  expect_jq '(.data.pets | length) == 0 or ([.data.pets[] | has("age_label") and has("is_complete") and has("birthday_in_days")] | all)' "pet DTO shape"
+
+  # Read-only suite: a bad pet body must be refused, not stored.
+  code=$(call_auth POST "/pets" '{"name":"","species":"dragon"}')
+  expect_status "$code" 422 "an invalid pet is refused"
+  expect_jq '.error.code == "pet_invalid"' "pet_invalid envelope"
+  expect_jq '.data.fields | type == "object"' "field errors returned"
+elif [ "${LOYALTY_ON:-0}" != "1" ]; then
+  c_ok "loyalty module off — authenticated loyalty checks skipped"
+else
+  c_ok "TOKEN_USER3 not set — authenticated loyalty checks skipped"
+fi
 
 # ─────────────────────────────────────────────────────── summary
 c_head "Summary"

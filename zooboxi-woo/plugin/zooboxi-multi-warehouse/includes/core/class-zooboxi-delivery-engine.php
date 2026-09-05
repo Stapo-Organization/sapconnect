@@ -44,7 +44,7 @@ class Zooboxi_Delivery_Engine
                     'warehouse_name' => is_rtl() ? ($wh['display_name_ar'] ?: $wh['display_name_en']) : ($wh['display_name_en'] ?: $wh['display_name_ar']),
                     'distance_km'    => $nearest['distance'],
                     'estimated_time' => __('خلال ساعتين', 'zooboxi'),
-                    'fee'            => (float) get_option('zooboxi_express_fee', 15),
+                    'fee'            => (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15)),
                 ];
             }
         }
@@ -92,7 +92,7 @@ class Zooboxi_Delivery_Engine
         }
 
         // Check free-shipping threshold
-        $freeMin = (float) get_option('zooboxi_free_shipping_min', 200);
+        $freeMin = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
         $cartTotal = self::calculate_cart_total($cartItems);
         if ($cartTotal >= $freeMin) {
             foreach (['express', 'standard', 'shipping'] as $key) {
@@ -156,7 +156,7 @@ class Zooboxi_Delivery_Engine
                     'warehouse_code'   => $code,
                     'warehouse_name'   => is_rtl() ? ($wh['display_name_ar'] ?: $wh['display_name_en']) : ($wh['display_name_en'] ?: $wh['display_name_ar']),
                     'stock_qty'        => (int) $stockMap[$code],
-                    'fee'              => (float) get_option('zooboxi_express_fee', 15),
+                    'fee'              => (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15)),
                     'is_express_hours' => true,
                     'distance_km'      => $ew['distance'],
                 ];

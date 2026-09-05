@@ -368,6 +368,13 @@ class Zooboxi_V2_Checkout_Controller
         $order->update_meta_data('_zooboxi_checkout_lat', (string) $address['lat']);
         $order->update_meta_data('_zooboxi_checkout_lng', (string) $address['lng']);
         $order->update_meta_data('_zooboxi_source', 'app');
+        // The loyalty module keys «اخدش واربح» off this flag, and it must be on the
+        // record BEFORE the classic hook below fires. `_zooboxi_source` already said
+        // the same thing, but the spec names this key, so both are written — and the
+        // literal is used so this line survives the module being switched off.
+        if ((string) $order->get_meta('_zooboxi_app_order') !== '1') {
+            $order->update_meta_data('_zooboxi_app_order', 1);
+        }
         $order->save();
 
         // Save the address book entry when asked.
@@ -384,6 +391,10 @@ class Zooboxi_V2_Checkout_Controller
             $order->update_status('processing', __('طلب عبر تطبيق زوبوكسي — الدفع عند الاستلام', 'zooboxi'));
         }
 
+        // Read the loyalty outcome BEFORE the cart is emptied — the scratch card was
+        // minted by the hook above and the earn preview is computed from the order.
+        $loyalty = $this->loyalty_result($order);
+
         WC()->cart->empty_cart();
 
         return Zooboxi_V2_Bootstrap::ok([
@@ -396,7 +407,42 @@ class Zooboxi_V2_Checkout_Controller
             'payment_method'   => $gateway_id === self::GATEWAY_MYFATOORAH ? 'myfatoorah' : 'cod',
             'payment_required' => $payment_required,
             'shipping_chosen'  => $chosen,
+            'scratch_card'     => $loyalty['scratch_card'],
+            'paws_to_earn'     => $loyalty['paws_to_earn'],
         ]);
+    }
+
+    /**
+     * The loyalty half of a placed order: the sealed scratch card (when this customer
+     * earned one) and the paws the order will pay on delivery.
+     *
+     * Never allowed to throw — the order already exists and the money is already taken.
+     *
+     * @return array{scratch_card:?array,paws_to_earn:int}
+     */
+    private function loyalty_result(\WC_Order $order): array
+    {
+        $out = ['scratch_card' => null, 'paws_to_earn' => 0];
+
+        if (!class_exists('Zooboxi_Loyalty') || !Zooboxi_Loyalty::is_enabled()) {
+            return $out;
+        }
+
+        try {
+            $user_id = (int) $order->get_customer_id();
+            $out['paws_to_earn'] = Zooboxi_Loyalty_Ledger::order_paws($order);
+
+            if ($user_id > 0) {
+                $card = Zooboxi_Loyalty_Scratch::by_order((int) $order->get_id());
+                if ($card !== null) {
+                    $out['scratch_card'] = Zooboxi_Loyalty_Scratch::dto($card, $user_id);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi v2] loyalty result failed: ' . $e->getMessage());
+        }
+
+        return $out;
     }
 
     /* ══════════════════════════════════════════════════════════════

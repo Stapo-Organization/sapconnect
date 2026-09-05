@@ -56,6 +56,9 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-stock-dashboard.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-express-zones-admin.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-order-admin.php';
+            // NOT gated on zooboxi_loyalty_enabled: switching the program off from this
+            // very screen must not delete the screen that switches it back on.
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-loyalty-admin.php';
         }
 
         // Frontend
@@ -91,6 +94,29 @@ class Zooboxi_Plugin
         // Pack-size awareness (كرتون × حبة): pieces-per-unit factors from SAP.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-units.php';
 
+        // Loyalty — «عائلة زوبوكسي». Purely additive; kill switch: set option
+        // `zooboxi_loyalty_enabled` to anything but 'yes' and the store behaves
+        // exactly as it did before the module existed (no hooks, no filters, no
+        // tables touched). The autoloader does not scan includes/loyalty, so every
+        // class is required explicitly.
+        // In wp-admin the classes are always loaded (the settings screen needs them even
+        // when the program is off); on the front end and in cron they are loaded only
+        // when it is on. Loading a class registers nothing — only the instantiation
+        // below adds hooks and filters.
+        if (get_option('zooboxi_loyalty_enabled', 'yes') === 'yes' || is_admin()) {
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-schema.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-members.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-ledger.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-tiers.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-pets.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-rewards.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-scratch.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-missions.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-hooks.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-cli.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty.php';
+        }
+
         // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:
         // set option `zooboxi_v2_enabled` to anything but 'yes' to unload it entirely.
         if (get_option('zooboxi_v2_enabled', 'yes') === 'yes') {
@@ -107,6 +133,9 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-account-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-events-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-meta-controller.php';
+            if (get_option('zooboxi_loyalty_enabled', 'yes') === 'yes') {
+                require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-loyalty-controller.php';
+            }
         }
     }
 
@@ -176,6 +205,16 @@ class Zooboxi_Plugin
         new Zooboxi_Homepage();
         // Smart hero slider (front render is static; instance registers the admin panel).
         new Zooboxi_Hero_Slider();
+
+        // Loyalty: registered unconditionally when enabled (the order hooks fire in
+        // admin and cron too, and the fee filters must exist for every surface).
+        if (get_option('zooboxi_loyalty_enabled', 'yes') === 'yes' && class_exists('Zooboxi_Loyalty')) {
+            new Zooboxi_Loyalty();
+        }
+        // The admin screen is always registered — see the require above.
+        if (is_admin() && class_exists('Zooboxi_Loyalty_Admin')) {
+            (new Zooboxi_Loyalty_Admin())->register_hooks();
+        }
 
         // Mobile app API (zooboxi/v2) — same kill switch as its requires above.
         if (get_option('zooboxi_v2_enabled', 'yes') === 'yes' && class_exists('Zooboxi_V2_Bootstrap')) {

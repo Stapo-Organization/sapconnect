@@ -61,7 +61,7 @@ do_action( 'woocommerce_before_cart' ); ?>
 		<?php // ─────────────  GROUPED SHIPMENT CARDS  ───────────── ?>
 		<div class="zb-cart-groups">
 			<?php
-			$zb_qualifies = ( WC()->cart->get_subtotal() >= (float) get_option( 'zooboxi_free_shipping_min', 200 ) );
+			$zb_qualifies = ( WC()->cart->get_subtotal() >= (float) apply_filters( 'zooboxi_free_shipping_min', (float) get_option( 'zooboxi_free_shipping_min', 200 ) ) );
 
 			foreach ( $zb_groups as $zb_tier => $zb_items ) :
 				$zb_pr  = Zooboxi_Fulfillment::tier_presentation( $zb_tier );

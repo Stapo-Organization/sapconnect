@@ -64,7 +64,7 @@ class Zooboxi_Fulfillment
                         'warehouse_code' => $code,
                         'warehouse_name' => self::wh_name($wh),
                         'stock'          => $have,
-                        'fee'            => (float) get_option('zooboxi_express_fee', 15),
+                        'fee'            => (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15)),
                     ];
                     $used[$code] = true;
                 }

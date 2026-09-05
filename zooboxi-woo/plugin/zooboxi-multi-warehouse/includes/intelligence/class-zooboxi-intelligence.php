@@ -379,7 +379,12 @@ class Zooboxi_Intelligence
     }
 
     /** Event types the store is allowed to forward (shared by the beacon and the app). */
-    public const EVENT_TYPES = ['view', 'search', 'add_to_cart', 'begin_checkout', 'purchase', 'impression', 'click'];
+    public const EVENT_TYPES = [
+        'view', 'search', 'add_to_cart', 'begin_checkout', 'purchase', 'impression', 'click',
+        // «عائلة زوبوكسي» — must match the Laravel validator in
+        // ZooboxiIntelligenceController::storeEvent, or these are dropped there.
+        'loyalty_scratch', 'loyalty_mission', 'loyalty_redeem', 'loyalty_claim', 'pet_added', 'family_card',
+    ];
 
     /**
      * AJAX beacon — a thin wrapper around forward_event() so the web beacon and the

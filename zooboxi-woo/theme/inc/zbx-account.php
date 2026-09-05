@@ -32,7 +32,8 @@ function zooboxi_account_open_statuses(): array
 /** The store's real free-shipping threshold. */
 function zooboxi_free_shipping_min(): float
 {
-    return (float) get_option('zooboxi_free_shipping_min', 200);
+    // Filterable: the loyalty module lowers it per customer (tier or claimed reward).
+    return (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
 }
 
 /**

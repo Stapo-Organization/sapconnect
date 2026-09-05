@@ -504,6 +504,13 @@ class Zooboxi_V2_Bootstrap
         $account->register_routes();
         $events->register_routes();
         $meta->register_routes();
+
+        // Loyalty («عائلة زوبوكسي») rides the same pipeline; it is absent entirely
+        // when the module is switched off, so its routes simply do not exist.
+        if (class_exists('Zooboxi_V2_Loyalty_Controller') && class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled()) {
+            Zooboxi_Loyalty_Schema::maybe_install();
+            (new Zooboxi_V2_Loyalty_Controller())->register_routes();
+        }
     }
 
     /**

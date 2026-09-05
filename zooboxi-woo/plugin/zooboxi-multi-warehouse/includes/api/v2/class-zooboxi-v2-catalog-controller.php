@@ -44,8 +44,13 @@ class Zooboxi_V2_Catalog_Controller
     /** The default app home composition (option `zooboxi_app_home_layout` overrides). */
     private const DEFAULT_LAYOUT = [
         ['type' => 'hero'],
+        // «عائلة زوبوكسي»: the home page stays cacheable, so these two slots carry no
+        // loyalty data — the app hydrates them from /loyalty/summary the same way it
+        // hydrates `personal` from /home/feed.
+        ['type' => 'family'],
         ['type' => 'animal_nav'],
         ['type' => 'personal'],
+        ['type' => 'missions'],
         ['type' => 'shipping_nudge'],
         ['type' => 'rail', 'key' => 'trending'],
         ['type' => 'banner', 'index' => 0],

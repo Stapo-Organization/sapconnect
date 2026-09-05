@@ -326,7 +326,7 @@ class Zooboxi_Smart_Shipments
 
         // Order-level free shipping (owner decision): the WHOLE order qualifies or it does not —
         // a qualifying order shows EVERY shipment free, never a surprise per-basket charge.
-        $freeMin   = (float) get_option('zooboxi_free_shipping_min', 200);
+        $freeMin   = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
         $orderSub  = (float) WC()->cart->get_subtotal();
         $qualifies = $orderSub >= $freeMin;
         $remain    = max(0, $freeMin - $orderSub);
@@ -393,7 +393,7 @@ class Zooboxi_Smart_Shipments
     {
         switch ($tier) {
             case Zooboxi_Delivery_Engine::TYPE_EXPRESS:
-                return ['⚡', __('توصيل خلال ساعتين', 'zooboxi'), (float) get_option('zooboxi_express_fee', 15)];
+                return ['⚡', __('توصيل خلال ساعتين', 'zooboxi'), (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15))];
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
                 return ['🚚', __('توصيل خلال 24 ساعة', 'zooboxi'), (float) get_option('zooboxi_standard_fee', 10)];
             default:

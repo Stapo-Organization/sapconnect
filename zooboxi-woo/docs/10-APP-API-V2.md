@@ -464,3 +464,268 @@ Fire-and-forget: never block a screen on this.
 4. Treat `notices` as one-shot toasts.
 5. Handle `cart_changed` at checkout by re-rendering the review screen from `data.cart`.
 6. Respect `ETag` — it makes catalogue browsing nearly free on repeat visits.
+
+---
+
+## 14. Loyalty (عائلة زوبوكسي)
+
+The program is **«عائلة زوبوكسي» / "Zooboxi Family"**, its currency is **«بصمات» / "Paws"**
+(internal key `paws`). Every route below is **bearer-only** and answers
+`Cache-Control: private, no-store` — a balance, a pet's birth date and a sealed prize are
+personal.
+
+When the module is switched off (`zooboxi_loyalty_enabled` ≠ `yes`) these routes are not
+registered at all; `/meta` then reports `features.loyalty: false` and `loyalty: null`, and
+the app hides the whole surface. If the app calls a loyalty route on a store where the
+module was disabled after boot it gets `503 loyalty_disabled`.
+
+### Never assume a fee
+
+`fees.express` is **0 today only as a trial** and will become a paid tier again. The app
+must render whatever `/meta` and the cart DTO say — there are two reward kinds precisely
+because a waived express fee is worth something:
+
+| kind | what it does |
+|---|---|
+| `gift_product` | adds a real cart line priced at zero |
+| `express_free` | zeroes the **express fee only**, on the next order |
+| `free_delivery` | zeroes the fee of **any** delivery tier, with no minimum |
+| `paws` | pure paws (catalogue placeholder; not used by Phase 1 grants) |
+
+### `GET /meta` — additions
+
+```json
+"features": { "…": true, "loyalty": true, "pets": true },
+"loyalty": {
+  "program_name_ar": "عائلة زوبوكسي", "program_name_en": "Zooboxi Family",
+  "currency_ar": "بصمات", "currency_en": "Paws",
+  "points_per_riyal": 1, "paw_value_sar": 0.03,
+  "max_pets": 3, "scratch_enabled": true, "missions_enabled": true
+}
+```
+
+### `GET /loyalty/summary`
+
+The family hub in one call.
+
+```json
+{ "member": { "joined_at": "2026-09-05T10:00:00Z", "holdout": false, "referral_code": "ZB7K2QX" },
+  "paws": { "balance": 1240, "pending": 120, "expires_at": "2027-09-01T00:00:00Z" },
+  "tier": { "key": "star", "name": "مميّز", "name_en": "Star", "icon": "⭐",
+            "c1": "#e8a765", "c2": "#d48644",
+            "orders_12m": 5, "min": 4,
+            "next": { "key": "gold", "name": "ذهبي", "name_en": "Gold", "icon": "🏅",
+                      "min": 8, "orders_needed": 3 },
+            "progress": 25,
+            "perks": [ { "key": "free_min_150", "text": "الشحن المجاني من 150 ﷼ بدل 200", "active": true,  "from_tier": "star" },
+                       { "key": "express_free_always",  "text": "توصيل سريع مجاني دائماً",   "active": false, "from_tier": "gold" },
+                       { "key": "free_delivery_always", "text": "توصيل مجاني بلا حد أدنى",  "active": false, "from_tier": "amb"  },
+                       { "key": "priority_support", … }, { "key": "samples", … }, { "key": "whatsapp", … } ] },
+  "missions": { "period": "2026-09", "active": 3, "completed": 1, "items": [ Mission ] },
+  "rewards":  { "active_count": 2, "sealed_scratch": [ { "id": 88, "order_id": 32579, "order_number": "32579" } ] },
+  "pets":     [ Pet ],
+  "counters": { "orders_total": 17, "orders_app": 3 } }
+```
+
+- `paws.pending` — paws on revealed cards whose order has not been delivered yet. They are
+  **not** in `balance`; show them as "on the way".
+- `paws.expires_at` — when the current balance lapses if the customer never earns again
+  (`expiry_months`, default 12, from the last earn).
+- `tier.progress` — percent of the way to `tier.next`; `next` is `null` at the top.
+- `perks[].active` is per-tier truth; `from_tier` is where the perk starts.
+- Missions here carry **no** `suggested_products` (the summary stays light) — call
+  `/loyalty/missions` for those.
+- **Holdout members** (the 10% control group) get `member.holdout: true`,
+  `missions.items: []`, `rewards.sealed_scratch: []` and `paws.pending: 0`. They still earn
+  paws and hold a tier — hide the game, never the currency.
+
+### `GET /loyalty/ledger?page=1`
+
+```json
+{ "items": [ { "id": 991, "delta": 199, "balance_after": 1240,
+               "reason": "order_earn", "reason_label": "بصمات طلب",
+               "ref_type": "order", "ref_id": 32579, "note": "",
+               "created_at": "2026-09-05T10:00:00Z" } ],
+  "page": 1, "has_more": true }
+```
+
+25 per page, newest first. `reason` ∈ `order_earn`, `profile_complete`, `pet_added`,
+`mission`, `scratch`, `redeem`, `reverse`, `expire`, `adjust`, `welcome`. The book is
+append-only: a cancelled order shows as a **second** `reverse` row, never as an edit.
+
+### `GET /loyalty/rewards`
+
+```json
+{ "catalog": [ Reward ], "grants": [ Grant ], "paws_balance": 1240 }
+```
+
+**Reward**
+```json
+{ "id": 3, "key": "small_gift", "kind": "gift_product",
+  "title": "هدية صغيرة", "title_en": "Small gift", "description": "…",
+  "product": Card | null, "paws_cost": 600, "value_sar": 25,
+  "validity_days": 21, "min_tier": "",
+  "redeemable": false, "reason_ar": "بصماتك لا تكفي بعد", "reason_en": "You do not have enough paws yet." }
+```
+`reason_ar`/`reason_en` say **why not** — show it on a disabled button rather than hiding
+the reward. `redeemable` is false with reason code `not_redeemable` when `paws_cost` is 0
+(a grant-only reward), `reward_unavailable` when a gift has no product attached or its
+monthly cap is spent, `tier_required` when the customer is below `min_tier`, and
+`insufficient_paws` when the balance is short.
+
+**Grant**
+```json
+{ "id": 77, "reward": Reward, "source": "scratch", "state": "pending",
+  "expires_at": null,
+  "activates_on_order": { "id": 32579, "number": "32579" },
+  "claimed": false }
+```
+`state` ∈ `pending` (waiting on a delivery), `active`, `claimed` (in the basket),
+`redeemed`, `expired`, `cancelled`. `source` ∈ `scratch`, `mission`, `redeem`, `welcome`,
+`admin`. `expires_at` is set the moment the grant becomes `active`.
+
+### `POST /loyalty/rewards/{id}/redeem`
+
+→ `{ "grant": Grant, "paws_balance": 640 }`
+
+Errors: `insufficient_paws` 409 · `tier_required` **403** · `reward_unavailable` 409 ·
+`not_redeemable` 409. Paws are deducted only after the grant row exists.
+
+### `POST /loyalty/grants/{id}/claim` · `DELETE /loyalty/grants/{id}/claim`
+
+→ `{ "cart": Cart, "grant": Grant }`
+
+Claiming puts the grant in the **basket session**, not on the order:
+
+- `gift_product` → a real cart line appears, price 0, quantity locked at 1. Removing that
+  line releases the claim (the grant goes back to `active`).
+- `free_delivery` → no line; `free_shipping.min` becomes 0 for this basket.
+- `express_free` → no line; the express shipment's fee becomes 0. If this basket cannot go
+  express the claim still succeeds and the grant carries
+  `notice_ar`/`notice_en`/`notice` explaining that the waiver has nothing to waive here.
+
+Errors: `grant_not_active` 409 · `already_claimed` 409 · `gift_unavailable` 409 (the gift
+cannot reach the customer's location, or has no purchasable product) · `cart_unavailable`
+503. Abandoning the basket never costs the customer the reward; placing the order turns
+every claim into `redeemed` bound to that order, and cancelling the order returns them.
+
+### `GET /loyalty/missions`
+
+```json
+{ "period": "2026-09", "items": [ Mission ] }
+```
+
+**Mission**
+```json
+{ "id": 12, "key": "try_new_brand", "kind": "trial",
+  "title": "جرّب ماركة جديدة", "body": "اطلب صنفاً من ماركة لم يجرّبها لولو من قبل.",
+  "target": 1, "progress": 0, "state": "active",
+  "reward": { "kind": "paws", "paws": 150 },
+  "suggested_products": [ Card ],
+  "completed_at": null }
+```
+`reward` is either `{ "kind": "paws", "paws": 150 }` or
+`{ "kind": "reward", "reward": Reward }`. `kind` ∈ `profile`, `welcome`, `frequency`,
+`trial`, `category`. `state` ∈ `active`, `completed`, `rewarded`, `expired` — the payout is
+immediate, so a finished mission is normally seen as `rewarded`. Up to four missions are
+assigned per calendar month, lazily on the first read; last month's roll over to `expired`.
+`suggested_products` (max 6) is populated for `trial` and `category` only, and is empty on
+the copies embedded in `/loyalty/summary`.
+
+### `GET /loyalty/scratch` · `POST /loyalty/scratch/{id}/reveal`
+
+```json
+{ "cards": [ Scratch ] }
+```
+
+**Scratch**
+```json
+{ "id": 88, "order": { "id": 32579, "number": "32579" },
+  "state": "revealed",
+  "prize": { "kind": "paws", "paws": 50 },
+  "settled": false,
+  "revealed_at": "2026-09-05T10:02:00Z", "created_at": "2026-09-05T10:00:00Z",
+  "activation_hint_ar": "تُفعَّل عند تسليم الطلب",
+  "activation_hint_en": "Activates when your order is delivered" }
+```
+`prize` is `null` while `state` is `sealed` — the outcome is drawn server-side at creation
+but is not sent until the customer rubs the card, so the animation cannot be spoiled by a
+network log. A reward prize reads
+`{ "kind": "reward", "reward": Reward, "grant_id": 77 }`.
+
+`reveal` is idempotent: calling it twice returns the same card, never a second prize.
+`settled` flips to `true` when the order is delivered — that is the moment paws hit the
+ledger and a reward grant becomes `active`. Cancelling the order before delivery cancels
+the prize. `GET` returns sealed cards plus anything created in the last 30 days.
+Errors: `scratch_not_found` 404.
+
+One card per app order (`_zooboxi_app_order`), never for a holdout member, never for a web
+order.
+
+### Pets
+
+| Method | Path | Body / notes |
+|---|---|---|
+| `GET` | `/pets` | `{ "pets": [ Pet ], "max": 3 }` |
+| `POST` | `/pets` | `{ name, species, breed?, sex?, weight_kg?, birth_date?, neutered?, avatar?, notes?, photo_id? }` → `{ "pet": Pet, "pets": [ … ], "paws_earned": 50 }` |
+| `PATCH` | `/pets/{id}` | same body, partial → `{ "pet", "pets", "paws_earned": 0 \| 100 }` |
+| `DELETE` | `/pets/{id}` | soft delete → `{ "pets": [ … ] }` |
+
+**Pet**
+```json
+{ "id": 5, "name": "لولو", "species": "cat", "breed": "شيرازي", "sex": "f",
+  "weight_kg": 4.25, "birth_date": "2024-03-01",
+  "age_label": "سنتان و3 أشهر", "neutered": true, "avatar": "cat_cream",
+  "photo_url": null, "is_complete": true, "birthday_in_days": 177 }
+```
+`species` ∈ `cat`, `dog`, `bird`, `fish`, `small`, `reptile`, `other`. `sex` ∈ `m`, `f`,
+`""`. `age_label` is localised (`"2y 3m"` under `?lang=en`). `is_complete` means the pet
+has both a weight and a birth date — that is what pays the one-off 100 paws, so
+`paws_earned` is 50 on a create and 100 on the edit that first completes a profile.
+
+Errors: `pets_limit` 409 (at `max`) · `pet_invalid` 422 with
+`data.fields: { "name": "…", "weight_kg": "…" }` · `pet_not_found` 404.
+
+### Changes to existing endpoints
+
+**`GET /cart` and every cart mutation** — the DTO gains:
+```json
+"loyalty": { "paws_to_earn": 240, "holdout": false,
+             "claims": [ Grant ],
+             "free_delivery_reason": null | "tier" | "reward",
+             "express_free_reason":  null | "tier" | "reward" }
+```
+and every line gains `"is_gift": bool, "grant_id": int|null, "locked_qty": bool`. A gift
+line renders with no stepper, the price as «مجاناً», and delete = release the reward.
+`paws_to_earn` excludes gift lines. `free_delivery_reason` / `express_free_reason` say why
+the badge is showing: `"tier"` (a level perk) or `"reward"` (a claimed grant). The
+`loyalty` key is absent entirely when the module is off.
+
+**`POST /checkout`** — the response gains `"scratch_card": Scratch | null` (always sealed)
+and `"paws_to_earn": 240`. Show the card on the success screen; if the customer leaves
+without rubbing it, it is waiting in `/loyalty/scratch`.
+
+**`GET /orders/{id}`** — gains:
+```json
+"loyalty": { "paws_earned": 240 | null, "scratch_card_id": 88 | null, "gift_lines": ["🎁 هدية · …"] }
+```
+`paws_earned` is `null` until the order is delivered. `null` for the whole block when the
+module is off.
+
+**`GET /home`** — `layout` gains `{ "type": "family" }` immediately after `hero` and
+`{ "type": "missions" }` immediately after `personal`. **Neither slot carries data** — the
+home payload stays cacheable, and the app hydrates both from `/loyalty/summary` exactly the
+way it hydrates `personal` from `/home/feed`. Guests render the family slot as an
+invitation, not an error.
+
+**`POST /events`** — six new `event_type` values:
+`loyalty_scratch` (`payload: {card_id, prize_kind}`, zone `checkout`),
+`loyalty_mission` (`{mission_id, state}`), `loyalty_redeem` (`{reward_id}`),
+`loyalty_claim` (`{grant_id}`), `pet_added` (`{species}`), `family_card` (`{variant}`).
+
+### Error codes introduced
+
+`loyalty_disabled` 503 · `pets_limit` 409 · `pet_invalid` 422 · `pet_not_found` 404 ·
+`pet_failed` 500 · `insufficient_paws` 409 · `tier_required` 403 · `reward_unavailable` 409 ·
+`not_redeemable` 409 · `grant_not_active` 409 · `already_claimed` 409 · `gift_unavailable` 409 ·
+`scratch_not_found` 404.
