@@ -34,14 +34,17 @@ abstract final class ZbTokens {
   static const Color line = Color(0xFFE7EBE6);
   static const Color cream = Color(0xFFFFF7EF);
   static const Color paper = Color(0xFFFFFFFF);
+
   /// Page background in light mode — a hair off pure white so cards read.
   static const Color canvasLight = Color(0xFFF8F9F7);
 
   // ── Neutrals · المحايدة (داكن) ─────────────────────────────────────
   /// Deepest ground; the app canvas in dark mode.
   static const Color graphite = Color(0xFF121615);
+
   /// Cards / sheets — one step up from the canvas.
   static const Color graphiteRaised = Color(0xFF1A201E);
+
   /// Inputs, chips, and the second elevation step.
   static const Color graphiteHigh = Color(0xFF232A28);
   static const Color graphiteHighest = Color(0xFF2C3533);
@@ -53,6 +56,7 @@ abstract final class ZbTokens {
   /// large fills don't glow.
   static const Color tealOnDark = Color(0xFF5FC0BE);
   static const Color tealContainerDark = Color(0xFF19403F);
+
   /// Coral lifted toward salmon for contrast against graphite.
   static const Color coralOnDark = Color(0xFFF08874);
   static const Color coralContainerDark = Color(0xFF4A241D);
@@ -84,6 +88,27 @@ abstract final class ZbTokens {
   static const Color shippingBg = Color(0xFFEDF0F2);
   static const Color shippingFgDark = Color(0xFFA9B4BB);
   static const Color shippingBgDark = Color(0xFF272E31);
+
+  // ── Pet palettes · لوحة كل أليف ────────────────────────────────────
+  // The four pets each own a hue on the categories screen so a customer can
+  // tell "I'm in the cat aisle" from colour alone. Cats keep the brand teal,
+  // dogs the coral, birds a warm amber, small pets a leafy green. Light tints
+  // are wash-light; the dark containers are the same hue sunk into graphite.
+  static const Color coralTint = Color(0xFFFBE3DC);
+  static const Color coralTintSoft = Color(0xFFFDF1EC);
+  static const Color tealTintSoft = Color(0xFFEEF7F6);
+  static const Color amberTint = Color(0xFFFBEBCF);
+  static const Color amberTintSoft = Color(0xFFFDF5E6);
+  static const Color amberDeep = Color(0xFF8A5510);
+  static const Color amberContainerDark = Color(0xFF3F3117);
+  static const Color amberContainerDarkEnd = Color(0xFF2E2513);
+  static const Color greenTint = Color(0xFFDDF0E3);
+  static const Color greenTintSoft = Color(0xFFEEF7F0);
+  static const Color greenDeep = Color(0xFF236A47);
+  static const Color greenContainerDark = Color(0xFF1F3A2A);
+  static const Color greenContainerDarkEnd = Color(0xFF182C21);
+  static const Color tealContainerDarkEnd = Color(0xFF142F2E);
+  static const Color coralContainerDarkEnd = Color(0xFF361B16);
 
   // ── Logo family — decor and mascot moments only ────────────────────
   // Sampled from the Zooboxi mascot logo (cardboard box + dog + cat). These

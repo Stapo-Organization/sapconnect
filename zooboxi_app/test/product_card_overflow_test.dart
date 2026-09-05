@@ -8,7 +8,8 @@ import 'package:zooboxi_app/core/widgets/product_card_metrics.dart';
 import 'package:zooboxi_app/core/widgets/rail.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
-import 'package:zooboxi_app/features/catalog/presentation/widgets/category_group.dart';
+import 'package:zooboxi_app/features/catalog/presentation/pet_palette.dart';
+import 'package:zooboxi_app/features/catalog/presentation/widgets/pet_section.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
 ProductCard _product({
@@ -19,23 +20,23 @@ ProductCard _product({
   bool oos = false,
   int? qty,
   bool chip = false,
-}) =>
-    ProductCard(
-      id: id,
-      name: 'ويلنس ويمزيس مكافآت فرشاة اسنان لعناية الأسنان 12 قطعة للكلاب متوسطة الحجم 420غ',
-      brand: brand == null ? null : BrandRef(name: brand),
-      price: 12345.5,
-      regularPrice: onSale ? 19999 : 12345.5,
-      onSale: onSale,
-      priceFrom: variable,
-      stockStatus: oos ? 'outofstock' : 'instock',
-      stockQty: qty,
-      isVariable: variable,
-      badge: const ProductBadge(type: 'hot', label: 'الأكثر طلباً', icon: '🔥'),
-      deliveryChip: chip
-          ? const DeliveryChip(tier: 'express', label: 'خلال ساعتين اليوم')
-          : null,
-    );
+}) => ProductCard(
+  id: id,
+  name:
+      'ويلنس ويمزيس مكافآت فرشاة اسنان لعناية الأسنان 12 قطعة للكلاب متوسطة الحجم 420غ',
+  brand: brand == null ? null : BrandRef(name: brand),
+  price: 12345.5,
+  regularPrice: onSale ? 19999 : 12345.5,
+  onSale: onSale,
+  priceFrom: variable,
+  stockStatus: oos ? 'outofstock' : 'instock',
+  stockQty: qty,
+  isVariable: variable,
+  badge: const ProductBadge(type: 'hot', label: 'الأكثر طلباً', icon: '🔥'),
+  deliveryChip: chip
+      ? const DeliveryChip(tier: 'express', label: 'خلال ساعتين اليوم')
+      : null,
+);
 
 final _products = [
   _product(id: 1, brand: 'Zolux', chip: true),
@@ -47,23 +48,25 @@ final _products = [
 ];
 
 Widget _harness(Locale locale, double textScale, Widget child) => ProviderScope(
-      child: MaterialApp(
-        locale: locale,
-        theme: AppTheme.light(locale),
-        localizationsDelegates: const [
-          L.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: L.supportedLocales,
-        builder: (context, widget) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
-          child: widget!,
-        ),
-        home: Scaffold(body: child),
-      ),
-    );
+  child: MaterialApp(
+    locale: locale,
+    theme: AppTheme.light(locale),
+    localizationsDelegates: const [
+      L.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: L.supportedLocales,
+    builder: (context, widget) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: widget!,
+    ),
+    home: Scaffold(body: child),
+  ),
+);
 
 void main() {
   for (final size in const [Size(375, 812), Size(393, 852), Size(430, 932)]) {
@@ -86,12 +89,16 @@ void main() {
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
                         sliver: SliverGrid(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: ProductCardMetrics.gridSpacing,
-                            crossAxisSpacing: ProductCardMetrics.gridSpacing,
-                            mainAxisExtent: ProductCardMetrics.gridExtent(context),
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: ProductCardMetrics.gridSpacing,
+                                crossAxisSpacing:
+                                    ProductCardMetrics.gridSpacing,
+                                mainAxisExtent: ProductCardMetrics.gridExtent(
+                                  context,
+                                ),
+                              ),
                           delegate: SliverChildBuilderDelegate(
                             (context, i) => ProductCardView(
                               product: _products[i],
@@ -104,24 +111,32 @@ void main() {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-                          child: CategoryGroup(
-                            node: CategoryNode(
-                              id: 107,
-                              slug: 'cats',
-                              name: 'قطط',
-                              icon: '🐱',
-                              count: 2190,
-                              children: [
-                                for (var i = 0; i < 8; i++)
-                                  CategoryNode(
-                                    id: i,
-                                    slug: 'c\$i',
-                                    name: 'المكافآت والفيتامينات للقطط',
-                                    count: 300,
-                                  ),
-                              ],
+                          child: Builder(
+                            builder: (context) => PetSection(
+                              palette: PetPalette.resolve(
+                                context,
+                                icon: '🐱',
+                                index: 0,
+                              ),
+                              revealed: true,
+                              pet: CategoryNode(
+                                id: 107,
+                                slug: 'cats',
+                                name: 'قطط',
+                                icon: '🐱',
+                                count: 2190,
+                                children: [
+                                  for (var i = 0; i < 8; i++)
+                                    CategoryNode(
+                                      id: i,
+                                      slug: 'c\$i',
+                                      name: 'المكافآت والفيتامينات للقطط',
+                                      count: 300,
+                                    ),
+                                ],
+                              ),
+                              onOpen: (_, _) {},
                             ),
-                            onOpen: (_, _) {},
                           ),
                         ),
                       ),

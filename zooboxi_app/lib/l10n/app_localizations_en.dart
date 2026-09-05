@@ -299,6 +299,21 @@ class LEn extends L {
   String get categoriesEmpty => 'No categories yet';
 
   @override
+  String get categoriesShopAll => 'Shop all';
+
+  @override
+  String categoriesProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+      zero: 'No products',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get listingFilters => 'Filter';
 
   @override

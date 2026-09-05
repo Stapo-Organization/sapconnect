@@ -299,6 +299,24 @@ class LAr extends L {
   String get categoriesEmpty => 'لا توجد أقسام حاليًا';
 
   @override
+  String get categoriesShopAll => 'تسوّق الكل';
+
+  @override
+  String categoriesProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      many: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+      zero: 'لا توجد منتجات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get listingFilters => 'تصفية';
 
   @override

@@ -12,6 +12,8 @@ import '../../cart/presentation/add_to_cart.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import '../data/catalog_models.dart';
 import '../data/catalog_repository.dart';
+import '../data/category_tree.dart';
+import 'widgets/category_chips.dart';
 import 'widgets/facet_sheet.dart';
 import 'widgets/sort_sheet.dart';
 
@@ -34,6 +36,10 @@ class ListingScreen extends ConsumerStatefulWidget {
 class _ListingScreenState extends ConsumerState<ListingScreen> {
   late ListingQuery _query = widget.query;
 
+  /// Follows the department chosen in the chip row; starts as the title the
+  /// caller pushed with.
+  late String _title = widget.title;
+
   /// Facets and price bounds describe the *current* result set, so they are
   /// captured from whichever page-1 response came back last.
   List<FacetGroup> _facets = const [];
@@ -42,7 +48,9 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
   int _total = 0;
 
   Future<ListingResult> _fetch(int page) async {
-    final result = await ref.read(catalogRepositoryProvider).products(_query, page);
+    final result = await ref
+        .read(catalogRepositoryProvider)
+        .products(_query, page);
     if (mounted && page == 1) {
       // Deferred: this runs inside the grid's build/fetch cycle.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,20 +71,33 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
     Haptics.light();
     final updated = await showZbSheet<ListingQuery>(
       context,
-      builder: (_) => FacetSheet(
-        query: _query,
-        facets: _facets,
-        priceBounds: _priceBounds,
-      ),
+      builder: (_) =>
+          FacetSheet(query: _query, facets: _facets, priceBounds: _priceBounds),
     );
     if (updated != null && mounted) setState(() => _query = updated);
+  }
+
+  /// A sibling department chosen from the chip row. Filters are dropped —
+  /// they described the previous aisle's facets — but the sort survives.
+  void _switchCategory(String slug, String title) {
+    setState(() {
+      _query = ListingQuery(
+        category: slug,
+        orderBy: _query.orderBy,
+        perPage: _query.perPage,
+      );
+      _title = title;
+      _facets = const [];
+      _priceBounds = null;
+    });
   }
 
   Future<void> _openSort() async {
     Haptics.light();
     final chosen = await showZbSheet<String>(
       context,
-      builder: (_) => SortSheet(options: _sortOptions, selected: _query.orderBy),
+      builder: (_) =>
+          SortSheet(options: _sortOptions, selected: _query.orderBy),
     );
     if (chosen != null && mounted) {
       setState(() => _query = _query.copyWith(orderBy: chosen));
@@ -86,9 +107,17 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final title = widget.title.isNotEmpty
-        ? widget.title
-        : (_query.q ?? l.categoriesTitle);
+    final title = _title.isNotEmpty ? _title : (_query.q ?? l.categoriesTitle);
+
+    // The aisle this listing belongs to, if it was opened from a category.
+    // The tree is the one the categories tab already holds, so this costs
+    // no request; while it loads (or for a search) there is simply no row.
+    final place = _query.category == null
+        ? null
+        : locateCategory(
+            ref.watch(categoriesProvider(null)).asData?.value ?? const [],
+            _query.category,
+          );
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -98,13 +127,32 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
         resetKey: _query,
         fetchPage: _fetch,
         zone: 'listing',
-        onAdd: (product) => addToCart(context, ref, product: product, zone: 'listing', quiet: true),
-        header: _Toolbar(
-          total: _total,
-          activeFilters: _query.activeFilterCount,
-          sortLabel: _sortLabel(l),
-          onFilters: _facets.isEmpty && _priceBounds == null ? null : _openFilters,
-          onSort: _sortOptions.isEmpty ? null : _openSort,
+        onAdd: (product) => addToCart(
+          context,
+          ref,
+          product: product,
+          zone: 'listing',
+          quiet: true,
+        ),
+        header: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (place != null && place.root.hasChildren)
+              CategoryChips(
+                root: place.root,
+                currentSlug: place.current?.slug,
+                onSelect: _switchCategory,
+              ),
+            _Toolbar(
+              total: _total,
+              activeFilters: _query.activeFilterCount,
+              sortLabel: _sortLabel(l),
+              onFilters: _facets.isEmpty && _priceBounds == null
+                  ? null
+                  : _openFilters,
+              onSort: _sortOptions.isEmpty ? null : _openSort,
+            ),
+          ],
         ),
         emptyState: EmptyState(
           icon: Icons.search_off_rounded,
@@ -163,7 +211,9 @@ class _Toolbar extends StatelessWidget {
                   activeFilters > 0
                       ? l.listingFiltersActive(activeFilters)
                       : l.listingResults(total),
-                  style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  style: context.tt.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ),
               if (onSort != null)
@@ -240,7 +290,10 @@ class _ToolButton extends StatelessWidget {
               if (active) ...[
                 Gap.w6,
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: cs.primary,
                     borderRadius: BorderRadius.circular(999),

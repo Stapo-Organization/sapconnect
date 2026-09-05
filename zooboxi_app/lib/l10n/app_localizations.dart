@@ -631,6 +631,18 @@ abstract class L {
   /// **'لا توجد أقسام حاليًا'**
   String get categoriesEmpty;
 
+  /// No description provided for @categoriesShopAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوّق الكل'**
+  String get categoriesShopAll;
+
+  /// No description provided for @categoriesProductCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا توجد منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}'**
+  String categoriesProductCount(int count);
+
   /// No description provided for @listingFilters.
   ///
   /// In ar, this message translates to:
