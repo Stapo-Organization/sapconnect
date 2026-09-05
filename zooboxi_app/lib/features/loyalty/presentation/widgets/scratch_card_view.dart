@@ -9,7 +9,7 @@ import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/loyalty_models.dart';
 import '../../data/loyalty_repository.dart';
-import 'reward_glyph.dart';
+import 'loyalty_art.dart';
 import 'scratch_canvas.dart';
 
 /// The whole «اخدش واربح» moment: the foil, the prize under it, and the one
@@ -114,12 +114,10 @@ class _ScratchCardViewState extends ConsumerState<ScratchCardView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          _card.settled
-                              ? Icons.verified_rounded
-                              : Icons.schedule_rounded,
-                          size: 15,
-                          color: _card.settled ? context.zb.success : cs.onSurfaceVariant,
+                        FamilyMarkIcon(
+                          _card.settled ? FamilyMark.check : FamilyMark.clock,
+                          size: 16,
+                          color: _card.settled ? context.zb.success : null,
                         ),
                         Gap.w6,
                         Flexible(
@@ -202,7 +200,7 @@ class _PrizeFace extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2.4),
                   )
                 else ...[
-                  RewardGlyph(kind: prize.isPaws ? 'paws' : prize.reward!.kind, size: 42),
+                  RewardSticker(kind: prize.isPaws ? 'paws' : prize.reward!.kind, size: 64),
                   Gap.h8,
                   Text(
                     prize.isPaws
@@ -237,7 +235,8 @@ const List<SparkleSpec> _prizeSparkles = [
 ];
 
 /// A one-line entry point to the moment, for the places that only have room
-/// for a prompt: a sealed card in the family hub.
+/// for a prompt: a sealed card in the family hub — drawn as the foil itself,
+/// so it is unmistakably the thing that gets scratched.
 class SealedScratchTile extends StatelessWidget {
   const SealedScratchTile({super.key, required this.orderNumber, required this.onTap});
 
@@ -250,56 +249,68 @@ class SealedScratchTile extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(ZbTokens.rLg),
+      borderRadius: BorderRadius.circular(ZbTokens.rXl),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
+        child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              begin: AlignmentDirectional.centerStart,
-              end: AlignmentDirectional.centerEnd,
-              colors: [ZbTokens.teal, ZbTokens.tealDeep],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE9ECEE), Color(0xFFC3C9CE), Color(0xFFD8DDE0), Color(0xFFB9C0C5)],
+              stops: [0.0, 0.42, 0.7, 1.0],
             ),
-            borderRadius: BorderRadius.circular(ZbTokens.rLg),
+            borderRadius: BorderRadius.circular(ZbTokens.rXl),
+            border: Border.all(color: const Color(0xFF9DA5AB).withValues(alpha: 0.5)),
           ),
-          child: Row(
+          child: Stack(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              const Positioned.fill(
+                child: PawPattern(color: ZbTokens.tealDeep, opacity: 0.10, scale: 0.8),
+              ),
+              const Positioned.fill(child: SparkleField(sparkles: _foilSparkles, twinkle: true)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                child: Row(
                   children: [
-                    Text(
-                      l.scratchTitle,
-                      style: context.tt.titleSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                    const RewardSticker(kind: 'gift_product', size: 46),
+                    Gap.w12,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.scratchTitle,
+                            style: context.tt.titleSmall?.copyWith(
+                              color: ZbTokens.tealDeep,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Gap.h4,
+                          Text(
+                            orderNumber.isEmpty ? l.scratchHint : l.scratchOrder(orderNumber),
+                            style: context.tt.bodySmall?.copyWith(color: const Color(0xFF3E4A50)),
+                          ),
+                        ],
                       ),
                     ),
-                    Gap.h4,
-                    Text(
-                      orderNumber.isEmpty ? l.scratchHint : l.scratchOrder(orderNumber),
-                      style: context.tt.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.86),
+                    Gap.w12,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: ZbTokens.tealDeep,
+                        borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                      ),
+                      child: Text(
+                        l.scratchOpen,
+                        style: context.tt.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-              Gap.w12,
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(ZbTokens.rPill),
-                ),
-                child: Text(
-                  l.scratchOpen,
-                  style: context.tt.labelMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
                 ),
               ),
             ],
@@ -309,3 +320,8 @@ class SealedScratchTile extends StatelessWidget {
     );
   }
 }
+
+const List<SparkleSpec> _foilSparkles = [
+  SparkleSpec(dx: 0.36, dy: 0.18, size: 9, color: Colors.white, delay: Duration(milliseconds: 200)),
+  SparkleSpec(dx: 0.62, dy: 0.80, size: 7, color: Colors.white, delay: Duration(milliseconds: 700), rotation: 0.4),
+];

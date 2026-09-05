@@ -119,7 +119,13 @@
   "categoriesEmpty": "No categories yet",
   "categoriesShopAll": "Shop all",
   "categoriesProductCount": "{count, plural, =0{No products} =1{1 product} other{{count} products}}",
-  "@categoriesProductCount": {"placeholders": {"count": {"type": "int"}}},
+  "@categoriesProductCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "listingFilters": "Filter",
   "listingSort": "Sort",
   "listingSortTitle": "Sort results",
@@ -652,5 +658,79 @@
   "petIncompleteHint": "Add a weight and a birth date to earn 100 paws",
   "petAgeUnknown": "Age not recorded",
   "petPickDate": "Pick a date",
-  "petLimitReached": "You've reached the pet limit"
+  "petLimitReached": "You've reached the pet limit",
+  "familyHubGreeting": "{name}'s family",
+  "@familyHubGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familyHubGreetingNoPet": "Your family",
+  "familyActionHow": "How to earn",
+  "familyActionLedger": "History",
+  "familyActionPets": "My pets",
+  "familyLadderTitle": "Your journey",
+  "familyPendingOrderTitle": "Order {number} is on its way",
+  "@familyPendingOrderTitle": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "familyPendingOrderBody": "On delivery, {value} paws land and your mission counts automatically",
+  "@familyPendingOrderBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "familyPendingOrderPaws": "On delivery, {value} paws land in your wallet",
+  "@familyPendingOrderPaws": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "familyReferralTitle": "Invite code",
+  "familyReferralCopied": "Invite code copied",
+  "pawsWalletTitle": "Paws wallet",
+  "missionAwaitingDelivery": "Waiting for your delivery",
+  "missionsDoneOf": "{done} of {total} done",
+  "@missionsDoneOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "rewardComingSoon": "Soon",
+  "rewardsShelfHint": "Tap to redeem",
+  "cartFreeDeliveryCelebrate": "Delivery is on us!",
+  "cartExpressCelebrate": "Express delivery is free on this order",
+  "successPawsNote": "{value} paws land in your wallet when the order is delivered",
+  "@successPawsNote": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "successMissionNote": "and this month's missions count automatically after delivery",
+  "scratchKeepGoing": "Keep scratching…",
+  "missionOfTarget": "of {target}",
+  "@missionOfTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  }
 }

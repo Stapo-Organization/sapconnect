@@ -4,14 +4,20 @@ import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../data/cart_models.dart';
 
-/// Progress toward free delivery.
+/// Progress toward free delivery — or, once a perk has waived it, the
+/// celebration instead.
 ///
 /// The bar animates to its new value on every cart change, which is the point:
-/// watching the gap close is what makes the extra item feel worth adding. Once
-/// qualified it turns celebratory rather than simply disappearing.
+/// watching the gap close is what makes the extra item feel worth adding. But
+/// a waived fee is not a threshold reached: the moment a reward or a tier makes
+/// delivery free, the counter goes away entirely and a card says so, because
+/// nudging someone toward a number they no longer have to reach is the bar
+/// lying to them.
 class FreeShippingBar extends StatelessWidget {
   const FreeShippingBar({
     super.key,
@@ -23,41 +29,66 @@ class FreeShippingBar extends StatelessWidget {
   final FreeShipping freeShipping;
 
   /// `tier` | `reward` | null — why delivery costs nothing, when it doesn't.
-  /// Saying which is what turns a perk into something the customer can feel
-  /// they earned rather than a number that happened to be zero.
   final String? freeDeliveryReason;
 
   /// `tier` | `reward` | null — the same, for the express fee alone.
   final String? expressFreeReason;
 
-  /// The one sentence that explains a waived fee, or null when nothing was.
-  String? _reasonText(L l) => switch ((freeDeliveryReason, expressFreeReason)) {
-        ('tier', _) => l.rewardFreeDeliveryTier,
-        ('reward', _) => l.rewardFreeDeliveryReward,
-        (_, 'tier') => l.rewardExpressFreeTier,
-        (_, 'reward') => l.rewardExpressFreeReward,
-        _ => null,
-      };
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    if (freeDeliveryReason != null) {
+      return _Celebration(
+        kind: 'free_delivery',
+        title: l.cartFreeDeliveryCelebrate,
+        body: freeDeliveryReason == 'reward'
+            ? l.rewardFreeDeliveryReward
+            : l.rewardFreeDeliveryTier,
+      );
+    }
+    if (expressFreeReason != null) {
+      // Express is waived but the ordinary threshold may still apply — say
+      // both: the celebration, and the bar underneath when it is still live.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Celebration(
+            kind: 'express_free',
+            title: l.cartExpressCelebrate,
+            body: expressFreeReason == 'reward'
+                ? l.rewardExpressFreeReward
+                : l.rewardExpressFreeTier,
+          ),
+          if (freeShipping.isActive) ...[
+            Gap.h8,
+            _Bar(freeShipping: freeShipping),
+          ],
+        ],
+      );
+    }
+    if (!freeShipping.isActive) return const SizedBox.shrink();
+    return _Bar(freeShipping: freeShipping);
+  }
+}
+
+/// The counter: the sentence and the bar.
+class _Bar extends StatelessWidget {
+  const _Bar({required this.freeShipping});
+
+  final FreeShipping freeShipping;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final reason = _reasonText(l);
-    if (!freeShipping.isActive && reason == null) return const SizedBox.shrink();
-
     final cs = context.cs;
     final zb = context.zb;
     final locale = Localizations.localeOf(context).languageCode;
-    // A granted perk *is* qualification: nudging someone toward a threshold
-    // they no longer have to reach is the bar lying to them.
-    final qualified = freeShipping.qualified || freeDeliveryReason != null;
+    final qualified = freeShipping.qualified;
     final accent = qualified ? zb.success : cs.primary;
 
     return Container(
       decoration: BoxDecoration(
-        color: qualified
-            ? zb.success.withValues(alpha: context.isDark ? 0.14 : 0.09)
-            : cs.surface,
+        color: qualified ? zb.success.withValues(alpha: context.isDark ? 0.14 : 0.09) : cs.surface,
         borderRadius: BorderRadius.circular(ZbTokens.rMd),
         border: Border.all(
           color: qualified ? zb.success.withValues(alpha: 0.35) : cs.outlineVariant,
@@ -69,73 +100,113 @@ class FreeShippingBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
-                qualified ? Icons.check_circle_rounded : Icons.local_shipping_outlined,
-                size: 17,
-                color: accent,
-              ),
+              qualified
+                  ? FamilyMarkIcon(FamilyMark.check, size: 18, color: accent)
+                  : const RewardSticker(kind: 'free_delivery', size: 22),
               Gap.w8,
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      qualified
-                          ? l.cartFreeShippingQualified
-                          : l.cartFreeShippingRemaining(
-                              Fmt.price(freeShipping.remaining, locale: locale),
-                            ),
-                      style: context.tt.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: qualified ? accent : cs.onSurface,
-                      ),
-                    ),
-                    if (reason != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          reason,
-                          style: context.tt.labelSmall
-                              ?.copyWith(color: cs.onSurfaceVariant),
+                child: Text(
+                  qualified
+                      ? l.cartFreeShippingQualified
+                      : l.cartFreeShippingRemaining(
+                          Fmt.price(freeShipping.remaining, locale: locale),
                         ),
-                      ),
-                  ],
+                  style: context.tt.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: qualified ? accent : cs.onSurface,
+                  ),
                 ),
               ),
             ],
           ),
-          if (freeShipping.isActive) ...[
-            Gap.h8,
-            _Progress(progress: freeShipping.progress, accent: accent),
-          ],
+          Gap.h8,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: freeShipping.progress),
+              duration: context.motion(const Duration(milliseconds: 520)),
+              curve: Motion.emphasized,
+              builder: (context, value, _) => LinearProgressIndicator(
+                value: value,
+                minHeight: 6,
+                backgroundColor: cs.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation(accent),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _Progress extends StatelessWidget {
-  const _Progress({required this.progress, required this.accent});
+/// «مبروك» — the perk, as a card with the sticker and sparkles.
+class _Celebration extends StatelessWidget {
+  const _Celebration({required this.kind, required this.title, required this.body});
 
-  final double progress;
-  final Color accent;
+  final String kind;
+  final String title;
+  final String body;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: progress),
-        duration: context.motion(const Duration(milliseconds: 520)),
-        curve: Motion.emphasized,
-        builder: (context, value, _) => LinearProgressIndicator(
-          value: value,
-          minHeight: 6,
-          backgroundColor: cs.surfaceContainerHighest,
-          valueColor: AlwaysStoppedAnimation(accent),
-        ),
+    final hue = rewardKindHue(context, kind);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: rewardKindWash(context, kind),
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+        border: Border.all(color: hue.withValues(alpha: 0.35)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          const Positioned.fill(child: SparkleField(sparkles: _sparkles, twinkle: true)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              children: [
+                RewardSticker(kind: kind, size: 46),
+                Gap.w12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded, size: 17, color: hue),
+                          Gap.w6,
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: context.tt.titleSmall?.copyWith(
+                                color: hue,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap.h4,
+                      Text(
+                        body,
+                        style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+const List<SparkleSpec> _sparkles = [
+  SparkleSpec(dx: 0.88, dy: 0.18, size: 12, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 200)),
+  SparkleSpec(dx: 0.96, dy: 0.70, size: 8, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 700), rotation: 0.4),
+  SparkleSpec(dx: 0.70, dy: 0.84, size: 7, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 1100), rotation: 0.2),
+];

@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
-import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
+import 'loyalty_art.dart';
 
-/// The wallet as a chip: a paw and a number.
+/// The wallet as a chip: the paw coin and a number.
 ///
 /// Balances are tabular — a figure that shifts its own width as it counts up
-/// reads as a glitch, and this number appears in four places that must all
-/// agree at a glance.
+/// reads as a glitch, and this number appears in five places that must all
+/// agree at a glance. The coin is always the coin, on every ground: it is an
+/// object the customer owns, not an icon that takes the surface's colour.
 class PawsPill extends StatelessWidget {
   const PawsPill({
     super.key,
@@ -26,11 +27,11 @@ class PawsPill extends StatelessWidget {
   final bool compact;
   final VoidCallback? onTap;
 
-  /// Overrides for a coloured surface (the tier card's own ground).
+  /// Overrides for a coloured surface (a tier card's own ground).
   final Color? foreground;
   final Color? background;
 
-  /// False for the tightest slots, where the paw glyph alone carries the unit.
+  /// False for the tightest slots, where the coin alone carries the unit.
   final bool showUnit;
 
   @override
@@ -38,22 +39,30 @@ class PawsPill extends StatelessWidget {
     final l = L.of(context);
     final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
-    final fg = foreground ?? cs.primary;
+    final dark = context.isDark;
+    final fg = foreground ?? (dark ? ZbTokens.amberOnDark : const Color(0xFF8A5F08));
+    final bg = background ??
+        (dark ? ZbTokens.amberContainerDark : const Color(0xFFFCEFCF));
 
     final pill = Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 10,
-        vertical: compact ? 4 : 6,
+      padding: EdgeInsetsDirectional.only(
+        start: compact ? 5 : 6,
+        end: compact ? 9 : 11,
+        top: compact ? 3 : 4,
+        bottom: compact ? 3 : 4,
       ),
       decoration: BoxDecoration(
-        color: background ?? cs.primary.withValues(alpha: context.isDark ? 0.18 : 0.10),
+        color: bg,
         borderRadius: BorderRadius.circular(ZbTokens.rPill),
+        border: Border.all(
+          color: (foreground ?? ZbTokens.amber).withValues(alpha: dark ? 0.28 : 0.45),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ZbIcon(ZbIconKind.paw, size: compact ? 13 : 16, fill: 1, tint: fg, ink: fg),
-          SizedBox(width: compact ? 5 : 6),
+          PawCoin(size: compact ? 17 : 21),
+          SizedBox(width: compact ? 5 : 7),
           Text(
             Fmt.number(paws, locale: locale, decimals: 0),
             style: (compact ? context.tt.labelMedium : context.tt.titleSmall)?.copyWith(
@@ -67,7 +76,8 @@ class PawsPill extends StatelessWidget {
             Text(
               l.pawsUnit,
               style: (compact ? context.tt.labelSmall : context.tt.labelMedium)?.copyWith(
-                color: fg.withValues(alpha: 0.82),
+                color: fg.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -80,7 +90,7 @@ class PawsPill extends StatelessWidget {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(ZbTokens.rPill),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(onTap: onTap, child: pill),
+      child: InkWell(onTap: onTap, splashColor: cs.primary.withValues(alpha: 0.1), child: pill),
     );
   }
 }
@@ -88,7 +98,7 @@ class PawsPill extends StatelessWidget {
 /// The tier's name on a small coloured chip, in the tier's own two hues.
 ///
 /// The colours arrive from the store so the app and the web account page never
-/// disagree about what "ذهبي" looks like — but a missing or malformed hex
+/// disagree about what «ذهبي» looks like — but a missing or malformed hex
 /// falls back to the brand rather than to grey.
 class TierChip extends StatelessWidget {
   const TierChip({
@@ -119,9 +129,11 @@ class TierChip extends StatelessWidget {
     final (start, end) = colorsOf(context, c1, c2);
 
     final chip = Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 9 : 11,
-        vertical: compact ? 4 : 6,
+      padding: EdgeInsetsDirectional.only(
+        start: compact ? 7 : 9,
+        end: compact ? 10 : 12,
+        top: compact ? 4 : 6,
+        bottom: compact ? 4 : 6,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -130,13 +142,27 @@ class TierChip extends StatelessWidget {
           colors: [start, end],
         ),
         borderRadius: BorderRadius.circular(ZbTokens.rPill),
+        boxShadow: [
+          BoxShadow(color: end.withValues(alpha: 0.28), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
       ),
-      child: Text(
-        label,
-        style: (compact ? context.tt.labelSmall : context.tt.labelMedium)?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: compact ? 6 : 7,
+            height: compact ? 6 : 7,
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+          ),
+          SizedBox(width: compact ? 5 : 6),
+          Text(
+            label,
+            style: (compact ? context.tt.labelSmall : context.tt.labelMedium)?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
       ),
     );
 

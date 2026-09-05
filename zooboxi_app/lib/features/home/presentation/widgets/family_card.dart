@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/analytics/events_buffer.dart';
-import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/motion/motion.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/haptics.dart';
+import '../../../../core/widgets/mascot_peek.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -15,6 +17,7 @@ import '../../../cart/presentation/add_to_cart.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../catalog/data/product_models.dart';
 import '../../../loyalty/data/loyalty_models.dart';
+import '../../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../../loyalty/presentation/widgets/paws_pill.dart';
 import '../../../pets/data/pet_models.dart';
 import '../../../pets/presentation/widgets/species_avatar.dart';
@@ -22,15 +25,16 @@ import '../../../pets/presentation/widgets/species_avatar.dart';
 /// Which face the card is wearing. Reported as the `family_card` event's
 /// payload, because "which variant did they see" is the only way to read
 /// whether the card is doing anything.
-enum FamilyCardVariant { guest, noPet, due, mission, tier }
+enum FamilyCardVariant { guest, noPet, pending, due, mission, tier }
 
 /// The storefront's window into «عائلة زوبوكسي».
 ///
-/// One card, four things it can be saying, in strict order of usefulness: a
+/// One card, six things it can be saying, in strict order of usefulness: a
 /// guest gets an invitation; a member with no pet on file gets the same
-/// invitation with their balance attached; a member whose food is running out
-/// gets the reorder and a button that does it; everyone else gets the nearest
-/// mission, or their standing.
+/// invitation with their balance attached; a member with an order on its way
+/// is told so, with the paws it will pay; a member whose food is running out
+/// gets the reorder and the button that does it; everyone else gets the
+/// nearest mission, or their standing.
 ///
 /// It renders only when the server ships the `family` slot, and it never
 /// blocks the storefront: with no summary — a failed call, a slow one, the
@@ -46,6 +50,7 @@ class FamilyCard extends ConsumerStatefulWidget {
   static FamilyCardVariant variantOf(LoyaltySummary? summary, HomeFeed? feed) {
     if (summary == null) return FamilyCardVariant.guest;
     if (summary.pets.isEmpty) return FamilyCardVariant.noPet;
+    if (summary.pendingOrders.isNotEmpty) return FamilyCardVariant.pending;
     if (dueProduct(feed) != null) return FamilyCardVariant.due;
     if (summary.playsGames && summary.missions.nearest != null) {
       return FamilyCardVariant.mission;
@@ -94,6 +99,14 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
 
   Future<void> _reorder(ProductCard product) async {
     if (_adding) return;
+    // A variable product (sizes, flavours) cannot be added blind — the
+    // customer picks the pack on the product page, exactly as a rail card
+    // would send them. Guessing here is what produced «تعذّر الإضافة».
+    if (product.isVariable) {
+      Haptics.light();
+      await context.push<void>('/product/${product.id}', extra: product);
+      return;
+    }
     setState(() => _adding = true);
     await addToCart(context, ref, product: product, zone: 'home_family');
     if (mounted) setState(() => _adding = false);
@@ -107,17 +120,21 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
       if (mounted) _track(variant);
     });
 
-    final body = switch (variant) {
-      FamilyCardVariant.guest => _Invitation(
-          paws: null,
-          onTap: _signInThenAddPet,
-        ),
+    return switch (variant) {
+      FamilyCardVariant.guest => _Invitation(paws: null, onTap: _signInThenAddPet),
       FamilyCardVariant.noPet => _Invitation(
           paws: summary!.paws.balance,
           onTap: () => context.push('/pets/new'),
         ),
+      FamilyCardVariant.pending => _PetRow(
+          pet: summary!.firstPet!,
+          summary: summary,
+          onTap: () => context.push('/family'),
+          child: _PendingLine(order: summary.pendingOrders.first),
+        ),
       FamilyCardVariant.due => _PetRow(
           pet: summary!.firstPet!,
+          summary: summary,
           onTap: () => context.push('/family'),
           child: _DueLine(
             product: FamilyCard.dueProduct(widget.feed)!,
@@ -127,22 +144,22 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
         ),
       FamilyCardVariant.mission => _PetRow(
           pet: summary!.firstPet!,
+          summary: summary,
           onTap: () => context.push('/family'),
           child: _MissionLine(mission: summary.missions.nearest!),
         ),
       FamilyCardVariant.tier => _PetRow(
           pet: summary!.firstPet!,
+          summary: summary,
           onTap: () => context.push('/family'),
           child: _StandingLine(summary: summary),
         ),
     };
-
-    return body;
   }
 }
 
-/// The shell every variant sits in: one surface, the same radius and border as
-/// the cards on either side of it.
+/// The shell every variant sits in: a warm card with the paw pattern in its
+/// corner, so it is visibly the program's card and not another product tile.
 class _Shell extends StatelessWidget {
   const _Shell({required this.child, this.onTap});
 
@@ -152,26 +169,52 @@ class _Shell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
+    final dark = context.isDark;
     final card = Container(
       decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        border: Border.all(color: cs.outlineVariant),
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: dark
+              ? [cs.surfaceContainer, cs.surfaceContainerLow]
+              : [const Color(0xFFFFF9F2), Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(ZbTokens.rXl),
+        border: Border.all(color: dark ? cs.outlineVariant : const Color(0xFFF1E4D4)),
+        boxShadow: [
+          BoxShadow(
+            color: ZbTokens.cardboard.withValues(alpha: dark ? 0 : 0.14),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(14),
-      child: child,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          const PositionedDirectional(
+            end: -30,
+            top: -20,
+            width: 160,
+            height: 120,
+            child: PawPattern(color: ZbTokens.cardboard, opacity: 0.12, scale: 0.7),
+          ),
+          Padding(padding: const EdgeInsets.all(14), child: child),
+        ],
+      ),
     );
 
     if (onTap == null) return card;
     return PressScale(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(ZbTokens.rLg),
+      borderRadius: BorderRadius.circular(ZbTokens.rXl),
       child: card,
     );
   }
 }
 
 /// Guest, and member-with-no-pet: the same ask, one with a balance attached.
+/// The mascots make the invitation — they are the family being joined.
 class _Invitation extends StatelessWidget {
   const _Invitation({required this.onTap, this.paws});
 
@@ -186,18 +229,8 @@ class _Invitation extends StatelessWidget {
 
     return _Shell(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: cs.primary.withValues(alpha: context.isDark ? 0.20 : 0.12),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: ZbIcon(ZbIconKind.paw, size: 28, fill: 1, tint: cs.primary),
-          ),
-          Gap.w12,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,10 +240,9 @@ class _Invitation extends StatelessWidget {
                     Expanded(
                       child: Text(
                         balance == null ? l.familyGuestTitle : l.familyNoPetTitle,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: context.tt.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: context.tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
                     if (balance != null && balance > 0) ...[
@@ -222,22 +254,87 @@ class _Invitation extends StatelessWidget {
                 Gap.h4,
                 Text(
                   balance == null ? l.familyGuestBody : l.familyNoPetBody,
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 Gap.h12,
                 Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: FilledButton.tonal(
+                  child: FilledButton(
                     onPressed: onTap,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 38),
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
                     child: Text(balance == null ? l.familyGuestCta : l.familyAddPet),
                   ),
                 ),
+              ],
+            ),
+          ),
+          Gap.w8,
+          // The two on the box, peeking in.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(ZbTokens.rLg),
+            child: SizedBox(
+              width: 104,
+              height: 92,
+              child: FittedBox(
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+                child: Image.asset(MascotPeek.asset, width: 220),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The four member variants share a portrait, a name and the standing chips;
+/// only the line under the name changes.
+class _PetRow extends StatelessWidget {
+  const _PetRow({required this.pet, required this.summary, required this.child, this.onTap});
+
+  final Pet pet;
+  final LoyaltySummary summary;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tier = summary.tier;
+    return _Shell(
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SpeciesAvatar(species: pet.species, photoUrl: pet.photoUrl, size: 60),
+          Gap.w12,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        pet.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    if (tier.name.isNotEmpty) ...[
+                      Gap.w8,
+                      TierChip(label: tier.name, c1: tier.c1, c2: tier.c2, compact: true),
+                    ],
+                  ],
+                ),
+                Gap.h4,
+                child,
               ],
             ),
           ),
@@ -247,41 +344,43 @@ class _Invitation extends StatelessWidget {
   }
 }
 
-/// The three member variants share a portrait and a name; only the line under
-/// the name changes.
-class _PetRow extends StatelessWidget {
-  const _PetRow({required this.pet, required this.child, this.onTap});
+/// "Your order is on its way" — and what lands when it does.
+class _PendingLine extends StatelessWidget {
+  const _PendingLine({required this.order});
 
-  final Pet pet;
-  final Widget child;
-  final VoidCallback? onTap;
+  final PendingOrder order;
 
   @override
   Widget build(BuildContext context) {
-    return _Shell(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SpeciesAvatar(species: pet.species, size: 56),
-          Gap.w12,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  pet.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                Gap.h4,
-                child,
-              ],
+    final l = L.of(context);
+    final cs = context.cs;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l.familyPendingOrderTitle(order.number),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.bodySmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
+        ),
+        Gap.h8,
+        Row(
+          children: [
+            const PawCoin(size: 20),
+            Gap.w6,
+            Expanded(
+              child: Text(
+                l.familyPendingOrderPaws(Fmt.number(order.paws, locale: locale, decimals: 0)),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -312,12 +411,17 @@ class _DueLine extends StatelessWidget {
         Gap.h12,
         Row(
           children: [
-            SizedBox(
-              width: 38,
-              height: 38,
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(ZbTokens.rSm),
+                border: Border.all(color: cs.outlineVariant),
+              ),
               child: ZbImage(
                 url: product.image,
-                radius: BorderRadius.circular(ZbTokens.rXs),
+                radius: BorderRadius.circular(ZbTokens.rSm),
                 padding: const EdgeInsets.all(3),
               ),
             ),
@@ -325,7 +429,7 @@ class _DueLine extends StatelessWidget {
             Expanded(
               child: FilledButton(
                 onPressed: busy ? null : onOrder,
-                style: FilledButton.styleFrom(minimumSize: const Size(0, 38)),
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
                 child: busy
                     ? const SizedBox(
                         width: 16,
@@ -342,7 +446,7 @@ class _DueLine extends StatelessWidget {
   }
 }
 
-/// The nearest open mission, with the bar that says how close it is.
+/// The nearest open mission, with the ring that says how close it is.
 class _MissionLine extends StatelessWidget {
   const _MissionLine({required this.mission});
 
@@ -353,44 +457,52 @@ class _MissionLine extends StatelessWidget {
     final l = L.of(context);
     final cs = context.cs;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(
-          mission.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-        ),
-        Gap.h8,
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: mission.ratio),
-                  duration: context.motion(const Duration(milliseconds: 560)),
-                  curve: Motion.emphasized,
-                  builder: (context, value, _) => LinearProgressIndicator(
-                    value: value,
-                    minHeight: 6,
-                    backgroundColor: cs.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation(cs.primary),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                mission.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.bodySmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
+              ),
+              Gap.h8,
+              Row(
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: mission.ratio),
+                        duration: context.motion(const Duration(milliseconds: 560)),
+                        curve: Motion.emphasized,
+                        builder: (context, value, _) => LinearProgressIndicator(
+                          value: value,
+                          minHeight: 6,
+                          backgroundColor: cs.surfaceContainerHighest,
+                          valueColor: AlwaysStoppedAnimation(missionKindHue(context, mission.kind)),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  Gap.w8,
+                  Text(
+                    l.missionProgress(mission.progress, mission.target),
+                    style: context.tt.labelSmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Gap.w8,
-            Text(
-              l.missionProgress(mission.progress, mission.target),
-              style: context.tt.labelSmall?.copyWith(
-                color: cs.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+        Gap.w10,
+        MissionSticker(kind: mission.kind, size: 40),
       ],
     );
   }
@@ -405,29 +517,21 @@ class _StandingLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tier = summary.tier;
+    final l = L.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           tier.next == null
-              ? L.of(context).familyTierTop
-              : L.of(context).familyTierNext(tier.ordersToNext, tier.next!.name),
+              ? l.familyTierTop
+              : l.familyTierNext(tier.ordersToNext, tier.next!.name),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: context.tt.bodySmall?.copyWith(color: context.cs.onSurfaceVariant),
         ),
         Gap.h8,
-        // Wrapped, not a Row: a long tier name at a large text size plus a
-        // five-figure balance is exactly the pair that would run off the end.
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            TierChip(label: tier.name, c1: tier.c1, c2: tier.c2, compact: true),
-            PawsPill(paws: summary.paws.balance, compact: true),
-          ],
-        ),
+        PawsPill(paws: summary.paws.balance, compact: true),
       ],
     );
   }

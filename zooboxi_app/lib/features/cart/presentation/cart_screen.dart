@@ -115,11 +115,13 @@ class _Loaded extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                if (cart.freeShipping.isActive || cart.loyalty.hasDeliveryPerk) ...[
+                if (cart.freeShipping.isActive || cart.loyalty.hasDeliveryPerk || cart.loyalty.hasClaims) ...[
                   FreeShippingBar(
                     freeShipping: cart.freeShipping,
-                    freeDeliveryReason: cart.loyalty.freeDeliveryReason,
-                    expressFreeReason: cart.loyalty.expressFreeReason,
+                    freeDeliveryReason: cart.loyalty.freeDeliveryReason ??
+                        (cart.loyalty.claims.any((g) => g.reward.isFreeDelivery) ? 'reward' : null),
+                    expressFreeReason: cart.loyalty.expressFreeReason ??
+                        (cart.loyalty.claims.any((g) => g.reward.isExpressFree) ? 'reward' : null),
                   ),
                   Gap.h16,
                 ],

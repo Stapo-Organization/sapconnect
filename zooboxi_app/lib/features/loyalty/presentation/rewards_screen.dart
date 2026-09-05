@@ -174,7 +174,11 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
   Widget _body(BuildContext context, RewardsCatalog data, int balance) {
     final l = L.of(context);
     final grants = [...data.activeGrants, ...data.pendingGrants];
-    final catalog = data.catalog.where((reward) => reward.isPurchasable).toList();
+    // A gift with no product behind it is the owner's unfinished work, not
+    // the customer's problem: it never reaches the shelf.
+    final catalog = data.catalog
+        .where((reward) => reward.isPurchasable && !(reward.isGift && reward.product == null))
+        .toList();
 
     if (grants.isEmpty && catalog.isEmpty) {
       return EmptyState(
@@ -236,11 +240,11 @@ class _RewardsSkeleton extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: const [
-            SkeletonBox(width: double.infinity, height: 132, radius: ZbTokens.rLg),
+            SkeletonBox(width: double.infinity, height: 150, radius: ZbTokens.rXl),
             Gap.h12,
-            SkeletonBox(width: double.infinity, height: 132, radius: ZbTokens.rLg),
+            SkeletonBox(width: double.infinity, height: 150, radius: ZbTokens.rXl),
             Gap.h12,
-            SkeletonBox(width: double.infinity, height: 132, radius: ZbTokens.rLg),
+            SkeletonBox(width: double.infinity, height: 150, radius: ZbTokens.rXl),
           ],
         ),
       );

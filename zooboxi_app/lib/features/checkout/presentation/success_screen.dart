@@ -15,6 +15,7 @@ import '../../../core/widgets/mascot_peek.dart';
 import '../../../core/widgets/sparkles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../loyalty/data/loyalty_repository.dart';
+import '../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../loyalty/presentation/widgets/scratch_card_view.dart';
 import '../data/checkout_models.dart';
 import 'widgets/promise_recap.dart';
@@ -93,6 +94,15 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                   // tracking button below works whether or not it is rubbed.
                   if (order.scratchCard != null) ...[
                     ScratchCardView(card: order.scratchCard!, compact: true),
+                    Gap.h16,
+                  ],
+                  // The one sentence that keeps the program honest at the
+                  // moment it matters most: nothing lands until the box does.
+                  if (order.pawsToEarn > 0) ...[
+                    _DeliveryNote(
+                      paws: Fmt.number(order.pawsToEarn, locale: locale, decimals: 0),
+                      withMission: order.scratchCard != null,
+                    ),
                     Gap.h24,
                   ],
                   // The receipt block is a card so the mascots have an edge to
@@ -368,3 +378,46 @@ const List<SparkleSpec> _successSparkles = [
   SparkleSpec(dx: 0.24, dy: 0.94, size: 20, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 1120)),
   SparkleSpec(dx: 0.74, dy: 0.96, size: 10, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 1180)),
 ];
+
+/// «X بصمة تُضاف عند التسليم» — with the coin, on the cream ground.
+class _DeliveryNote extends StatelessWidget {
+  const _DeliveryNote({required this.paws, required this.withMission});
+
+  final String paws;
+  final bool withMission;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.isDark ? ZbTokens.amberContainerDark : ZbTokens.amberTint,
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+      ),
+      child: Row(
+        children: [
+          const PawCoin(size: 30),
+          Gap.w12,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.successPawsNote(paws),
+                  style: context.tt.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                if (withMission)
+                  Text(
+                    l.successMissionNote,
+                    style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

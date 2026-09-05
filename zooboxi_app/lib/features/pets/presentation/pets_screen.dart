@@ -7,11 +7,13 @@ import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/press_scale.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
 import '../data/pet_models.dart';
 import '../data/pets_repository.dart';
+import '../../loyalty/presentation/widgets/loyalty_art.dart';
 import 'widgets/pet_card.dart';
 
 /// «عائلتي» — the pets on file.
@@ -86,14 +88,8 @@ class _Loaded extends StatelessWidget {
           PetCard(pet: pet, onTap: () => context.push('/pets/${pet.id}', extra: pet)),
           Gap.h12,
         ],
-        Gap.h8,
         if (data.canAdd)
-          OutlinedButton.icon(
-            onPressed: () => context.push('/pets/new'),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(l.petsAdd),
-            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
-          )
+          _AddPetTile(onTap: () => context.push('/pets/new'))
         else
           Text(
             l.petsFull(data.max),
@@ -119,4 +115,71 @@ class _PetsSkeleton extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// The dashed "add a friend" tile — one tap, with the paws it pays.
+class _AddPetTile extends StatelessWidget {
+  const _AddPetTile({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    return PressScale(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(ZbTokens.rXl),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cs.primary.withValues(alpha: context.isDark ? 0.10 : 0.06),
+          borderRadius: BorderRadius.circular(ZbTokens.rXl),
+          border: Border.all(color: cs.primary.withValues(alpha: 0.35), width: 1.4),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: cs.primary.withValues(alpha: context.isDark ? 0.18 : 0.12),
+              ),
+              alignment: Alignment.center,
+              child: FamilyMarkIcon(FamilyMark.plus, size: 26, color: cs.primary),
+            ),
+            Gap.w12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.petsAdd,
+                    style: context.tt.titleSmall?.copyWith(
+                      color: cs.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Gap.h4,
+                  Row(
+                    children: [
+                      const PawCoin(size: 16),
+                      Gap.w4,
+                      Expanded(
+                        child: Text(
+                          l.pawsHowPet,
+                          style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

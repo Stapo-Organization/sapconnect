@@ -1763,4 +1763,85 @@ class LEn extends L {
 
   @override
   String get petLimitReached => 'You\'ve reached the pet limit';
+
+  @override
+  String familyHubGreeting(String name) {
+    return '$name\'s family';
+  }
+
+  @override
+  String get familyHubGreetingNoPet => 'Your family';
+
+  @override
+  String get familyActionHow => 'How to earn';
+
+  @override
+  String get familyActionLedger => 'History';
+
+  @override
+  String get familyActionPets => 'My pets';
+
+  @override
+  String get familyLadderTitle => 'Your journey';
+
+  @override
+  String familyPendingOrderTitle(String number) {
+    return 'Order $number is on its way';
+  }
+
+  @override
+  String familyPendingOrderBody(String value) {
+    return 'On delivery, $value paws land and your mission counts automatically';
+  }
+
+  @override
+  String familyPendingOrderPaws(String value) {
+    return 'On delivery, $value paws land in your wallet';
+  }
+
+  @override
+  String get familyReferralTitle => 'Invite code';
+
+  @override
+  String get familyReferralCopied => 'Invite code copied';
+
+  @override
+  String get pawsWalletTitle => 'Paws wallet';
+
+  @override
+  String get missionAwaitingDelivery => 'Waiting for your delivery';
+
+  @override
+  String missionsDoneOf(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get rewardComingSoon => 'Soon';
+
+  @override
+  String get rewardsShelfHint => 'Tap to redeem';
+
+  @override
+  String get cartFreeDeliveryCelebrate => 'Delivery is on us!';
+
+  @override
+  String get cartExpressCelebrate => 'Express delivery is free on this order';
+
+  @override
+  String successPawsNote(String value) {
+    return '$value paws land in your wallet when the order is delivered';
+  }
+
+  @override
+  String get successMissionNote =>
+      'and this month\'s missions count automatically after delivery';
+
+  @override
+  String get scratchKeepGoing => 'Keep scratching…';
+
+  @override
+  String missionOfTarget(String target) {
+    return 'of $target';
+  }
 }

@@ -6,6 +6,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/pet_models.dart';
+import '../../../loyalty/presentation/widgets/loyalty_art.dart';
 import 'species_avatar.dart';
 
 /// The Arabic (and English) name of a species.
@@ -45,6 +46,7 @@ class PetCard extends StatelessWidget {
       if (pet.weightKg != null)
         '${Fmt.number(pet.weightKg!, locale: locale, decimals: 1)} ${l.petWeightUnit}',
     ];
+    final art = SpeciesArt.of(pet.species);
 
     return PressScale(
       onTap: onTap,
@@ -52,56 +54,59 @@ class PetCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(ZbTokens.rLg),
+          borderRadius: BorderRadius.circular(ZbTokens.rXl),
           border: Border.all(color: cs.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: art.shade.withValues(alpha: context.isDark ? 0 : 0.10),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            SpeciesAvatar(species: pet.species, size: 62),
+            SpeciesAvatar(species: pet.species, photoUrl: pet.photoUrl, size: 70),
             Gap.w16,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          pet.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.tt.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      if (pet.isBirthdaySoon) ...[
-                        Gap.w8,
-                        // Both halves flex: a long name must not push the
-                        // birthday off the card, and a long birthday line must
-                        // not push out the name.
-                        Flexible(
-                          child: _BirthdayChip(days: pet.birthdayInDays ?? 0),
-                        ),
-                      ],
-                    ],
-                  ),
-                  Gap.h4,
                   Text(
-                    facts.join(' · '),
-                    maxLines: 2,
+                    pet.name,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    style: context.tt.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Gap.h8,
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      // The birthday leads the facts: it is the one with a date on it.
+                      if (pet.isBirthdaySoon) _BirthdayChip(days: pet.birthdayInDays ?? 0),
+                      for (final fact in facts) _FactChip(text: fact, tint: art.well, ink: art.shade),
+                    ],
                   ),
                   if (!pet.isComplete) ...[
                     Gap.h8,
-                    Text(
-                      l.petIncompleteHint,
-                      style: context.tt.labelSmall?.copyWith(
-                        color: cs.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        const PawCoin(size: 16),
+                        Gap.w4,
+                        Expanded(
+                          child: Text(
+                            l.petIncompleteHint,
+                            style: context.tt.labelSmall?.copyWith(
+                              color: cs.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],
@@ -142,6 +147,34 @@ class _BirthdayChip extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: context.tt.labelSmall?.copyWith(
           color: zb.sale,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+/// One fact about the pet, on the species' own wash.
+class _FactChip extends StatelessWidget {
+  const _FactChip({required this.text, required this.tint, required this.ink});
+
+  final String text;
+  final Color tint;
+  final Color ink;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.isDark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: dark ? ink.withValues(alpha: 0.22) : tint,
+        borderRadius: BorderRadius.circular(ZbTokens.rPill),
+      ),
+      child: Text(
+        text,
+        style: context.tt.labelSmall?.copyWith(
+          color: dark ? context.cs.onSurface : Color.lerp(ink, ZbTokens.ink, 0.45),
           fontWeight: FontWeight.w700,
         ),
       ),

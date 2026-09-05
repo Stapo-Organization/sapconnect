@@ -338,6 +338,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             MissionsStrip(
               missions: loyalty!.missions.items,
               holdout: loyalty.member.holdout,
+              awaitingDelivery: loyalty.hasPendingAppOrder,
             ),
           );
 

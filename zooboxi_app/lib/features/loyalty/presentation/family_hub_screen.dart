@@ -1,18 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/haptics.dart';
+import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/press_scale.dart';
-import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
@@ -21,17 +25,20 @@ import '../../pets/presentation/widgets/species_avatar.dart';
 import '../data/loyalty_models.dart';
 import '../data/loyalty_repository.dart';
 import 'widgets/grant_card.dart';
+import 'widgets/loyalty_art.dart';
 import 'widgets/mission_card.dart';
+import 'widgets/paws_pill.dart';
 import 'widgets/reward_card.dart';
 import 'widgets/scratch_card_view.dart';
 import 'widgets/tier_card.dart';
 
 /// «عائلة زوبوكسي» — the whole program on one screen.
 ///
-/// Order is deliberate: standing first (it is the thing that took months to
-/// earn), then the wallet, then anything waiting on the customer — an unopened
-/// scratch card, a mission mid-progress — and only then the catalogue. Nothing
-/// here is a discount, so nothing here shouts.
+/// Order is deliberate: the membership card first (standing and wallet are
+/// the things that took months to earn), then anything waiting on the
+/// customer — an order on its way, an unopened scratch card, a mission
+/// mid-progress — then the family itself, then the shelf. Nothing here is a
+/// discount, so nothing here shouts; but everything here is drawn.
 class FamilyHubScreen extends ConsumerWidget {
   const FamilyHubScreen({super.key});
 
@@ -42,7 +49,22 @@ class FamilyHubScreen extends ConsumerWidget {
     final summary = ref.watch(loyaltySummaryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.familyTitle)),
+      appBar: AppBar(
+        title: Text(l.familyTitle),
+        actions: [
+          if (signedIn && summary.value != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 12),
+              child: Center(
+                child: PawsPill(
+                  paws: summary.value!.paws.balance,
+                  compact: true,
+                  onTap: () => context.push('/family/ledger'),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: !signedIn
           ? const _GuestInvitation()
           : RefreshIndicator.adaptive(
@@ -97,101 +119,149 @@ class _Hub extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final cs = context.cs;
-    final locale = Localizations.localeOf(context).languageCode;
     final rewards = ref.watch(loyaltyRewardsProvider).value ?? RewardsCatalog.empty;
     final grants = rewards.activeGrants;
-    final catalog = rewards.catalog.where((reward) => reward.isPurchasable).toList();
+    // A gift with no product behind it is the owner's unfinished work; the
+    // customer's shelf only shows what can actually be taken home.
+    final catalog = rewards.catalog
+        .where((reward) => reward.isPurchasable && !(reward.isGift && reward.product == null))
+        .toList();
     final missions = summary.missions.items;
+    final (_, tierEnd) = TierChip.colorsOf(context, summary.tier.c1, summary.tier.c2);
+    final still = context.reduceMotion;
+
+    var i = 0;
+    Widget enter(Widget child) {
+      if (still) return child;
+      final delay = Duration(milliseconds: 60 * i++);
+      return child
+          .animate(delay: delay)
+          .fadeIn(duration: Motion.enter, curve: Motion.decelerate)
+          .slideY(begin: 0.06, end: 0, duration: Motion.enter, curve: Motion.decelerate);
+    }
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 28 + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 28 + MediaQuery.paddingOf(context).bottom),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        TierCard(
-          tier: summary.tier,
-          paws: summary.paws,
-          onPawsTap: () => context.push('/family/ledger'),
+        enter(
+          TierCard(
+            tier: summary.tier,
+            paws: summary.paws,
+            pet: summary.firstPet,
+            pendingOrders: summary.pendingOrders,
+            onPawsTap: () => context.push('/family/ledger'),
+          ),
         ),
         Gap.h12,
 
-        _WalletRow(
-          onHowTo: () => _showHowToEarn(context),
-          onLedger: () => context.push('/family/ledger'),
+        enter(
+          _QuickActions(
+            onHowTo: () => _showHowToEarn(context),
+            onLedger: () => context.push('/family/ledger'),
+            onPets: () => context.push('/pets'),
+          ),
         ),
 
-        if (summary.pets.isNotEmpty) ...[
-          Gap.h16,
-          _PetsRow(pets: summary.pets, onOpen: () => context.push('/pets')),
+        // An order on its way: the one card that answers "where is my reward?".
+        for (final order in summary.pendingOrders) ...[
+          Gap.h12,
+          enter(
+            PendingOrderCard(
+              order: order,
+              awaitingMission: summary.playsGames &&
+                  order.isApp &&
+                  missions.any((m) => !m.isDone && (m.kind == 'welcome' || m.kind == 'frequency')),
+            ),
+          ),
         ],
 
         if (summary.hasSealedScratch) ...[
-          Gap.h24,
-          SectionHeader(title: l.familySealedTitle, padding: EdgeInsets.zero),
+          Gap.h20,
+          enter(_Header(title: l.familySealedTitle)),
           Gap.h12,
           for (final card in summary.rewards.sealedScratch) ...[
-            SealedScratchTile(
-              orderNumber: card.orderNumber,
-              onTap: () => context.push('/family/scratch/${card.id}'),
+            enter(
+              SealedScratchTile(
+                orderNumber: card.orderNumber,
+                onTap: () => context.push('/family/scratch/${card.id}'),
+              ),
             ),
             Gap.h8,
           ],
         ],
 
+        Gap.h20,
+        enter(_FamilyRail(pets: summary.pets, canAdd: true)),
+
         if (summary.playsGames && missions.isNotEmpty) ...[
-          Gap.h24,
-          SectionHeader(
-            title: l.missionsTitle,
-            subtitle: l.missionsSubtitle,
-            padding: EdgeInsets.zero,
+          Gap.h20,
+          enter(
+            _Header(
+              title: l.missionsTitle,
+              subtitle: l.missionsSubtitle,
+              trailing: _DoneCounter(
+                done: missions.where((m) => m.isDone).length,
+                total: missions.length,
+                accent: tierEnd,
+              ),
+            ),
           ),
           Gap.h12,
           for (final mission in missions) ...[
-            MissionCard(mission: mission),
-            Gap.h12,
-          ],
-        ],
-
-        if (grants.isNotEmpty) ...[
-          Gap.h24,
-          SectionHeader(
-            title: l.familyMyRewards,
-            padding: EdgeInsets.zero,
-            onSeeAll: () => context.push('/family/rewards'),
-          ),
-          Gap.h12,
-          for (final grant in grants.take(3)) ...[
-            GrantCard(grant: grant),
-            Gap.h12,
-          ],
-        ],
-
-        if (catalog.isNotEmpty) ...[
-          Gap.h24,
-          SectionHeader(
-            title: l.familyRedeemTitle,
-            padding: EdgeInsets.zero,
-            onSeeAll: () => context.push('/family/rewards'),
-          ),
-          Gap.h12,
-          for (final reward in catalog.take(3)) ...[
-            RewardCard(
-              reward: reward,
-              balance: summary.paws.balance,
-              onRedeem: () => context.push('/family/rewards'),
+            enter(
+              MissionCard(
+                mission: mission,
+                awaitingDelivery: summary.hasPendingAppOrder &&
+                    (mission.kind == 'welcome' || mission.kind == 'frequency'),
+              ),
             ),
             Gap.h12,
           ],
         ],
 
-        Gap.h16,
+        if (grants.isNotEmpty) ...[
+          Gap.h12,
+          enter(_Header(title: l.familyMyRewards, onSeeAll: () => context.push('/family/rewards'))),
+          Gap.h12,
+          for (final grant in grants.take(3)) ...[
+            enter(GrantCard(grant: grant)),
+            Gap.h12,
+          ],
+        ],
+
+        if (catalog.isNotEmpty) ...[
+          Gap.h12,
+          enter(_Header(title: l.familyRedeemTitle, onSeeAll: () => context.push('/family/rewards'))),
+          Gap.h12,
+          enter(
+            SizedBox(
+              height: 214,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                clipBehavior: Clip.none,
+                itemCount: catalog.length,
+                separatorBuilder: (_, _) => Gap.w12,
+                itemBuilder: (context, index) => RewardShelfTile(
+                  reward: catalog[index],
+                  balance: summary.paws.balance,
+                  onTap: () => context.push('/family/rewards'),
+                ),
+              ),
+            ),
+          ),
+        ],
+
+        Gap.h20,
+        enter(_TierPerksSection(perks: summary.tier.perks, accent: tierEnd)),
+
+        Gap.h20,
+        enter(_MembershipStrip(summary: summary)),
+        Gap.h8,
         Center(
           child: Text(
-            [
-              if (summary.member.joinedAt != null)
-                l.familyMemberSince(Fmt.dateShort(summary.member.joinedAt!, locale)),
-              if ((summary.member.referralCode ?? '').isNotEmpty)
-                l.familyReferralCode(summary.member.referralCode!),
-            ].join(' · '),
+            l.familyTagline,
             textAlign: TextAlign.center,
             style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
           ),
@@ -211,15 +281,15 @@ class _Hub extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final line in [
-                l.pawsHowOrder,
-                l.pawsHowProfile,
-                l.pawsHowPet,
-                l.pawsHowPlay,
-                l.pawsHowDelivered,
-                l.pawsHowExpiry,
+              for (final (mark, line) in [
+                (FamilyMark.family, l.pawsHowOrder),
+                (FamilyMark.check, l.pawsHowProfile),
+                (FamilyMark.family, l.pawsHowPet),
+                (FamilyMark.bulb, l.pawsHowPlay),
+                (FamilyMark.clock, l.pawsHowDelivered),
+                (FamilyMark.lock, l.pawsHowExpiry),
               ]) ...[
-                _HowRow(text: line),
+                _HowRow(mark: mark, text: line),
                 Gap.h12,
               ],
               Gap.h8,
@@ -232,50 +302,93 @@ class _Hub extends ConsumerWidget {
 }
 
 class _HowRow extends StatelessWidget {
-  const _HowRow({required this.text});
+  const _HowRow({required this.mark, required this.text});
 
+  final FamilyMark mark;
   final String text;
 
   @override
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Icon(Icons.check_rounded, size: 16, color: context.cs.primary),
-          ),
-          Gap.w8,
-          Expanded(child: Text(text, style: context.tt.bodyMedium)),
+          FamilyMarkIcon(mark, size: 22, color: mark == FamilyMark.lock ? null : context.cs.primary),
+          Gap.w12,
+          Expanded(child: Padding(padding: const EdgeInsets.only(top: 2), child: Text(text, style: context.tt.bodyMedium))),
         ],
       );
 }
 
-class _WalletRow extends StatelessWidget {
-  const _WalletRow({required this.onHowTo, required this.onLedger});
+/// A section title with an optional count on the end.
+class _Header extends StatelessWidget {
+  const _Header({required this.title, this.subtitle, this.onSeeAll, this.trailing});
 
-  final VoidCallback onHowTo;
-  final VoidCallback onLedger;
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onSeeAll;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: context.tt.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+              ?subtitle == null
+                  ? null
+                  : Text(subtitle!, style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+            ],
+          ),
+        ),
+        ?trailing,
+        if (onSeeAll != null)
+          TextButton(
+            onPressed: onSeeAll,
+            style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l.actionSeeAll),
+                Icon(context.isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded, size: 18),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _DoneCounter extends StatelessWidget {
+  const _DoneCounter({required this.done, required this.total, required this.accent});
+
+  final int done;
+  final int total;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onHowTo,
-            icon: const Icon(Icons.help_outline_rounded, size: 17),
-            label: Text(l.pawsHowTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
-          ),
+        ProgressRing(
+          value: total == 0 ? 0 : done / total,
+          color: accent,
+          size: 26,
+          stroke: 3.5,
         ),
         Gap.w8,
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onLedger,
-            icon: const Icon(Icons.history_rounded, size: 17),
-            label: Text(l.familyLedgerLink, maxLines: 1, overflow: TextOverflow.ellipsis),
-            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+        Text(
+          l.missionsDoneOf(done, total),
+          style: context.tt.labelMedium?.copyWith(
+            color: context.cs.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ],
@@ -283,57 +396,254 @@ class _WalletRow extends StatelessWidget {
   }
 }
 
-/// The family itself, one row of portraits. The hub is named after them.
-class _PetsRow extends StatelessWidget {
-  const _PetsRow({required this.pets, required this.onOpen});
+/// Three painted tiles: how to earn, the ledger, the pets. Tiles, not
+/// buttons, so the labels never truncate and each has a face.
+class _QuickActions extends StatelessWidget {
+  const _QuickActions({required this.onHowTo, required this.onLedger, required this.onPets});
 
-  final List<Pet> pets;
-  final VoidCallback onOpen;
+  final VoidCallback onHowTo;
+  final VoidCallback onLedger;
+  final VoidCallback onPets;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return Row(
+      children: [
+        Expanded(child: _ActionTile(mark: FamilyMark.bulb, label: l.familyActionHow, onTap: onHowTo)),
+        Gap.w8,
+        Expanded(child: _ActionTile(mark: FamilyMark.book, label: l.familyActionLedger, onTap: onLedger)),
+        Gap.w8,
+        Expanded(child: _ActionTile(mark: FamilyMark.family, label: l.familyActionPets, onTap: onPets)),
+      ],
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({required this.mark, required this.label, required this.onTap});
+
+  final FamilyMark mark;
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-
     return PressScale(
-      onTap: onOpen,
+      onTap: onTap,
       borderRadius: BorderRadius.circular(ZbTokens.rLg),
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(ZbTokens.rLg),
           border: Border.all(color: cs.outlineVariant),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            for (final pet in pets.take(3)) ...[
-              SpeciesAvatar(species: pet.species, size: 40),
-              Gap.w8,
-            ],
-            Expanded(
-              child: Text(
-                // The list separator is punctuation, and punctuation is part
-                // of the language: «مشمش، ريم» in Arabic, "Mishmish, Reem" in
-                // English.
-                pets
-                    .map((pet) => pet.name)
-                    .join(Localizations.localeOf(context).languageCode == 'ar'
-                        ? '، '
-                        : ', '),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Icon(
-              context.isRtl
-                  ? Icons.keyboard_arrow_left_rounded
-                  : Icons.keyboard_arrow_right_rounded,
-              size: 20,
-              color: cs.onSurfaceVariant,
+            FamilyMarkIcon(mark, size: 30, color: mark == FamilyMark.family ? ZbTokens.cardboard : null),
+            Gap.h8,
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.tt.labelMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The family itself: portraits with names, and the bubble that adds one.
+/// The hub is named after them, so they get faces, not a row of text.
+class _FamilyRail extends StatelessWidget {
+  const _FamilyRail({required this.pets, required this.canAdd});
+
+  final List<Pet> pets;
+  final bool canAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Header(title: l.petsTitle, onSeeAll: pets.isEmpty ? null : () => context.push('/pets')),
+        Gap.h12,
+        SizedBox(
+          height: 104,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            clipBehavior: Clip.none,
+            children: [
+              for (final pet in pets) ...[
+                _PetBubble(pet: pet, onTap: () => context.push('/pets/${pet.id}', extra: pet)),
+                Gap.w12,
+              ],
+              if (canAdd)
+                PressScale(
+                  onTap: () => context.push('/pets/new'),
+                  borderRadius: BorderRadius.circular(40),
+                  child: SizedBox(
+                    width: 76,
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 68,
+                          height: 68,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: cs.primary.withValues(alpha: context.isDark ? 0.16 : 0.10),
+                            border: Border.all(color: cs.primary.withValues(alpha: 0.45), width: 1.6),
+                          ),
+                          alignment: Alignment.center,
+                          child: FamilyMarkIcon(FamilyMark.plus, size: 28, color: cs.primary),
+                        ),
+                        Gap.h8,
+                        Text(
+                          pets.isEmpty ? l.familyAddPet : l.petsAdd,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.tt.labelMedium?.copyWith(
+                            color: cs.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PetBubble extends StatelessWidget {
+  const _PetBubble({required this.pet, required this.onTap});
+
+  final Pet pet;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => PressScale(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(40),
+        child: SizedBox(
+          width: 76,
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  SpeciesAvatar(species: pet.species, photoUrl: pet.photoUrl, size: 68),
+                  if (pet.isBirthdaySoon)
+                    const PositionedDirectional(
+                      end: -2,
+                      top: -2,
+                      child: RewardSticker(kind: 'gift_product', size: 22),
+                    ),
+                ],
+              ),
+              Gap.h8,
+              Text(
+                pet.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _TierPerksSection extends StatelessWidget {
+  const _TierPerksSection({required this.perks, required this.accent});
+
+  final List<TierPerk> perks;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    if (perks.isEmpty) return const SizedBox.shrink();
+    final l = L.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Header(title: l.familyPerksTitle),
+        Gap.h12,
+        TierPerks(perks: perks, accent: accent),
+      ],
+    );
+  }
+}
+
+/// Member since, and the invite code — as a small ticket with a copy action.
+class _MembershipStrip extends StatelessWidget {
+  const _MembershipStrip({required this.summary});
+
+  final LoyaltySummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final locale = Localizations.localeOf(context).languageCode;
+    final code = summary.member.referralCode ?? '';
+    final since = summary.member.joinedAt;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.isDark ? cs.surfaceContainerLow : ZbTokens.cream,
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          const PawCoin(size: 26),
+          Gap.w12,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (since != null)
+                  Text(
+                    l.familyMemberSince(Fmt.dateShort(since, locale)),
+                    style: context.tt.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                if (code.isNotEmpty)
+                  Text(
+                    '${l.familyReferralTitle} · $code',
+                    style: context.tt.labelSmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (code.isNotEmpty)
+            IconButton(
+              tooltip: l.familyReferralTitle,
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: code));
+                Haptics.light();
+                if (context.mounted) AppToast.success(context, l.familyReferralCopied);
+              },
+              icon: Icon(Icons.copy_rounded, size: 18, color: cs.onSurfaceVariant),
+            ),
+        ],
       ),
     );
   }
@@ -345,15 +655,15 @@ class _HubSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShimmerGroup(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: const [
-            SkeletonBox(width: double.infinity, height: 210, radius: ZbTokens.rXl),
+            SkeletonBox(width: double.infinity, height: 250, radius: ZbTokens.rXl),
             Gap.h12,
-            SkeletonBox(width: double.infinity, height: 44, radius: ZbTokens.rMd),
+            SkeletonBox(width: double.infinity, height: 78, radius: ZbTokens.rLg),
             Gap.h24,
-            SkeletonBox(width: double.infinity, height: 120, radius: ZbTokens.rLg),
+            SkeletonBox(width: double.infinity, height: 110, radius: ZbTokens.rXl),
             Gap.h12,
-            SkeletonBox(width: double.infinity, height: 120, radius: ZbTokens.rLg),
+            SkeletonBox(width: double.infinity, height: 110, radius: ZbTokens.rXl),
           ],
         ),
       );

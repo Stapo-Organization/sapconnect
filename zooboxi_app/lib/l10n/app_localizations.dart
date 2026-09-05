@@ -3024,6 +3024,138 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'وصلت إلى الحد الأقصى للحيوانات'**
   String get petLimitReached;
+
+  /// No description provided for @familyHubGreeting.
+  ///
+  /// In ar, this message translates to:
+  /// **'عائلة {name}'**
+  String familyHubGreeting(String name);
+
+  /// No description provided for @familyHubGreetingNoPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'عائلتك'**
+  String get familyHubGreetingNoPet;
+
+  /// No description provided for @familyActionHow.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيف أكسب؟'**
+  String get familyActionHow;
+
+  /// No description provided for @familyActionLedger.
+  ///
+  /// In ar, this message translates to:
+  /// **'السجل'**
+  String get familyActionLedger;
+
+  /// No description provided for @familyActionPets.
+  ///
+  /// In ar, this message translates to:
+  /// **'عائلتي'**
+  String get familyActionPets;
+
+  /// No description provided for @familyLadderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'رحلتك في العائلة'**
+  String get familyLadderTitle;
+
+  /// No description provided for @familyPendingOrderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك {number} في الطريق'**
+  String familyPendingOrderTitle(String number);
+
+  /// No description provided for @familyPendingOrderBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'عند التسليم تُضاف {value} بصمة وتُحتسب مهمّتك تلقائيًا'**
+  String familyPendingOrderBody(String value);
+
+  /// No description provided for @familyPendingOrderPaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'عند التسليم تُضاف {value} بصمة إلى محفظتك'**
+  String familyPendingOrderPaws(String value);
+
+  /// No description provided for @familyReferralTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز الدعوة'**
+  String get familyReferralTitle;
+
+  /// No description provided for @familyReferralCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ رمز الدعوة'**
+  String get familyReferralCopied;
+
+  /// No description provided for @pawsWalletTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'محفظة البصمات'**
+  String get pawsWalletTitle;
+
+  /// No description provided for @missionAwaitingDelivery.
+  ///
+  /// In ar, this message translates to:
+  /// **'بانتظار تسليم طلبك'**
+  String get missionAwaitingDelivery;
+
+  /// No description provided for @missionsDoneOf.
+  ///
+  /// In ar, this message translates to:
+  /// **'{done} من {total} مكتملة'**
+  String missionsDoneOf(int done, int total);
+
+  /// No description provided for @rewardComingSoon.
+  ///
+  /// In ar, this message translates to:
+  /// **'قريبًا'**
+  String get rewardComingSoon;
+
+  /// No description provided for @rewardsShelfHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اضغط للاستبدال'**
+  String get rewardsShelfHint;
+
+  /// No description provided for @cartFreeDeliveryCelebrate.
+  ///
+  /// In ar, this message translates to:
+  /// **'مبروك! التوصيل مجاني'**
+  String get cartFreeDeliveryCelebrate;
+
+  /// No description provided for @cartExpressCelebrate.
+  ///
+  /// In ar, this message translates to:
+  /// **'التوصيل السريع مجاني لهذا الطلب'**
+  String get cartExpressCelebrate;
+
+  /// No description provided for @successPawsNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'{value} بصمة تُضاف لمحفظتك عند تسليم الطلب'**
+  String successPawsNote(String value);
+
+  /// No description provided for @successMissionNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'ومهمات الشهر تُحتسب تلقائيًا بعد التسليم'**
+  String get successMissionNote;
+
+  /// No description provided for @scratchKeepGoing.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكمل الخدش…'**
+  String get scratchKeepGoing;
+
+  /// No description provided for @missionOfTarget.
+  ///
+  /// In ar, this message translates to:
+  /// **'من {target}'**
+  String missionOfTarget(String target);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

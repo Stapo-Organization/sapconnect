@@ -7,6 +7,7 @@ import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/utils/error_text.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/press_scale.dart';
@@ -333,7 +334,11 @@ class _PetEditorScreenState extends ConsumerState<PetEditorScreen> {
               ],
             ),
           ),
-          DecoratedBox(
+          // Full width on purpose: a Column centres its children, and a bar
+          // that shrinks to its button leaves the screen showing through on
+          // either side of it.
+          Container(
+            width: double.infinity,
             decoration: BoxDecoration(
               color: cs.surface,
               border: Border(top: BorderSide(color: cs.outlineVariant)),
@@ -391,7 +396,7 @@ class _SpeciesPicker extends StatelessWidget {
     final cs = context.cs;
 
     return SizedBox(
-      height: 92,
+      height: 100,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -404,11 +409,16 @@ class _SpeciesPicker extends StatelessWidget {
             onTap: () => onChanged(species),
             borderRadius: BorderRadius.circular(ZbTokens.rMd),
             child: SizedBox(
-              width: 66,
+              width: 70,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SpeciesAvatar(species: species, size: 60, selected: selected),
+                  AnimatedScale(
+                    scale: selected ? 1.0 : 0.92,
+                    duration: Motion.select,
+                    curve: Motion.spring,
+                    child: SpeciesAvatar(species: species, size: 66, selected: selected),
+                  ),
                   Gap.h4,
                   Text(
                     speciesLabel(l, species),

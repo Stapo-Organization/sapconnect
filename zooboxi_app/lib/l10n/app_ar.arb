@@ -128,7 +128,13 @@
   "categoriesEmpty": "لا توجد أقسام حاليًا",
   "categoriesShopAll": "تسوّق الكل",
   "categoriesProductCount": "{count, plural, =0{لا توجد منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}",
-  "@categoriesProductCount": {"placeholders": {"count": {"type": "int"}}},
+  "@categoriesProductCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "listingFilters": "تصفية",
   "listingSort": "ترتيب",
   "listingSortTitle": "ترتيب النتائج",
@@ -889,5 +895,79 @@
   "petIncompleteHint": "أضف الوزن وتاريخ الميلاد واكسب 100 بصمة",
   "petAgeUnknown": "العمر غير مسجّل",
   "petPickDate": "اختر التاريخ",
-  "petLimitReached": "وصلت إلى الحد الأقصى للحيوانات"
+  "petLimitReached": "وصلت إلى الحد الأقصى للحيوانات",
+  "familyHubGreeting": "عائلة {name}",
+  "@familyHubGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familyHubGreetingNoPet": "عائلتك",
+  "familyActionHow": "كيف أكسب؟",
+  "familyActionLedger": "السجل",
+  "familyActionPets": "عائلتي",
+  "familyLadderTitle": "رحلتك في العائلة",
+  "familyPendingOrderTitle": "طلبك {number} في الطريق",
+  "@familyPendingOrderTitle": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "familyPendingOrderBody": "عند التسليم تُضاف {value} بصمة وتُحتسب مهمّتك تلقائيًا",
+  "@familyPendingOrderBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "familyPendingOrderPaws": "عند التسليم تُضاف {value} بصمة إلى محفظتك",
+  "@familyPendingOrderPaws": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "familyReferralTitle": "رمز الدعوة",
+  "familyReferralCopied": "تم نسخ رمز الدعوة",
+  "pawsWalletTitle": "محفظة البصمات",
+  "missionAwaitingDelivery": "بانتظار تسليم طلبك",
+  "missionsDoneOf": "{done} من {total} مكتملة",
+  "@missionsDoneOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "rewardComingSoon": "قريبًا",
+  "rewardsShelfHint": "اضغط للاستبدال",
+  "cartFreeDeliveryCelebrate": "مبروك! التوصيل مجاني",
+  "cartExpressCelebrate": "التوصيل السريع مجاني لهذا الطلب",
+  "successPawsNote": "{value} بصمة تُضاف لمحفظتك عند تسليم الطلب",
+  "@successPawsNote": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "successMissionNote": "ومهمات الشهر تُحتسب تلقائيًا بعد التسليم",
+  "scratchKeepGoing": "أكمل الخدش…",
+  "missionOfTarget": "من {target}",
+  "@missionOfTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  }
 }

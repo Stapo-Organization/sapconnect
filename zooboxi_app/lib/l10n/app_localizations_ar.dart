@@ -1789,4 +1789,84 @@ class LAr extends L {
 
   @override
   String get petLimitReached => 'وصلت إلى الحد الأقصى للحيوانات';
+
+  @override
+  String familyHubGreeting(String name) {
+    return 'عائلة $name';
+  }
+
+  @override
+  String get familyHubGreetingNoPet => 'عائلتك';
+
+  @override
+  String get familyActionHow => 'كيف أكسب؟';
+
+  @override
+  String get familyActionLedger => 'السجل';
+
+  @override
+  String get familyActionPets => 'عائلتي';
+
+  @override
+  String get familyLadderTitle => 'رحلتك في العائلة';
+
+  @override
+  String familyPendingOrderTitle(String number) {
+    return 'طلبك $number في الطريق';
+  }
+
+  @override
+  String familyPendingOrderBody(String value) {
+    return 'عند التسليم تُضاف $value بصمة وتُحتسب مهمّتك تلقائيًا';
+  }
+
+  @override
+  String familyPendingOrderPaws(String value) {
+    return 'عند التسليم تُضاف $value بصمة إلى محفظتك';
+  }
+
+  @override
+  String get familyReferralTitle => 'رمز الدعوة';
+
+  @override
+  String get familyReferralCopied => 'تم نسخ رمز الدعوة';
+
+  @override
+  String get pawsWalletTitle => 'محفظة البصمات';
+
+  @override
+  String get missionAwaitingDelivery => 'بانتظار تسليم طلبك';
+
+  @override
+  String missionsDoneOf(int done, int total) {
+    return '$done من $total مكتملة';
+  }
+
+  @override
+  String get rewardComingSoon => 'قريبًا';
+
+  @override
+  String get rewardsShelfHint => 'اضغط للاستبدال';
+
+  @override
+  String get cartFreeDeliveryCelebrate => 'مبروك! التوصيل مجاني';
+
+  @override
+  String get cartExpressCelebrate => 'التوصيل السريع مجاني لهذا الطلب';
+
+  @override
+  String successPawsNote(String value) {
+    return '$value بصمة تُضاف لمحفظتك عند تسليم الطلب';
+  }
+
+  @override
+  String get successMissionNote => 'ومهمات الشهر تُحتسب تلقائيًا بعد التسليم';
+
+  @override
+  String get scratchKeepGoing => 'أكمل الخدش…';
+
+  @override
+  String missionOfTarget(String target) {
+    return 'من $target';
+  }
 }

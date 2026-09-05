@@ -140,10 +140,10 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 800));
 
-    expect(find.text('مميّز'), findsOneWidget);
+    expect(find.text('مميّز'), findsWidgets);
     expect(find.text('3 طلبات تفصلك عن ذهبي'), findsOneWidget);
     expect(find.text('الشحن المجاني من 150 ﷼'), findsOneWidget);
-    expect(find.text('من مستوى gold'), findsOneWidget);
+    expect(find.text('من مستوى ذهبي'), findsOneWidget);
     expect(find.text('120 بصمة قيد التفعيل'), findsOneWidget);
     expect(find.byType(SealedScratchTile), findsOneWidget);
     expect(find.byType(MissionCard), findsOneWidget);
@@ -171,8 +171,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 800));
 
-    expect(find.text('مميّز'), findsOneWidget);
-    expect(find.text('1٬240'), findsOneWidget);
+    expect(find.text('مميّز'), findsWidgets);
+    expect(find.text('1٬240'), findsWidgets);
     expect(find.byType(SealedScratchTile), findsNothing);
     expect(find.byType(MissionCard), findsNothing);
     expect(find.text('مهمات الشهر'), findsNothing);

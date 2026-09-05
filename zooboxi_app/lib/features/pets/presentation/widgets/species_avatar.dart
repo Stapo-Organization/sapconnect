@@ -2,72 +2,91 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
-import '../../../../core/icons/zb_icons.dart';
+import '../../../../core/icons/painters/icon_painter.dart';
+import '../../../../core/widgets/zb_image.dart';
+import '../../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../data/pet_models.dart';
 
-/// The coat a species is drawn in.
+/// The coat a species is drawn in, and the wash its portrait sits on.
 ///
 /// These are the logo's own warm colours rather than the UI palette: an avatar
-/// is a character, not a control, so a cat is cardboard-tan and a dog is the
-/// logo's coral — the same hand that drew the mascot on the box.
+/// is a character, not a control. The cat is the mascot's ginger, the dog the
+/// mascot's cream with brown ears, and each of the others gets one hue that is
+/// unmistakably theirs on a shelf of seven.
 @immutable
 class SpeciesArt {
-  const SpeciesArt({required this.coat, required this.shade, required this.accent});
+  const SpeciesArt({
+    required this.coat,
+    required this.shade,
+    required this.accent,
+    required this.well,
+  });
 
   /// The main fill.
   final Color coat;
 
-  /// Ears, muzzle, fins — one step deeper than [coat].
+  /// Ears, patches, fins — one step deeper than [coat].
   final Color shade;
 
-  /// The one saturated detail: a beak, a collar, a fin edge.
+  /// The one saturated detail: a beak, a nose, a tongue.
   final Color accent;
+
+  /// The light disc behind the portrait (light theme).
+  final Color well;
 
   static SpeciesArt of(PetSpecies species) => switch (species) {
         PetSpecies.cat => const SpeciesArt(
             coat: ZbTokens.cardboard,
             shade: Color(0xFFC97F45),
             accent: ZbTokens.logoCoral,
+            well: Color(0xFFFBE7D4),
           ),
         PetSpecies.dog => const SpeciesArt(
-            coat: ZbTokens.logoCoral,
-            shade: Color(0xFFC85F33),
-            accent: ZbTokens.creamLogo,
+            coat: Color(0xFFF3E4CB),
+            shade: Color(0xFFC97F45),
+            accent: ZbTokens.logoCoral,
+            well: Color(0xFFF7E3D3),
           ),
         PetSpecies.bird => const SpeciesArt(
             coat: ZbTokens.amber,
-            shade: Color(0xFFDDA518),
+            shade: ZbTokens.orange,
             accent: ZbTokens.logoCoral,
+            well: Color(0xFFFBEBCF),
           ),
         PetSpecies.fish => const SpeciesArt(
             coat: ZbTokens.logoTeal,
             shade: ZbTokens.tealDark,
             accent: ZbTokens.amber,
+            well: ZbTokens.tealTint,
           ),
         PetSpecies.small => const SpeciesArt(
-            coat: ZbTokens.peach,
-            shade: Color(0xFFE9BE95),
-            accent: ZbTokens.logoCoral,
+            coat: Color(0xFFF7DDC7),
+            shade: Color(0xFFE2B893),
+            accent: Color(0xFFE9908A),
+            well: Color(0xFFFDF1EC),
           ),
         PetSpecies.reptile => const SpeciesArt(
-            coat: Color(0xFF7FBF6A),
+            coat: Color(0xFF86C46E),
             shade: Color(0xFF5E9C4C),
-            accent: ZbTokens.amber,
+            accent: ZbTokens.logoCoral,
+            well: Color(0xFFDDF0E3),
           ),
         PetSpecies.other => const SpeciesArt(
-            coat: ZbTokens.logoTeal,
-            shade: ZbTokens.tealDark,
-            accent: ZbTokens.sparkAmber,
+            coat: ZbTokens.logoCoral,
+            shade: Color(0xFFC85F33),
+            accent: ZbTokens.creamLogo,
+            well: Color(0xFFFBE3DC),
           ),
       };
 }
 
-/// A drawn portrait for one species, in the app's painted icon language.
+/// A drawn portrait for one species, in the mascot's hand — or the pet's own
+/// photo when one is on file.
 ///
 /// No emoji: an emoji is the OS's drawing, and it lands in the middle of a
-/// screen that is otherwise entirely ours. These are the same 24-unit grid,
-/// the same warm outline weight and the same bubbly proportions as the tab bar
-/// glyphs, so a pet card belongs to the same world as the cart icon.
+/// screen that is otherwise entirely ours. These faces share the closed happy
+/// eyes, the blush and the gloss of the two animals on the box, so a customer's
+/// cat is visibly a cousin of the one in the logo.
 class SpeciesAvatar extends StatelessWidget {
   const SpeciesAvatar({
     super.key,
@@ -75,6 +94,8 @@ class SpeciesAvatar extends StatelessWidget {
     this.size = 56,
     this.selected = false,
     this.showWell = true,
+    this.photoUrl,
+    this.ring,
   });
 
   final PetSpecies species;
@@ -87,97 +108,127 @@ class SpeciesAvatar extends StatelessWidget {
   /// that already has a surface of its own.
   final bool showWell;
 
+  /// The pet's photo, shown instead of the drawing when present.
+  final String? photoUrl;
+
+  /// A solid ring colour (a white ring on a coloured card, for instance).
+  final Color? ring;
+
   @override
   Widget build(BuildContext context) {
     final art = SpeciesArt.of(species);
-    final ink = resolveZbInk(context);
-    final glyph = SizedBox.square(
-      dimension: size * 0.74,
-      child: CustomPaint(
-        size: Size.square(size * 0.74),
-        painter: _painter(art, ink, size * 0.74),
-      ),
-    );
+    final photo = photoUrl;
+    final glyph = photo != null && photo.isNotEmpty
+        ? ClipOval(
+            child: SizedBox.square(
+              dimension: size,
+              child: ZbImage(url: photo, fit: BoxFit.cover),
+            ),
+          )
+        : SizedBox.square(
+            dimension: size * 0.80,
+            child: CustomPaint(
+              size: Size.square(size * 0.80),
+              painter: _painter(art, size * 0.80),
+            ),
+          );
 
     if (!showWell) return SizedBox.square(dimension: size, child: Center(child: glyph));
+
+    final dark = context.isDark;
+    final ringColor = ring ?? (selected ? art.shade : art.coat.withValues(alpha: dark ? 0.45 : 0.55));
+    final ringWidth = ring != null ? 3.0 : (selected ? 2.4 : 1.4);
 
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: art.coat.withValues(alpha: context.isDark ? 0.22 : 0.16),
-        border: Border.all(
-          color: selected
-              ? art.shade
-              : art.coat.withValues(alpha: context.isDark ? 0.42 : 0.34),
-          width: selected ? 2 : 1.2,
-        ),
+        gradient: dark
+            ? null
+            : LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [art.well, Color.lerp(art.well, Colors.white, 0.45)!],
+              ),
+        color: dark ? art.coat.withValues(alpha: 0.22) : null,
+        border: Border.all(color: ringColor, width: ringWidth),
+        boxShadow: selected
+            ? [BoxShadow(color: art.shade.withValues(alpha: 0.28), blurRadius: 10, offset: const Offset(0, 3))]
+            : null,
       ),
+      clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
       child: glyph,
     );
   }
 
-  ZbIconPainter _painter(SpeciesArt art, Color ink, double side) => switch (species) {
-        PetSpecies.cat => _CatPainter(art: art, ink: ink, size: side),
-        PetSpecies.dog => _DogPainter(art: art, ink: ink, size: side),
-        PetSpecies.bird => _BirdPainter(art: art, ink: ink, size: side),
-        PetSpecies.fish => _FishPainter(art: art, ink: ink, size: side),
-        PetSpecies.small => _SmallPainter(art: art, ink: ink, size: side),
-        PetSpecies.reptile => _ReptilePainter(art: art, ink: ink, size: side),
-        PetSpecies.other => _OtherPainter(art: art, ink: ink, size: side),
+  ZbIconPainter _painter(SpeciesArt art, double side) => switch (species) {
+        PetSpecies.cat => _CatPainter(art: art, size: side),
+        PetSpecies.dog => _DogPainter(art: art, size: side),
+        PetSpecies.bird => _BirdPainter(art: art, size: side),
+        PetSpecies.fish => _FishPainter(art: art, size: side),
+        PetSpecies.small => _SmallPainter(art: art, size: side),
+        PetSpecies.reptile => _ReptilePainter(art: art, size: side),
+        PetSpecies.other => _OtherPainter(art: art, size: side),
       };
 }
 
-/// Shared plumbing for the seven portraits: they are always fully filled
-/// stickers (an outline-only pet would read as a placeholder), and they all
-/// draw the same eyes so the family looks related.
-abstract class _SpeciesPainter extends ZbIconPainter {
-  const _SpeciesPainter({
-    required this.art,
-    required super.ink,
-    required super.size,
-  }) : super(fill: 1);
+/// Shared plumbing for the seven portraits: the sticker stroke, the mascot's
+/// closed happy eyes, its blush, and the gloss — the family resemblance.
+abstract class _SpeciesPainter extends StickerPainter {
+  const _SpeciesPainter({required this.art, required super.size});
 
   final SpeciesArt art;
 
-  /// Two round eyes plus their gloss — the whole set's expression.
-  void eyes(Canvas canvas, {required double y, double spread = 2.6, double r = 0.95}) {
-    final paint = Paint()..color = featureInk;
-    canvas.drawCircle(Offset(12 - spread, y), r, paint);
-    canvas.drawCircle(Offset(12 + spread, y), r, paint);
+  /// The mascot's eyes: two arcs, closed in a smile.
+  void happyEyes(Canvas canvas, {required double y, double spread = 3.4, double w = 2.9, double lift = 2.2}) {
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = kStickerStroke
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.inkWarm;
+    for (final cx in [12 - spread, 12 + spread]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(cx - w / 2, y)
+          ..quadraticBezierTo(cx, y - lift, cx + w / 2, y),
+        p,
+      );
+    }
+  }
+
+  /// A round open eye with a cream white and a gloss — for the side-facing
+  /// animals, whose one visible eye has to carry the whole expression.
+  void roundEye(Canvas canvas, Offset c, {double r = 2.3}) {
+    canvas.stickerCircle(c, r, ZbTokens.creamLogo, thin(1.0));
+    canvas.drawCircle(Offset(c.dx + r * 0.08, c.dy + r * 0.1), r * 0.58, Paint()..color = ZbTokens.inkWarm);
+    canvas.drawCircle(Offset(c.dx - r * 0.18, c.dy - r * 0.28), r * 0.22, Paint()..color = Colors.white.withValues(alpha: 0.9));
+  }
+
+  /// The blush the logo's animals wear.
+  void blush(Canvas canvas, {required double y, double spread = 5.6, double w = 3.2, double alpha = 0.34}) {
     if (!detailed) return;
-    final spark = Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.9);
-    canvas.drawCircle(Offset(12 - spread + r * 0.34, y - r * 0.36), r * 0.32, spark);
-    canvas.drawCircle(Offset(12 + spread + r * 0.34, y - r * 0.36), r * 0.32, spark);
+    final paint = Paint()..color = ZbTokens.logoCoral.withValues(alpha: alpha);
+    canvas.drawOval(Rect.fromCenter(center: Offset(12 - spread, y), width: w, height: w * 0.58), paint);
+    canvas.drawOval(Rect.fromCenter(center: Offset(12 + spread, y), width: w, height: w * 0.58), paint);
   }
 
-  /// The blush the logo's animals wear. Detail-floor gated like every other
-  /// tertiary feature in the set.
-  void blush(Canvas canvas, {required double y, double spread = 5.4}) {
-    if (!detailed) return;
-    final paint = Paint()..color = ZbTokens.logoCoral.withValues(alpha: 0.28);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(12 - spread, y), width: 2.8, height: 1.8),
-      paint,
+  /// The «ω» mouth under a small nose.
+  void catMouth(Canvas canvas, Offset nose, {double reach = 1.6, double drop = 1.5}) {
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.inkWarm;
+    canvas.drawPath(
+      Path()
+        ..moveTo(nose.dx, nose.dy)
+        ..quadraticBezierTo(nose.dx - reach * 0.7, nose.dy + drop, nose.dx - reach, nose.dy + drop * 0.35)
+        ..moveTo(nose.dx, nose.dy)
+        ..quadraticBezierTo(nose.dx + reach * 0.7, nose.dy + drop, nose.dx + reach, nose.dy + drop * 0.35),
+      p,
     );
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(12 + spread, y), width: 2.8, height: 1.8),
-      paint,
-    );
-  }
-
-  /// A filled-then-outlined shape, which is how every glyph in the set is
-  /// built: colour first, one warm stroke on top.
-  void solid(Canvas canvas, Path path, Color color) {
-    canvas.drawPath(path, Paint()..color = color);
-    canvas.drawPath(path, strokePaint());
-  }
-
-  void solidOval(Canvas canvas, Rect rect, Color color) {
-    canvas.drawOval(rect, Paint()..color = color);
-    canvas.drawOval(rect, strokePaint());
   }
 
   @override
@@ -185,367 +236,420 @@ abstract class _SpeciesPainter extends ZbIconPainter {
       super.shouldRepaint(old) || old.art.coat != art.coat;
 }
 
-/// Round head, two pricked triangular ears, a button nose and whiskers.
+/// The mascot's cat: pricked ears with pink insides, three forehead stripes,
+/// a cream muzzle, whiskers.
 class _CatPainter extends _SpeciesPainter {
-  const _CatPainter({required super.art, required super.ink, required super.size});
+  const _CatPainter({required super.art, required super.size});
 
   @override
   void draw(Canvas canvas) {
-    final ear = Path()
-      ..moveTo(6.4, 10.2)
-      ..lineTo(7.4, 4.4)
-      ..quadraticBezierTo(7.7, 3.6, 8.4, 4.2)
-      ..lineTo(12.2, 7.4)
-      ..close();
-    final ear2 = Path()
-      ..moveTo(17.6, 10.2)
-      ..lineTo(16.6, 4.4)
-      ..quadraticBezierTo(16.3, 3.6, 15.6, 4.2)
-      ..lineTo(11.8, 7.4)
-      ..close();
-    solid(canvas, ear, art.shade);
-    solid(canvas, ear2, art.shade);
+    final l = line;
 
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 13.4), width: 15.2, height: 13.4),
+    final earL = Path()
+      ..moveTo(4.0, 10.8)
+      ..lineTo(4.6, 3.6)
+      ..quadraticBezierTo(4.8, 2.6, 5.7, 3.2)
+      ..lineTo(11.0, 6.6)
+      ..close();
+    final earR = Path()
+      ..moveTo(20.0, 10.8)
+      ..lineTo(19.4, 3.6)
+      ..quadraticBezierTo(19.2, 2.6, 18.3, 3.2)
+      ..lineTo(13.0, 6.6)
+      ..close();
+    canvas.sticker(earL, art.coat, l);
+    canvas.sticker(earR, art.coat, l);
+    final inner = Paint()..color = const Color(0xFFF2A08B);
+    canvas.drawPath(
+      Path()..moveTo(5.6, 9.2)..lineTo(5.9, 5.2)..lineTo(9.2, 7.3)..close(),
+      inner,
+    );
+    canvas.drawPath(
+      Path()..moveTo(18.4, 9.2)..lineTo(18.1, 5.2)..lineTo(14.8, 7.3)..close(),
+      inner,
+    );
+
+    canvas.stickerOval(
+      Rect.fromCenter(center: const Offset(12, 13.6), width: 17.8, height: 15.0),
       art.coat,
+      l,
     );
 
-    blush(canvas, y: 15.4);
-    eyes(canvas, y: 12.6, spread: 3.0);
+    // Forehead stripes — the ginger's tabby mark.
+    final stripe = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round
+      ..color = art.shade;
+    canvas.drawLine(const Offset(9.4, 7.2), const Offset(10.0, 9.8), stripe);
+    canvas.drawLine(const Offset(12.0, 6.6), const Offset(12.0, 9.6), stripe);
+    canvas.drawLine(const Offset(14.6, 7.2), const Offset(14.0, 9.8), stripe);
 
-    // Nose and mouth: one small triangle over a soft double curve.
-    final nose = Path()
-      ..moveTo(10.9, 15.2)
-      ..lineTo(13.1, 15.2)
-      ..lineTo(12, 16.5)
-      ..close();
-    canvas.drawPath(nose, Paint()..color = art.accent);
-    final mouth = strokePaint(width: 1.1, color: featureInk);
-    canvas.drawPath(
-      Path()
-        ..moveTo(12, 16.5)
-        ..quadraticBezierTo(10.6, 18.0, 9.5, 16.8),
-      mouth,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(12, 16.5)
-        ..quadraticBezierTo(13.4, 18.0, 14.5, 16.8),
-      mouth,
-    );
-
-    if (!detailed) return;
-    final whisker = strokePaint(width: 0.9, color: featureInk.withValues(alpha: 0.7));
-    canvas.drawLine(const Offset(3.6, 14.6), const Offset(7.4, 15.2), whisker);
-    canvas.drawLine(const Offset(3.8, 17.0), const Offset(7.4, 16.6), whisker);
-    canvas.drawLine(const Offset(20.4, 14.6), const Offset(16.6, 15.2), whisker);
-    canvas.drawLine(const Offset(20.2, 17.0), const Offset(16.6, 16.6), whisker);
-  }
-}
-
-/// Round head, two floppy ears hanging past the jaw, a broad muzzle.
-class _DogPainter extends _SpeciesPainter {
-  const _DogPainter({required super.art, required super.ink, required super.size});
-
-  @override
-  void draw(Canvas canvas) {
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(5.4, 12.6), width: 5.2, height: 10.4),
-      art.shade,
-    );
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(18.6, 12.6), width: 5.2, height: 10.4),
-      art.shade,
-    );
-
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 12.6), width: 14.4, height: 13.2),
-      art.coat,
-    );
-
-    // The muzzle is the dog's whole read: a pale panel low on the face.
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 16.2), width: 9.4, height: 6.4),
-      art.accent,
-    );
-
-    eyes(canvas, y: 11.8, spread: 3.1);
-    blush(canvas, y: 13.6, spread: 5.2);
-
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 14.6), width: 3.4, height: 2.5),
-      featureInk,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(12, 16.0)
-        ..lineTo(12, 17.0)
-        ..moveTo(12, 17.0)
-        ..quadraticBezierTo(10.7, 18.6, 9.7, 17.2)
-        ..moveTo(12, 17.0)
-        ..quadraticBezierTo(13.3, 18.6, 14.3, 17.2),
-      strokePaint(width: 1.1, color: featureInk),
-    );
-  }
-}
-
-/// A perched bird: round body, a crest feather, a wedge beak on the start
-/// edge — so it faces into the reading direction in both languages.
-class _BirdPainter extends _SpeciesPainter {
-  const _BirdPainter({required super.art, required super.ink, required super.size});
-
-  @override
-  bool get mirrored => true;
-
-  @override
-  void draw(Canvas canvas) {
-    final crest = Path()
-      ..moveTo(12.6, 5.6)
-      ..quadraticBezierTo(11.4, 2.2, 14.6, 2.6)
-      ..quadraticBezierTo(15.2, 4.4, 13.8, 5.9)
-      ..close();
-    solid(canvas, crest, art.accent);
-
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12.4, 13.0), width: 13.6, height: 14.4),
-      art.coat,
-    );
-
-    // Wing: a leaf tucked against the body, one shade down.
-    final wing = Path()
-      ..moveTo(15.6, 10.6)
-      ..quadraticBezierTo(19.4, 12.4, 15.8, 17.4)
-      ..quadraticBezierTo(13.8, 14.2, 15.6, 10.6)
-      ..close();
-    solid(canvas, wing, art.shade);
-
-    final beak = Path()
-      ..moveTo(6.0, 12.0)
-      ..lineTo(2.2, 13.6)
-      ..lineTo(6.0, 15.4)
-      ..close();
-    solid(canvas, beak, art.accent);
-
-    canvas.drawCircle(const Offset(9.0, 11.6), 1.05, Paint()..color = featureInk);
-    if (detailed) {
-      canvas.drawCircle(
-        const Offset(9.36, 11.24),
-        0.34,
-        Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.9),
-      );
-    }
-    blush(canvas, y: 14.2, spread: 4.2);
-  }
-}
-
-/// A round fish with a fan tail on the end edge and one top fin.
-class _FishPainter extends _SpeciesPainter {
-  const _FishPainter({required super.art, required super.ink, required super.size});
-
-  @override
-  bool get mirrored => true;
-
-  @override
-  void draw(Canvas canvas) {
-    final tail = Path()
-      ..moveTo(17.6, 13.2)
-      ..lineTo(22.4, 8.6)
-      ..quadraticBezierTo(23.2, 13.2, 22.4, 17.8)
-      ..close();
-    solid(canvas, tail, art.shade);
-
-    final fin = Path()
-      ..moveTo(10.4, 6.6)
-      ..quadraticBezierTo(13.6, 4.0, 14.4, 8.2)
-      ..close();
-    solid(canvas, fin, art.shade);
-
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(11.4, 13.4), width: 15.2, height: 12.4),
-      art.coat,
-    );
-
-    // Gill line — the one stroke that says "fish" rather than "oval".
-    canvas.drawPath(
-      Path()
-        ..moveTo(8.6, 9.4)
-        ..quadraticBezierTo(6.8, 13.4, 8.6, 17.4),
-      strokePaint(width: 1.2, color: featureInk.withValues(alpha: 0.55)),
-    );
-
-    canvas.drawCircle(const Offset(6.6, 12.4), 1.05, Paint()..color = featureInk);
-    if (detailed) {
-      canvas.drawCircle(
-        const Offset(6.96, 12.04),
-        0.34,
-        Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.9),
-      );
-      canvas.drawCircle(
-        const Offset(3.4, 6.6),
-        1.0,
-        Paint()..color = art.accent.withValues(alpha: 0.55),
-      );
-    }
-    canvas.drawPath(
-      Path()
-        ..moveTo(5.4, 15.6)
-        ..quadraticBezierTo(6.8, 17.0, 8.2, 15.8),
-      strokePaint(width: 1.1, color: featureInk),
-    );
-  }
-}
-
-/// The small-pets bucket — hamster, rabbit, guinea pig — drawn as a round
-/// face with two tall ears and full cheeks.
-class _SmallPainter extends _SpeciesPainter {
-  const _SmallPainter({required super.art, required super.ink, required super.size});
-
-  @override
-  void draw(Canvas canvas) {
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(8.6, 6.4), width: 4.4, height: 8.2),
-      art.shade,
-    );
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(15.4, 6.4), width: 4.4, height: 8.2),
-      art.shade,
-    );
-
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 14.2), width: 15.0, height: 12.6),
-      art.coat,
-    );
-
-    eyes(canvas, y: 13.2, spread: 3.2);
-    blush(canvas, y: 16.0, spread: 5.4);
-
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 16.0), width: 2.6, height: 2.0),
-      art.accent,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(12, 17.0)
-        ..quadraticBezierTo(10.9, 18.4, 10.0, 17.3)
-        ..moveTo(12, 17.0)
-        ..quadraticBezierTo(13.1, 18.4, 14.0, 17.3),
-      strokePaint(width: 1.0, color: featureInk),
-    );
-    if (!detailed) return;
-    // Two front teeth — the detail that turns a round face into a rodent.
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: const Offset(12, 18.8), width: 2.4, height: 1.8),
-        const Radius.circular(0.5),
-      ),
+    // Muzzle.
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(12, 16.6), width: 9.8, height: 5.6),
       Paint()..color = ZbTokens.creamLogo,
     );
-    canvas.drawLine(
-      const Offset(12, 18.0),
-      const Offset(12, 19.6),
-      strokePaint(width: 0.7, color: featureInk.withValues(alpha: 0.55)),
-    );
+
+    blush(canvas, y: 15.2, spread: 6.2);
+    happyEyes(canvas, y: 13.0, spread: 3.6);
+
+    final nose = Path()
+      ..moveTo(10.8, 15.1)
+      ..lineTo(13.2, 15.1)
+      ..quadraticBezierTo(12.0, 17.2, 10.8, 15.1)
+      ..close();
+    canvas.drawPath(nose, Paint()..color = art.accent);
+    catMouth(canvas, const Offset(12, 16.4), reach: 1.9, drop: 1.6);
+
+    if (!detailed) return;
+    final whisker = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.9
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.inkWarm.withValues(alpha: 0.55);
+    canvas.drawLine(const Offset(2.6, 14.4), const Offset(6.4, 15.0), whisker);
+    canvas.drawLine(const Offset(2.8, 16.8), const Offset(6.4, 16.3), whisker);
+    canvas.drawLine(const Offset(21.4, 14.4), const Offset(17.6, 15.0), whisker);
+    canvas.drawLine(const Offset(21.2, 16.8), const Offset(17.6, 16.3), whisker);
+    glossAt(canvas, const Offset(7.4, 9.0), w: 3.0, h: 1.4, alpha: 0.5);
   }
 }
 
-/// A friendly lizard head: a long snout on the start edge, one eye ridge and
-/// a row of soft back scales.
-class _ReptilePainter extends _SpeciesPainter {
-  const _ReptilePainter({required super.art, required super.ink, required super.size});
+/// The mascot's dog: cream face, brown floppy ears, a patch over one eye, a
+/// big nose and the tongue-out grin.
+class _DogPainter extends _SpeciesPainter {
+  const _DogPainter({required super.art, required super.size});
+
+  void _ear(Canvas canvas, double cx, double tilt) {
+    canvas.save();
+    canvas.translate(cx, 12.2);
+    canvas.rotate(tilt);
+    canvas.stickerOval(
+      Rect.fromCenter(center: Offset.zero, width: 5.8, height: 12.4),
+      art.shade,
+      line,
+    );
+    canvas.restore();
+  }
+
+  @override
+  void draw(Canvas canvas) {
+    final l = line;
+    _ear(canvas, 4.6, -0.16);
+    _ear(canvas, 19.4, 0.16);
+
+    canvas.stickerOval(
+      Rect.fromCenter(center: const Offset(12, 12.8), width: 16.8, height: 15.6),
+      art.coat,
+      l,
+    );
+    // The patch.
+    canvas.drawCircle(const Offset(15.7, 11.0), 3.7, Paint()..color = art.shade.withValues(alpha: 0.92));
+
+    happyEyes(canvas, y: 12.2, spread: 3.6);
+    blush(canvas, y: 14.4, spread: 6.2);
+
+    // Nose.
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(12, 15.4), width: 4.0, height: 2.9),
+      Paint()..color = ZbTokens.inkWarm,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(11.2, 14.8), width: 1.2, height: 0.7),
+      Paint()..color = Colors.white.withValues(alpha: 0.55),
+    );
+
+    // Open grin with the tongue.
+    final mouth = Path()
+      ..moveTo(9.0, 17.0)
+      ..quadraticBezierTo(12.0, 17.6, 15.0, 17.0)
+      ..quadraticBezierTo(14.6, 20.8, 12.0, 20.8)
+      ..quadraticBezierTo(9.4, 20.8, 9.0, 17.0)
+      ..close();
+    canvas.drawPath(mouth, Paint()..color = ZbTokens.inkWarm);
+    canvas.save();
+    canvas.clipPath(mouth);
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(12, 20.0), width: 3.4, height: 3.4),
+      Paint()..color = const Color(0xFFF07A6A),
+    );
+    canvas.restore();
+    canvas.drawPath(mouth, thin(1.0));
+
+    glossAt(canvas, const Offset(7.6, 8.4), w: 3.0, h: 1.4, alpha: 0.6);
+  }
+}
+
+/// A plump little bird facing into the reading direction: amber body, a
+/// paler belly, a coral crest and a hooked orange beak.
+class _BirdPainter extends _SpeciesPainter {
+  const _BirdPainter({required super.art, required super.size});
 
   @override
   bool get mirrored => true;
 
   @override
   void draw(Canvas canvas) {
-    final scales = Path()
-      ..moveTo(13.0, 7.6)
-      ..lineTo(14.6, 4.6)
-      ..lineTo(16.2, 7.6)
-      ..lineTo(17.8, 4.8)
-      ..lineTo(19.4, 8.4)
-      ..close();
-    solid(canvas, scales, art.shade);
+    final l = line;
 
-    final head = Path()
-      ..moveTo(3.2, 14.4)
-      ..quadraticBezierTo(3.0, 11.6, 6.4, 10.6)
-      ..quadraticBezierTo(10.4, 9.0, 15.0, 8.6)
-      ..quadraticBezierTo(21.0, 8.2, 21.2, 13.6)
-      ..quadraticBezierTo(21.4, 18.4, 15.0, 18.6)
-      ..quadraticBezierTo(9.2, 18.8, 6.0, 17.4)
-      ..quadraticBezierTo(3.4, 16.4, 3.2, 14.4)
+    // Tail feathers, tucked behind.
+    final tail = Path()
+      ..moveTo(17.4, 16.4)
+      ..quadraticBezierTo(22.6, 16.0, 22.4, 20.6)
+      ..quadraticBezierTo(19.0, 20.0, 17.4, 16.4)
       ..close();
-    solid(canvas, head, art.coat);
+    canvas.sticker(tail, art.shade, l);
 
-    canvas.drawCircle(const Offset(8.6, 13.0), 1.15, Paint()..color = featureInk);
-    if (detailed) {
-      canvas.drawCircle(
-        const Offset(9.0, 12.6),
-        0.36,
-        Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.9),
+    // Crest: two soft feathers leaning back from the crown.
+    for (final (c, r) in const [(Offset(10.6, 4.0), 0.75), (Offset(13.2, 3.4), 0.35)]) {
+      canvas.save();
+      canvas.translate(c.dx, c.dy);
+      canvas.rotate(r);
+      canvas.stickerOval(
+        Rect.fromCenter(center: Offset.zero, width: 2.6, height: 5.2),
+        art.accent,
+        thin(1.1),
       );
-      canvas.drawCircle(
-        const Offset(17.2, 13.4),
-        0.9,
-        Paint()..color = art.shade.withValues(alpha: 0.7),
-      );
+      canvas.restore();
     }
-    // The tongue flick — a lizard with no tongue is a stone.
-    canvas.drawPath(
-      Path()
-        ..moveTo(4.6, 15.6)
-        ..lineTo(1.8, 16.6)
-        ..moveTo(1.8, 16.6)
-        ..lineTo(3.0, 17.2),
-      strokePaint(width: 1.0, color: art.accent),
+
+    canvas.stickerOval(
+      Rect.fromCenter(center: const Offset(12, 13.4), width: 15.6, height: 15.2),
+      art.coat,
+      l,
     );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(11.4, 16.6), width: 8.6, height: 6.4),
+      Paint()..color = const Color(0xFFFBE08E),
+    );
+
+    // Wing.
+    final wing = Path()
+      ..moveTo(15.2, 10.6)
+      ..quadraticBezierTo(21.4, 12.2, 16.8, 18.6)
+      ..quadraticBezierTo(14.2, 15.2, 15.2, 10.6)
+      ..close();
+    canvas.sticker(wing, art.shade, l);
+
+    // Beak.
+    final beak = Path()
+      ..moveTo(6.6, 11.8)
+      ..quadraticBezierTo(1.6, 13.2, 6.0, 15.8)
+      ..quadraticBezierTo(7.4, 14.0, 6.6, 11.8)
+      ..close();
+    canvas.sticker(beak, ZbTokens.orange, thin(1.1));
+
+    roundEye(canvas, const Offset(9.6, 11.2), r: 2.2);
+    blush(canvas, y: 14.6, spread: 3.4, w: 2.6);
+    glossAt(canvas, const Offset(9.4, 7.4), w: 3.0, h: 1.3, alpha: 0.5);
   }
 }
 
-/// Anything else: the paw print. Honest rather than a wrong animal.
-class _OtherPainter extends _SpeciesPainter {
-  const _OtherPainter({required super.art, required super.ink, required super.size});
+/// A round teal fish swimming toward the start edge, fins and a fan tail one
+/// shade deeper, bubbles rising ahead of it.
+class _FishPainter extends _SpeciesPainter {
+  const _FishPainter({required super.art, required super.size});
 
-  static const List<Offset> _toes = [
-    Offset(6.5, 11.2),
-    Offset(9.9, 7.9),
-    Offset(14.1, 7.9),
-    Offset(17.5, 11.2),
-  ];
+  @override
+  bool get mirrored => true;
 
   @override
   void draw(Canvas canvas) {
-    solidOval(
-      canvas,
-      Rect.fromCenter(center: const Offset(12, 16.2), width: 9.6, height: 7.8),
+    final l = line;
+
+    final tail = Path()
+      ..moveTo(18.0, 13.2)
+      ..lineTo(22.8, 8.0)
+      ..quadraticBezierTo(23.6, 13.2, 22.8, 18.4)
+      ..close();
+    canvas.sticker(tail, art.shade, l);
+    final topFin = Path()
+      ..moveTo(9.6, 7.4)
+      ..quadraticBezierTo(12.6, 2.6, 16.0, 7.8)
+      ..close();
+    canvas.sticker(topFin, art.shade, l);
+    final lowFin = Path()
+      ..moveTo(10.8, 19.0)
+      ..quadraticBezierTo(13.2, 22.4, 15.6, 18.8)
+      ..close();
+    canvas.sticker(lowFin, art.shade, l);
+
+    canvas.stickerOval(
+      Rect.fromCenter(center: const Offset(11.6, 13.2), width: 16.4, height: 12.8),
       art.coat,
+      l,
     );
-    for (final toe in _toes) {
-      solidOval(
-        canvas,
-        Rect.fromCenter(center: toe, width: 3.6, height: 4.4),
-        art.coat,
-      );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(11.0, 15.6), width: 9.6, height: 4.8),
+      Paint()..color = const Color(0xFFA9DBD5),
+    );
+
+    // Scales.
+    final scale = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.inkWarm.withValues(alpha: 0.35);
+    for (final c in const [Offset(13.4, 10.6), Offset(16.0, 12.8), Offset(13.6, 14.6)]) {
+      canvas.drawArc(Rect.fromCenter(center: c, width: 3.0, height: 3.0), 0.6, 1.9, false, scale);
+    }
+    // Side fin.
+    final side = Path()
+      ..moveTo(9.8, 13.6)
+      ..quadraticBezierTo(7.2, 16.8, 11.4, 16.2)
+      ..close();
+    canvas.sticker(side, art.shade, thin(1.0));
+
+    roundEye(canvas, const Offset(6.8, 11.8), r: 2.1);
+    canvas.drawPath(
+      Path()
+        ..moveTo(4.2, 14.6)
+        ..quadraticBezierTo(5.2, 15.8, 6.4, 14.9),
+      thin(1.1),
+    );
+    if (!detailed) return;
+    final bubble = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.9
+      ..color = art.shade.withValues(alpha: 0.7);
+    canvas.drawCircle(const Offset(3.0, 6.4), 1.2, bubble);
+    canvas.drawCircle(const Offset(5.0, 3.8), 0.8, bubble);
+    glossAt(canvas, const Offset(8.6, 9.2), w: 2.6, h: 1.2, alpha: 0.5);
+  }
+}
+
+/// The small-pets bucket drawn as a rabbit: two tall ears with pink insides,
+/// full cheeks, and the two front teeth.
+class _SmallPainter extends _SpeciesPainter {
+  const _SmallPainter({required super.art, required super.size});
+
+  void _ear(Canvas canvas, double cx, double tilt) {
+    canvas.save();
+    canvas.translate(cx, 6.0);
+    canvas.rotate(tilt);
+    canvas.stickerOval(Rect.fromCenter(center: Offset.zero, width: 4.8, height: 10.8), art.coat, line);
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(0, 0.4), width: 2.2, height: 7.2),
+      Paint()..color = const Color(0xFFF2A6A0).withValues(alpha: 0.85),
+    );
+    canvas.restore();
+  }
+
+  @override
+  void draw(Canvas canvas) {
+    _ear(canvas, 8.6, -0.14);
+    _ear(canvas, 15.4, 0.14);
+
+    canvas.stickerOval(
+      Rect.fromCenter(center: const Offset(12, 14.6), width: 16.6, height: 13.8),
+      art.coat,
+      line,
+    );
+
+    happyEyes(canvas, y: 13.6, spread: 3.6);
+    blush(canvas, y: 16.0, spread: 6.0);
+
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(12, 16.3), width: 2.5, height: 1.8),
+      Paint()..color = art.accent,
+    );
+    catMouth(canvas, const Offset(12, 17.0), reach: 1.5, drop: 1.3);
+
+    // Teeth.
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: const Offset(12, 19.1), width: 2.8, height: 2.3),
+        const Radius.circular(0.6),
+      ),
+      ZbTokens.creamLogo,
+      thin(0.8),
+    );
+    canvas.drawLine(const Offset(12, 18.1), const Offset(12, 20.1), thin(0.7));
+
+    if (!detailed) return;
+    final whisker = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.9
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.inkWarm.withValues(alpha: 0.5);
+    canvas.drawLine(const Offset(3.6, 15.6), const Offset(6.6, 16.0), whisker);
+    canvas.drawLine(const Offset(20.4, 15.6), const Offset(17.4, 16.0), whisker);
+    glossAt(canvas, const Offset(7.6, 10.4), w: 2.8, h: 1.3, alpha: 0.5);
+  }
+}
+
+/// A turtle facing the start edge: a domed green shell with darker plates,
+/// a round head with one big eye, and two stubby feet.
+class _ReptilePainter extends _SpeciesPainter {
+  const _ReptilePainter({required super.art, required super.size});
+
+  @override
+  bool get mirrored => true;
+
+  @override
+  void draw(Canvas canvas) {
+    final l = line;
+    const skin = Color(0xFFA9D48B);
+
+    // Feet, tucked under the shell.
+    for (final c in const [Offset(9.4, 18.6), Offset(17.0, 18.6)]) {
+      canvas.stickerOval(Rect.fromCenter(center: c, width: 4.2, height: 3.0), skin, thin(1.1));
+    }
+    // Head.
+    canvas.stickerCircle(const Offset(5.4, 12.4), 3.9, skin, l);
+
+    // Shell: a dome over a flat rim.
+    final shell = Path()
+      ..moveTo(7.2, 16.6)
+      ..quadraticBezierTo(7.4, 6.4, 14.4, 6.2)
+      ..quadraticBezierTo(21.6, 6.2, 21.8, 16.6)
+      ..close();
+    canvas.sticker(shell, art.coat, l);
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(6.4, 15.8, 22.6, 18.6), const Radius.circular(1.4)),
+      art.shade,
+      l,
+    );
+    // Plates.
+    final plate = Paint()..color = art.shade.withValues(alpha: 0.85);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(14.4, 11.4), width: 4.6, height: 3.8), plate);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(10.4, 13.6), width: 2.8, height: 2.4), plate);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(18.4, 13.6), width: 2.8, height: 2.4), plate);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(12.6, 8.6), width: 2.2, height: 1.8), plate);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(16.8, 8.9), width: 2.2, height: 1.8), plate);
+
+    roundEye(canvas, const Offset(4.4, 11.6), r: 1.7);
+    canvas.drawPath(
+      Path()
+        ..moveTo(2.6, 13.8)
+        ..quadraticBezierTo(3.8, 15.0, 5.6, 14.4),
+      thin(1.0),
+    );
+    if (!detailed) return;
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(6.4, 14.4), width: 2.0, height: 1.2),
+      Paint()..color = ZbTokens.logoCoral.withValues(alpha: 0.3),
+    );
+    glossAt(canvas, const Offset(11.0, 8.8), w: 3.0, h: 1.2, angle: -0.5, alpha: 0.4);
+  }
+}
+
+/// Anything else: the logo's heart with a paw inside. Honest — and warmer than
+/// a wrong animal.
+class _OtherPainter extends _SpeciesPainter {
+  const _OtherPainter({required super.art, required super.size});
+
+  @override
+  void draw(Canvas canvas) {
+    canvas.sticker(heartPath(const Rect.fromLTRB(2.6, 4.0, 21.4, 21.0)), art.coat, line);
+    final paw = Paint()..color = art.accent.withValues(alpha: 0.95);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(12, 13.6), width: 4.6, height: 3.6), paw);
+    for (final t in const [Offset(9.4, 10.9), Offset(10.9, 9.6), Offset(13.1, 9.6), Offset(14.6, 10.9)]) {
+      canvas.drawOval(Rect.fromCenter(center: t, width: 1.8, height: 2.2), paw);
     }
     if (!detailed) return;
-    canvas.drawCircle(
-      const Offset(9.4, 14.6),
-      0.85,
-      Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.85),
-    );
+    sparkleAt(canvas, const Offset(20.2, 4.2), 3.4);
+    glossAt(canvas, const Offset(7.0, 8.2), w: 3.0, h: 1.4, alpha: 0.5);
   }
 }

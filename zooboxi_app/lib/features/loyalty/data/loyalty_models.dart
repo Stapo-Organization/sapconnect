@@ -66,6 +66,7 @@ class TierPerk {
     required this.text,
     this.active = false,
     this.fromTier,
+    this.fromTierName,
   });
 
   final String key;
@@ -75,11 +76,16 @@ class TierPerk {
   /// The tier that unlocks it, for a perk that is still ahead.
   final String? fromTier;
 
+  /// That tier's display name in the request's language, when the server
+  /// sends one; the app resolves the key itself otherwise.
+  final String? fromTierName;
+
   factory TierPerk.fromJson(Map<String, dynamic> json) => TierPerk(
         key: asString(json['key']),
         text: asString(json['text']),
         active: asBool(json['active']),
         fromTier: asStringOrNull(json['from_tier']),
+        fromTierName: asStringOrNull(json['from_tier_name']),
       );
 }
 
@@ -519,6 +525,40 @@ class LoyaltyCounters {
       );
 }
 
+/// An order that is placed but not yet delivered — the paws it will pay and
+/// whether it came from the app (so a mission may be waiting on it too).
+///
+/// The whole program settles on delivery, and the customer who just placed
+/// their first order needs to be told, in so many words, that nothing is
+/// missing: it is on its way.
+@immutable
+class PendingOrder {
+  const PendingOrder({
+    required this.id,
+    required this.number,
+    this.paws = 0,
+    this.isApp = false,
+    this.createdAt,
+  });
+
+  final int id;
+  final String number;
+  final int paws;
+  final bool isApp;
+  final DateTime? createdAt;
+
+  factory PendingOrder.fromJson(Map<String, dynamic> json) => PendingOrder(
+        id: asInt(json['id']),
+        number: asString(json['number'], fallback: asInt(json['id']).toString()),
+        paws: asInt(json['paws']),
+        isApp: asBool(json['is_app']),
+        createdAt: asDate(json['created_at']),
+      );
+
+  static List<PendingOrder> listFrom(dynamic value) =>
+      asMapList(value).map(PendingOrder.fromJson).where((o) => o.id > 0).toList();
+}
+
 /// `GET /loyalty/summary` — one read that answers the whole family hub and
 /// both home cards.
 @immutable
@@ -531,6 +571,7 @@ class LoyaltySummary {
     this.rewards = SummaryRewards.empty,
     this.pets = const [],
     this.counters = const LoyaltyCounters(),
+    this.pendingOrders = const [],
   });
 
   final LoyaltyMember member;
@@ -541,9 +582,20 @@ class LoyaltySummary {
   final List<Pet> pets;
   final LoyaltyCounters counters;
 
+  /// Orders on their way — paws and missions waiting on a delivery.
+  final List<PendingOrder> pendingOrders;
+
   static const LoyaltySummary empty = LoyaltySummary();
 
   Pet? get firstPet => pets.isEmpty ? null : pets.first;
+
+  /// Whether an app order is in flight, so an order-driven mission can say
+  /// "waiting on your delivery" instead of sitting at zero.
+  bool get hasPendingAppOrder => pendingOrders.any((o) => o.isApp);
+
+  /// Paws that exist but haven't landed: revealed prizes plus in-flight orders.
+  int get pendingPaws =>
+      paws.pending + pendingOrders.fold<int>(0, (sum, o) => sum + o.paws);
 
   /// Control-group members keep paws and tiers and lose the play layer, so
   /// every gamified section asks this rather than checking `holdout` itself.
@@ -560,6 +612,7 @@ class LoyaltySummary {
         rewards: SummaryRewards.fromJson(asMap(json['rewards'])),
         pets: Pet.listFrom(json['pets']),
         counters: LoyaltyCounters.fromJson(asMap(json['counters'])),
+        pendingOrders: PendingOrder.listFrom(json['pending_orders']),
       );
 }
 
