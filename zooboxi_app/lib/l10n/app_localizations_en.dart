@@ -1844,4 +1844,488 @@ class LEn extends L {
   String missionOfTarget(String target) {
     return 'of $target';
   }
+
+  @override
+  String get supplyTitle => 'Pantry';
+
+  @override
+  String get supplySubtitle =>
+      'We learn from your orders — every \"ran out\" or \"still enough\" makes the estimate sharper';
+
+  @override
+  String get supplyHubSubtitle => 'When your family\'s food runs out';
+
+  @override
+  String get supplyEmptyTitle => 'Nothing on the gauge yet';
+
+  @override
+  String get supplyEmptyBody =>
+      'After your first food or litter order from the app we start counting down and remind you on time';
+
+  @override
+  String supplyDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+      zero: 'Runs out today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get supplyRunsOutToday => 'Runs out today';
+
+  @override
+  String supplyOverdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ran out $count days ago',
+      one: 'Ran out yesterday',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get supplyOrderNow => 'Order now';
+
+  @override
+  String get supplyOut => 'Ran out';
+
+  @override
+  String get supplySnooze => 'Enough';
+
+  @override
+  String get supplySubscribe => 'Subscribe';
+
+  @override
+  String get supplySubscribed => 'Subscribed';
+
+  @override
+  String supplyOnTimeBadge(int pct) {
+    return '+$pct% on time';
+  }
+
+  @override
+  String supplyCycle(String days) {
+    return 'Lasts about $days days';
+  }
+
+  @override
+  String supplyForPet(String name) {
+    return 'for $name';
+  }
+
+  @override
+  String get supplyConfidenceLow => 'first estimate';
+
+  @override
+  String get supplyConfidenceMedium => 'estimate';
+
+  @override
+  String get supplyConfidenceHigh => 'based on your orders';
+
+  @override
+  String get supplyMarkedOut => 'Noted — it ran out. Time to reorder';
+
+  @override
+  String supplySnoozed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Okay, we\'ll remind you in $count days',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get supplyKindDry => 'Dry food';
+
+  @override
+  String get supplyKindWet => 'Wet food';
+
+  @override
+  String get supplyKindLitter => 'Litter';
+
+  @override
+  String get supplyKindTreat => 'Treats';
+
+  @override
+  String get supplyKindOther => 'Supply';
+
+  @override
+  String supplyWindowHint(int before, int after, int pct) {
+    return 'Order between $before days before it runs out and $after after, and earn +$pct% paws';
+  }
+
+  @override
+  String supplyPack(String kg) {
+    return '$kg kg';
+  }
+
+  @override
+  String get subsTitle => 'My subscriptions';
+
+  @override
+  String get subsSubtitle =>
+      'Deliver every month — no saved card, no commitment, you decide every time';
+
+  @override
+  String subsHubSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active subscriptions',
+      one: '1 active subscription',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subsEmptyTitle => 'No subscriptions yet';
+
+  @override
+  String get subsEmptyBody =>
+      'Subscribe to your family\'s food from the pantry — we remind you before the date, you order with one tap, delivery is on us';
+
+  @override
+  String subsNextIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delivery in $count days',
+      one: 'Delivery tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subsNextToday => 'Delivery today';
+
+  @override
+  String get subsOverdue => 'Delivery date passed';
+
+  @override
+  String subsEvery(int days) {
+    return 'Every $days days';
+  }
+
+  @override
+  String subsQty(int qty) {
+    return '× $qty';
+  }
+
+  @override
+  String get subsPaused => 'Paused';
+
+  @override
+  String get subsOrderNow => 'Order now';
+
+  @override
+  String get subsSkip => 'Skip';
+
+  @override
+  String get subsEdit => 'Edit';
+
+  @override
+  String get subsPause => 'Pause';
+
+  @override
+  String get subsResume => 'Resume';
+
+  @override
+  String get subsCancel => 'Cancel subscription';
+
+  @override
+  String get subsCancelConfirm =>
+      'Cancel this subscription? You can subscribe again any time.';
+
+  @override
+  String subsPerks(int pct, int every) {
+    return 'Free delivery on every delivery · +$pct% paws · a gift every $every deliveries';
+  }
+
+  @override
+  String subsDeliveries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count deliveries',
+      one: '1 delivery',
+      zero: 'No deliveries yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String subsNextGift(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gift in $count deliveries',
+      one: 'Gift with the next delivery',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subsEditorTitle => 'Edit subscription';
+
+  @override
+  String get subsIntervalLabel => 'How often?';
+
+  @override
+  String get subsQtyLabel => 'Quantity';
+
+  @override
+  String get subsNextLabel => 'Next delivery';
+
+  @override
+  String get subsSave => 'Save';
+
+  @override
+  String get subsCreated => 'Subscribed — we\'ll remind you three days before';
+
+  @override
+  String get subsSkipped => 'This delivery was skipped';
+
+  @override
+  String get subsBasketReady => 'Your basket is ready — delivery is free';
+
+  @override
+  String get subsCancelled => 'Subscription cancelled';
+
+  @override
+  String get subsFreeDeliveryBody =>
+      'Subscription delivery — shipping is on us';
+
+  @override
+  String get successSubscriptionNote =>
+      'Subscription delivery: bonus paws and free delivery';
+
+  @override
+  String get referralTitle => 'Invite a friend';
+
+  @override
+  String referralHubBody(String paws) {
+    return 'Your friend gets a welcome gift with their first order, and you get $paws paws once it\'s delivered';
+  }
+
+  @override
+  String get referralShare => 'Share the invite';
+
+  @override
+  String get referralCopy => 'Copy code';
+
+  @override
+  String get referralCopied => 'Code copied';
+
+  @override
+  String get referralYourCode => 'Your code';
+
+  @override
+  String get referralStatsInvited => 'Invited';
+
+  @override
+  String get referralStatsQualified => 'Awaiting delivery';
+
+  @override
+  String get referralStatsRewarded => 'Rewarded';
+
+  @override
+  String get referralHaveCode => 'Have a code from a friend?';
+
+  @override
+  String get referralEnterCode => 'Enter the invitation code';
+
+  @override
+  String get referralApply => 'Apply';
+
+  @override
+  String referralApplied(String code) {
+    return 'Code $code applied — your welcome gift is in your wallet';
+  }
+
+  @override
+  String referralAppliedBefore(String code) {
+    return 'You joined by invitation $code';
+  }
+
+  @override
+  String referralCap(int n, int cap) {
+    return '$n of $cap invitations this month';
+  }
+
+  @override
+  String get referralEmpty =>
+      'No one invited yet — the first friend is waiting';
+
+  @override
+  String get referralStatePending => 'Joined — awaiting first order';
+
+  @override
+  String get referralStateQualified => 'Order delivered — awaiting approval';
+
+  @override
+  String get referralStateReview => 'Under review';
+
+  @override
+  String get referralStateRewarded => 'Reward paid';
+
+  @override
+  String get referralStateRejected => 'Not accepted';
+
+  @override
+  String get referralHow => 'How it works';
+
+  @override
+  String get referralHow1 =>
+      'Share your code or link with a friend who has never ordered from Zooboxi';
+
+  @override
+  String referralHow2(String welcome) {
+    return 'They apply the code in the app and get $welcome with their first order';
+  }
+
+  @override
+  String referralHow3(String paws) {
+    return 'A week after their order is delivered, $paws paws land in your wallet';
+  }
+
+  @override
+  String momentBirthdayTitle(String name) {
+    return '$name\'s birthday 🎂';
+  }
+
+  @override
+  String momentBirthdayIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count days',
+      one: 'tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get momentBirthdayToday => 'today!';
+
+  @override
+  String momentBirthdayPassed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: 'yesterday',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get momentBirthdayGift =>
+      'A gift in their name is in your wallet — add it to your next order';
+
+  @override
+  String momentBirthdayPaws(String paws) {
+    return '$paws birthday paws are in your wallet';
+  }
+
+  @override
+  String get momentBirthdayNoGift =>
+      'How about a small treat for them this week?';
+
+  @override
+  String get momentAddToCart => 'Add the gift to cart';
+
+  @override
+  String get momentGiftAdded => 'The gift is in your cart';
+
+  @override
+  String tierRiskLine(int days, String tier) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days days your level drops to $tier — one order keeps it',
+      one: 'Tomorrow your level drops to $tier — one order keeps it',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stampsTitle => 'Brand cards';
+
+  @override
+  String stampsRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count to go',
+      one: '1 to go',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stampsDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cards completed',
+      one: '1 card completed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stampsMinPack(String kg) {
+    return 'packs of $kg kg and up';
+  }
+
+  @override
+  String get stampsReward => 'Reward';
+
+  @override
+  String familySupplyLine(int days, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$name\'s food lasts $days more days',
+      one: '$name\'s food lasts 1 more day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String familySupplyDue(String name) {
+    return 'Time to reorder $name\'s food';
+  }
+
+  @override
+  String familySubscriptionLine(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Your subscription delivery is in $days days',
+      one: 'Your subscription delivery is tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get familySubscriptionToday => 'Your subscription delivery is today';
+
+  @override
+  String get subsEveryWeek => 'Every week';
+
+  @override
+  String get subsEveryTwoWeeks => 'Every two weeks';
+
+  @override
+  String get subsEveryMonth => 'Every month';
+
+  @override
+  String get subsEveryTwoMonths => 'Every two months';
 }

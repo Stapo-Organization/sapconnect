@@ -78,6 +78,17 @@ abstract final class ZbEvents {
 
   /// The home family card was shown. Payload: `variant`.
   static const familyCard = 'family_card';
+
+  /// The food gauge was acted on. Payload: `product_id`, `action`
+  /// (`out` | `snooze` | `order` | `subscribe`).
+  static const supplyAction = 'supply_action';
+
+  /// A subscription was created, skipped, ordered, paused or cancelled.
+  /// Payload: `subscription_id`, `action`.
+  static const subscription = 'subscription';
+
+  /// The referral link was handed to the share sheet.
+  static const referralShare = 'referral_share';
 }
 
 /// Batches signals and posts them in the background.

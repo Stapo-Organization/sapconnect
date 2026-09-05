@@ -12,6 +12,8 @@ import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
 import '../data/pet_models.dart';
+import '../../loyalty/data/loyalty_models.dart';
+import '../../loyalty/data/loyalty_repository.dart';
 import '../data/pets_repository.dart';
 import '../../loyalty/presentation/widgets/loyalty_art.dart';
 import 'widgets/pet_card.dart';
@@ -52,7 +54,10 @@ class PetsScreen extends ConsumerWidget {
           value: pets,
           onRetry: () => ref.invalidate(petsProvider),
           skeleton: const _PetsSkeleton(),
-          builder: (data) => _Loaded(data: data),
+          builder: (data) => _Loaded(
+            data: data,
+            supply: ref.watch(loyaltySummaryProvider).value?.supply.items ?? const [],
+          ),
         ),
       ),
     );
@@ -60,9 +65,19 @@ class PetsScreen extends ConsumerWidget {
 }
 
 class _Loaded extends StatelessWidget {
-  const _Loaded({required this.data});
+  const _Loaded({required this.data, this.supply = const []});
 
   final PetsPayload data;
+
+  /// The gauge's lines, so each card can say when its pet's food runs out.
+  final List<SupplyItem> supply;
+
+  SupplyItem? _supplyFor(Pet pet) {
+    for (final item in supply) {
+      if (item.pet?.id == pet.id) return item;
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +100,7 @@ class _Loaded extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         for (final pet in data.pets) ...[
-          PetCard(pet: pet, onTap: () => context.push('/pets/${pet.id}', extra: pet)),
+          PetCard(pet: pet, supply: _supplyFor(pet), onTap: () => context.push('/pets/${pet.id}', extra: pet)),
           Gap.h12,
         ],
         if (data.canAdd)

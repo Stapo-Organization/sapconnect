@@ -13,7 +13,12 @@ import '../../../../core/widgets/press_scale.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/auth_sheet.dart';
+import '../../../cart/data/cart_controller.dart';
 import '../../../cart/presentation/add_to_cart.dart';
+import '../../../loyalty/data/loyalty_repository.dart';
+import '../../../loyalty/presentation/widgets/supply_card.dart';
+import '../../../../core/utils/error_text.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../catalog/data/product_models.dart';
 import '../../../loyalty/data/loyalty_models.dart';
@@ -25,7 +30,7 @@ import '../../../pets/presentation/widgets/species_avatar.dart';
 /// Which face the card is wearing. Reported as the `family_card` event's
 /// payload, because "which variant did they see" is the only way to read
 /// whether the card is doing anything.
-enum FamilyCardVariant { guest, noPet, pending, due, mission, tier }
+enum FamilyCardVariant { guest, noPet, birthday, pending, supply, subscription, due, mission, tier }
 
 /// The storefront's window into «عائلة زوبوكسي».
 ///
@@ -50,12 +55,24 @@ class FamilyCard extends ConsumerStatefulWidget {
   static FamilyCardVariant variantOf(LoyaltySummary? summary, HomeFeed? feed) {
     if (summary == null) return FamilyCardVariant.guest;
     if (summary.pets.isEmpty) return FamilyCardVariant.noPet;
+    if (birthdayOf(summary) != null) return FamilyCardVariant.birthday;
     if (summary.pendingOrders.isNotEmpty) return FamilyCardVariant.pending;
+    if (summary.supplyDue != null) return FamilyCardVariant.supply;
+    if (summary.subscriptionDue != null) return FamilyCardVariant.subscription;
     if (dueProduct(feed) != null) return FamilyCardVariant.due;
     if (summary.playsGames && summary.missions.nearest != null) {
       return FamilyCardVariant.mission;
     }
     return FamilyCardVariant.tier;
+  }
+
+  /// A birthday worth a card: upcoming inside the week, or already passed
+  /// with the gift still unclaimed.
+  static BirthdayMoment? birthdayOf(LoyaltySummary summary) {
+    final moment = summary.birthday;
+    if (moment == null || !moment.eligible) return null;
+    if (moment.days >= 0) return moment;
+    return moment.grant != null && moment.grant!.isClaimable ? moment : null;
   }
 
   /// The first product the feed says this customer is due to run out of.
@@ -97,6 +114,84 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
     await context.push<void>('/pets/new');
   }
 
+  Future<void> _orderSupply(SupplyItem item) async {
+    if (_adding) return;
+    ref.read(eventsBufferProvider).track(
+          ZbEvent(type: ZbEvents.supplyAction, zone: 'home', payload: {'product_id': item.product.id, 'action': 'order'}),
+        );
+    if (item.product.isVariable && item.variationId <= 0) {
+      Haptics.light();
+      await context.push<void>('/product/${item.product.id}', extra: item.product);
+      return;
+    }
+    setState(() => _adding = true);
+    await addToCart(
+      context,
+      ref,
+      product: item.product,
+      variationId: item.variationId > 0 ? item.variationId : null,
+      quantity: item.qtyLast,
+      zone: 'home_family',
+    );
+    if (mounted) setState(() => _adding = false);
+  }
+
+  Future<void> _orderSubscription(Subscription sub) async {
+    if (_adding) return;
+    setState(() => _adding = true);
+    try {
+      final result = await ref.read(loyaltyRepositoryProvider).orderNow(sub.id);
+      ref.read(cartControllerProvider.notifier).applyServerCart(result.cart);
+      ref.read(eventsBufferProvider).track(
+            ZbEvent(type: ZbEvents.subscription, zone: 'home', payload: {'subscription_id': sub.id, 'action': 'order'}),
+          );
+      if (!mounted) return;
+      await Haptics.success();
+      if (!mounted) return;
+      AppToast.success(context, L.of(context).subsBasketReady);
+      await context.push<void>('/cart');
+    } catch (e) {
+      if (mounted) AppToast.error(context, errorMessage(context, e));
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
+  Future<void> _skipSubscription(Subscription sub) async {
+    if (_adding) return;
+    setState(() => _adding = true);
+    try {
+      await ref.read(loyaltyRepositoryProvider).skipSubscription(sub.id);
+      if (!mounted) return;
+      Haptics.selection();
+      AppToast.success(context, L.of(context).subsSkipped);
+      invalidateLoyalty(ref);
+    } catch (e) {
+      if (mounted) AppToast.error(context, errorMessage(context, e));
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
+  Future<void> _claimBirthday(BirthdayMoment moment) async {
+    final grant = moment.grant;
+    if (_adding || grant == null) return;
+    setState(() => _adding = true);
+    try {
+      await ref.read(cartControllerProvider.notifier).claimGrant(grant.id);
+      if (!mounted) return;
+      await Haptics.success();
+      if (!mounted) return;
+      AppToast.success(context, L.of(context).momentGiftAdded);
+      invalidateLoyalty(ref);
+      await context.push<void>('/cart');
+    } catch (e) {
+      if (mounted) AppToast.error(context, errorMessage(context, e));
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
   Future<void> _reorder(ProductCard product) async {
     if (_adding) return;
     // A variable product (sizes, flavours) cannot be added blind — the
@@ -126,11 +221,42 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
           paws: summary!.paws.balance,
           onTap: () => context.push('/pets/new'),
         ),
+      FamilyCardVariant.birthday => _PetRow(
+          pet: FamilyCard.birthdayOf(summary!)!.pet,
+          summary: summary,
+          onTap: () => context.push('/family'),
+          child: _BirthdayLine(
+            moment: FamilyCard.birthdayOf(summary)!,
+            busy: _adding,
+            onClaim: () => _claimBirthday(FamilyCard.birthdayOf(summary)!),
+          ),
+        ),
       FamilyCardVariant.pending => _PetRow(
           pet: summary!.firstPet!,
           summary: summary,
           onTap: () => context.push('/family'),
           child: _PendingLine(order: summary.pendingOrders.first),
+        ),
+      FamilyCardVariant.supply => _PetRow(
+          pet: _petFor(summary!, summary.supplyDue!.pet?.id),
+          summary: summary,
+          onTap: () => context.push('/family/supply'),
+          child: _SupplyLine(
+            item: summary.supplyDue!,
+            busy: _adding,
+            onOrder: () => _orderSupply(summary.supplyDue!),
+          ),
+        ),
+      FamilyCardVariant.subscription => _PetRow(
+          pet: _petFor(summary!, summary.subscriptionDue!.pet?.id),
+          summary: summary,
+          onTap: () => context.push('/family/subscriptions'),
+          child: _SubscriptionLine(
+            sub: summary.subscriptionDue!,
+            busy: _adding,
+            onOrder: () => _orderSubscription(summary.subscriptionDue!),
+            onSkip: () => _skipSubscription(summary.subscriptionDue!),
+          ),
         ),
       FamilyCardVariant.due => _PetRow(
           pet: summary!.firstPet!,
@@ -155,6 +281,197 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
           child: _StandingLine(summary: summary),
         ),
     };
+  }
+}
+
+/// The pet a line is about — by id when the server named one, else the first.
+Pet _petFor(LoyaltySummary summary, int? petId) {
+  if (petId != null) {
+    for (final pet in summary.pets) {
+      if (pet.id == petId) return pet;
+    }
+  }
+  return summary.firstPet!;
+}
+
+/// «أكل مشمش يكفي 4 أيام» — the gauge on the storefront, with the button.
+class _SupplyLine extends StatelessWidget {
+  const _SupplyLine({required this.item, required this.onOrder, this.busy = false});
+
+  final SupplyItem item;
+  final VoidCallback onOrder;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final name = item.pet?.name ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          item.daysLeft > 0 ? l.familySupplyLine(item.daysLeft, name) : l.familySupplyDue(name),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.bodySmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
+        ),
+        Gap.h4,
+        Text(
+          item.product.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+        ),
+        Gap.h8,
+        Row(
+          children: [
+            SupplyRing(item: item, size: 40),
+            Gap.w8,
+            Expanded(
+              child: FilledButton(
+                onPressed: busy ? null : onOrder,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 40),
+                  backgroundColor: item.isOk ? null : supplyHue(context, item),
+                ),
+                child: busy
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(l.familyOrderNow),
+                          if (item.onTime) ...[Gap.w6, const PawCoin(size: 16)],
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// «توصيلة اشتراكك بعد 3 أيام» — the one-tap basket, and the skip.
+class _SubscriptionLine extends StatelessWidget {
+  const _SubscriptionLine({required this.sub, required this.onOrder, required this.onSkip, this.busy = false});
+
+  final Subscription sub;
+  final VoidCallback onOrder;
+  final VoidCallback onSkip;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final days = sub.daysUntil ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const FamilyMarkIcon(FamilyMark.repeat, size: 16),
+            Gap.w6,
+            Expanded(
+              child: Text(
+                days > 0 ? l.familySubscriptionLine(days) : l.familySubscriptionToday,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.bodySmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        Gap.h4,
+        Text(
+          '${sub.product.name} ${l.subsQty(sub.qty)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+        ),
+        Gap.h8,
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton(
+                onPressed: busy ? null : onOrder,
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+                child: busy
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text(l.subsOrderNow),
+              ),
+            ),
+            Gap.w8,
+            OutlinedButton(
+              onPressed: busy ? null : onSkip,
+              style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40)),
+              child: Text(l.subsSkip),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// «عيد ميلاد مشمش 🎂» — the week, and the gift waiting in the wallet.
+class _BirthdayLine extends StatelessWidget {
+  const _BirthdayLine({required this.moment, required this.onClaim, this.busy = false});
+
+  final BirthdayMoment moment;
+  final VoidCallback onClaim;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final locale = Localizations.localeOf(context).languageCode;
+    final days = moment.days;
+    final when = days == 0 ? l.momentBirthdayToday : (days > 0 ? l.momentBirthdayIn(days) : l.momentBirthdayPassed(-days));
+    final grant = moment.grant;
+    final body = grant != null
+        ? l.momentBirthdayGift
+        : (moment.paws != null ? l.momentBirthdayPaws(Fmt.number(moment.paws!, locale: locale, decimals: 0)) : l.momentBirthdayNoGift);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const FamilyMarkIcon(FamilyMark.cake, size: 18),
+            Gap.w6,
+            Expanded(
+              child: Text(
+                '${l.momentBirthdayTitle(moment.pet.name)} · $when',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.tt.bodySmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+        Gap.h4,
+        Text(body, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
+        if (grant != null && grant.isClaimable) ...[
+          Gap.h8,
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FilledButton(
+              onPressed: busy ? null : onClaim,
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 36), backgroundColor: ZbTokens.logoCoral, padding: const EdgeInsets.symmetric(horizontal: 16)),
+              child: busy
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(l.momentAddToCart),
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 

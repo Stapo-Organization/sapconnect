@@ -732,5 +732,355 @@
         "type": "String"
       }
     }
-  }
+  },
+  "supplyTitle": "Pantry",
+  "supplySubtitle": "We learn from your orders — every \"ran out\" or \"still enough\" makes the estimate sharper",
+  "supplyHubSubtitle": "When your family's food runs out",
+  "supplyEmptyTitle": "Nothing on the gauge yet",
+  "supplyEmptyBody": "After your first food or litter order from the app we start counting down and remind you on time",
+  "supplyDaysLeft": "{count, plural, =0{Runs out today} =1{1 day left} other{{count} days left}}",
+  "@supplyDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyRunsOutToday": "Runs out today",
+  "supplyOverdue": "{count, plural, =1{Ran out yesterday} other{Ran out {count} days ago}}",
+  "@supplyOverdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyOrderNow": "Order now",
+  "supplyOut": "Ran out",
+  "supplySnooze": "Enough",
+  "supplySubscribe": "Subscribe",
+  "supplySubscribed": "Subscribed",
+  "supplyOnTimeBadge": "+{pct}% on time",
+  "@supplyOnTimeBadge": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyCycle": "Lasts about {days} days",
+  "@supplyCycle": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "supplyForPet": "for {name}",
+  "@supplyForPet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "supplyConfidenceLow": "first estimate",
+  "supplyConfidenceMedium": "estimate",
+  "supplyConfidenceHigh": "based on your orders",
+  "supplyMarkedOut": "Noted — it ran out. Time to reorder",
+  "supplySnoozed": "{count, plural, other{Okay, we'll remind you in {count} days}}",
+  "@supplySnoozed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyKindDry": "Dry food",
+  "supplyKindWet": "Wet food",
+  "supplyKindLitter": "Litter",
+  "supplyKindTreat": "Treats",
+  "supplyKindOther": "Supply",
+  "supplyWindowHint": "Order between {before} days before it runs out and {after} after, and earn +{pct}% paws",
+  "@supplyWindowHint": {
+    "placeholders": {
+      "before": {
+        "type": "int"
+      },
+      "after": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyPack": "{kg} kg",
+  "@supplyPack": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      }
+    }
+  },
+  "subsTitle": "My subscriptions",
+  "subsSubtitle": "Deliver every month — no saved card, no commitment, you decide every time",
+  "subsHubSubtitle": "{count, plural, =1{1 active subscription} other{{count} active subscriptions}}",
+  "@subsHubSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsEmptyTitle": "No subscriptions yet",
+  "subsEmptyBody": "Subscribe to your family's food from the pantry — we remind you before the date, you order with one tap, delivery is on us",
+  "subsNextIn": "{count, plural, =1{Delivery tomorrow} other{Delivery in {count} days}}",
+  "@subsNextIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsNextToday": "Delivery today",
+  "subsOverdue": "Delivery date passed",
+  "subsEvery": "Every {days} days",
+  "@subsEvery": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "subsQty": "× {qty}",
+  "@subsQty": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "subsPaused": "Paused",
+  "subsOrderNow": "Order now",
+  "subsSkip": "Skip",
+  "subsEdit": "Edit",
+  "subsPause": "Pause",
+  "subsResume": "Resume",
+  "subsCancel": "Cancel subscription",
+  "subsCancelConfirm": "Cancel this subscription? You can subscribe again any time.",
+  "subsPerks": "Free delivery on every delivery · +{pct}% paws · a gift every {every} deliveries",
+  "@subsPerks": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      },
+      "every": {
+        "type": "int"
+      }
+    }
+  },
+  "subsDeliveries": "{count, plural, =0{No deliveries yet} =1{1 delivery} other{{count} deliveries}}",
+  "@subsDeliveries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsNextGift": "{count, plural, =1{Gift with the next delivery} other{Gift in {count} deliveries}}",
+  "@subsNextGift": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsEditorTitle": "Edit subscription",
+  "subsIntervalLabel": "How often?",
+  "subsQtyLabel": "Quantity",
+  "subsNextLabel": "Next delivery",
+  "subsSave": "Save",
+  "subsCreated": "Subscribed — we'll remind you three days before",
+  "subsSkipped": "This delivery was skipped",
+  "subsBasketReady": "Your basket is ready — delivery is free",
+  "subsCancelled": "Subscription cancelled",
+  "subsFreeDeliveryBody": "Subscription delivery — shipping is on us",
+  "successSubscriptionNote": "Subscription delivery: bonus paws and free delivery",
+  "referralTitle": "Invite a friend",
+  "referralHubBody": "Your friend gets a welcome gift with their first order, and you get {paws} paws once it's delivered",
+  "@referralHubBody": {
+    "placeholders": {
+      "paws": {
+        "type": "String"
+      }
+    }
+  },
+  "referralShare": "Share the invite",
+  "referralCopy": "Copy code",
+  "referralCopied": "Code copied",
+  "referralYourCode": "Your code",
+  "referralStatsInvited": "Invited",
+  "referralStatsQualified": "Awaiting delivery",
+  "referralStatsRewarded": "Rewarded",
+  "referralHaveCode": "Have a code from a friend?",
+  "referralEnterCode": "Enter the invitation code",
+  "referralApply": "Apply",
+  "referralApplied": "Code {code} applied — your welcome gift is in your wallet",
+  "@referralApplied": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "referralAppliedBefore": "You joined by invitation {code}",
+  "@referralAppliedBefore": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "referralCap": "{n} of {cap} invitations this month",
+  "@referralCap": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "cap": {
+        "type": "int"
+      }
+    }
+  },
+  "referralEmpty": "No one invited yet — the first friend is waiting",
+  "referralStatePending": "Joined — awaiting first order",
+  "referralStateQualified": "Order delivered — awaiting approval",
+  "referralStateReview": "Under review",
+  "referralStateRewarded": "Reward paid",
+  "referralStateRejected": "Not accepted",
+  "referralHow": "How it works",
+  "referralHow1": "Share your code or link with a friend who has never ordered from Zooboxi",
+  "referralHow2": "They apply the code in the app and get {welcome} with their first order",
+  "@referralHow2": {
+    "placeholders": {
+      "welcome": {
+        "type": "String"
+      }
+    }
+  },
+  "referralHow3": "A week after their order is delivered, {paws} paws land in your wallet",
+  "@referralHow3": {
+    "placeholders": {
+      "paws": {
+        "type": "String"
+      }
+    }
+  },
+  "momentBirthdayTitle": "{name}'s birthday 🎂",
+  "@momentBirthdayTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "momentBirthdayIn": "{count, plural, =1{tomorrow} other{in {count} days}}",
+  "@momentBirthdayIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "momentBirthdayToday": "today!",
+  "momentBirthdayPassed": "{count, plural, =1{yesterday} other{{count} days ago}}",
+  "@momentBirthdayPassed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "momentBirthdayGift": "A gift in their name is in your wallet — add it to your next order",
+  "momentBirthdayPaws": "{paws} birthday paws are in your wallet",
+  "@momentBirthdayPaws": {
+    "placeholders": {
+      "paws": {
+        "type": "String"
+      }
+    }
+  },
+  "momentBirthdayNoGift": "How about a small treat for them this week?",
+  "momentAddToCart": "Add the gift to cart",
+  "momentGiftAdded": "The gift is in your cart",
+  "tierRiskLine": "{days, plural, =1{Tomorrow your level drops to {tier} — one order keeps it} other{In {days} days your level drops to {tier} — one order keeps it}}",
+  "@tierRiskLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "stampsTitle": "Brand cards",
+  "stampsRemaining": "{count, plural, =1{1 to go} other{{count} to go}}",
+  "@stampsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stampsDone": "{count, plural, =1{1 card completed} other{{count} cards completed}}",
+  "@stampsDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stampsMinPack": "packs of {kg} kg and up",
+  "@stampsMinPack": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      }
+    }
+  },
+  "stampsReward": "Reward",
+  "familySupplyLine": "{days, plural, =1{{name}'s food lasts 1 more day} other{{name}'s food lasts {days} more days}}",
+  "@familySupplyLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familySupplyDue": "Time to reorder {name}'s food",
+  "@familySupplyDue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familySubscriptionLine": "{days, plural, =1{Your subscription delivery is tomorrow} other{Your subscription delivery is in {days} days}}",
+  "@familySubscriptionLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "familySubscriptionToday": "Your subscription delivery is today",
+  "subsEveryWeek": "Every week",
+  "subsEveryTwoWeeks": "Every two weeks",
+  "subsEveryMonth": "Every month",
+  "subsEveryTwoMonths": "Every two months"
 }

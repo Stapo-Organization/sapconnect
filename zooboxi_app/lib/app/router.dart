@@ -21,8 +21,11 @@ import '../features/home/presentation/home_screen.dart';
 import '../features/loyalty/data/loyalty_models.dart';
 import '../features/loyalty/presentation/family_hub_screen.dart';
 import '../features/loyalty/presentation/ledger_screen.dart';
+import '../features/loyalty/presentation/referral_screen.dart';
 import '../features/loyalty/presentation/rewards_screen.dart';
 import '../features/loyalty/presentation/scratch_screen.dart';
+import '../features/loyalty/presentation/subscriptions_screen.dart';
+import '../features/loyalty/presentation/supply_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/orders/presentation/order_detail_screen.dart';
@@ -175,6 +178,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'ledger',
             parentNavigatorKey: rootNavigatorKey,
             pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const LedgerScreen()),
+          ),
+          // Phase 2 «العادة»: the gauge, the subscriptions, the invitation.
+          GoRoute(
+            path: 'supply',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const SupplyScreen()),
+          ),
+          GoRoute(
+            path: 'subscriptions',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const SubscriptionsScreen()),
+          ),
+          GoRoute(
+            path: 'referral',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const ReferralScreen()),
           ),
           // A card the customer already holds — the object rides in `extra`
           // when there is one, so the foil is on screen before the fetch.

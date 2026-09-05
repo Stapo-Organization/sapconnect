@@ -14,6 +14,7 @@ import 'package:zooboxi_app/features/cart/data/cart_models.dart';
 import 'package:zooboxi_app/features/cart/presentation/widgets/free_shipping_bar.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/family_card.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/missions_strip.dart';
+import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/features/loyalty/data/loyalty_models.dart';
 import 'package:zooboxi_app/features/loyalty/data/loyalty_repository.dart';
 import 'package:zooboxi_app/features/loyalty/presentation/family_hub_screen.dart';
@@ -132,6 +133,55 @@ LoyaltySummary _summary({bool pending = true}) => LoyaltySummary(
       rewards: const SummaryRewards(activeCount: 1, sealedScratch: [SealedScratch(id: 88, orderNumber: '32579')]),
       pets: _pets,
       pendingOrders: pending ? const [PendingOrder(id: 4102, number: '32601', paws: 118, isApp: true)] : const [],
+      supply: const SupplyBlock(
+        items: [
+          SupplyItem(
+            product: ProductCard(id: 501, name: 'رويال كانين قطط بالغة دجاج 2 كجم', image: null, price: 120),
+            kind: 'dry',
+            pet: PetRef(id: 7, name: 'مشمش', species: PetSpecies.cat),
+            qtyLast: 1,
+            cycleDays: 41,
+            daysLeft: 4,
+            status: 'soon',
+            confidence: 'high',
+            onTime: true,
+            packKg: 2,
+            buys: 3,
+          ),
+          SupplyItem(
+            product: ProductCard(id: 502, name: 'رمل قطط متكتل برائحة اللافندر 10 كجم', image: null, price: 65),
+            kind: 'litter',
+            pet: PetRef(id: 7, name: 'مشمش', species: PetSpecies.cat),
+            qtyLast: 1,
+            cycleDays: 20,
+            daysLeft: 13,
+            status: 'ok',
+            confidence: 'medium',
+            packKg: 10,
+            buys: 2,
+            subscriptionId: 12,
+          ),
+        ],
+        dueCount: 1,
+        total: 2,
+      ),
+      subscriptions: const SubscriptionsBlock(
+        active: 1,
+        next: Subscription(
+          id: 12,
+          product: ProductCard(id: 502, name: 'رمل قطط متكتل برائحة اللافندر 10 كجم', image: null, price: 65),
+          qty: 1,
+          intervalDays: 21,
+          daysUntil: 11,
+          deliveries: 2,
+          nextGiftIn: 1,
+          pet: PetRef(id: 7, name: 'مشمش', species: PetSpecies.cat),
+        ),
+      ),
+      referral: const ReferralSummary(code: 'ZBUCNBN', url: 'https://store.zooboxi.com/?ref=ZBUCNBN', rewarded: 1),
+      stamps: const [
+        StampCard(programId: 3, title: 'بطاقة رويال كانين', brandName: 'Royal Canin', unitsRequired: 6, minPackKg: 1.5, units: 4, remaining: 2),
+      ],
     );
 
 final _catalog = RewardsCatalog(

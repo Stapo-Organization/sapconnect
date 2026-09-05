@@ -45,6 +45,82 @@ class LoyaltyRepository {
   Future<ScratchCard> reveal(int cardId) async =>
       ScratchCard.fromJson(asMap(await _api.post('/loyalty/scratch/$cardId/reveal')));
 
+  // ── Phase 2 «العادة» ──
+
+  Future<SupplyBlock> supply({bool fresh = false}) async =>
+      SupplyBlock.fromJson(asMap(await _api.get('/loyalty/supply', query: fresh ? {'fresh': 1} : null)));
+
+  /// «خلص» — the customer says the food ran out today.
+  Future<SupplyItem> markOut(int productId, {int variationId = 0}) async =>
+      SupplyItem.fromJson(asMap(asMap(await _api.post(
+        '/loyalty/supply/$productId/out',
+        body: {'variation_id': variationId},
+      ))['item']));
+
+  /// «عندي كفاية» — push the forecast out by [days].
+  Future<SupplyItem> snooze(int productId, {int variationId = 0, int days = 7}) async =>
+      SupplyItem.fromJson(asMap(asMap(await _api.post(
+        '/loyalty/supply/$productId/snooze',
+        body: {'variation_id': variationId, 'days': days},
+      ))['item']));
+
+  Future<SubscriptionsPayload> subscriptions() async =>
+      SubscriptionsPayload.fromJson(asMap(await _api.get('/loyalty/subscriptions')));
+
+  Future<SubscriptionsPayload> subscribe({
+    required int productId,
+    int variationId = 0,
+    int? qty,
+    int? intervalDays,
+    int? petId,
+  }) async =>
+      SubscriptionsPayload.fromJson(asMap(await _api.post('/loyalty/subscriptions', body: {
+        'product_id': productId,
+        'variation_id': variationId,
+        'qty': ?qty,
+        'interval_days': ?intervalDays,
+        'pet_id': ?petId,
+      })));
+
+  Future<SubscriptionsPayload> updateSubscription(
+    int id, {
+    int? qty,
+    int? intervalDays,
+    String? nextAt,
+    String? state,
+    int? petId,
+  }) async =>
+      SubscriptionsPayload.fromJson(asMap(await _api.patch('/loyalty/subscriptions/$id', body: {
+        'qty': ?qty,
+        'interval_days': ?intervalDays,
+        'next_at': ?nextAt,
+        'state': ?state,
+        'pet_id': ?petId,
+      })));
+
+  Future<SubscriptionsPayload> skipSubscription(int id) async =>
+      SubscriptionsPayload.fromJson(asMap(await _api.post('/loyalty/subscriptions/$id/skip')));
+
+  Future<SubscriptionsPayload> cancelSubscription(int id) async =>
+      SubscriptionsPayload.fromJson(asMap(await _api.delete('/loyalty/subscriptions/$id')));
+
+  /// The one-tap basket: the server builds the cart and flags it.
+  Future<({CartData cart, Subscription? subscription})> orderNow(int id) async {
+    final map = asMap(await _api.post('/loyalty/subscriptions/$id/order-now'));
+    return (
+      cart: CartData.fromJson(asMap(map['cart'])),
+      subscription: Subscription.maybe(map['subscription']),
+    );
+  }
+
+  Future<ReferralOverview> referral() async =>
+      ReferralOverview.fromJson(asMap(await _api.get('/loyalty/referral')));
+
+  Future<ReferralApplied> applyReferral(String code) async =>
+      ReferralApplied.fromJson(asMap(await _api.post('/loyalty/referral/apply', body: {'code': code})));
+
+  Future<List<StampCard>> stamps() async => StampCard.listFrom(await _api.get('/loyalty/stamps'));
+
   static ClaimResult _claimResult(dynamic data) {
     final map = asMap(data);
     return (
@@ -93,6 +169,29 @@ final claimableGrantsProvider = Provider.autoDispose<List<Grant>>((ref) {
   final catalog = ref.watch(loyaltyRewardsProvider).value;
   if (catalog == null) return const [];
   return catalog.grants.where((grant) => grant.isClaimable).toList();
+});
+
+/// The food gauge, in full. The summary carries the three soonest lines; the
+/// supply screen reads this.
+final supplyProvider = FutureProvider.autoDispose<SupplyBlock>((ref) {
+  if (!ref.watch(sessionProvider).isAuthenticated) {
+    return Future.value(SupplyBlock.empty);
+  }
+  return ref.watch(loyaltyRepositoryProvider).supply();
+});
+
+final subscriptionsProvider = FutureProvider.autoDispose<SubscriptionsPayload>((ref) {
+  if (!ref.watch(sessionProvider).isAuthenticated) {
+    return Future.value(SubscriptionsPayload.empty);
+  }
+  return ref.watch(loyaltyRepositoryProvider).subscriptions();
+});
+
+final referralProvider = FutureProvider.autoDispose<ReferralOverview>((ref) {
+  if (!ref.watch(sessionProvider).isAuthenticated) {
+    return Future.value(ReferralOverview.empty);
+  }
+  return ref.watch(loyaltyRepositoryProvider).referral();
 });
 
 final loyaltyMissionsProvider = FutureProvider.autoDispose<MissionsBlock>((ref) {
@@ -168,4 +267,7 @@ void invalidateLoyalty(WidgetRef ref) {
   ref.invalidate(loyaltyMissionsProvider);
   ref.invalidate(scratchCardsProvider);
   ref.invalidate(ledgerProvider);
+  ref.invalidate(supplyProvider);
+  ref.invalidate(subscriptionsProvider);
+  ref.invalidate(referralProvider);
 }

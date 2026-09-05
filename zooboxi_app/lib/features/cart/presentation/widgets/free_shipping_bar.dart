@@ -41,9 +41,11 @@ class FreeShippingBar extends StatelessWidget {
       return _Celebration(
         kind: 'free_delivery',
         title: l.cartFreeDeliveryCelebrate,
-        body: freeDeliveryReason == 'reward'
-            ? l.rewardFreeDeliveryReward
-            : l.rewardFreeDeliveryTier,
+        body: switch (freeDeliveryReason) {
+          'reward' => l.rewardFreeDeliveryReward,
+          'subscription' => l.subsFreeDeliveryBody,
+          _ => l.rewardFreeDeliveryTier,
+        },
       );
     }
     if (expressFreeReason != null) {

@@ -724,7 +724,7 @@ Path _starPath(Offset c, double outer, double inner) {
    SMALL MARKS — lock, check, book, bulb, clock, foil
    ══════════════════════════════════════════════════════════════════════ */
 
-enum FamilyMark { lock, check, book, bulb, clock, family, plus }
+enum FamilyMark { lock, check, book, bulb, clock, family, plus, bowl, repeat, share, cake, tag, moon }
 
 /// One small painted mark. These replace the Material outlines the program
 /// used to wear: a lock with a keyhole rather than a wire padlock, a check on
@@ -774,10 +774,178 @@ class _MarkPainter extends StickerPainter {
         _bulb(canvas);
       case FamilyMark.clock:
         _clock(canvas);
+      case FamilyMark.bowl:
+        _bowl(canvas);
+      case FamilyMark.repeat:
+        _repeat(canvas);
+      case FamilyMark.share:
+        _share(canvas);
+      case FamilyMark.cake:
+        _cake(canvas);
+      case FamilyMark.tag:
+        _tag(canvas);
+      case FamilyMark.moon:
+        _moon(canvas);
       case FamilyMark.family:
       case FamilyMark.plus:
         break;
     }
+  }
+
+  /// The food bowl — the gauge's own mark: a bowl with kibble heaped in it.
+  void _bowl(Canvas canvas) {
+    final l = line;
+    final body = tint ?? ZbTokens.logoTeal;
+    // Kibble heap first (behind the rim).
+    final kibble = Paint()..color = ZbTokens.cardboard;
+    for (final k in const [Offset(9.0, 9.6), Offset(12.0, 8.4), Offset(15.0, 9.6), Offset(10.6, 11.0), Offset(13.4, 11.0)]) {
+      canvas.drawCircle(k, 1.7, kibble);
+      canvas.drawCircle(k, 1.7, thin(0.9));
+    }
+    // Bowl body.
+    canvas.sticker(
+      Path()
+        ..moveTo(3.6, 11.6)
+        ..lineTo(20.4, 11.6)
+        ..cubicTo(20.4, 16.4, 17.6, 20.2, 12.0, 20.2)
+        ..cubicTo(6.4, 20.2, 3.6, 16.4, 3.6, 11.6)
+        ..close(),
+      body,
+      l,
+    );
+    // Rim.
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(2.8, 10.4, 21.2, 13.2), const Radius.circular(1.4)),
+      ZbTokens.creamLogo,
+      l,
+    );
+    // A tiny paw on the bowl, the way the real ones have.
+    final paw = Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.85);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(12, 16.9), width: 2.6, height: 1.9), paw);
+    for (final t in const [Offset(10.5, 15.3), Offset(11.4, 14.5), Offset(12.6, 14.5), Offset(13.5, 15.3)]) {
+      canvas.drawOval(Rect.fromCenter(center: t, width: 1.0, height: 1.2), paw);
+    }
+    glossAt(canvas, const Offset(6.4, 15.0), w: 2.4, h: 1.0, angle: -0.9, alpha: 0.35);
+  }
+
+  /// Two arrows chasing each other on a disc — «كل شهر».
+  void _repeat(Canvas canvas) {
+    final body = tint ?? ZbTokens.logoCoral;
+    canvas.stickerCircle(const Offset(12, 12), 9.6, body, line);
+    final ink = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.creamLogo;
+    canvas.drawArc(const Rect.fromLTRB(6.6, 6.6, 17.4, 17.4), -2.6, 2.2, false, ink);
+    canvas.drawArc(const Rect.fromLTRB(6.6, 6.6, 17.4, 17.4), 0.55, 2.2, false, ink);
+    final head = Paint()..color = ZbTokens.creamLogo;
+    canvas.drawPath(Path()..moveTo(15.2, 5.4)..lineTo(17.8, 8.6)..lineTo(14.0, 9.0)..close(), head);
+    canvas.drawPath(Path()..moveTo(8.8, 18.6)..lineTo(6.2, 15.4)..lineTo(10.0, 15.0)..close(), head);
+    glossAt(canvas, const Offset(8.2, 6.8), w: 3.0, h: 1.4, alpha: 0.35);
+  }
+
+  /// Three dots joined — the invitation going out.
+  void _share(Canvas canvas) {
+    final body = tint ?? ZbTokens.logoTeal;
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..color = ZbTokens.inkWarm.withValues(alpha: 0.7);
+    canvas.drawLine(const Offset(8.4, 12.0), const Offset(15.8, 7.4), stroke);
+    canvas.drawLine(const Offset(8.4, 12.0), const Offset(15.8, 16.6), stroke);
+    canvas.stickerCircle(const Offset(6.6, 12.0), 3.4, body, line);
+    canvas.stickerCircle(const Offset(17.4, 6.4), 3.2, ZbTokens.creamLogo, line);
+    canvas.stickerCircle(const Offset(17.4, 17.6), 3.2, ZbTokens.logoCoral, line);
+    glossAt(canvas, const Offset(5.4, 10.6), w: 1.6, h: 0.8, alpha: 0.5);
+  }
+
+  /// A slice of cake with one candle, for the birthday week.
+  void _cake(Canvas canvas) {
+    final l = line;
+    final body = tint ?? ZbTokens.logoCoral;
+    // Candle.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(11.1, 4.6, 12.9, 9.6), const Radius.circular(0.8)),
+      Paint()..color = ZbTokens.logoTeal,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(11.1, 4.6, 12.9, 9.6), const Radius.circular(0.8)),
+      thin(0.9),
+    );
+    canvas.sticker(
+      Path()
+        ..moveTo(12.0, 1.6)
+        ..quadraticBezierTo(14.0, 3.2, 12.0, 4.6)
+        ..quadraticBezierTo(10.0, 3.2, 12.0, 1.6)
+        ..close(),
+      ZbTokens.sparkAmber,
+      thin(0.8),
+    );
+    // Cake body: two layers.
+    canvas.stickerRRect(
+      RRect.fromRectAndCorners(const Rect.fromLTRB(4.0, 9.4, 20.0, 20.8), bottomLeft: const Radius.circular(2.4), bottomRight: const Radius.circular(2.4), topLeft: const Radius.circular(1.6), topRight: const Radius.circular(1.6)),
+      body,
+      l,
+    );
+    // Icing drips.
+    final icing = Paint()..color = ZbTokens.creamLogo;
+    canvas.drawPath(
+      Path()
+        ..moveTo(4.0, 11.4)
+        ..lineTo(20.0, 11.4)
+        ..lineTo(20.0, 12.6)
+        ..cubicTo(18.6, 12.6, 18.6, 14.6, 17.2, 14.6)
+        ..cubicTo(15.8, 14.6, 15.8, 12.6, 14.4, 12.6)
+        ..cubicTo(13.0, 12.6, 13.0, 15.0, 11.6, 15.0)
+        ..cubicTo(10.2, 15.0, 10.2, 12.6, 8.8, 12.6)
+        ..cubicTo(7.4, 12.6, 7.4, 14.2, 6.0, 14.2)
+        ..cubicTo(5.2, 14.2, 4.6, 13.2, 4.0, 12.6)
+        ..close(),
+      icing,
+    );
+    canvas.drawLine(const Offset(4.4, 16.8), const Offset(19.6, 16.8), thin(0.9));
+    glossAt(canvas, const Offset(6.4, 18.6), w: 2.0, h: 0.8, angle: -0.6, alpha: 0.3);
+  }
+
+  /// A price tag with a paw hole — the brand card.
+  void _tag(Canvas canvas) {
+    final body = tint ?? ZbTokens.amber;
+    canvas.sticker(
+      Path()
+        ..moveTo(3.6, 13.2)
+        ..lineTo(11.0, 5.8)
+        ..lineTo(19.6, 4.0)
+        ..lineTo(20.2, 4.6)
+        ..lineTo(18.4, 13.2)
+        ..lineTo(11.0, 20.6)
+        ..close(),
+      body,
+      line,
+    );
+    canvas.drawCircle(const Offset(16.4, 7.8), 1.6, Paint()..color = ZbTokens.creamLogo);
+    canvas.drawCircle(const Offset(16.4, 7.8), 1.6, thin(0.9));
+    // A stamp mark on the tag.
+    final paw = Paint()..color = ZbTokens.inkWarm.withValues(alpha: 0.55);
+    canvas.drawOval(Rect.fromCenter(center: const Offset(10.6, 13.6), width: 2.6, height: 2.0), paw);
+    for (final t in const [Offset(9.0, 12.0), Offset(9.9, 11.1), Offset(11.3, 11.1), Offset(12.2, 12.0)]) {
+      canvas.drawOval(Rect.fromCenter(center: t, width: 1.0, height: 1.2), paw);
+    }
+    glossAt(canvas, const Offset(7.2, 12.4), w: 2.2, h: 0.9, angle: -0.8, alpha: 0.4);
+  }
+
+  /// A crescent — «عندي كفاية», snooze.
+  void _moon(Canvas canvas) {
+    final body = tint ?? ZbTokens.amber;
+    final moon = Path()
+      ..addOval(Rect.fromCircle(center: const Offset(12, 12), radius: 8.6));
+    final bite = Path()..addOval(Rect.fromCircle(center: const Offset(15.4, 9.6), radius: 7.2));
+    canvas.sticker(Path.combine(PathOperation.difference, moon, bite), body, line);
+    if (detailed) {
+      sparkleAt(canvas, const Offset(18.4, 6.4), 2.6, color: ZbTokens.logoTeal);
+    }
+    glossAt(canvas, const Offset(7.4, 9.6), w: 2.2, h: 1.0, angle: -1.1, alpha: 0.45);
   }
 
   void _lock(Canvas canvas) {

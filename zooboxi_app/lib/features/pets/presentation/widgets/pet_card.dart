@@ -6,7 +6,9 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/pet_models.dart';
+import '../../../loyalty/data/loyalty_models.dart';
 import '../../../loyalty/presentation/widgets/loyalty_art.dart';
+import '../../../loyalty/presentation/widgets/supply_card.dart';
 import 'species_avatar.dart';
 
 /// The Arabic (and English) name of a species.
@@ -28,10 +30,13 @@ String speciesLabel(L l, PetSpecies species) => switch (species) {
 /// reward attached — never a red warning, because a missing weight is not an
 /// error, it is an opportunity.
 class PetCard extends StatelessWidget {
-  const PetCard({super.key, required this.pet, this.onTap});
+  const PetCard({super.key, required this.pet, this.onTap, this.supply});
 
   final Pet pet;
   final VoidCallback? onTap;
+
+  /// This pet's soonest supply line, when the gauge knows one.
+  final SupplyItem? supply;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +93,7 @@ class PetCard extends StatelessWidget {
                     children: [
                       // The birthday leads the facts: it is the one with a date on it.
                       if (pet.isBirthdaySoon) _BirthdayChip(days: pet.birthdayInDays ?? 0),
+                      if (supply != null) SupplyChip(item: supply!),
                       for (final fact in facts) _FactChip(text: fact, tint: art.well, ink: art.shade),
                     ],
                   ),

@@ -1869,4 +1869,510 @@ class LAr extends L {
   String missionOfTarget(String target) {
     return 'من $target';
   }
+
+  @override
+  String get supplyTitle => 'مخزون البيت';
+
+  @override
+  String get supplySubtitle =>
+      'نتعلّم من طلباتك — كل «خلص» أو «عندي كفاية» يجعل التقدير أدق';
+
+  @override
+  String get supplyHubSubtitle => 'متى ينفد أكل عائلتك';
+
+  @override
+  String get supplyEmptyTitle => 'لا شيء في العدّاد بعد';
+
+  @override
+  String get supplyEmptyBody =>
+      'بعد أول طلب أكل أو رمل من التطبيق نبدأ نحسب متى ينفد ونذكّرك في وقته';
+
+  @override
+  String supplyDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يكفي $count يومًا',
+      few: 'يكفي $count أيام',
+      two: 'يكفي يومين',
+      one: 'يكفي يومًا',
+      zero: 'ينفد اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get supplyRunsOutToday => 'ينفد اليوم';
+
+  @override
+  String supplyOverdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'نفد قبل $count يومًا',
+      few: 'نفد قبل $count أيام',
+      two: 'نفد قبل يومين',
+      one: 'نفد أمس',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get supplyOrderNow => 'اطلب الآن';
+
+  @override
+  String get supplyOut => 'خلص';
+
+  @override
+  String get supplySnooze => 'كفاية';
+
+  @override
+  String get supplySubscribe => 'اشترك';
+
+  @override
+  String get supplySubscribed => 'مشترك';
+
+  @override
+  String supplyOnTimeBadge(int pct) {
+    return '+$pct% في وقته';
+  }
+
+  @override
+  String supplyCycle(String days) {
+    return 'يكفي $days يومًا تقريبًا';
+  }
+
+  @override
+  String supplyForPet(String name) {
+    return 'لـ$name';
+  }
+
+  @override
+  String get supplyConfidenceLow => 'تقدير أولي';
+
+  @override
+  String get supplyConfidenceMedium => 'تقدير';
+
+  @override
+  String get supplyConfidenceHigh => 'مبني على طلباتك';
+
+  @override
+  String get supplyMarkedOut => 'سجّلنا أن الأكل خلص — حان وقت الطلب';
+
+  @override
+  String supplySnoozed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حسنًا، نذكّرك بعد $count أيام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get supplyKindDry => 'طعام جاف';
+
+  @override
+  String get supplyKindWet => 'طعام رطب';
+
+  @override
+  String get supplyKindLitter => 'رمل';
+
+  @override
+  String get supplyKindTreat => 'مكافآت';
+
+  @override
+  String get supplyKindOther => 'مستلزم';
+
+  @override
+  String supplyWindowHint(int before, int after, int pct) {
+    return 'اطلب بين $before أيام قبل النفاد و$after بعده تكسب +$pct% بصمات';
+  }
+
+  @override
+  String supplyPack(String kg) {
+    return '$kg كجم';
+  }
+
+  @override
+  String get subsTitle => 'اشتراكاتي';
+
+  @override
+  String get subsSubtitle =>
+      'وصّل لي كل شهر — بلا بطاقة محفوظة ولا التزام، أنت تقرّر كل مرة';
+
+  @override
+  String subsHubSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count اشتراكًا نشطًا',
+      few: '$count اشتراكات نشطة',
+      two: 'اشتراكان نشطان',
+      one: 'اشتراك واحد نشط',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subsEmptyTitle => 'لا اشتراكات بعد';
+
+  @override
+  String get subsEmptyBody =>
+      'اشترك في أكل عائلتك من مخزون البيت — نذكّرك قبل الموعد وتطلب بضغطة، والتوصيل علينا';
+
+  @override
+  String subsNextIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'التوصيلة بعد $count يومًا',
+      few: 'التوصيلة بعد $count أيام',
+      two: 'التوصيلة بعد يومين',
+      one: 'التوصيلة غدًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subsNextToday => 'التوصيلة اليوم';
+
+  @override
+  String get subsOverdue => 'موعد التوصيلة فات';
+
+  @override
+  String subsEvery(int days) {
+    return 'كل $days يومًا';
+  }
+
+  @override
+  String subsQty(int qty) {
+    return '× $qty';
+  }
+
+  @override
+  String get subsPaused => 'موقوف مؤقتًا';
+
+  @override
+  String get subsOrderNow => 'اطلب الآن';
+
+  @override
+  String get subsSkip => 'تخطَّ';
+
+  @override
+  String get subsEdit => 'تعديل';
+
+  @override
+  String get subsPause => 'إيقاف مؤقت';
+
+  @override
+  String get subsResume => 'استئناف';
+
+  @override
+  String get subsCancel => 'إلغاء الاشتراك';
+
+  @override
+  String get subsCancelConfirm =>
+      'تلغي هذا الاشتراك؟ تقدر تشترك مجددًا في أي وقت.';
+
+  @override
+  String subsPerks(int pct, int every) {
+    return 'توصيل مجاني على كل توصيلة · +$pct% بصمات · هدية كل $every توصيلات';
+  }
+
+  @override
+  String subsDeliveries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count توصيلة',
+      few: '$count توصيلات',
+      two: 'توصيلتان',
+      one: 'توصيلة واحدة',
+      zero: 'لا توصيلات بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String subsNextGift(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'هدية بعد $count توصيلة',
+      few: 'هدية بعد $count توصيلات',
+      two: 'هدية بعد توصيلتين',
+      one: 'هدية مع التوصيلة القادمة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subsEditorTitle => 'تعديل الاشتراك';
+
+  @override
+  String get subsIntervalLabel => 'كل كم يومًا؟';
+
+  @override
+  String get subsQtyLabel => 'الكمية';
+
+  @override
+  String get subsNextLabel => 'التوصيلة التالية';
+
+  @override
+  String get subsSave => 'حفظ';
+
+  @override
+  String get subsCreated => 'تم الاشتراك — نذكّرك قبل الموعد بثلاثة أيام';
+
+  @override
+  String get subsSkipped => 'تم تخطي هذه التوصيلة';
+
+  @override
+  String get subsBasketReady => 'جهّزنا سلتك — التوصيل مجاني';
+
+  @override
+  String get subsCancelled => 'تم إلغاء الاشتراك';
+
+  @override
+  String get subsFreeDeliveryBody => 'توصيلة اشتراك — الشحن علينا';
+
+  @override
+  String get successSubscriptionNote =>
+      'توصيلة اشتراك: بصمات إضافية والتوصيل مجاني';
+
+  @override
+  String get referralTitle => 'ادعُ صديقًا';
+
+  @override
+  String referralHubBody(String paws) {
+    return 'صديقك يأخذ هدية ترحيب مع أول طلب، وأنت $paws بصمة بعد تسليمه';
+  }
+
+  @override
+  String get referralShare => 'شارك الدعوة';
+
+  @override
+  String get referralCopy => 'نسخ الكود';
+
+  @override
+  String get referralCopied => 'تم نسخ الكود';
+
+  @override
+  String get referralYourCode => 'كودك';
+
+  @override
+  String get referralStatsInvited => 'دعوات';
+
+  @override
+  String get referralStatsQualified => 'بانتظار التسليم';
+
+  @override
+  String get referralStatsRewarded => 'مكافآت';
+
+  @override
+  String get referralHaveCode => 'عندك كود من صديق؟';
+
+  @override
+  String get referralEnterCode => 'أدخل كود الدعوة';
+
+  @override
+  String get referralApply => 'تطبيق';
+
+  @override
+  String referralApplied(String code) {
+    return 'تم تطبيق كود $code — هدية الترحيب في محفظتك';
+  }
+
+  @override
+  String referralAppliedBefore(String code) {
+    return 'انضممت بدعوة $code';
+  }
+
+  @override
+  String referralCap(int n, int cap) {
+    return '$n من $cap دعوات هذا الشهر';
+  }
+
+  @override
+  String get referralEmpty => 'لم تدعُ أحدًا بعد — أول صديق ينتظر';
+
+  @override
+  String get referralStatePending => 'انضم — بانتظار أول طلب';
+
+  @override
+  String get referralStateQualified => 'أتمّ طلبه — بانتظار الاعتماد';
+
+  @override
+  String get referralStateReview => 'قيد المراجعة';
+
+  @override
+  String get referralStateRewarded => 'مكافأة مدفوعة';
+
+  @override
+  String get referralStateRejected => 'لم تُقبل';
+
+  @override
+  String get referralHow => 'كيف تعمل';
+
+  @override
+  String get referralHow1 =>
+      'شارك كودك أو رابطك مع صديق لم يطلب من زوبوكسي من قبل';
+
+  @override
+  String referralHow2(String welcome) {
+    return 'يطبّق الكود في التطبيق ويأخذ $welcome مع أول طلب';
+  }
+
+  @override
+  String referralHow3(String paws) {
+    return 'بعد تسليم طلبه بأسبوع تصلك $paws بصمة';
+  }
+
+  @override
+  String momentBirthdayTitle(String name) {
+    return 'عيد ميلاد $name 🎂';
+  }
+
+  @override
+  String momentBirthdayIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بعد $count يومًا',
+      few: 'بعد $count أيام',
+      two: 'بعد يومين',
+      one: 'غدًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get momentBirthdayToday => 'اليوم!';
+
+  @override
+  String momentBirthdayPassed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قبل $count يومًا',
+      few: 'قبل $count أيام',
+      two: 'قبل يومين',
+      one: 'أمس',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get momentBirthdayGift => 'هدية باسمه في محفظتك — أضفها لطلبك القادم';
+
+  @override
+  String momentBirthdayPaws(String paws) {
+    return '$paws بصمة هدية عيد ميلاد في محفظتك';
+  }
+
+  @override
+  String get momentBirthdayNoGift => 'ما رأيك بهدية صغيرة له هذا الأسبوع؟';
+
+  @override
+  String get momentAddToCart => 'أضف الهدية للسلة';
+
+  @override
+  String get momentGiftAdded => 'أضفنا الهدية لسلتك';
+
+  @override
+  String tierRiskLine(int days, String tier) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'خلال $days يومًا يهبط مستواك إلى $tier — طلب واحد يحفظه',
+      few: 'خلال $days أيام يهبط مستواك إلى $tier — طلب واحد يحفظه',
+      two: 'بعد يومين يهبط مستواك إلى $tier — طلب واحد يحفظه',
+      one: 'غدًا يهبط مستواك إلى $tier — طلب واحد يحفظه',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stampsTitle => 'بطاقات الماركات';
+
+  @override
+  String stampsRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقي $count',
+      few: 'بقي $count',
+      two: 'بقي اثنان',
+      one: 'بقي واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stampsDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بطاقة مكتملة',
+      few: '$count بطاقات مكتملة',
+      two: 'بطاقتان مكتملتان',
+      one: 'بطاقة مكتملة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stampsMinPack(String kg) {
+    return 'عبوات $kg كجم فأكثر';
+  }
+
+  @override
+  String get stampsReward => 'المكافأة';
+
+  @override
+  String familySupplyLine(int days, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'أكل $name يكفي $days يومًا',
+      few: 'أكل $name يكفي $days أيام',
+      two: 'أكل $name يكفي يومين',
+      one: 'أكل $name يكفي يومًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String familySupplyDue(String name) {
+    return 'حان وقت إعادة طلب أكل $name';
+  }
+
+  @override
+  String familySubscriptionLine(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'توصيلة اشتراكك بعد $days يومًا',
+      few: 'توصيلة اشتراكك بعد $days أيام',
+      two: 'توصيلة اشتراكك بعد يومين',
+      one: 'توصيلة اشتراكك غدًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get familySubscriptionToday => 'توصيلة اشتراكك اليوم';
+
+  @override
+  String get subsEveryWeek => 'كل أسبوع';
+
+  @override
+  String get subsEveryTwoWeeks => 'كل أسبوعين';
+
+  @override
+  String get subsEveryMonth => 'كل شهر';
+
+  @override
+  String get subsEveryTwoMonths => 'كل شهرين';
 }

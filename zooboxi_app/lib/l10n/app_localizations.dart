@@ -3156,6 +3156,654 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'من {target}'**
   String missionOfTarget(String target);
+
+  /// No description provided for @supplyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مخزون البيت'**
+  String get supplyTitle;
+
+  /// No description provided for @supplySubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'نتعلّم من طلباتك — كل «خلص» أو «عندي كفاية» يجعل التقدير أدق'**
+  String get supplySubtitle;
+
+  /// No description provided for @supplyHubSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'متى ينفد أكل عائلتك'**
+  String get supplyHubSubtitle;
+
+  /// No description provided for @supplyEmptyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا شيء في العدّاد بعد'**
+  String get supplyEmptyTitle;
+
+  /// No description provided for @supplyEmptyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد أول طلب أكل أو رمل من التطبيق نبدأ نحسب متى ينفد ونذكّرك في وقته'**
+  String get supplyEmptyBody;
+
+  /// No description provided for @supplyDaysLeft.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{ينفد اليوم} =1{يكفي يومًا} =2{يكفي يومين} few{يكفي {count} أيام} other{يكفي {count} يومًا}}'**
+  String supplyDaysLeft(int count);
+
+  /// No description provided for @supplyRunsOutToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'ينفد اليوم'**
+  String get supplyRunsOutToday;
+
+  /// No description provided for @supplyOverdue.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{نفد أمس} =2{نفد قبل يومين} few{نفد قبل {count} أيام} other{نفد قبل {count} يومًا}}'**
+  String supplyOverdue(int count);
+
+  /// No description provided for @supplyOrderNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب الآن'**
+  String get supplyOrderNow;
+
+  /// No description provided for @supplyOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلص'**
+  String get supplyOut;
+
+  /// No description provided for @supplySnooze.
+  ///
+  /// In ar, this message translates to:
+  /// **'كفاية'**
+  String get supplySnooze;
+
+  /// No description provided for @supplySubscribe.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشترك'**
+  String get supplySubscribe;
+
+  /// No description provided for @supplySubscribed.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشترك'**
+  String get supplySubscribed;
+
+  /// No description provided for @supplyOnTimeBadge.
+  ///
+  /// In ar, this message translates to:
+  /// **'+{pct}% في وقته'**
+  String supplyOnTimeBadge(int pct);
+
+  /// No description provided for @supplyCycle.
+  ///
+  /// In ar, this message translates to:
+  /// **'يكفي {days} يومًا تقريبًا'**
+  String supplyCycle(String days);
+
+  /// No description provided for @supplyForPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'لـ{name}'**
+  String supplyForPet(String name);
+
+  /// No description provided for @supplyConfidenceLow.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقدير أولي'**
+  String get supplyConfidenceLow;
+
+  /// No description provided for @supplyConfidenceMedium.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقدير'**
+  String get supplyConfidenceMedium;
+
+  /// No description provided for @supplyConfidenceHigh.
+  ///
+  /// In ar, this message translates to:
+  /// **'مبني على طلباتك'**
+  String get supplyConfidenceHigh;
+
+  /// No description provided for @supplyMarkedOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّلنا أن الأكل خلص — حان وقت الطلب'**
+  String get supplyMarkedOut;
+
+  /// No description provided for @supplySnoozed.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, other{حسنًا، نذكّرك بعد {count} أيام}}'**
+  String supplySnoozed(int count);
+
+  /// No description provided for @supplyKindDry.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعام جاف'**
+  String get supplyKindDry;
+
+  /// No description provided for @supplyKindWet.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعام رطب'**
+  String get supplyKindWet;
+
+  /// No description provided for @supplyKindLitter.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمل'**
+  String get supplyKindLitter;
+
+  /// No description provided for @supplyKindTreat.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآت'**
+  String get supplyKindTreat;
+
+  /// No description provided for @supplyKindOther.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستلزم'**
+  String get supplyKindOther;
+
+  /// No description provided for @supplyWindowHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب بين {before} أيام قبل النفاد و{after} بعده تكسب +{pct}% بصمات'**
+  String supplyWindowHint(int before, int after, int pct);
+
+  /// No description provided for @supplyPack.
+  ///
+  /// In ar, this message translates to:
+  /// **'{kg} كجم'**
+  String supplyPack(String kg);
+
+  /// No description provided for @subsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشتراكاتي'**
+  String get subsTitle;
+
+  /// No description provided for @subsSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصّل لي كل شهر — بلا بطاقة محفوظة ولا التزام، أنت تقرّر كل مرة'**
+  String get subsSubtitle;
+
+  /// No description provided for @subsHubSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{اشتراك واحد نشط} =2{اشتراكان نشطان} few{{count} اشتراكات نشطة} other{{count} اشتراكًا نشطًا}}'**
+  String subsHubSubtitle(int count);
+
+  /// No description provided for @subsEmptyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا اشتراكات بعد'**
+  String get subsEmptyTitle;
+
+  /// No description provided for @subsEmptyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشترك في أكل عائلتك من مخزون البيت — نذكّرك قبل الموعد وتطلب بضغطة، والتوصيل علينا'**
+  String get subsEmptyBody;
+
+  /// No description provided for @subsNextIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{التوصيلة غدًا} =2{التوصيلة بعد يومين} few{التوصيلة بعد {count} أيام} other{التوصيلة بعد {count} يومًا}}'**
+  String subsNextIn(int count);
+
+  /// No description provided for @subsNextToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'التوصيلة اليوم'**
+  String get subsNextToday;
+
+  /// No description provided for @subsOverdue.
+  ///
+  /// In ar, this message translates to:
+  /// **'موعد التوصيلة فات'**
+  String get subsOverdue;
+
+  /// No description provided for @subsEvery.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل {days} يومًا'**
+  String subsEvery(int days);
+
+  /// No description provided for @subsQty.
+  ///
+  /// In ar, this message translates to:
+  /// **'× {qty}'**
+  String subsQty(int qty);
+
+  /// No description provided for @subsPaused.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقوف مؤقتًا'**
+  String get subsPaused;
+
+  /// No description provided for @subsOrderNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب الآن'**
+  String get subsOrderNow;
+
+  /// No description provided for @subsSkip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تخطَّ'**
+  String get subsSkip;
+
+  /// No description provided for @subsEdit.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل'**
+  String get subsEdit;
+
+  /// No description provided for @subsPause.
+  ///
+  /// In ar, this message translates to:
+  /// **'إيقاف مؤقت'**
+  String get subsPause;
+
+  /// No description provided for @subsResume.
+  ///
+  /// In ar, this message translates to:
+  /// **'استئناف'**
+  String get subsResume;
+
+  /// No description provided for @subsCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء الاشتراك'**
+  String get subsCancel;
+
+  /// No description provided for @subsCancelConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تلغي هذا الاشتراك؟ تقدر تشترك مجددًا في أي وقت.'**
+  String get subsCancelConfirm;
+
+  /// No description provided for @subsPerks.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل مجاني على كل توصيلة · +{pct}% بصمات · هدية كل {every} توصيلات'**
+  String subsPerks(int pct, int every);
+
+  /// No description provided for @subsDeliveries.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا توصيلات بعد} =1{توصيلة واحدة} =2{توصيلتان} few{{count} توصيلات} other{{count} توصيلة}}'**
+  String subsDeliveries(int count);
+
+  /// No description provided for @subsNextGift.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{هدية مع التوصيلة القادمة} =2{هدية بعد توصيلتين} few{هدية بعد {count} توصيلات} other{هدية بعد {count} توصيلة}}'**
+  String subsNextGift(int count);
+
+  /// No description provided for @subsEditorTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل الاشتراك'**
+  String get subsEditorTitle;
+
+  /// No description provided for @subsIntervalLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل كم يومًا؟'**
+  String get subsIntervalLabel;
+
+  /// No description provided for @subsQtyLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكمية'**
+  String get subsQtyLabel;
+
+  /// No description provided for @subsNextLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'التوصيلة التالية'**
+  String get subsNextLabel;
+
+  /// No description provided for @subsSave.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ'**
+  String get subsSave;
+
+  /// No description provided for @subsCreated.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم الاشتراك — نذكّرك قبل الموعد بثلاثة أيام'**
+  String get subsCreated;
+
+  /// No description provided for @subsSkipped.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تخطي هذه التوصيلة'**
+  String get subsSkipped;
+
+  /// No description provided for @subsBasketReady.
+  ///
+  /// In ar, this message translates to:
+  /// **'جهّزنا سلتك — التوصيل مجاني'**
+  String get subsBasketReady;
+
+  /// No description provided for @subsCancelled.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إلغاء الاشتراك'**
+  String get subsCancelled;
+
+  /// No description provided for @subsFreeDeliveryBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيلة اشتراك — الشحن علينا'**
+  String get subsFreeDeliveryBody;
+
+  /// No description provided for @successSubscriptionNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيلة اشتراك: بصمات إضافية والتوصيل مجاني'**
+  String get successSubscriptionNote;
+
+  /// No description provided for @referralTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ادعُ صديقًا'**
+  String get referralTitle;
+
+  /// No description provided for @referralHubBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'صديقك يأخذ هدية ترحيب مع أول طلب، وأنت {paws} بصمة بعد تسليمه'**
+  String referralHubBody(String paws);
+
+  /// No description provided for @referralShare.
+  ///
+  /// In ar, this message translates to:
+  /// **'شارك الدعوة'**
+  String get referralShare;
+
+  /// No description provided for @referralCopy.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ الكود'**
+  String get referralCopy;
+
+  /// No description provided for @referralCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ الكود'**
+  String get referralCopied;
+
+  /// No description provided for @referralYourCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'كودك'**
+  String get referralYourCode;
+
+  /// No description provided for @referralStatsInvited.
+  ///
+  /// In ar, this message translates to:
+  /// **'دعوات'**
+  String get referralStatsInvited;
+
+  /// No description provided for @referralStatsQualified.
+  ///
+  /// In ar, this message translates to:
+  /// **'بانتظار التسليم'**
+  String get referralStatsQualified;
+
+  /// No description provided for @referralStatsRewarded.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآت'**
+  String get referralStatsRewarded;
+
+  /// No description provided for @referralHaveCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'عندك كود من صديق؟'**
+  String get referralHaveCode;
+
+  /// No description provided for @referralEnterCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل كود الدعوة'**
+  String get referralEnterCode;
+
+  /// No description provided for @referralApply.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطبيق'**
+  String get referralApply;
+
+  /// No description provided for @referralApplied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تطبيق كود {code} — هدية الترحيب في محفظتك'**
+  String referralApplied(String code);
+
+  /// No description provided for @referralAppliedBefore.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضممت بدعوة {code}'**
+  String referralAppliedBefore(String code);
+
+  /// No description provided for @referralCap.
+  ///
+  /// In ar, this message translates to:
+  /// **'{n} من {cap} دعوات هذا الشهر'**
+  String referralCap(int n, int cap);
+
+  /// No description provided for @referralEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم تدعُ أحدًا بعد — أول صديق ينتظر'**
+  String get referralEmpty;
+
+  /// No description provided for @referralStatePending.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضم — بانتظار أول طلب'**
+  String get referralStatePending;
+
+  /// No description provided for @referralStateQualified.
+  ///
+  /// In ar, this message translates to:
+  /// **'أتمّ طلبه — بانتظار الاعتماد'**
+  String get referralStateQualified;
+
+  /// No description provided for @referralStateReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'قيد المراجعة'**
+  String get referralStateReview;
+
+  /// No description provided for @referralStateRewarded.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافأة مدفوعة'**
+  String get referralStateRewarded;
+
+  /// No description provided for @referralStateRejected.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم تُقبل'**
+  String get referralStateRejected;
+
+  /// No description provided for @referralHow.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيف تعمل'**
+  String get referralHow;
+
+  /// No description provided for @referralHow1.
+  ///
+  /// In ar, this message translates to:
+  /// **'شارك كودك أو رابطك مع صديق لم يطلب من زوبوكسي من قبل'**
+  String get referralHow1;
+
+  /// No description provided for @referralHow2.
+  ///
+  /// In ar, this message translates to:
+  /// **'يطبّق الكود في التطبيق ويأخذ {welcome} مع أول طلب'**
+  String referralHow2(String welcome);
+
+  /// No description provided for @referralHow3.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد تسليم طلبه بأسبوع تصلك {paws} بصمة'**
+  String referralHow3(String paws);
+
+  /// No description provided for @momentBirthdayTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عيد ميلاد {name} 🎂'**
+  String momentBirthdayTitle(String name);
+
+  /// No description provided for @momentBirthdayIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{غدًا} =2{بعد يومين} few{بعد {count} أيام} other{بعد {count} يومًا}}'**
+  String momentBirthdayIn(int count);
+
+  /// No description provided for @momentBirthdayToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'اليوم!'**
+  String get momentBirthdayToday;
+
+  /// No description provided for @momentBirthdayPassed.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{أمس} =2{قبل يومين} few{قبل {count} أيام} other{قبل {count} يومًا}}'**
+  String momentBirthdayPassed(int count);
+
+  /// No description provided for @momentBirthdayGift.
+  ///
+  /// In ar, this message translates to:
+  /// **'هدية باسمه في محفظتك — أضفها لطلبك القادم'**
+  String get momentBirthdayGift;
+
+  /// No description provided for @momentBirthdayPaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'{paws} بصمة هدية عيد ميلاد في محفظتك'**
+  String momentBirthdayPaws(String paws);
+
+  /// No description provided for @momentBirthdayNoGift.
+  ///
+  /// In ar, this message translates to:
+  /// **'ما رأيك بهدية صغيرة له هذا الأسبوع؟'**
+  String get momentBirthdayNoGift;
+
+  /// No description provided for @momentAddToCart.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف الهدية للسلة'**
+  String get momentAddToCart;
+
+  /// No description provided for @momentGiftAdded.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضفنا الهدية لسلتك'**
+  String get momentGiftAdded;
+
+  /// No description provided for @tierRiskLine.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{غدًا يهبط مستواك إلى {tier} — طلب واحد يحفظه} =2{بعد يومين يهبط مستواك إلى {tier} — طلب واحد يحفظه} few{خلال {days} أيام يهبط مستواك إلى {tier} — طلب واحد يحفظه} other{خلال {days} يومًا يهبط مستواك إلى {tier} — طلب واحد يحفظه}}'**
+  String tierRiskLine(int days, String tier);
+
+  /// No description provided for @stampsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'بطاقات الماركات'**
+  String get stampsTitle;
+
+  /// No description provided for @stampsRemaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{بقي واحد} =2{بقي اثنان} few{بقي {count}} other{بقي {count}}}'**
+  String stampsRemaining(int count);
+
+  /// No description provided for @stampsDone.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{بطاقة مكتملة} =2{بطاقتان مكتملتان} few{{count} بطاقات مكتملة} other{{count} بطاقة مكتملة}}'**
+  String stampsDone(int count);
+
+  /// No description provided for @stampsMinPack.
+  ///
+  /// In ar, this message translates to:
+  /// **'عبوات {kg} كجم فأكثر'**
+  String stampsMinPack(String kg);
+
+  /// No description provided for @stampsReward.
+  ///
+  /// In ar, this message translates to:
+  /// **'المكافأة'**
+  String get stampsReward;
+
+  /// No description provided for @familySupplyLine.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{أكل {name} يكفي يومًا} =2{أكل {name} يكفي يومين} few{أكل {name} يكفي {days} أيام} other{أكل {name} يكفي {days} يومًا}}'**
+  String familySupplyLine(int days, String name);
+
+  /// No description provided for @familySupplyDue.
+  ///
+  /// In ar, this message translates to:
+  /// **'حان وقت إعادة طلب أكل {name}'**
+  String familySupplyDue(String name);
+
+  /// No description provided for @familySubscriptionLine.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{توصيلة اشتراكك غدًا} =2{توصيلة اشتراكك بعد يومين} few{توصيلة اشتراكك بعد {days} أيام} other{توصيلة اشتراكك بعد {days} يومًا}}'**
+  String familySubscriptionLine(int days);
+
+  /// No description provided for @familySubscriptionToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيلة اشتراكك اليوم'**
+  String get familySubscriptionToday;
+
+  /// No description provided for @subsEveryWeek.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل أسبوع'**
+  String get subsEveryWeek;
+
+  /// No description provided for @subsEveryTwoWeeks.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل أسبوعين'**
+  String get subsEveryTwoWeeks;
+
+  /// No description provided for @subsEveryMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل شهر'**
+  String get subsEveryMonth;
+
+  /// No description provided for @subsEveryTwoMonths.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل شهرين'**
+  String get subsEveryTwoMonths;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

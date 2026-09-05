@@ -102,6 +102,7 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                     _DeliveryNote(
                       paws: Fmt.number(order.pawsToEarn, locale: locale, decimals: 0),
                       withMission: order.scratchCard != null,
+                      subscription: order.subscriptionOrder,
                     ),
                     Gap.h24,
                   ],
@@ -381,10 +382,13 @@ const List<SparkleSpec> _successSparkles = [
 
 /// «X بصمة تُضاف عند التسليم» — with the coin, on the cream ground.
 class _DeliveryNote extends StatelessWidget {
-  const _DeliveryNote({required this.paws, required this.withMission});
+  const _DeliveryNote({required this.paws, required this.withMission, this.subscription = false});
 
   final String paws;
   final bool withMission;
+
+  /// This basket delivered a subscription — say what that adds.
+  final bool subscription;
 
   @override
   Widget build(BuildContext context) {
@@ -412,6 +416,11 @@ class _DeliveryNote extends StatelessWidget {
                   Text(
                     l.successMissionNote,
                     style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  ),
+                if (subscription)
+                  Text(
+                    l.successSubscriptionNote,
+                    style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant, fontWeight: FontWeight.w600),
                   ),
               ],
             ),

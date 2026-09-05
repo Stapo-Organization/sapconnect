@@ -11,6 +11,7 @@ import '../../../pets/data/pet_models.dart';
 import '../../../pets/presentation/widgets/species_avatar.dart';
 import '../../data/loyalty_models.dart';
 import 'loyalty_art.dart';
+import 'moment_cards.dart';
 import 'paws_pill.dart';
 
 /// The membership card — standing, wallet and the ladder, as one object.
@@ -201,6 +202,13 @@ class TierCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (tier.atRisk != null) ...[
+                  Gap.h8,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: TierRiskLine(risk: tier.atRisk!, accent: end),
+                  ),
+                ],
               ],
             ),
           ),

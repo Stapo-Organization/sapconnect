@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +22,8 @@ import '../../catalog/data/product_models.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/session/session_controller.dart';
 import '../../location/presentation/location_drift_sheet.dart';
+import '../../../core/notifications/local_notify.dart';
+import '../../loyalty/data/loyalty_models.dart';
 import '../../loyalty/data/loyalty_repository.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/address_nav_bar.dart';
@@ -111,6 +115,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    // The program's dated reminders ride as local notifications — no push
+    // server. Re-synced whenever the summary lands, so a «خلص» tap or a new
+    // subscription moves the phone's reminders with it.
+    ref.listen<AsyncValue<LoyaltySummary?>>(loyaltySummaryProvider, (_, next) {
+      final summary = next.value;
+      if (summary != null) unawaited(LocalNotify.sync(summary.nudges));
+    });
     final l = L.of(context);
     final home = ref.watch(homeProvider);
 

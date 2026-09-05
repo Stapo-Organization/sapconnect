@@ -19,17 +19,25 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/press_scale.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/analytics/events_buffer.dart';
+import '../../../core/utils/error_text.dart';
 import '../../auth/presentation/auth_sheet.dart';
+import '../../cart/data/cart_controller.dart';
+import '../../cart/presentation/add_to_cart.dart';
 import '../../pets/data/pet_models.dart';
 import '../../pets/presentation/widgets/species_avatar.dart';
 import '../data/loyalty_models.dart';
 import '../data/loyalty_repository.dart';
+import 'referral_screen.dart' show shareReferral;
 import 'widgets/grant_card.dart';
 import 'widgets/loyalty_art.dart';
 import 'widgets/mission_card.dart';
+import 'widgets/moment_cards.dart';
 import 'widgets/paws_pill.dart';
 import 'widgets/reward_card.dart';
 import 'widgets/scratch_card_view.dart';
+import 'widgets/subscription_card.dart';
+import 'widgets/supply_card.dart';
 import 'widgets/tier_card.dart';
 
 /// «عائلة زوبوكسي» — the whole program on one screen.
@@ -163,6 +171,17 @@ class _Hub extends ConsumerWidget {
           ),
         ),
 
+        // The moment: a pet's birthday this week, with its gift.
+        if (_birthday(summary) != null) ...[
+          Gap.h12,
+          enter(
+            BirthdayCard(
+              moment: _birthday(summary)!,
+              onClaim: () => _claimBirthday(context, ref, _birthday(summary)!),
+            ),
+          ),
+        ],
+
         // An order on its way: the one card that answers "where is my reward?".
         for (final order in summary.pendingOrders) ...[
           Gap.h12,
@@ -189,6 +208,51 @@ class _Hub extends ConsumerWidget {
             ),
             Gap.h8,
           ],
+        ],
+
+        // «مخزون البيت» — the gauge: the thesis of the whole program.
+        if (summary.supply.items.isNotEmpty) ...[
+          Gap.h20,
+          enter(
+            _Header(
+              title: l.supplyTitle,
+              subtitle: l.supplyHubSubtitle,
+              onSeeAll: () => context.push('/family/supply'),
+            ),
+          ),
+          Gap.h12,
+          for (final item in summary.supply.items.take(3)) ...[
+            enter(
+              SupplyGaugeCard(
+                item: item,
+                compact: true,
+                onTimePct: summary.supply.onTimePct,
+                onOrder: () => _orderSupply(context, ref, item),
+              ),
+            ),
+            Gap.h12,
+          ],
+        ],
+
+        // «اشتراكاتي» — the next delivery, and the door to the rest.
+        if (summary.subscriptions.next != null) ...[
+          Gap.h8,
+          enter(
+            _Header(
+              title: l.subsTitle,
+              subtitle: l.subsHubSubtitle(summary.subscriptions.active),
+              onSeeAll: () => context.push('/family/subscriptions'),
+            ),
+          ),
+          Gap.h12,
+          enter(
+            SubscriptionCard(
+              sub: summary.subscriptions.next!,
+              compact: true,
+              onOrderNow: () => _orderSubscription(context, ref, summary.subscriptions.next!),
+              onEdit: () => context.push('/family/subscriptions'),
+            ),
+          ),
         ],
 
         Gap.h20,
@@ -253,6 +317,29 @@ class _Hub extends ConsumerWidget {
           ),
         ],
 
+        // «ادعُ صديقاً».
+        if (summary.referral != null) ...[
+          Gap.h20,
+          enter(
+            ReferralCard(
+              referral: summary.referral!,
+              onOpen: () => context.push('/family/referral'),
+              onShare: () => shareReferral(ref, text: '', url: summary.referral!.url),
+            ),
+          ),
+        ],
+
+        // Brand stamp cards — only once the owner has switched a program on.
+        if (summary.stamps.isNotEmpty) ...[
+          Gap.h20,
+          enter(_Header(title: l.stampsTitle)),
+          Gap.h12,
+          for (final card in summary.stamps) ...[
+            enter(StampCardView(card: card)),
+            Gap.h12,
+          ],
+        ],
+
         Gap.h20,
         enter(_TierPerksSection(perks: summary.tier.perks, accent: tierEnd)),
 
@@ -268,6 +355,62 @@ class _Hub extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  static BirthdayMoment? _birthday(LoyaltySummary summary) {
+    final moment = summary.birthday;
+    if (moment == null || !moment.eligible) return null;
+    if (moment.days >= 0) return moment;
+    return moment.grant != null && moment.grant!.isClaimable ? moment : null;
+  }
+
+  static Future<void> _orderSupply(BuildContext context, WidgetRef ref, SupplyItem item) async {
+    ref.track(ZbEvent(type: ZbEvents.supplyAction, zone: 'family', payload: {'product_id': item.product.id, 'action': 'order'}));
+    if (item.product.isVariable && item.variationId <= 0) {
+      Haptics.light();
+      await context.push<void>('/product/${item.product.id}', extra: item.product);
+      return;
+    }
+    final added = await addToCart(
+      context,
+      ref,
+      product: item.product,
+      variationId: item.variationId > 0 ? item.variationId : null,
+      quantity: item.qtyLast,
+      zone: 'family',
+    );
+    if (added && context.mounted) unawaited(context.push('/cart'));
+  }
+
+  static Future<void> _orderSubscription(BuildContext context, WidgetRef ref, Subscription sub) async {
+    try {
+      final result = await ref.read(loyaltyRepositoryProvider).orderNow(sub.id);
+      ref.read(cartControllerProvider.notifier).applyServerCart(result.cart);
+      ref.track(ZbEvent(type: ZbEvents.subscription, zone: 'family', payload: {'subscription_id': sub.id, 'action': 'order'}));
+      if (!context.mounted) return;
+      await Haptics.success();
+      if (!context.mounted) return;
+      AppToast.success(context, L.of(context).subsBasketReady);
+      unawaited(context.push('/cart'));
+    } catch (e) {
+      if (context.mounted) AppToast.error(context, errorMessage(context, e));
+    }
+  }
+
+  static Future<void> _claimBirthday(BuildContext context, WidgetRef ref, BirthdayMoment moment) async {
+    final grant = moment.grant;
+    if (grant == null) return;
+    try {
+      await ref.read(cartControllerProvider.notifier).claimGrant(grant.id);
+      if (!context.mounted) return;
+      await Haptics.success();
+      if (!context.mounted) return;
+      AppToast.success(context, L.of(context).momentGiftAdded);
+      invalidateLoyalty(ref);
+      unawaited(context.push('/cart'));
+    } catch (e) {
+      if (context.mounted) AppToast.error(context, errorMessage(context, e));
+    }
   }
 
   static void _showHowToEarn(BuildContext context) {

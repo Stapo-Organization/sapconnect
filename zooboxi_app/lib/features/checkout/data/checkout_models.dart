@@ -133,6 +133,7 @@ class PlacedOrder {
     this.promise = const DeliveryPromise(),
     this.scratchCard,
     this.pawsToEarn = 0,
+    this.subscriptionOrder = false,
   });
 
   final int orderId;
@@ -157,6 +158,9 @@ class PlacedOrder {
   /// Paws this order will be worth once it is delivered.
   final int pawsToEarn;
 
+  /// This basket delivered a subscription — free delivery and bonus paws.
+  final bool subscriptionOrder;
+
   PlacedOrder withPromise(DeliveryPromise value) => PlacedOrder(
         orderId: orderId,
         orderNumber: orderNumber,
@@ -168,6 +172,7 @@ class PlacedOrder {
         promise: value,
         scratchCard: scratchCard,
         pawsToEarn: pawsToEarn,
+        subscriptionOrder: subscriptionOrder,
       );
 
   factory PlacedOrder.fromJson(Map<String, dynamic> json) => PlacedOrder(
@@ -180,5 +185,6 @@ class PlacedOrder {
         paymentRequired: asBool(json['payment_required']),
         scratchCard: ScratchCard.maybe(json['scratch_card']),
         pawsToEarn: asInt(json['paws_to_earn']),
+        subscriptionOrder: asBool(json['subscription_order']),
       );
 }

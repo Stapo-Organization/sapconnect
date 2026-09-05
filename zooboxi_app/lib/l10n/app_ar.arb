@@ -969,5 +969,355 @@
         "type": "String"
       }
     }
-  }
+  },
+  "supplyTitle": "مخزون البيت",
+  "supplySubtitle": "نتعلّم من طلباتك — كل «خلص» أو «عندي كفاية» يجعل التقدير أدق",
+  "supplyHubSubtitle": "متى ينفد أكل عائلتك",
+  "supplyEmptyTitle": "لا شيء في العدّاد بعد",
+  "supplyEmptyBody": "بعد أول طلب أكل أو رمل من التطبيق نبدأ نحسب متى ينفد ونذكّرك في وقته",
+  "supplyDaysLeft": "{count, plural, =0{ينفد اليوم} =1{يكفي يومًا} =2{يكفي يومين} few{يكفي {count} أيام} other{يكفي {count} يومًا}}",
+  "@supplyDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyRunsOutToday": "ينفد اليوم",
+  "supplyOverdue": "{count, plural, =1{نفد أمس} =2{نفد قبل يومين} few{نفد قبل {count} أيام} other{نفد قبل {count} يومًا}}",
+  "@supplyOverdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyOrderNow": "اطلب الآن",
+  "supplyOut": "خلص",
+  "supplySnooze": "كفاية",
+  "supplySubscribe": "اشترك",
+  "supplySubscribed": "مشترك",
+  "supplyOnTimeBadge": "+{pct}% في وقته",
+  "@supplyOnTimeBadge": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyCycle": "يكفي {days} يومًا تقريبًا",
+  "@supplyCycle": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "supplyForPet": "لـ{name}",
+  "@supplyForPet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "supplyConfidenceLow": "تقدير أولي",
+  "supplyConfidenceMedium": "تقدير",
+  "supplyConfidenceHigh": "مبني على طلباتك",
+  "supplyMarkedOut": "سجّلنا أن الأكل خلص — حان وقت الطلب",
+  "supplySnoozed": "{count, plural, other{حسنًا، نذكّرك بعد {count} أيام}}",
+  "@supplySnoozed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyKindDry": "طعام جاف",
+  "supplyKindWet": "طعام رطب",
+  "supplyKindLitter": "رمل",
+  "supplyKindTreat": "مكافآت",
+  "supplyKindOther": "مستلزم",
+  "supplyWindowHint": "اطلب بين {before} أيام قبل النفاد و{after} بعده تكسب +{pct}% بصمات",
+  "@supplyWindowHint": {
+    "placeholders": {
+      "before": {
+        "type": "int"
+      },
+      "after": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "supplyPack": "{kg} كجم",
+  "@supplyPack": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      }
+    }
+  },
+  "subsTitle": "اشتراكاتي",
+  "subsSubtitle": "وصّل لي كل شهر — بلا بطاقة محفوظة ولا التزام، أنت تقرّر كل مرة",
+  "subsHubSubtitle": "{count, plural, =1{اشتراك واحد نشط} =2{اشتراكان نشطان} few{{count} اشتراكات نشطة} other{{count} اشتراكًا نشطًا}}",
+  "@subsHubSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsEmptyTitle": "لا اشتراكات بعد",
+  "subsEmptyBody": "اشترك في أكل عائلتك من مخزون البيت — نذكّرك قبل الموعد وتطلب بضغطة، والتوصيل علينا",
+  "subsNextIn": "{count, plural, =1{التوصيلة غدًا} =2{التوصيلة بعد يومين} few{التوصيلة بعد {count} أيام} other{التوصيلة بعد {count} يومًا}}",
+  "@subsNextIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsNextToday": "التوصيلة اليوم",
+  "subsOverdue": "موعد التوصيلة فات",
+  "subsEvery": "كل {days} يومًا",
+  "@subsEvery": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "subsQty": "× {qty}",
+  "@subsQty": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "subsPaused": "موقوف مؤقتًا",
+  "subsOrderNow": "اطلب الآن",
+  "subsSkip": "تخطَّ",
+  "subsEdit": "تعديل",
+  "subsPause": "إيقاف مؤقت",
+  "subsResume": "استئناف",
+  "subsCancel": "إلغاء الاشتراك",
+  "subsCancelConfirm": "تلغي هذا الاشتراك؟ تقدر تشترك مجددًا في أي وقت.",
+  "subsPerks": "توصيل مجاني على كل توصيلة · +{pct}% بصمات · هدية كل {every} توصيلات",
+  "@subsPerks": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      },
+      "every": {
+        "type": "int"
+      }
+    }
+  },
+  "subsDeliveries": "{count, plural, =0{لا توصيلات بعد} =1{توصيلة واحدة} =2{توصيلتان} few{{count} توصيلات} other{{count} توصيلة}}",
+  "@subsDeliveries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsNextGift": "{count, plural, =1{هدية مع التوصيلة القادمة} =2{هدية بعد توصيلتين} few{هدية بعد {count} توصيلات} other{هدية بعد {count} توصيلة}}",
+  "@subsNextGift": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subsEditorTitle": "تعديل الاشتراك",
+  "subsIntervalLabel": "كل كم يومًا؟",
+  "subsQtyLabel": "الكمية",
+  "subsNextLabel": "التوصيلة التالية",
+  "subsSave": "حفظ",
+  "subsCreated": "تم الاشتراك — نذكّرك قبل الموعد بثلاثة أيام",
+  "subsSkipped": "تم تخطي هذه التوصيلة",
+  "subsBasketReady": "جهّزنا سلتك — التوصيل مجاني",
+  "subsCancelled": "تم إلغاء الاشتراك",
+  "subsFreeDeliveryBody": "توصيلة اشتراك — الشحن علينا",
+  "successSubscriptionNote": "توصيلة اشتراك: بصمات إضافية والتوصيل مجاني",
+  "referralTitle": "ادعُ صديقًا",
+  "referralHubBody": "صديقك يأخذ هدية ترحيب مع أول طلب، وأنت {paws} بصمة بعد تسليمه",
+  "@referralHubBody": {
+    "placeholders": {
+      "paws": {
+        "type": "String"
+      }
+    }
+  },
+  "referralShare": "شارك الدعوة",
+  "referralCopy": "نسخ الكود",
+  "referralCopied": "تم نسخ الكود",
+  "referralYourCode": "كودك",
+  "referralStatsInvited": "دعوات",
+  "referralStatsQualified": "بانتظار التسليم",
+  "referralStatsRewarded": "مكافآت",
+  "referralHaveCode": "عندك كود من صديق؟",
+  "referralEnterCode": "أدخل كود الدعوة",
+  "referralApply": "تطبيق",
+  "referralApplied": "تم تطبيق كود {code} — هدية الترحيب في محفظتك",
+  "@referralApplied": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "referralAppliedBefore": "انضممت بدعوة {code}",
+  "@referralAppliedBefore": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "referralCap": "{n} من {cap} دعوات هذا الشهر",
+  "@referralCap": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "cap": {
+        "type": "int"
+      }
+    }
+  },
+  "referralEmpty": "لم تدعُ أحدًا بعد — أول صديق ينتظر",
+  "referralStatePending": "انضم — بانتظار أول طلب",
+  "referralStateQualified": "أتمّ طلبه — بانتظار الاعتماد",
+  "referralStateReview": "قيد المراجعة",
+  "referralStateRewarded": "مكافأة مدفوعة",
+  "referralStateRejected": "لم تُقبل",
+  "referralHow": "كيف تعمل",
+  "referralHow1": "شارك كودك أو رابطك مع صديق لم يطلب من زوبوكسي من قبل",
+  "referralHow2": "يطبّق الكود في التطبيق ويأخذ {welcome} مع أول طلب",
+  "@referralHow2": {
+    "placeholders": {
+      "welcome": {
+        "type": "String"
+      }
+    }
+  },
+  "referralHow3": "بعد تسليم طلبه بأسبوع تصلك {paws} بصمة",
+  "@referralHow3": {
+    "placeholders": {
+      "paws": {
+        "type": "String"
+      }
+    }
+  },
+  "momentBirthdayTitle": "عيد ميلاد {name} 🎂",
+  "@momentBirthdayTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "momentBirthdayIn": "{count, plural, =1{غدًا} =2{بعد يومين} few{بعد {count} أيام} other{بعد {count} يومًا}}",
+  "@momentBirthdayIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "momentBirthdayToday": "اليوم!",
+  "momentBirthdayPassed": "{count, plural, =1{أمس} =2{قبل يومين} few{قبل {count} أيام} other{قبل {count} يومًا}}",
+  "@momentBirthdayPassed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "momentBirthdayGift": "هدية باسمه في محفظتك — أضفها لطلبك القادم",
+  "momentBirthdayPaws": "{paws} بصمة هدية عيد ميلاد في محفظتك",
+  "@momentBirthdayPaws": {
+    "placeholders": {
+      "paws": {
+        "type": "String"
+      }
+    }
+  },
+  "momentBirthdayNoGift": "ما رأيك بهدية صغيرة له هذا الأسبوع؟",
+  "momentAddToCart": "أضف الهدية للسلة",
+  "momentGiftAdded": "أضفنا الهدية لسلتك",
+  "tierRiskLine": "{days, plural, =1{غدًا يهبط مستواك إلى {tier} — طلب واحد يحفظه} =2{بعد يومين يهبط مستواك إلى {tier} — طلب واحد يحفظه} few{خلال {days} أيام يهبط مستواك إلى {tier} — طلب واحد يحفظه} other{خلال {days} يومًا يهبط مستواك إلى {tier} — طلب واحد يحفظه}}",
+  "@tierRiskLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "stampsTitle": "بطاقات الماركات",
+  "stampsRemaining": "{count, plural, =1{بقي واحد} =2{بقي اثنان} few{بقي {count}} other{بقي {count}}}",
+  "@stampsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stampsDone": "{count, plural, =1{بطاقة مكتملة} =2{بطاقتان مكتملتان} few{{count} بطاقات مكتملة} other{{count} بطاقة مكتملة}}",
+  "@stampsDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stampsMinPack": "عبوات {kg} كجم فأكثر",
+  "@stampsMinPack": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      }
+    }
+  },
+  "stampsReward": "المكافأة",
+  "familySupplyLine": "{days, plural, =1{أكل {name} يكفي يومًا} =2{أكل {name} يكفي يومين} few{أكل {name} يكفي {days} أيام} other{أكل {name} يكفي {days} يومًا}}",
+  "@familySupplyLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familySupplyDue": "حان وقت إعادة طلب أكل {name}",
+  "@familySupplyDue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familySubscriptionLine": "{days, plural, =1{توصيلة اشتراكك غدًا} =2{توصيلة اشتراكك بعد يومين} few{توصيلة اشتراكك بعد {days} أيام} other{توصيلة اشتراكك بعد {days} يومًا}}",
+  "@familySubscriptionLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "familySubscriptionToday": "توصيلة اشتراكك اليوم",
+  "subsEveryWeek": "كل أسبوع",
+  "subsEveryTwoWeeks": "كل أسبوعين",
+  "subsEveryMonth": "كل شهر",
+  "subsEveryTwoMonths": "كل شهرين"
 }
