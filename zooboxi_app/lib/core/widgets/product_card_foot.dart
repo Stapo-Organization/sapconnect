@@ -48,7 +48,11 @@ class ProductCardAddOverlay extends ConsumerStatefulWidget {
 /// The cart's view of this exact product, reduced to the values the control
 /// renders. A record so `select` compares by value — a cart refresh that did
 /// not touch this line must not rebuild every card in the grid.
-typedef _CartLine = ({String key, int qty, int? max});
+/// [direct] is true when the product sits in the cart as its one simple line —
+/// the only case the card's inline stepper can operate on. A variable product
+/// (units, flavours) may carry several variation lines: the bubble shows their
+/// SUM, and quantity edits belong to the product page.
+typedef _CartLine = ({String key, int qty, int? max, bool direct});
 
 class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
   /// How long the stepper stays open after the last touch.
@@ -191,6 +195,9 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
         _pending = null;
         _cancelOnLand = false;
       });
+      // Replays only steer a single simple line; an aggregate of variation
+      // lines has no one key to write to.
+      if (!line.direct) return;
       if (cancel) {
         unawaited(notifier.remove(line.key).catchError((_) {}));
       } else if (target != null && target != line.qty) {
@@ -205,12 +212,24 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
 
     final line = ref.watch(
       cartControllerProvider.select<_CartLine?>((state) {
-        final item = state.value?.items
-            .where((i) => i.productId == widget.product.id && i.variationId == null)
-            .firstOrNull;
-        return item == null
-            ? null
-            : (key: item.key, qty: item.qty, max: item.maxReachable);
+        // Every line of this product, variations included: a كرتون added on
+        // the product page must still light this card's count.
+        final items = state.value?.items
+                .where((i) => i.productId == widget.product.id)
+                .toList() ??
+            const [];
+        if (items.isEmpty) return null;
+        final direct = items.length == 1 && items.first.variationId == null;
+        var qty = 0;
+        for (final item in items) {
+          qty += item.qty;
+        }
+        return (
+          key: items.first.key,
+          qty: qty,
+          max: direct ? items.first.maxReachable : null,
+          direct: direct,
+        );
       }),
     );
 
@@ -234,6 +253,15 @@ class _ProductCardAddOverlayState extends ConsumerState<ProductCardAddOverlay> {
             ? () => unawaited(_firstAdd())
             : () {
                 Haptics.light();
+                if (line != null && !line.direct) {
+                  // Several variation lines share this count — the inline
+                  // stepper has no single line to steer, the page does.
+                  unawaited(context.push(
+                    '/product/${widget.product.id}',
+                    extra: widget.product,
+                  ));
+                  return;
+                }
                 setState(_open);
               },
       );

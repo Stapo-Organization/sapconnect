@@ -102,10 +102,12 @@ class GlassNavBar extends ConsumerWidget {
             quality: GlassQuality.standard,
             clipBehavior: Clip.antiAlias,
             settings: LiquidGlassSettings(
+              // Owner-tuned: barely-there tint — the store should show through
+              // the glass, the refraction carries the legibility.
               glassColor: dark
-                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.44)
-                  : cs.surface.withValues(alpha: 0.42),
-              blur: 14,
+                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.24)
+                  : cs.surface.withValues(alpha: 0.20),
+              blur: 11,
             ),
             child: SizedBox(
               height: barHeight,
