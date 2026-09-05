@@ -89,6 +89,12 @@ abstract final class ZbEvents {
 
   /// The referral link was handed to the share sheet.
   static const referralShare = 'referral_share';
+
+  /// A care reminder was set, marked done, or a suggested product opened.
+  static const careAction = 'care_action';
+
+  /// A weight was logged from the pet profile.
+  static const weightLogged = 'weight_logged';
 }
 
 /// Batches signals and posts them in the background.

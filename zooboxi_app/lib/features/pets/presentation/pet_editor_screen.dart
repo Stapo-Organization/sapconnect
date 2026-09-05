@@ -231,7 +231,7 @@ class _PetEditorScreenState extends ConsumerState<PetEditorScreen> {
         title: Text(
           _isNew
               ? l.petNewTitle
-              : l.petEditTitle(widget.initial?.name ?? _nameController.text.trim()),
+              : l.petEditFormTitle(widget.initial?.name ?? _nameController.text.trim()),
         ),
       ),
       body: Column(

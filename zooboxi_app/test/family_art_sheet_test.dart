@@ -62,12 +62,13 @@ Widget _sheet({required Brightness brightness, required Color background, requir
                 _cell(RewardSticker(kind: k, size: 64), k, ink),
               _cell(const PawCoin(size: 22), 'coin 22', ink, width: 64),
               _cell(const PawCoin(size: 16, muted: true), 'coin muted', ink, width: 64),
-              for (final k in const ['profile', 'welcome', 'frequency', 'trial', 'category'])
+              for (final k in const ['profile', 'welcome', 'frequency', 'trial', 'category', 'care'])
                 _cell(MissionSticker(kind: k, size: 56), k, ink),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               for (final m in FamilyMark.values)
                 _cell(FamilyMarkIcon(m, size: 28), m.name, ink, width: 72, height: 80),

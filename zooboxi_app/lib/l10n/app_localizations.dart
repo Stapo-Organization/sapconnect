@@ -3804,6 +3804,444 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'كل شهرين'**
   String get subsEveryTwoMonths;
+
+  /// No description provided for @petEditFormTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل ملف {name}'**
+  String petEditFormTitle(String name);
+
+  /// No description provided for @careEdit.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل'**
+  String get careEdit;
+
+  /// No description provided for @careFeedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كم يأكل {name}؟'**
+  String careFeedTitle(String name);
+
+  /// No description provided for @careFeedKcal.
+  ///
+  /// In ar, this message translates to:
+  /// **'{kcal} سعرة حرارية في اليوم'**
+  String careFeedKcal(String kcal);
+
+  /// No description provided for @careGramsPerDay.
+  ///
+  /// In ar, this message translates to:
+  /// **'{grams} غ/يوم'**
+  String careGramsPerDay(String grams);
+
+  /// No description provided for @careFeedDry.
+  ///
+  /// In ar, this message translates to:
+  /// **'جاف'**
+  String get careFeedDry;
+
+  /// No description provided for @careFeedWet.
+  ///
+  /// In ar, this message translates to:
+  /// **'رطب'**
+  String get careFeedWet;
+
+  /// No description provided for @careFeedMixed.
+  ///
+  /// In ar, this message translates to:
+  /// **'مختلط'**
+  String get careFeedMixed;
+
+  /// No description provided for @careFeedMixedHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'نصف السعرات من كل نوع'**
+  String get careFeedMixedHint;
+
+  /// No description provided for @careFeedStageKitten.
+  ///
+  /// In ar, this message translates to:
+  /// **'صغير'**
+  String get careFeedStageKitten;
+
+  /// No description provided for @careFeedStageJunior.
+  ///
+  /// In ar, this message translates to:
+  /// **'يافع'**
+  String get careFeedStageJunior;
+
+  /// No description provided for @careFeedStageAdult.
+  ///
+  /// In ar, this message translates to:
+  /// **'بالغ'**
+  String get careFeedStageAdult;
+
+  /// No description provided for @careFeedStageSenior.
+  ///
+  /// In ar, this message translates to:
+  /// **'كبير السن'**
+  String get careFeedStageSenior;
+
+  /// No description provided for @careActivity.
+  ///
+  /// In ar, this message translates to:
+  /// **'النشاط'**
+  String get careActivity;
+
+  /// No description provided for @careActivityLow.
+  ///
+  /// In ar, this message translates to:
+  /// **'هادئ'**
+  String get careActivityLow;
+
+  /// No description provided for @careActivityNormal.
+  ///
+  /// In ar, this message translates to:
+  /// **'عادي'**
+  String get careActivityNormal;
+
+  /// No description provided for @careActivityHigh.
+  ///
+  /// In ar, this message translates to:
+  /// **'نشيط'**
+  String get careActivityHigh;
+
+  /// No description provided for @careCondition.
+  ///
+  /// In ar, this message translates to:
+  /// **'الجسم'**
+  String get careCondition;
+
+  /// No description provided for @careConditionUnder.
+  ///
+  /// In ar, this message translates to:
+  /// **'نحيف'**
+  String get careConditionUnder;
+
+  /// No description provided for @careConditionIdeal.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثالي'**
+  String get careConditionIdeal;
+
+  /// No description provided for @careConditionOver.
+  ///
+  /// In ar, this message translates to:
+  /// **'ممتلئ'**
+  String get careConditionOver;
+
+  /// No description provided for @careOverrideHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطعمه كمية مختلفة؟'**
+  String get careOverrideHint;
+
+  /// No description provided for @careOverrideTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كم تطعم {name} فعلاً؟'**
+  String careOverrideTitle(String name);
+
+  /// No description provided for @careOverrideBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيحسب عدّاد الأكل على هذه الكمية بدل الخطة'**
+  String get careOverrideBody;
+
+  /// No description provided for @careOverrideReset.
+  ///
+  /// In ar, this message translates to:
+  /// **'ارجع للخطة'**
+  String get careOverrideReset;
+
+  /// No description provided for @careOverrideActive.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطعمه {grams} غ/يوم بدل الخطة'**
+  String careOverrideActive(String grams);
+
+  /// No description provided for @careFeedNoWeight.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف وزن {name} لنحسب كم يأكل'**
+  String careFeedNoWeight(String name);
+
+  /// No description provided for @careFeedAddWeight.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف الوزن'**
+  String get careFeedAddWeight;
+
+  /// No description provided for @careFeedUnsupported.
+  ///
+  /// In ar, this message translates to:
+  /// **'حاسبة التغذية متاحة للقطط والكلاب حالياً'**
+  String get careFeedUnsupported;
+
+  /// No description provided for @careFeedGaugeNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدّاد الأكل يعتمد على هذا الرقم'**
+  String get careFeedGaugeNote;
+
+  /// No description provided for @careWeightTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوزن'**
+  String get careWeightTitle;
+
+  /// No description provided for @careWeightLog.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل وزن اليوم'**
+  String get careWeightLog;
+
+  /// No description provided for @careWeightLogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'وزن {name} اليوم'**
+  String careWeightLogTitle(String name);
+
+  /// No description provided for @careWeightEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا قراءات بعد. أول قراءة تبدأ الرسم'**
+  String get careWeightEmpty;
+
+  /// No description provided for @careWeightTrendUp.
+  ///
+  /// In ar, this message translates to:
+  /// **'زاد {kg} كجم خلال {days} يومًا'**
+  String careWeightTrendUp(String kg, String days);
+
+  /// No description provided for @careWeightTrendDown.
+  ///
+  /// In ar, this message translates to:
+  /// **'نقص {kg} كجم خلال {days} يومًا'**
+  String careWeightTrendDown(String kg, String days);
+
+  /// No description provided for @careWeightTrendFlat.
+  ///
+  /// In ar, this message translates to:
+  /// **'ثابت خلال {days} يومًا'**
+  String careWeightTrendFlat(String days);
+
+  /// No description provided for @careWeightFlagGain.
+  ///
+  /// In ar, this message translates to:
+  /// **'زيادة تتجاوز 10٪. إن استمرت فاستشر الطبيب البيطري'**
+  String get careWeightFlagGain;
+
+  /// No description provided for @careWeightFlagLoss.
+  ///
+  /// In ar, this message translates to:
+  /// **'نقص يتجاوز 10٪. يستحق نظرة من الطبيب البيطري'**
+  String get careWeightFlagLoss;
+
+  /// No description provided for @careWeightMission.
+  ///
+  /// In ar, this message translates to:
+  /// **'+{paws} بصمة لأول قراءة هذا الشهر'**
+  String careWeightMission(String paws);
+
+  /// No description provided for @careWeightDeleteConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف قراءة {date}؟'**
+  String careWeightDeleteConfirm(String date);
+
+  /// No description provided for @careWeightSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'سُجّل الوزن'**
+  String get careWeightSaved;
+
+  /// No description provided for @careWeightPickDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'بتاريخ'**
+  String get careWeightPickDate;
+
+  /// No description provided for @careRemindersTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تذكيرات الرعاية'**
+  String get careRemindersTitle;
+
+  /// No description provided for @careRemindersSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اضغط «تم» عند إنجازه وسنذكّرك في الموعد القادم'**
+  String get careRemindersSubtitle;
+
+  /// No description provided for @careStateUnset.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير مضبوط'**
+  String get careStateUnset;
+
+  /// No description provided for @careStateOff.
+  ///
+  /// In ar, this message translates to:
+  /// **'متوقف'**
+  String get careStateOff;
+
+  /// No description provided for @careStateIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{غدًا} =2{بعد يومين} few{بعد {days} أيام} other{بعد {days} يومًا}}'**
+  String careStateIn(int days);
+
+  /// No description provided for @careStateDue.
+  ///
+  /// In ar, this message translates to:
+  /// **'اليوم'**
+  String get careStateDue;
+
+  /// No description provided for @careStateOverdue.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{تأخر يومًا} =2{تأخر يومين} few{تأخر {days} أيام} other{تأخر {days} يومًا}}'**
+  String careStateOverdue(int days);
+
+  /// No description provided for @careDoneToast.
+  ///
+  /// In ar, this message translates to:
+  /// **'سُجّل. الموعد القادم {date}'**
+  String careDoneToast(String date);
+
+  /// No description provided for @careSetTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'{label} · {name}'**
+  String careSetTitle(String label, String name);
+
+  /// No description provided for @careLastOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر مرة'**
+  String get careLastOn;
+
+  /// No description provided for @careNextOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'الموعد القادم'**
+  String get careNextOn;
+
+  /// No description provided for @careInterval.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتكرر كل'**
+  String get careInterval;
+
+  /// No description provided for @careIntervalDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'{days, plural, =1{كل يوم} =2{كل يومين} few{كل {days} أيام} other{كل {days} يومًا}}'**
+  String careIntervalDays(int days);
+
+  /// No description provided for @careEnabled.
+  ///
+  /// In ar, this message translates to:
+  /// **'التذكير مفعّل'**
+  String get careEnabled;
+
+  /// No description provided for @careSetHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّد آخر مرة وسنحسب الموعد القادم'**
+  String get careSetHint;
+
+  /// No description provided for @careSuggested.
+  ///
+  /// In ar, this message translates to:
+  /// **'قد يفيدك'**
+  String get careSuggested;
+
+  /// No description provided for @careSupplyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مخزون {name}'**
+  String careSupplyTitle(String name);
+
+  /// No description provided for @careSupplyAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل المخزون'**
+  String get careSupplyAll;
+
+  /// No description provided for @careSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم الحفظ'**
+  String get careSaved;
+
+  /// No description provided for @familyCareLine.
+  ///
+  /// In ar, this message translates to:
+  /// **'اليوم موعد {label} {name}'**
+  String familyCareLine(String label, String name);
+
+  /// No description provided for @familyCareOverdue.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأخر موعد {label} {name}'**
+  String familyCareOverdue(String label, String name);
+
+  /// No description provided for @familyCareOpen.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتح الملف'**
+  String get familyCareOpen;
+
+  /// No description provided for @careEveryWeek.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل أسبوع'**
+  String get careEveryWeek;
+
+  /// No description provided for @careEveryTwoWeeks.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل أسبوعين'**
+  String get careEveryTwoWeeks;
+
+  /// No description provided for @careEveryMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل شهر'**
+  String get careEveryMonth;
+
+  /// No description provided for @careEveryTwoMonths.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل شهرين'**
+  String get careEveryTwoMonths;
+
+  /// No description provided for @careEveryQuarter.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل 3 أشهر'**
+  String get careEveryQuarter;
+
+  /// No description provided for @careEveryHalfYear.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل 6 أشهر'**
+  String get careEveryHalfYear;
+
+  /// No description provided for @careEveryYear.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل سنة'**
+  String get careEveryYear;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف'**
+  String get actionDelete;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

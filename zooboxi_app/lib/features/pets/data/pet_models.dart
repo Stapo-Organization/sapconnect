@@ -48,6 +48,11 @@ class Pet {
     this.photoUrl,
     this.isComplete = false,
     this.birthdayInDays,
+    this.activity = '',
+    this.bodyCondition = '',
+    this.feedGDay,
+    this.foodKcal,
+    this.planOk = false,
   });
 
   final int id;
@@ -75,6 +80,21 @@ class Pet {
   /// Days until the next birthday, or null when there is no birth date.
   final int? birthdayInDays;
 
+  /// `low` | `normal` | `high`, or empty when not said — a feeding-plan input.
+  final String activity;
+
+  /// `under` | `ideal` | `over`, or empty when not said.
+  final String bodyCondition;
+
+  /// The customer's own "I feed them N grams a day" — wins over the plan.
+  final double? feedGDay;
+
+  /// kcal per 100 g of their dry food, when they typed it off the bag.
+  final int? foodKcal;
+
+  /// The server can compute a feeding plan: a cat or dog with a weight.
+  final bool planOk;
+
   /// True once this pet exists server-side.
   bool get isSaved => id > 0;
 
@@ -97,6 +117,11 @@ class Pet {
         photoUrl: asStringOrNull(json['photo_url']),
         isComplete: asBool(json['is_complete']),
         birthdayInDays: asIntOrNull(json['birthday_in_days']),
+        activity: asString(json['activity']),
+        bodyCondition: asString(json['body_condition']),
+        feedGDay: asDoubleOrNull(json['feed_g_day']),
+        foodKcal: asIntOrNull(json['food_kcal']),
+        planOk: asBool(json['plan_ok']),
       );
 
   /// The write shape. Optional fields ride along only when they have a value,
@@ -138,6 +163,11 @@ class Pet {
         photoUrl: photoUrl,
         isComplete: isComplete,
         birthdayInDays: birthdayInDays,
+        activity: activity,
+        bodyCondition: bodyCondition,
+        feedGDay: feedGDay,
+        foodKcal: foodKcal,
+        planOk: planOk,
       );
 
   static List<Pet> listFrom(dynamic value) {

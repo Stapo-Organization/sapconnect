@@ -24,13 +24,16 @@ import '../../../catalog/data/product_models.dart';
 import '../../../loyalty/data/loyalty_models.dart';
 import '../../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../../loyalty/presentation/widgets/paws_pill.dart';
+import '../../../pets/data/care_models.dart';
 import '../../../pets/data/pet_models.dart';
+import '../../../pets/data/pets_repository.dart';
+import '../../../pets/presentation/widgets/care_widgets.dart' show careMarkOf;
 import '../../../pets/presentation/widgets/species_avatar.dart';
 
 /// Which face the card is wearing. Reported as the `family_card` event's
 /// payload, because "which variant did they see" is the only way to read
 /// whether the card is doing anything.
-enum FamilyCardVariant { guest, noPet, birthday, pending, supply, subscription, due, mission, tier }
+enum FamilyCardVariant { guest, noPet, birthday, pending, supply, subscription, care, due, mission, tier }
 
 /// The storefront's window into «عائلة زوبوكسي».
 ///
@@ -59,6 +62,7 @@ class FamilyCard extends ConsumerStatefulWidget {
     if (summary.pendingOrders.isNotEmpty) return FamilyCardVariant.pending;
     if (summary.supplyDue != null) return FamilyCardVariant.supply;
     if (summary.subscriptionDue != null) return FamilyCardVariant.subscription;
+    if (summary.care.dueNow != null) return FamilyCardVariant.care;
     if (dueProduct(feed) != null) return FamilyCardVariant.due;
     if (summary.playsGames && summary.missions.nearest != null) {
       return FamilyCardVariant.mission;
@@ -173,6 +177,26 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
     }
   }
 
+  Future<void> _careDone(CareReminder reminder) async {
+    if (_adding) return;
+    setState(() => _adding = true);
+    try {
+      await ref.read(petsRepositoryProvider).markDone(reminder.pet.id, reminder.kind);
+      ref.read(eventsBufferProvider).track(
+            ZbEvent(type: ZbEvents.careAction, zone: 'home', payload: {'kind': reminder.kind, 'action': 'done'}),
+          );
+      if (!mounted) return;
+      await Haptics.success();
+      if (!mounted) return;
+      AppToast.success(context, L.of(context).careSaved);
+      invalidateLoyalty(ref);
+    } catch (e) {
+      if (mounted) AppToast.error(context, errorMessage(context, e));
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
   Future<void> _claimBirthday(BirthdayMoment moment) async {
     final grant = moment.grant;
     if (_adding || grant == null) return;
@@ -256,6 +280,17 @@ class _FamilyCardState extends ConsumerState<FamilyCard> {
             busy: _adding,
             onOrder: () => _orderSubscription(summary.subscriptionDue!),
             onSkip: () => _skipSubscription(summary.subscriptionDue!),
+          ),
+        ),
+      FamilyCardVariant.care => _PetRow(
+          pet: _petFor(summary!, summary.care.dueNow!.pet.id),
+          summary: summary,
+          onTap: () => context.push('/pets/${summary.care.dueNow!.pet.id}'),
+          child: _CareLine(
+            reminder: summary.care.dueNow!,
+            busy: _adding,
+            onDone: () => _careDone(summary.care.dueNow!),
+            onOpen: () => context.push('/pets/${summary.care.dueNow!.pet.id}'),
           ),
         ),
       FamilyCardVariant.due => _PetRow(
@@ -346,6 +381,76 @@ class _SupplyLine extends StatelessWidget {
                         ],
                       ),
               ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// «اليوم موعد علاج الديدان مشمش» — the care reminder on the storefront.
+class _CareLine extends StatelessWidget {
+  const _CareLine({required this.reminder, required this.onDone, required this.onOpen, this.busy = false});
+
+  final CareReminder reminder;
+  final VoidCallback onDone;
+  final VoidCallback onOpen;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final overdue = reminder.state == 'overdue';
+    final hue = overdue ? context.zb.sale : ZbTokens.logoCoral;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          overdue
+              ? l.familyCareOverdue(reminder.label, reminder.pet.name)
+              : l.familyCareLine(reminder.label, reminder.pet.name),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.bodySmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
+        ),
+        Gap.h4,
+        Text(
+          l.careRemindersSubtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+        ),
+        Gap.h8,
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: hue.withValues(alpha: context.isDark ? 0.22 : 0.12),
+              ),
+              alignment: Alignment.center,
+              child: FamilyMarkIcon(careMarkOf(reminder.kind), size: 22),
+            ),
+            Gap.w8,
+            Expanded(
+              child: FilledButton(
+                onPressed: busy ? null : onDone,
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 40), backgroundColor: hue),
+                child: busy
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text(l.actionDone),
+              ),
+            ),
+            Gap.w8,
+            OutlinedButton(
+              onPressed: busy ? null : onOpen,
+              style: OutlinedButton.styleFrom(minimumSize: const Size(0, 40), padding: const EdgeInsets.symmetric(horizontal: 12)),
+              child: Text(l.familyCareOpen, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           ],
         ),

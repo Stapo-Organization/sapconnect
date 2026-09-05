@@ -23,7 +23,9 @@ import 'package:zooboxi_app/features/loyalty/presentation/rewards_screen.dart';
 import 'package:zooboxi_app/features/loyalty/presentation/widgets/scratch_card_view.dart';
 import 'package:zooboxi_app/features/pets/data/pet_models.dart';
 import 'package:zooboxi_app/features/pets/data/pets_repository.dart';
+import 'package:zooboxi_app/features/pets/data/care_models.dart';
 import 'package:zooboxi_app/features/pets/presentation/pet_editor_screen.dart';
+import 'package:zooboxi_app/features/pets/presentation/pet_profile_screen.dart';
 import 'package:zooboxi_app/features/pets/presentation/pets_screen.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
@@ -236,6 +238,39 @@ void main() {
 
   testWidgets('pets', (tester) async {
     await _shoot(tester, const PetsScreen(), 'pets', height: 700, overrides: _member());
+  });
+
+  testWidgets('pet profile', (tester) async {
+    final care = PetCare(
+      pet: _pets.first.copyWith(neutered: true),
+      plan: const FeedingPlan(kcalDay: 246, stage: 'adult', dryGDay: 65, wetGDay: 270, mixedDryGDay: 35, mixedWetGDay: 140),
+      latestKg: 4.2,
+      weights: [
+        WeightEntry(id: 1, kg: 3.8, on: DateTime(2026, 5, 1), source: 'profile'),
+        WeightEntry(id: 2, kg: 3.9, on: DateTime(2026, 6, 1)),
+        WeightEntry(id: 3, kg: 4.1, on: DateTime(2026, 7, 15)),
+        WeightEntry(id: 4, kg: 4.2, on: DateTime(2026, 9, 5)),
+      ],
+      trend: const WeightTrend(fromKg: 3.8, toKg: 4.2, deltaKg: 0.4, deltaPct: 10.5, days: 127, direction: 'up', flag: 'gain'),
+      reminders: const [
+        CareReminder(pet: PetRef(id: 7, name: 'أوريو', species: PetSpecies.cat), kind: 'deworm', label: 'علاج الديدان', state: 'overdue', days: -3, intervalDays: 90, lastOn: null, products: [
+          ProductCard(id: 17203, name: 'بيفار كومبوتيك قطرة لعلاج البراغيث والقراد والقمل للقطط', image: null, price: 45),
+          ProductCard(id: 11083, name: 'بيفار بخاخ للتخلص من القراد للقطط والكلاب 50مل', image: null, price: 39),
+        ]),
+        CareReminder(pet: PetRef(id: 7, name: 'أوريو', species: PetSpecies.cat), kind: 'vaccine', label: 'التطعيم', state: 'soon', days: 5, intervalDays: 365),
+        CareReminder(pet: PetRef(id: 7, name: 'أوريو', species: PetSpecies.cat), kind: 'flea_tick', label: 'البراغيث والقراد', state: 'ok', days: 22, intervalDays: 30),
+        CareReminder(pet: PetRef(id: 7, name: 'أوريو', species: PetSpecies.cat), kind: 'grooming', label: 'التنظيف والتجميل', state: 'unset', intervalDays: 60),
+        CareReminder(pet: PetRef(id: 7, name: 'أوريو', species: PetSpecies.cat), kind: 'checkup', label: 'الفحص الدوري', state: 'unset', intervalDays: 365),
+      ],
+      supply: _summary().supply.items,
+    );
+    await _shoot(
+      tester,
+      PetProfileScreen(petId: 7, initial: _pets.first),
+      'pet_profile',
+      height: 2100,
+      overrides: [..._member(), petCareProvider.overrideWith((ref, id) => Future.value(care))],
+    );
   });
 
   testWidgets('pet editor', (tester) async {

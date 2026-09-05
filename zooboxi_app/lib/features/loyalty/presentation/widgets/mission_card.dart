@@ -152,6 +152,7 @@ class _StickerTile extends StatelessWidget {
       'frequency' => dark ? (ZbTokens.coralContainerDark, ZbTokens.coralContainerDarkEnd) : (ZbTokens.coralTint, ZbTokens.coralTintSoft),
       'trial' => dark ? (ZbTokens.amberContainerDark, ZbTokens.amberContainerDarkEnd) : (ZbTokens.amberTint, ZbTokens.amberTintSoft),
       'category' => dark ? (ZbTokens.greenContainerDark, ZbTokens.greenContainerDarkEnd) : (ZbTokens.greenTint, ZbTokens.greenTintSoft),
+      'care' => dark ? (ZbTokens.tealContainerDark, ZbTokens.tealContainerDarkEnd) : (ZbTokens.tealTint, ZbTokens.tealTintSoft),
       _ => dark ? (ZbTokens.expressBgDark, const Color(0xFF2A1810)) : (const Color(0xFFFFE9D6), const Color(0xFFFFF5EC)),
     };
 

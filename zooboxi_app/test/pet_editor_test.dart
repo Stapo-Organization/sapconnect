@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zooboxi_app/app/theme/app_theme.dart';
+import 'package:zooboxi_app/features/pets/data/care_models.dart';
 import 'package:zooboxi_app/features/pets/data/pet_models.dart';
 import 'package:zooboxi_app/features/pets/data/pets_repository.dart';
 import 'package:zooboxi_app/features/pets/presentation/pet_editor_screen.dart';
@@ -37,6 +38,27 @@ class _RefusingRepository implements PetsRepository {
     writes++;
     return const [];
   }
+
+  @override
+  Future<PetCare> care(int id) => throw UnimplementedError();
+
+  @override
+  Future<PetCare> logWeight(int id, double kg, {DateTime? on}) => throw UnimplementedError();
+
+  @override
+  Future<PetCare> deleteWeight(int id, int weightId) => throw UnimplementedError();
+
+  @override
+  Future<PetCare> setReminder(int id, String kind, {DateTime? lastOn, DateTime? nextOn, int? intervalDays, bool? enabled}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<PetCare> markDone(int id, String kind, {DateTime? on}) => throw UnimplementedError();
+
+  @override
+  Future<PetWrite> updatePlanInputs(int id,
+          {String? activity, String? bodyCondition, double? feedGDay, bool clearFeedGDay = false, int? foodKcal, bool clearFoodKcal = false}) =>
+      throw UnimplementedError();
 }
 
 late _RefusingRepository _repository;
@@ -152,7 +174,7 @@ void main() {
     await tester.pumpWidget(_host(petId: 7, initial: pet));
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('ملف مشمش'), findsOneWidget);
+    expect(find.text('تعديل ملف مشمش'), findsOneWidget);
     expect(find.text('مشمش'), findsWidgets);
     expect(find.text('هاسكي'), findsOneWidget);
     expect(find.text('12٫5 كجم'), findsOneWidget);

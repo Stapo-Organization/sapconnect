@@ -448,6 +448,7 @@ class MissionSticker extends StatelessWidget {
             'frequency' => _FrequencyPainter(size: size),
             'trial' => _TrialPainter(size: size, rtl: context.isRtl),
             'category' => _BowlPainter(size: size),
+            'care' => _ScalePainter(size: size),
             _ => _WelcomePainter(size: size),
           },
         ),
@@ -460,8 +461,42 @@ Color missionKindHue(BuildContext context, String kind) => switch (kind) {
       'frequency' => context.zb.sale,
       'trial' => context.isDark ? ZbTokens.amberOnDark : ZbTokens.amberDeep,
       'category' => context.isDark ? const Color(0xFF7ED39B) : ZbTokens.greenDeep,
+      'care' => context.isDark ? ZbTokens.tealOnDark : ZbTokens.tealDeep,
       _ => context.zb.tierExpress.fg,
     };
+
+/// A scale with a paw on the platform — «سجّل وزن مشمش».
+class _ScalePainter extends StickerPainter {
+  const _ScalePainter({required super.size});
+
+  @override
+  void draw(Canvas canvas) {
+    final l = line;
+    if (detailed) {
+      sparkleAt(canvas, const Offset(20.2, 4.0), 3.2);
+    }
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(2.6, 4.0, 21.4, 21.0), const Radius.circular(4.6)),
+      ZbTokens.logoTeal,
+      l,
+    );
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(6.6, 6.6, 17.4, 11.4), const Radius.circular(1.8)),
+      ZbTokens.creamLogo,
+      thin(1.0),
+    );
+    canvas.drawLine(const Offset(12, 11.0), const Offset(14.8, 7.6), Paint()
+      ..color = ZbTokens.logoCoral
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round);
+    final paw = Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.92);
+    canvas.drawOval(const Rect.fromLTWH(10.0, 14.6, 4.0, 3.4), paw);
+    for (final c in const [Offset(9.0, 13.6), Offset(11.0, 12.5), Offset(13.0, 12.5), Offset(15.0, 13.6)]) {
+      canvas.drawCircle(c, 0.85, paw);
+    }
+    glossAt(canvas, const Offset(5.8, 6.0), w: 2.4, h: 1.0, angle: -0.9, alpha: 0.4);
+  }
+}
 
 /// An ID card with a pet's portrait and two lines — «أكمل ملف عائلتك».
 class _ProfilePainter extends StickerPainter {
@@ -724,7 +759,7 @@ Path _starPath(Offset c, double outer, double inner) {
    SMALL MARKS — lock, check, book, bulb, clock, foil
    ══════════════════════════════════════════════════════════════════════ */
 
-enum FamilyMark { lock, check, book, bulb, clock, family, plus, bowl, repeat, share, cake, tag, moon }
+enum FamilyMark { lock, check, book, bulb, clock, family, plus, bowl, repeat, share, cake, tag, moon, scale, shield, pill, bug, steth, scissors }
 
 /// One small painted mark. These replace the Material outlines the program
 /// used to wear: a lock with a keyhole rather than a wire padlock, a check on
@@ -786,10 +821,153 @@ class _MarkPainter extends StickerPainter {
         _tag(canvas);
       case FamilyMark.moon:
         _moon(canvas);
+      case FamilyMark.scale:
+        _scale(canvas);
+      case FamilyMark.shield:
+        _shield(canvas);
+      case FamilyMark.pill:
+        _pill(canvas);
+      case FamilyMark.bug:
+        _bug(canvas);
+      case FamilyMark.steth:
+        _steth(canvas);
+      case FamilyMark.scissors:
+        _scissors(canvas);
       case FamilyMark.family:
       case FamilyMark.plus:
         break;
     }
+  }
+
+  /// A bathroom scale seen from above — the weight log's mark.
+  void _scale(Canvas canvas) {
+    final l = line;
+    final body = tint ?? ZbTokens.logoTeal;
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(3.2, 3.6, 20.8, 20.4), const Radius.circular(4.2)),
+      body,
+      l,
+    );
+    // The display window.
+    canvas.stickerRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(7.0, 6.2, 17.0, 10.6), const Radius.circular(1.6)),
+      ZbTokens.creamLogo,
+      thin(1.0),
+    );
+    // The needle.
+    canvas.drawLine(const Offset(12, 10.2), const Offset(14.6, 7.2), Paint()
+      ..color = ZbTokens.logoCoral
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round);
+    // A paw print on the platform.
+    final paw = Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.9);
+    canvas.drawOval(const Rect.fromLTWH(10.3, 14.2, 3.4, 3.0), paw);
+    for (final c in const [Offset(9.4, 13.2), Offset(11.2, 12.2), Offset(12.8, 12.2), Offset(14.6, 13.2)]) {
+      canvas.drawCircle(c, 0.75, paw);
+    }
+    glossAt(canvas, const Offset(6.4, 5.6), w: 2.2, h: 0.9, angle: -0.9, alpha: 0.4);
+  }
+
+  /// A shield with a plus — vaccination.
+  void _shield(Canvas canvas) {
+    final body = tint ?? ZbTokens.logoTeal;
+    final shield = Path()
+      ..moveTo(12, 2.8)
+      ..lineTo(19.6, 5.6)
+      ..cubicTo(19.6, 12.8, 17.2, 18.0, 12, 21.4)
+      ..cubicTo(6.8, 18.0, 4.4, 12.8, 4.4, 5.6)
+      ..close();
+    canvas.sticker(shield, body, line);
+    final cross = Paint()
+      ..color = ZbTokens.creamLogo
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(12, 8.2), const Offset(12, 15.0), cross);
+    canvas.drawLine(const Offset(8.6, 11.6), const Offset(15.4, 11.6), cross);
+    glossAt(canvas, const Offset(7.6, 6.6), w: 2.4, h: 1.0, angle: -0.7, alpha: 0.4);
+  }
+
+  /// A capsule, two-tone — deworming.
+  void _pill(Canvas canvas) {
+    canvas.save();
+    canvas.translate(12, 12);
+    canvas.rotate(-0.78);
+    canvas.translate(-12, -12);
+    final rect = RRect.fromLTRBR(4.2, 8.6, 19.8, 15.4, const Radius.circular(3.4));
+    canvas.stickerRRect(rect, ZbTokens.creamLogo, line);
+    canvas.save();
+    canvas.clipRect(const Rect.fromLTRB(4.2, 8.6, 12.0, 15.4));
+    canvas.drawRRect(rect, Paint()..color = tint ?? ZbTokens.logoCoral);
+    canvas.restore();
+    canvas.drawRRect(rect, line);
+    canvas.drawLine(const Offset(12, 8.6), const Offset(12, 15.4), thin(1.0));
+    canvas.restore();
+    glossAt(canvas, const Offset(8.2, 8.6), w: 2.2, h: 0.9, angle: -0.78, alpha: 0.45);
+  }
+
+  /// A small tick, legs out — fleas and ticks.
+  void _bug(Canvas canvas) {
+    final l = line;
+    final body = tint ?? ZbTokens.amberDeep;
+    final legs = Paint()
+      ..color = ZbTokens.inkWarm
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    for (final (a, b) in const [
+      (Offset(8.0, 9.6), Offset(4.6, 7.4)),
+      (Offset(7.4, 12.6), Offset(3.6, 12.6)),
+      (Offset(8.0, 15.4), Offset(4.6, 17.8)),
+      (Offset(16.0, 9.6), Offset(19.4, 7.4)),
+      (Offset(16.6, 12.6), Offset(20.4, 12.6)),
+      (Offset(16.0, 15.4), Offset(19.4, 17.8)),
+    ]) {
+      canvas.drawLine(a, b, legs);
+    }
+    canvas.stickerOval(const Rect.fromLTRB(7.0, 8.0, 17.0, 19.4), body, l);
+    canvas.stickerCircle(const Offset(12, 6.6), 2.6, body, l);
+    canvas.drawLine(const Offset(12, 10.6), const Offset(12, 17.4), thin(1.0));
+    glossAt(canvas, const Offset(9.4, 10.6), w: 2.0, h: 0.9, angle: -1.0, alpha: 0.45);
+  }
+
+  /// A stethoscope — the check-up.
+  void _steth(Canvas canvas) {
+    final tube = Paint()
+      ..color = tint ?? ZbTokens.tealDeep
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(
+      Path()
+        ..moveTo(6.4, 3.6)
+        ..lineTo(6.4, 9.0)
+        ..cubicTo(6.4, 13.4, 13.6, 13.4, 13.6, 9.0)
+        ..lineTo(13.6, 3.6)
+        ..moveTo(10.0, 13.0)
+        ..lineTo(10.0, 15.6)
+        ..cubicTo(10.0, 20.4, 17.2, 20.4, 17.2, 15.6)
+        ..lineTo(17.2, 13.2),
+      tube,
+    );
+    canvas.stickerCircle(const Offset(17.2, 11.0), 2.9, ZbTokens.logoCoral, line);
+    canvas.drawCircle(const Offset(17.2, 11.0), 1.1, Paint()..color = ZbTokens.creamLogo);
+    canvas.drawCircle(const Offset(6.4, 3.4), 1.2, Paint()..color = ZbTokens.inkWarm);
+    canvas.drawCircle(const Offset(13.6, 3.4), 1.2, Paint()..color = ZbTokens.inkWarm);
+  }
+
+  /// Scissors — grooming.
+  void _scissors(Canvas canvas) {
+    final blade = Paint()
+      ..color = tint ?? ZbTokens.tealDeep
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(9.6, 12.8), const Offset(20.0, 4.4), blade);
+    canvas.drawLine(const Offset(9.6, 11.2), const Offset(20.0, 19.6), blade);
+    canvas.stickerCircle(const Offset(7.0, 15.8), 3.0, ZbTokens.logoCoral, line);
+    canvas.stickerCircle(const Offset(7.0, 8.2), 3.0, ZbTokens.logoCoral, line);
+    canvas.drawCircle(const Offset(7.0, 15.8), 1.1, Paint()..color = ZbTokens.creamLogo);
+    canvas.drawCircle(const Offset(7.0, 8.2), 1.1, Paint()..color = ZbTokens.creamLogo);
+    canvas.drawCircle(const Offset(10.4, 12.0), 1.0, Paint()..color = ZbTokens.inkWarm);
   }
 
   /// The food bowl — the gauge's own mark: a bowl with kibble heaped in it.

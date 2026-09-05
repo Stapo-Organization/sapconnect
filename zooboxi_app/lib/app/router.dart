@@ -33,6 +33,7 @@ import '../features/orders/presentation/orders_screen.dart';
 import '../features/payment/presentation/payment_screen.dart';
 import '../features/pets/data/pet_models.dart';
 import '../features/pets/presentation/pet_editor_screen.dart';
+import '../features/pets/presentation/pet_profile_screen.dart';
 import '../features/pets/presentation/pets_screen.dart';
 import '../features/product/presentation/product_screen.dart';
 import '../features/search/presentation/scanner_screen.dart';
@@ -221,17 +222,30 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const PetEditorScreen()),
           ),
           // `:id` must be declared after `new`, or "new" would be parsed as an
-          // id and the editor would try to load pet 0.
+          // id and the profile would try to load pet 0.
           GoRoute(
             path: ':id',
             parentNavigatorKey: rootNavigatorKey,
             pageBuilder: (_, state) => sharedAxisPage(
               state.pageKey,
-              PetEditorScreen(
+              PetProfileScreen(
                 petId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
                 initial: state.extra is Pet ? state.extra! as Pet : null,
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                parentNavigatorKey: rootNavigatorKey,
+                pageBuilder: (_, state) => sharedAxisPage(
+                  state.pageKey,
+                  PetEditorScreen(
+                    petId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+                    initial: state.extra is Pet ? state.extra! as Pet : null,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -2375,4 +2375,292 @@ class LAr extends L {
 
   @override
   String get subsEveryTwoMonths => 'كل شهرين';
+
+  @override
+  String petEditFormTitle(String name) {
+    return 'تعديل ملف $name';
+  }
+
+  @override
+  String get careEdit => 'تعديل';
+
+  @override
+  String careFeedTitle(String name) {
+    return 'كم يأكل $name؟';
+  }
+
+  @override
+  String careFeedKcal(String kcal) {
+    return '$kcal سعرة حرارية في اليوم';
+  }
+
+  @override
+  String careGramsPerDay(String grams) {
+    return '$grams غ/يوم';
+  }
+
+  @override
+  String get careFeedDry => 'جاف';
+
+  @override
+  String get careFeedWet => 'رطب';
+
+  @override
+  String get careFeedMixed => 'مختلط';
+
+  @override
+  String get careFeedMixedHint => 'نصف السعرات من كل نوع';
+
+  @override
+  String get careFeedStageKitten => 'صغير';
+
+  @override
+  String get careFeedStageJunior => 'يافع';
+
+  @override
+  String get careFeedStageAdult => 'بالغ';
+
+  @override
+  String get careFeedStageSenior => 'كبير السن';
+
+  @override
+  String get careActivity => 'النشاط';
+
+  @override
+  String get careActivityLow => 'هادئ';
+
+  @override
+  String get careActivityNormal => 'عادي';
+
+  @override
+  String get careActivityHigh => 'نشيط';
+
+  @override
+  String get careCondition => 'الجسم';
+
+  @override
+  String get careConditionUnder => 'نحيف';
+
+  @override
+  String get careConditionIdeal => 'مثالي';
+
+  @override
+  String get careConditionOver => 'ممتلئ';
+
+  @override
+  String get careOverrideHint => 'تطعمه كمية مختلفة؟';
+
+  @override
+  String careOverrideTitle(String name) {
+    return 'كم تطعم $name فعلاً؟';
+  }
+
+  @override
+  String get careOverrideBody => 'سيحسب عدّاد الأكل على هذه الكمية بدل الخطة';
+
+  @override
+  String get careOverrideReset => 'ارجع للخطة';
+
+  @override
+  String careOverrideActive(String grams) {
+    return 'تطعمه $grams غ/يوم بدل الخطة';
+  }
+
+  @override
+  String careFeedNoWeight(String name) {
+    return 'أضف وزن $name لنحسب كم يأكل';
+  }
+
+  @override
+  String get careFeedAddWeight => 'أضف الوزن';
+
+  @override
+  String get careFeedUnsupported => 'حاسبة التغذية متاحة للقطط والكلاب حالياً';
+
+  @override
+  String get careFeedGaugeNote => 'عدّاد الأكل يعتمد على هذا الرقم';
+
+  @override
+  String get careWeightTitle => 'الوزن';
+
+  @override
+  String get careWeightLog => 'سجّل وزن اليوم';
+
+  @override
+  String careWeightLogTitle(String name) {
+    return 'وزن $name اليوم';
+  }
+
+  @override
+  String get careWeightEmpty => 'لا قراءات بعد. أول قراءة تبدأ الرسم';
+
+  @override
+  String careWeightTrendUp(String kg, String days) {
+    return 'زاد $kg كجم خلال $days يومًا';
+  }
+
+  @override
+  String careWeightTrendDown(String kg, String days) {
+    return 'نقص $kg كجم خلال $days يومًا';
+  }
+
+  @override
+  String careWeightTrendFlat(String days) {
+    return 'ثابت خلال $days يومًا';
+  }
+
+  @override
+  String get careWeightFlagGain =>
+      'زيادة تتجاوز 10٪. إن استمرت فاستشر الطبيب البيطري';
+
+  @override
+  String get careWeightFlagLoss =>
+      'نقص يتجاوز 10٪. يستحق نظرة من الطبيب البيطري';
+
+  @override
+  String careWeightMission(String paws) {
+    return '+$paws بصمة لأول قراءة هذا الشهر';
+  }
+
+  @override
+  String careWeightDeleteConfirm(String date) {
+    return 'حذف قراءة $date؟';
+  }
+
+  @override
+  String get careWeightSaved => 'سُجّل الوزن';
+
+  @override
+  String get careWeightPickDate => 'بتاريخ';
+
+  @override
+  String get careRemindersTitle => 'تذكيرات الرعاية';
+
+  @override
+  String get careRemindersSubtitle =>
+      'اضغط «تم» عند إنجازه وسنذكّرك في الموعد القادم';
+
+  @override
+  String get careStateUnset => 'غير مضبوط';
+
+  @override
+  String get careStateOff => 'متوقف';
+
+  @override
+  String careStateIn(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'بعد $days يومًا',
+      few: 'بعد $days أيام',
+      two: 'بعد يومين',
+      one: 'غدًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get careStateDue => 'اليوم';
+
+  @override
+  String careStateOverdue(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'تأخر $days يومًا',
+      few: 'تأخر $days أيام',
+      two: 'تأخر يومين',
+      one: 'تأخر يومًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String careDoneToast(String date) {
+    return 'سُجّل. الموعد القادم $date';
+  }
+
+  @override
+  String careSetTitle(String label, String name) {
+    return '$label · $name';
+  }
+
+  @override
+  String get careLastOn => 'آخر مرة';
+
+  @override
+  String get careNextOn => 'الموعد القادم';
+
+  @override
+  String get careInterval => 'يتكرر كل';
+
+  @override
+  String careIntervalDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'كل $days يومًا',
+      few: 'كل $days أيام',
+      two: 'كل يومين',
+      one: 'كل يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get careEnabled => 'التذكير مفعّل';
+
+  @override
+  String get careSetHint => 'حدّد آخر مرة وسنحسب الموعد القادم';
+
+  @override
+  String get careSuggested => 'قد يفيدك';
+
+  @override
+  String careSupplyTitle(String name) {
+    return 'مخزون $name';
+  }
+
+  @override
+  String get careSupplyAll => 'كل المخزون';
+
+  @override
+  String get careSaved => 'تم الحفظ';
+
+  @override
+  String familyCareLine(String label, String name) {
+    return 'اليوم موعد $label $name';
+  }
+
+  @override
+  String familyCareOverdue(String label, String name) {
+    return 'تأخر موعد $label $name';
+  }
+
+  @override
+  String get familyCareOpen => 'افتح الملف';
+
+  @override
+  String get careEveryWeek => 'كل أسبوع';
+
+  @override
+  String get careEveryTwoWeeks => 'كل أسبوعين';
+
+  @override
+  String get careEveryMonth => 'كل شهر';
+
+  @override
+  String get careEveryTwoMonths => 'كل شهرين';
+
+  @override
+  String get careEveryQuarter => 'كل 3 أشهر';
+
+  @override
+  String get careEveryHalfYear => 'كل 6 أشهر';
+
+  @override
+  String get careEveryYear => 'كل سنة';
+
+  @override
+  String get actionDelete => 'حذف';
 }

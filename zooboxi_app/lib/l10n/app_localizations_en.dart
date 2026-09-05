@@ -2328,4 +2328,289 @@ class LEn extends L {
 
   @override
   String get subsEveryTwoMonths => 'Every two months';
+
+  @override
+  String petEditFormTitle(String name) {
+    return 'Edit $name\'s profile';
+  }
+
+  @override
+  String get careEdit => 'Edit';
+
+  @override
+  String careFeedTitle(String name) {
+    return 'How much does $name eat?';
+  }
+
+  @override
+  String careFeedKcal(String kcal) {
+    return '$kcal kcal a day';
+  }
+
+  @override
+  String careGramsPerDay(String grams) {
+    return '$grams g/day';
+  }
+
+  @override
+  String get careFeedDry => 'Dry';
+
+  @override
+  String get careFeedWet => 'Wet';
+
+  @override
+  String get careFeedMixed => 'Mixed';
+
+  @override
+  String get careFeedMixedHint => 'Half the calories from each';
+
+  @override
+  String get careFeedStageKitten => 'Little one';
+
+  @override
+  String get careFeedStageJunior => 'Junior';
+
+  @override
+  String get careFeedStageAdult => 'Adult';
+
+  @override
+  String get careFeedStageSenior => 'Senior';
+
+  @override
+  String get careActivity => 'Activity';
+
+  @override
+  String get careActivityLow => 'Calm';
+
+  @override
+  String get careActivityNormal => 'Normal';
+
+  @override
+  String get careActivityHigh => 'Active';
+
+  @override
+  String get careCondition => 'Body';
+
+  @override
+  String get careConditionUnder => 'Lean';
+
+  @override
+  String get careConditionIdeal => 'Ideal';
+
+  @override
+  String get careConditionOver => 'Full';
+
+  @override
+  String get careOverrideHint => 'Feeding a different amount?';
+
+  @override
+  String careOverrideTitle(String name) {
+    return 'How much do you actually feed $name?';
+  }
+
+  @override
+  String get careOverrideBody =>
+      'The pantry gauge will count with this amount instead of the plan';
+
+  @override
+  String get careOverrideReset => 'Back to the plan';
+
+  @override
+  String careOverrideActive(String grams) {
+    return 'You feed $grams g/day instead of the plan';
+  }
+
+  @override
+  String careFeedNoWeight(String name) {
+    return 'Add $name\'s weight and we will work out how much they eat';
+  }
+
+  @override
+  String get careFeedAddWeight => 'Add weight';
+
+  @override
+  String get careFeedUnsupported =>
+      'The feeding calculator covers cats and dogs for now';
+
+  @override
+  String get careFeedGaugeNote => 'The pantry gauge counts with this number';
+
+  @override
+  String get careWeightTitle => 'Weight';
+
+  @override
+  String get careWeightLog => 'Log today\'s weight';
+
+  @override
+  String careWeightLogTitle(String name) {
+    return '$name\'s weight today';
+  }
+
+  @override
+  String get careWeightEmpty =>
+      'No readings yet. The first one starts the chart';
+
+  @override
+  String careWeightTrendUp(String kg, String days) {
+    return 'Up $kg kg over $days days';
+  }
+
+  @override
+  String careWeightTrendDown(String kg, String days) {
+    return 'Down $kg kg over $days days';
+  }
+
+  @override
+  String careWeightTrendFlat(String days) {
+    return 'Steady over $days days';
+  }
+
+  @override
+  String get careWeightFlagGain =>
+      'More than 10% up. If it keeps climbing, ask your vet';
+
+  @override
+  String get careWeightFlagLoss =>
+      'More than 10% down. Worth a look from your vet';
+
+  @override
+  String careWeightMission(String paws) {
+    return '+$paws paws for the first reading this month';
+  }
+
+  @override
+  String careWeightDeleteConfirm(String date) {
+    return 'Delete the $date reading?';
+  }
+
+  @override
+  String get careWeightSaved => 'Weight logged';
+
+  @override
+  String get careWeightPickDate => 'Date';
+
+  @override
+  String get careRemindersTitle => 'Care reminders';
+
+  @override
+  String get careRemindersSubtitle =>
+      'Tap “Done” once it is handled and we will remind you next time';
+
+  @override
+  String get careStateUnset => 'Not set';
+
+  @override
+  String get careStateOff => 'Paused';
+
+  @override
+  String careStateIn(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days days',
+      one: 'Tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get careStateDue => 'Today';
+
+  @override
+  String careStateOverdue(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days overdue',
+      one: '1 day overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String careDoneToast(String date) {
+    return 'Logged. Next time: $date';
+  }
+
+  @override
+  String careSetTitle(String label, String name) {
+    return '$label · $name';
+  }
+
+  @override
+  String get careLastOn => 'Last time';
+
+  @override
+  String get careNextOn => 'Next time';
+
+  @override
+  String get careInterval => 'Repeats every';
+
+  @override
+  String careIntervalDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Every $days days',
+      one: 'Every day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get careEnabled => 'Reminder on';
+
+  @override
+  String get careSetHint => 'Set the last time and we will work out the next';
+
+  @override
+  String get careSuggested => 'Might help';
+
+  @override
+  String careSupplyTitle(String name) {
+    return '$name\'s pantry';
+  }
+
+  @override
+  String get careSupplyAll => 'All pantry';
+
+  @override
+  String get careSaved => 'Saved';
+
+  @override
+  String familyCareLine(String label, String name) {
+    return 'Today is $name\'s $label';
+  }
+
+  @override
+  String familyCareOverdue(String label, String name) {
+    return '$name\'s $label is overdue';
+  }
+
+  @override
+  String get familyCareOpen => 'Open profile';
+
+  @override
+  String get careEveryWeek => 'Every week';
+
+  @override
+  String get careEveryTwoWeeks => 'Every two weeks';
+
+  @override
+  String get careEveryMonth => 'Every month';
+
+  @override
+  String get careEveryTwoMonths => 'Every two months';
+
+  @override
+  String get careEveryQuarter => 'Every 3 months';
+
+  @override
+  String get careEveryHalfYear => 'Every 6 months';
+
+  @override
+  String get careEveryYear => 'Every year';
+
+  @override
+  String get actionDelete => 'Delete';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
 import '../../catalog/data/product_models.dart';
+import '../../pets/data/care_models.dart';
 import '../../pets/data/pet_models.dart';
 
 /// A reference to an order, as the loyalty endpoints hand it back: enough to
@@ -605,6 +606,7 @@ class LoyaltySummary {
     this.birthday,
     this.referral,
     this.stamps = const [],
+    this.care = CareBlock.empty,
     this.nudges = const [],
   });
 
@@ -635,6 +637,9 @@ class LoyaltySummary {
 
   /// Brand stamp cards; empty until the owner activates a program.
   final List<StampCard> stamps;
+
+  /// «الرفيق»: care reminders that need attention, and the weigh-in flag.
+  final CareBlock care;
 
   /// Dated things worth saying, soonest first.
   final List<Nudge> nudges;
@@ -688,6 +693,7 @@ class LoyaltySummary {
         birthday: BirthdayMoment.maybe(asMap(json['moments'])['birthday']),
         referral: ReferralSummary.maybe(json['referral']),
         stamps: StampCard.listFrom(json['stamps']),
+        care: CareBlock.fromJson(asMap(json['care'])),
         nudges: Nudge.listFrom(json['nudges']),
       );
 }
@@ -1444,7 +1450,7 @@ class Nudge {
     this.petId,
   });
 
-  /// `birthday` | `supply` | `subscription` | `winback` | `tier_risk`.
+  /// `birthday` | `supply` | `subscription` | `winback` | `tier_risk` | `care`.
   final String kind;
   final String title;
   final String body;
