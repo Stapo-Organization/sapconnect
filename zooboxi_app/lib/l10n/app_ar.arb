@@ -550,5 +550,344 @@
         "type": "String"
       }
     }
-  }
+  },
+  "familyTitle": "عائلة زوبوكسي",
+  "familyTagline": "كل طلب يقرّبك من هدية لصديقك",
+  "familyGuestTitle": "انضم إلى عائلة زوبوكسي",
+  "familyGuestBody": "أضف حيوانك وابدأ جمع البصمات — هدايا وتوصيل مجاني، بلا خصومات ولا شروط.",
+  "familyGuestCta": "ابدأ الآن",
+  "familyAddPet": "أضف حيوانك",
+  "familyNoPetTitle": "من هو صديقك؟",
+  "familyNoPetBody": "عرّفنا على حيوانك واكسب 50 بصمة فورًا",
+  "familyDue": "حان وقت إعادة طلب {product}",
+  "@familyDue": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "familyOrderNow": "اطلب الآن",
+  "familyMemberSince": "عضو منذ {date}",
+  "@familyMemberSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "familyPerksTitle": "مزاياك",
+  "familyPerkFrom": "من مستوى {tier}",
+  "@familyPerkFrom": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "familyMyRewards": "مكافآتي",
+  "familyRedeemTitle": "استبدل بصماتك",
+  "familySealedTitle": "بطاقات تنتظر الخدش",
+  "familyLedgerLink": "سجل البصمات",
+  "familyReferralCode": "رمز الدعوة {code}",
+  "@familyReferralCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "familyTierOrders": "{count, plural, =0{لا طلبات خلال 12 شهرًا} =1{طلب واحد خلال 12 شهرًا} =2{طلبان خلال 12 شهرًا} few{{count} طلبات خلال 12 شهرًا} many{{count} طلبًا خلال 12 شهرًا} other{{count} طلب خلال 12 شهرًا}}",
+  "@familyTierOrders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "familyTierNext": "{count, plural, =1{طلب واحد يفصلك عن {tier}} =2{طلبان يفصلانك عن {tier}} few{{count} طلبات تفصلك عن {tier}} many{{count} طلبًا يفصلك عن {tier}} other{{count} طلب يفصلك عن {tier}}}",
+  "@familyTierNext": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "familyTierTop": "أنت في أعلى مستوى — شكرًا لثقتك",
+  "pawsTitle": "بصماتك",
+  "pawsUnit": "بصمة",
+  "pawsCount": "{count, plural, =0{لا بصمات} =1{بصمة واحدة} =2{بصمتان} few{{value} بصمات} many{{value} بصمة} other{{value} بصمة}}",
+  "@pawsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "pawsPending": "{value} بصمة قيد التفعيل",
+  "@pawsPending": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "pawsPendingHint": "تُضاف عند تسليم طلبك",
+  "pawsExpires": "تنتهي في {date}",
+  "@pawsExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pawsHowTitle": "كيف أكسب البصمات؟",
+  "pawsHowOrder": "بصمة لكل ريال من قيمة أي طلب يصلك",
+  "pawsHowProfile": "100 بصمة عند إكمال ملف صديقك بالوزن وتاريخ الميلاد",
+  "pawsHowPet": "50 بصمة لكل حيوان تضيفه",
+  "pawsHowPlay": "مهمات الشهر وبطاقة «اخدش واربح» مع كل طلب من التطبيق",
+  "pawsHowExpiry": "تنتهي البصمات بعد 12 شهرًا بلا طلبات",
+  "pawsHowDelivered": "الاستحقاق بعد التسليم — لا شيء يُحتسب قبل أن يصلك الطلب",
+  "pawsToEarn": "{count, plural, =0{لن تكسب بصمات من هذه السلة} =1{ستكسب بصمة واحدة} =2{ستكسب بصمتين} few{ستكسب {value} بصمات} many{ستكسب {value} بصمة} other{ستكسب {value} بصمة}}",
+  "@pawsToEarn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "pawsEarned": "{count, plural, =1{كسبت بصمة واحدة} =2{كسبت بصمتين} few{كسبت {value} بصمات} many{كسبت {value} بصمة} other{كسبت {value} بصمة}}",
+  "@pawsEarned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "pawsLedgerTitle": "سجل البصمات",
+  "pawsLedgerEmpty": "السجل فارغ",
+  "pawsLedgerEmptyHint": "أول طلب يصلك يفتح السجل",
+  "pawsLedgerMore": "عرض المزيد",
+  "pawsBalanceAfter": "الرصيد {value}",
+  "@pawsBalanceAfter": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "pawsReason": "{reason, select, order_earn{طلب مسلَّم} profile_complete{إكمال ملف} pet_added{إضافة حيوان} mission{مهمة الشهر} scratch{اخدش واربح} redeem{استبدال} reverse{عكس قيد} expire{انتهاء صلاحية} adjust{تعديل يدوي} welcome{هدية ترحيب} other{حركة}}",
+  "@pawsReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "missionsTitle": "مهمات الشهر",
+  "missionsSubtitle": "أربع مهمات، تتجدد أول كل شهر",
+  "missionProgress": "{progress} من {target}",
+  "@missionProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "missionDone": "اكتملت",
+  "missionRewardGift": "هدية",
+  "missionSuggested": "يناسب صديقك",
+  "missionsEmpty": "لا مهمات هذا الشهر",
+  "missionsEmptyHint": "مهمات جديدة تصلك أول الشهر القادم",
+  "rewardsTitle": "المكافآت",
+  "rewardsMine": "مكافآتي",
+  "rewardsCatalog": "استبدل بصماتك",
+  "rewardsEmpty": "لا مكافآت بعد",
+  "rewardsEmptyHint": "اجمع البصمات واستبدلها بهدية أو توصيل مجاني",
+  "rewardsCatalogEmpty": "الكتالوج فارغ الآن",
+  "rewardCost": "{value} بصمة",
+  "@rewardCost": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardValue": "قيمتها {price}",
+  "@rewardValue": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardValidity": "{count, plural, =1{صالحة يومًا واحدًا} =2{صالحة يومين} few{صالحة {count} أيام} many{صالحة {count} يومًا} other{صالحة {count} يوم}}",
+  "@rewardValidity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rewardExpires": "تنتهي {date}",
+  "@rewardExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardRedeem": "استبدل",
+  "rewardRedeemTitle": "تأكيد الاستبدال",
+  "rewardRedeemBody": "سنخصم {value} بصمة مقابل «{title}». تصبح جاهزة للاستخدام في طلبك القادم.",
+  "@rewardRedeemBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardRedeemDone": "أصبحت في مكافآتك",
+  "rewardRedeemFailed": "تعذّر الاستبدال",
+  "rewardUseInCart": "استخدم في السلة",
+  "rewardInCart": "في سلتك",
+  "rewardRemove": "إزالة من السلة",
+  "rewardPendingOrder": "تُفعَّل عند تسليم الطلب {number}",
+  "@rewardPendingOrder": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardPending": "تُفعَّل عند تسليم طلبك",
+  "rewardKindGift": "هدية",
+  "rewardKindExpress": "توصيل سريع مجاني",
+  "rewardKindDelivery": "توصيل مجاني",
+  "rewardKindPaws": "بصمات",
+  "rewardUseButton": "استخدم مكافأة",
+  "rewardSheetTitle": "مكافآتك الجاهزة",
+  "rewardSheetHint": "تُضاف إلى هذا الطلب فورًا",
+  "rewardSheetEmpty": "لا مكافآت جاهزة الآن",
+  "rewardGiftChip": "هدية",
+  "rewardGiftFree": "مجانًا",
+  "rewardClaimFailed": "تعذّر استخدام المكافأة",
+  "rewardGiftUnavailable": "هذه الهدية لا تصل موقعك حاليًا",
+  "rewardInsufficientPaws": "بصماتك لا تكفي",
+  "rewardTierRequired": "يتطلب مستوى أعلى",
+  "rewardFreeDeliveryTier": "توصيل مجاني بفضل مستواك",
+  "rewardFreeDeliveryReward": "توصيل مجاني بمكافأتك",
+  "rewardExpressFreeTier": "توصيل سريع مجاني بفضل مستواك",
+  "rewardExpressFreeReward": "توصيل سريع مجاني بمكافأتك",
+  "scratchTitle": "اخدش واربح",
+  "scratchHint": "امسح البطاقة بإصبعك",
+  "scratchOrder": "بطاقة الطلب {number}",
+  "@scratchOrder": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "scratchPrizePaws": "{value} بصمة!",
+  "@scratchPrizePaws": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "scratchActivation": "تُفعَّل عند تسليم الطلب",
+  "scratchSettled": "أصبحت في حسابك",
+  "scratchDone": "رائع",
+  "scratchOpen": "اكشف البطاقة",
+  "scratchEmpty": "لا بطاقات الآن",
+  "scratchEmptyHint": "كل طلب من التطبيق يأتي ببطاقة",
+  "petsTitle": "عائلتي",
+  "petsEmpty": "لا حيوانات بعد",
+  "petsEmptyHint": "عرّفنا على صديقك لنقترح ما يناسبه فعلًا",
+  "petsAdd": "أضف حيوانًا",
+  "petsFull": "{max, plural, =1{يمكنك إضافة حيوان واحد} =2{يمكنك إضافة حيوانين} few{يمكنك إضافة {max} حيوانات} other{يمكنك إضافة {max} حيوان}}",
+  "@petsFull": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "petNewTitle": "صديق جديد",
+  "petEditTitle": "ملف {name}",
+  "@petEditTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "petFieldName": "الاسم",
+  "petFieldNameHint": "مشمش",
+  "petFieldSpecies": "النوع",
+  "petFieldBreed": "السلالة",
+  "petFieldBreedHint": "اختياري",
+  "petFieldWeight": "الوزن",
+  "petFieldBirthDate": "تاريخ الميلاد",
+  "petFieldSex": "الجنس",
+  "petFieldNeutered": "معقّم",
+  "petWeightUnit": "كجم",
+  "petSexMale": "ذكر",
+  "petSexFemale": "أنثى",
+  "petSexUnset": "غير محدد",
+  "petNotSet": "غير مسجّل",
+  "petSpeciesCat": "قط",
+  "petSpeciesDog": "كلب",
+  "petSpeciesBird": "طائر",
+  "petSpeciesFish": "سمك",
+  "petSpeciesSmall": "قارض",
+  "petSpeciesReptile": "زاحف",
+  "petSpeciesOther": "غير ذلك",
+  "petNameRequired": "اكتب اسم صديقك",
+  "petWeightInvalid": "أدخل وزنًا بين 0.1 و200 كجم",
+  "petBirthDateInvalid": "تاريخ الميلاد لا يمكن أن يكون في المستقبل",
+  "petSaveFailed": "تعذّر الحفظ",
+  "petSaved": "تم الحفظ",
+  "petDelete": "حذف الملف",
+  "petDeleteConfirm": "حذف ملف {name}؟",
+  "@petDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "petDeleted": "تم حذف الملف",
+  "petBirthdaySoon": "{count, plural, =0{عيد ميلاده اليوم} =1{عيد ميلاده غدًا} =2{عيد ميلاده بعد يومين} few{عيد ميلاده بعد {count} أيام} other{عيد ميلاده بعد {count} يومًا}}",
+  "@petBirthdaySoon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "petIncompleteHint": "أضف الوزن وتاريخ الميلاد واكسب 100 بصمة",
+  "petAgeUnknown": "العمر غير مسجّل",
+  "petPickDate": "اختر التاريخ",
+  "petLimitReached": "وصلت إلى الحد الأقصى للحيوانات"
 }

@@ -53,6 +53,31 @@ abstract final class ZbEvents {
   /// A creative that was actually ≥50% on screen. Paired with
   /// [campaignClick] it is what makes a click-through rate mean anything.
   static const impression = 'impression';
+
+  // ── عائلة زوبوكسي ─────────────────────────────────────────────────
+  //
+  // The loyalty layer's own signals. They answer the questions the program
+  // was built to answer — does a scratch card bring the next order forward,
+  // do missions get finished, which rewards are actually wanted — so they are
+  // named after the moment, not after the screen.
+
+  /// A card was rubbed open. Payload: `card_id`, `prize_kind`.
+  static const loyaltyScratch = 'loyalty_scratch';
+
+  /// A mission was opened or completed. Payload: `mission_id`, `state`.
+  static const loyaltyMission = 'loyalty_mission';
+
+  /// Paws were spent on a catalog reward. Payload: `reward_id`.
+  static const loyaltyRedeem = 'loyalty_redeem';
+
+  /// A grant was carried into the cart. Payload: `grant_id`.
+  static const loyaltyClaim = 'loyalty_claim';
+
+  /// A pet profile was created. Payload: `species`.
+  static const petAdded = 'pet_added';
+
+  /// The home family card was shown. Payload: `variant`.
+  static const familyCard = 'family_card';
 }
 
 /// Batches signals and posts them in the background.

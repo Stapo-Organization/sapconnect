@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/session/session_controller.dart';
+import '../../loyalty/data/loyalty_models.dart';
+import '../../loyalty/data/loyalty_repository.dart';
 import 'cart_models.dart';
 import 'cart_repository.dart';
 
@@ -214,6 +216,28 @@ class CartController extends AsyncNotifier<CartData> {
     }
   }
 
+  /// Carries an active reward into the basket.
+  ///
+  /// It runs through the *same* serial queue as every other cart write, and
+  /// adopts the cart the server hands back — a gift line is the server's to
+  /// add, at the server's price, and splicing a zero-price line locally would
+  /// be a promise the checkout could refuse to keep.
+  Future<Grant> claimGrant(int grantId) async {
+    final result =
+        await _serial(() => ref.read(loyaltyRepositoryProvider).claim(grantId));
+    _adopt(result.cart);
+    return result.grant;
+  }
+
+  /// Releases a claim — which is what removing a gift line means. The grant
+  /// goes back to `active` and can be used on another basket.
+  Future<Grant> releaseGrant(int grantId) async {
+    final result =
+        await _serial(() => ref.read(loyaltyRepositoryProvider).unclaim(grantId));
+    _adopt(result.cart);
+    return result.grant;
+  }
+
   Future<void> applyCoupon(String code) async {
     final result = await _serial(() => ref.read(cartRepositoryProvider).applyCoupon(code));
     _adopt(result);
@@ -239,6 +263,13 @@ final cartControllerProvider =
 /// rebuilds without every cart change rebuilding the whole shell.
 final cartCountProvider = Provider<int>(
   (ref) => ref.watch(cartControllerProvider).value?.count ?? 0,
+);
+
+/// What this basket earns once it is delivered. Its own provider so the
+/// totals line can move without the whole cart screen rebuilding, and so a
+/// store with the program switched off simply reports zero.
+final cartPawsToEarnProvider = Provider<int>(
+  (ref) => ref.watch(cartControllerProvider).value?.loyalty.pawsToEarn ?? 0,
 );
 
 /// The free-delivery gap, but only while it is still worth nudging about:

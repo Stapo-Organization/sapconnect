@@ -18,11 +18,19 @@ import '../features/checkout/data/checkout_models.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/checkout/presentation/success_screen.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/loyalty/data/loyalty_models.dart';
+import '../features/loyalty/presentation/family_hub_screen.dart';
+import '../features/loyalty/presentation/ledger_screen.dart';
+import '../features/loyalty/presentation/rewards_screen.dart';
+import '../features/loyalty/presentation/scratch_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/orders/presentation/order_detail_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
 import '../features/payment/presentation/payment_screen.dart';
+import '../features/pets/data/pet_models.dart';
+import '../features/pets/presentation/pet_editor_screen.dart';
+import '../features/pets/presentation/pets_screen.dart';
 import '../features/product/presentation/product_screen.dart';
 import '../features/search/presentation/scanner_screen.dart';
 import '../features/search/presentation/search_screen.dart';
@@ -149,6 +157,64 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/addresses',
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const AddressBookScreen()),
+      ),
+      // «عائلة زوبوكسي». Pushed like /orders rather than owning a tab: it is a
+      // place you go to from the storefront or the account, and it must be
+      // possible to come straight back to what you were doing.
+      GoRoute(
+        path: '/family',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const FamilyHubScreen()),
+        routes: [
+          GoRoute(
+            path: 'rewards',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const RewardsScreen()),
+          ),
+          GoRoute(
+            path: 'ledger',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const LedgerScreen()),
+          ),
+          // A card the customer already holds — the object rides in `extra`
+          // when there is one, so the foil is on screen before the fetch.
+          GoRoute(
+            path: 'scratch/:id',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => slideUpPage(
+              state.pageKey,
+              ScratchScreen(
+                cardId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+                initial: state.extra is ScratchCard ? state.extra! as ScratchCard : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/pets',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const PetsScreen()),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const PetEditorScreen()),
+          ),
+          // `:id` must be declared after `new`, or "new" would be parsed as an
+          // id and the editor would try to load pet 0.
+          GoRoute(
+            path: ':id',
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (_, state) => sharedAxisPage(
+              state.pageKey,
+              PetEditorScreen(
+                petId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+                initial: state.extra is Pet ? state.extra! as Pet : null,
+              ),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/buy-again',

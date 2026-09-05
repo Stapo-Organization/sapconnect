@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
+import '../../loyalty/data/loyalty_models.dart';
 
 /// Per-line fulfilment: which tier serves this line, and whether the quantity
 /// had to be split because the fast source doesn't hold enough.
@@ -39,6 +40,9 @@ class CartItem {
     this.unitPrice = 0,
     this.lineTotal = 0,
     this.fulfillment,
+    this.isGift = false,
+    this.grantId,
+    this.lockedQty = false,
   });
 
   /// WooCommerce's cart line key — the id for PATCH/DELETE, not the product id
@@ -59,6 +63,17 @@ class CartItem {
   final double lineTotal;
   final LineFulfillment? fulfillment;
 
+  /// A claimed reward riding in the basket at a price of zero. It is a real
+  /// line — it picks, it ships, it leaves the warehouse — so it is a cart item
+  /// like any other, just one the customer cannot re-price or re-count.
+  final bool isGift;
+
+  /// The grant this line came from; removing the line releases that claim.
+  final int? grantId;
+
+  /// The quantity is the server's, not the customer's: one gift is one gift.
+  final bool lockedQty;
+
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
         key: asString(json['key']),
         productId: asInt(json['product_id']),
@@ -73,6 +88,9 @@ class CartItem {
         fulfillment: asMap(json['fulfillment']).isEmpty
             ? null
             : LineFulfillment.fromJson(asMap(json['fulfillment'])),
+        isGift: asBool(json['is_gift']),
+        grantId: asIntOrNull(json['grant_id']),
+        lockedQty: asBool(json['locked_qty']),
       );
 
   /// Used for the optimistic update: the line total is recomputed locally so
@@ -90,6 +108,9 @@ class CartItem {
         unitPrice: unitPrice,
         lineTotal: unitPrice * newQty,
         fulfillment: fulfillment,
+        isGift: isGift,
+        grantId: grantId,
+        lockedQty: lockedQty,
       );
 }
 
@@ -236,6 +257,7 @@ class CartData {
     this.coupons = const [],
     this.notices = const [],
     this.count = 0,
+    this.loyalty = CartLoyalty.none,
   });
 
   final List<CartItem> items;
@@ -248,7 +270,16 @@ class CartData {
   /// Total units — what the tab badge shows.
   final int count;
 
+  /// What this basket earns, what it already carries, and why delivery costs
+  /// what it costs. Absent for a store that has the program switched off, in
+  /// which case every loyalty affordance in the cart simply never draws.
+  final CartLoyalty loyalty;
+
   bool get isEmpty => items.isEmpty;
+
+  /// The gift lines, which the cart screen renders differently from the rest.
+  List<CartItem> get giftItems =>
+      items.where((item) => item.isGift).toList(growable: false);
 
   static const CartData empty = CartData();
 
@@ -260,6 +291,7 @@ class CartData {
         coupons: asMapList(json['coupons']).map(CartCoupon.fromJson).toList(),
         notices: asMapList(json['notices']).map(CartNotice.fromJson).toList(),
         count: asInt(json['count']),
+        loyalty: CartLoyalty.fromJson(asMap(json['loyalty'])),
       );
 
   /// Local echo of a quantity change, used between the tap and the server's
@@ -287,6 +319,7 @@ class CartData {
       coupons: coupons,
       notices: const [],
       count: count + (qty - old.qty),
+      loyalty: loyalty,
     );
   }
 
@@ -309,6 +342,7 @@ class CartData {
       coupons: coupons,
       notices: const [],
       count: (count - removed.qty).clamp(0, 1 << 30),
+      loyalty: loyalty,
     );
   }
 }

@@ -1229,4 +1229,564 @@ class LAr extends L {
 
   @override
   String get driftKeep => 'إبقاء العنوان المحدد';
+
+  @override
+  String get familyTitle => 'عائلة زوبوكسي';
+
+  @override
+  String get familyTagline => 'كل طلب يقرّبك من هدية لصديقك';
+
+  @override
+  String get familyGuestTitle => 'انضم إلى عائلة زوبوكسي';
+
+  @override
+  String get familyGuestBody =>
+      'أضف حيوانك وابدأ جمع البصمات — هدايا وتوصيل مجاني، بلا خصومات ولا شروط.';
+
+  @override
+  String get familyGuestCta => 'ابدأ الآن';
+
+  @override
+  String get familyAddPet => 'أضف حيوانك';
+
+  @override
+  String get familyNoPetTitle => 'من هو صديقك؟';
+
+  @override
+  String get familyNoPetBody => 'عرّفنا على حيوانك واكسب 50 بصمة فورًا';
+
+  @override
+  String familyDue(String product) {
+    return 'حان وقت إعادة طلب $product';
+  }
+
+  @override
+  String get familyOrderNow => 'اطلب الآن';
+
+  @override
+  String familyMemberSince(String date) {
+    return 'عضو منذ $date';
+  }
+
+  @override
+  String get familyPerksTitle => 'مزاياك';
+
+  @override
+  String familyPerkFrom(String tier) {
+    return 'من مستوى $tier';
+  }
+
+  @override
+  String get familyMyRewards => 'مكافآتي';
+
+  @override
+  String get familyRedeemTitle => 'استبدل بصماتك';
+
+  @override
+  String get familySealedTitle => 'بطاقات تنتظر الخدش';
+
+  @override
+  String get familyLedgerLink => 'سجل البصمات';
+
+  @override
+  String familyReferralCode(String code) {
+    return 'رمز الدعوة $code';
+  }
+
+  @override
+  String familyTierOrders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب خلال 12 شهرًا',
+      many: '$count طلبًا خلال 12 شهرًا',
+      few: '$count طلبات خلال 12 شهرًا',
+      two: 'طلبان خلال 12 شهرًا',
+      one: 'طلب واحد خلال 12 شهرًا',
+      zero: 'لا طلبات خلال 12 شهرًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String familyTierNext(int count, String tier) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب يفصلك عن $tier',
+      many: '$count طلبًا يفصلك عن $tier',
+      few: '$count طلبات تفصلك عن $tier',
+      two: 'طلبان يفصلانك عن $tier',
+      one: 'طلب واحد يفصلك عن $tier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get familyTierTop => 'أنت في أعلى مستوى — شكرًا لثقتك';
+
+  @override
+  String get pawsTitle => 'بصماتك';
+
+  @override
+  String get pawsUnit => 'بصمة';
+
+  @override
+  String pawsCount(int count, String value) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$value بصمة',
+      many: '$value بصمة',
+      few: '$value بصمات',
+      two: 'بصمتان',
+      one: 'بصمة واحدة',
+      zero: 'لا بصمات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pawsPending(String value) {
+    return '$value بصمة قيد التفعيل';
+  }
+
+  @override
+  String get pawsPendingHint => 'تُضاف عند تسليم طلبك';
+
+  @override
+  String pawsExpires(String date) {
+    return 'تنتهي في $date';
+  }
+
+  @override
+  String get pawsHowTitle => 'كيف أكسب البصمات؟';
+
+  @override
+  String get pawsHowOrder => 'بصمة لكل ريال من قيمة أي طلب يصلك';
+
+  @override
+  String get pawsHowProfile =>
+      '100 بصمة عند إكمال ملف صديقك بالوزن وتاريخ الميلاد';
+
+  @override
+  String get pawsHowPet => '50 بصمة لكل حيوان تضيفه';
+
+  @override
+  String get pawsHowPlay =>
+      'مهمات الشهر وبطاقة «اخدش واربح» مع كل طلب من التطبيق';
+
+  @override
+  String get pawsHowExpiry => 'تنتهي البصمات بعد 12 شهرًا بلا طلبات';
+
+  @override
+  String get pawsHowDelivered =>
+      'الاستحقاق بعد التسليم — لا شيء يُحتسب قبل أن يصلك الطلب';
+
+  @override
+  String pawsToEarn(int count, String value) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستكسب $value بصمة',
+      many: 'ستكسب $value بصمة',
+      few: 'ستكسب $value بصمات',
+      two: 'ستكسب بصمتين',
+      one: 'ستكسب بصمة واحدة',
+      zero: 'لن تكسب بصمات من هذه السلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pawsEarned(int count, String value) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'كسبت $value بصمة',
+      many: 'كسبت $value بصمة',
+      few: 'كسبت $value بصمات',
+      two: 'كسبت بصمتين',
+      one: 'كسبت بصمة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pawsLedgerTitle => 'سجل البصمات';
+
+  @override
+  String get pawsLedgerEmpty => 'السجل فارغ';
+
+  @override
+  String get pawsLedgerEmptyHint => 'أول طلب يصلك يفتح السجل';
+
+  @override
+  String get pawsLedgerMore => 'عرض المزيد';
+
+  @override
+  String pawsBalanceAfter(String value) {
+    return 'الرصيد $value';
+  }
+
+  @override
+  String pawsReason(String reason) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'order_earn': 'طلب مسلَّم',
+      'profile_complete': 'إكمال ملف',
+      'pet_added': 'إضافة حيوان',
+      'mission': 'مهمة الشهر',
+      'scratch': 'اخدش واربح',
+      'redeem': 'استبدال',
+      'reverse': 'عكس قيد',
+      'expire': 'انتهاء صلاحية',
+      'adjust': 'تعديل يدوي',
+      'welcome': 'هدية ترحيب',
+      'other': 'حركة',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get missionsTitle => 'مهمات الشهر';
+
+  @override
+  String get missionsSubtitle => 'أربع مهمات، تتجدد أول كل شهر';
+
+  @override
+  String missionProgress(int progress, int target) {
+    return '$progress من $target';
+  }
+
+  @override
+  String get missionDone => 'اكتملت';
+
+  @override
+  String get missionRewardGift => 'هدية';
+
+  @override
+  String get missionSuggested => 'يناسب صديقك';
+
+  @override
+  String get missionsEmpty => 'لا مهمات هذا الشهر';
+
+  @override
+  String get missionsEmptyHint => 'مهمات جديدة تصلك أول الشهر القادم';
+
+  @override
+  String get rewardsTitle => 'المكافآت';
+
+  @override
+  String get rewardsMine => 'مكافآتي';
+
+  @override
+  String get rewardsCatalog => 'استبدل بصماتك';
+
+  @override
+  String get rewardsEmpty => 'لا مكافآت بعد';
+
+  @override
+  String get rewardsEmptyHint => 'اجمع البصمات واستبدلها بهدية أو توصيل مجاني';
+
+  @override
+  String get rewardsCatalogEmpty => 'الكتالوج فارغ الآن';
+
+  @override
+  String rewardCost(String value) {
+    return '$value بصمة';
+  }
+
+  @override
+  String rewardValue(String price) {
+    return 'قيمتها $price';
+  }
+
+  @override
+  String rewardValidity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'صالحة $count يوم',
+      many: 'صالحة $count يومًا',
+      few: 'صالحة $count أيام',
+      two: 'صالحة يومين',
+      one: 'صالحة يومًا واحدًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rewardExpires(String date) {
+    return 'تنتهي $date';
+  }
+
+  @override
+  String get rewardRedeem => 'استبدل';
+
+  @override
+  String get rewardRedeemTitle => 'تأكيد الاستبدال';
+
+  @override
+  String rewardRedeemBody(String value, String title) {
+    return 'سنخصم $value بصمة مقابل «$title». تصبح جاهزة للاستخدام في طلبك القادم.';
+  }
+
+  @override
+  String get rewardRedeemDone => 'أصبحت في مكافآتك';
+
+  @override
+  String get rewardRedeemFailed => 'تعذّر الاستبدال';
+
+  @override
+  String get rewardUseInCart => 'استخدم في السلة';
+
+  @override
+  String get rewardInCart => 'في سلتك';
+
+  @override
+  String get rewardRemove => 'إزالة من السلة';
+
+  @override
+  String rewardPendingOrder(String number) {
+    return 'تُفعَّل عند تسليم الطلب $number';
+  }
+
+  @override
+  String get rewardPending => 'تُفعَّل عند تسليم طلبك';
+
+  @override
+  String get rewardKindGift => 'هدية';
+
+  @override
+  String get rewardKindExpress => 'توصيل سريع مجاني';
+
+  @override
+  String get rewardKindDelivery => 'توصيل مجاني';
+
+  @override
+  String get rewardKindPaws => 'بصمات';
+
+  @override
+  String get rewardUseButton => 'استخدم مكافأة';
+
+  @override
+  String get rewardSheetTitle => 'مكافآتك الجاهزة';
+
+  @override
+  String get rewardSheetHint => 'تُضاف إلى هذا الطلب فورًا';
+
+  @override
+  String get rewardSheetEmpty => 'لا مكافآت جاهزة الآن';
+
+  @override
+  String get rewardGiftChip => 'هدية';
+
+  @override
+  String get rewardGiftFree => 'مجانًا';
+
+  @override
+  String get rewardClaimFailed => 'تعذّر استخدام المكافأة';
+
+  @override
+  String get rewardGiftUnavailable => 'هذه الهدية لا تصل موقعك حاليًا';
+
+  @override
+  String get rewardInsufficientPaws => 'بصماتك لا تكفي';
+
+  @override
+  String get rewardTierRequired => 'يتطلب مستوى أعلى';
+
+  @override
+  String get rewardFreeDeliveryTier => 'توصيل مجاني بفضل مستواك';
+
+  @override
+  String get rewardFreeDeliveryReward => 'توصيل مجاني بمكافأتك';
+
+  @override
+  String get rewardExpressFreeTier => 'توصيل سريع مجاني بفضل مستواك';
+
+  @override
+  String get rewardExpressFreeReward => 'توصيل سريع مجاني بمكافأتك';
+
+  @override
+  String get scratchTitle => 'اخدش واربح';
+
+  @override
+  String get scratchHint => 'امسح البطاقة بإصبعك';
+
+  @override
+  String scratchOrder(String number) {
+    return 'بطاقة الطلب $number';
+  }
+
+  @override
+  String scratchPrizePaws(String value) {
+    return '$value بصمة!';
+  }
+
+  @override
+  String get scratchActivation => 'تُفعَّل عند تسليم الطلب';
+
+  @override
+  String get scratchSettled => 'أصبحت في حسابك';
+
+  @override
+  String get scratchDone => 'رائع';
+
+  @override
+  String get scratchOpen => 'اكشف البطاقة';
+
+  @override
+  String get scratchEmpty => 'لا بطاقات الآن';
+
+  @override
+  String get scratchEmptyHint => 'كل طلب من التطبيق يأتي ببطاقة';
+
+  @override
+  String get petsTitle => 'عائلتي';
+
+  @override
+  String get petsEmpty => 'لا حيوانات بعد';
+
+  @override
+  String get petsEmptyHint => 'عرّفنا على صديقك لنقترح ما يناسبه فعلًا';
+
+  @override
+  String get petsAdd => 'أضف حيوانًا';
+
+  @override
+  String petsFull(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'يمكنك إضافة $max حيوان',
+      few: 'يمكنك إضافة $max حيوانات',
+      two: 'يمكنك إضافة حيوانين',
+      one: 'يمكنك إضافة حيوان واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get petNewTitle => 'صديق جديد';
+
+  @override
+  String petEditTitle(String name) {
+    return 'ملف $name';
+  }
+
+  @override
+  String get petFieldName => 'الاسم';
+
+  @override
+  String get petFieldNameHint => 'مشمش';
+
+  @override
+  String get petFieldSpecies => 'النوع';
+
+  @override
+  String get petFieldBreed => 'السلالة';
+
+  @override
+  String get petFieldBreedHint => 'اختياري';
+
+  @override
+  String get petFieldWeight => 'الوزن';
+
+  @override
+  String get petFieldBirthDate => 'تاريخ الميلاد';
+
+  @override
+  String get petFieldSex => 'الجنس';
+
+  @override
+  String get petFieldNeutered => 'معقّم';
+
+  @override
+  String get petWeightUnit => 'كجم';
+
+  @override
+  String get petSexMale => 'ذكر';
+
+  @override
+  String get petSexFemale => 'أنثى';
+
+  @override
+  String get petSexUnset => 'غير محدد';
+
+  @override
+  String get petNotSet => 'غير مسجّل';
+
+  @override
+  String get petSpeciesCat => 'قط';
+
+  @override
+  String get petSpeciesDog => 'كلب';
+
+  @override
+  String get petSpeciesBird => 'طائر';
+
+  @override
+  String get petSpeciesFish => 'سمك';
+
+  @override
+  String get petSpeciesSmall => 'قارض';
+
+  @override
+  String get petSpeciesReptile => 'زاحف';
+
+  @override
+  String get petSpeciesOther => 'غير ذلك';
+
+  @override
+  String get petNameRequired => 'اكتب اسم صديقك';
+
+  @override
+  String get petWeightInvalid => 'أدخل وزنًا بين 0.1 و200 كجم';
+
+  @override
+  String get petBirthDateInvalid => 'تاريخ الميلاد لا يمكن أن يكون في المستقبل';
+
+  @override
+  String get petSaveFailed => 'تعذّر الحفظ';
+
+  @override
+  String get petSaved => 'تم الحفظ';
+
+  @override
+  String get petDelete => 'حذف الملف';
+
+  @override
+  String petDeleteConfirm(String name) {
+    return 'حذف ملف $name؟';
+  }
+
+  @override
+  String get petDeleted => 'تم حذف الملف';
+
+  @override
+  String petBirthdaySoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عيد ميلاده بعد $count يومًا',
+      few: 'عيد ميلاده بعد $count أيام',
+      two: 'عيد ميلاده بعد يومين',
+      one: 'عيد ميلاده غدًا',
+      zero: 'عيد ميلاده اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get petIncompleteHint => 'أضف الوزن وتاريخ الميلاد واكسب 100 بصمة';
+
+  @override
+  String get petAgeUnknown => 'العمر غير مسجّل';
+
+  @override
+  String get petPickDate => 'اختر التاريخ';
+
+  @override
+  String get petLimitReached => 'وصلت إلى الحد الأقصى للحيوانات';
 }

@@ -14,6 +14,7 @@ import '../../../../features/catalog/data/product_models.dart' show DeliveryChip
 import '../../../../l10n/app_localizations.dart';
 import '../../data/cart_controller.dart';
 import '../../data/cart_models.dart';
+import 'gift_cart_line.dart';
 
 /// One cart line: image, name, variant, per-line fulfilment note, stepper.
 /// Swiping it away removes it — with the tap-to-remove path still on the
@@ -25,6 +26,17 @@ class CartLineView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A gift is a different contract: locked quantity, no price, and removing
+    // it releases a reward rather than deleting a product. It gets its own
+    // line rather than a pile of `if (isGift)` inside this one.
+    if (item.isGift) {
+      final grantId = item.grantId;
+      return GiftCartLineView(
+        item: item,
+        onRemove: grantId == null ? null : () => _release(context, ref, grantId),
+      );
+    }
+
     final l = L.of(context);
     final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
@@ -118,6 +130,22 @@ class CartLineView extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Hands the reward back. The claim lives in the WooCommerce session, so
+  /// this is a loyalty call — deleting the cart line would leave the grant
+  /// stuck in `claimed` with nothing to show for it.
+  Future<void> _release(BuildContext context, WidgetRef ref, int grantId) async {
+    final l = L.of(context);
+    Haptics.light();
+    try {
+      await ref.read(cartControllerProvider.notifier).releaseGrant(grantId);
+      if (!context.mounted) return;
+      AppToast.info(context, l.cartItemRemoved);
+    } catch (_) {
+      if (!context.mounted) return;
+      AppToast.error(context, l.rewardClaimFailed);
+    }
   }
 
   Future<void> _remove(BuildContext context, WidgetRef ref) async {

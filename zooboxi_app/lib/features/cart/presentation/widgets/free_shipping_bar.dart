@@ -13,19 +13,44 @@ import '../../data/cart_models.dart';
 /// watching the gap close is what makes the extra item feel worth adding. Once
 /// qualified it turns celebratory rather than simply disappearing.
 class FreeShippingBar extends StatelessWidget {
-  const FreeShippingBar({super.key, required this.freeShipping});
+  const FreeShippingBar({
+    super.key,
+    required this.freeShipping,
+    this.freeDeliveryReason,
+    this.expressFreeReason,
+  });
 
   final FreeShipping freeShipping;
 
+  /// `tier` | `reward` | null — why delivery costs nothing, when it doesn't.
+  /// Saying which is what turns a perk into something the customer can feel
+  /// they earned rather than a number that happened to be zero.
+  final String? freeDeliveryReason;
+
+  /// `tier` | `reward` | null — the same, for the express fee alone.
+  final String? expressFreeReason;
+
+  /// The one sentence that explains a waived fee, or null when nothing was.
+  String? _reasonText(L l) => switch ((freeDeliveryReason, expressFreeReason)) {
+        ('tier', _) => l.rewardFreeDeliveryTier,
+        ('reward', _) => l.rewardFreeDeliveryReward,
+        (_, 'tier') => l.rewardExpressFreeTier,
+        (_, 'reward') => l.rewardExpressFreeReward,
+        _ => null,
+      };
+
   @override
   Widget build(BuildContext context) {
-    if (!freeShipping.isActive) return const SizedBox.shrink();
-
     final l = L.of(context);
+    final reason = _reasonText(l);
+    if (!freeShipping.isActive && reason == null) return const SizedBox.shrink();
+
     final cs = context.cs;
     final zb = context.zb;
     final locale = Localizations.localeOf(context).languageCode;
-    final qualified = freeShipping.qualified;
+    // A granted perk *is* qualification: nudging someone toward a threshold
+    // they no longer have to reach is the bar lying to them.
+    final qualified = freeShipping.qualified || freeDeliveryReason != null;
     final accent = qualified ? zb.success : cs.primary;
 
     return Container(
@@ -51,36 +76,65 @@ class FreeShippingBar extends StatelessWidget {
               ),
               Gap.w8,
               Expanded(
-                child: Text(
-                  qualified
-                      ? l.cartFreeShippingQualified
-                      : l.cartFreeShippingRemaining(
-                          Fmt.price(freeShipping.remaining, locale: locale),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      qualified
+                          ? l.cartFreeShippingQualified
+                          : l.cartFreeShippingRemaining(
+                              Fmt.price(freeShipping.remaining, locale: locale),
+                            ),
+                      style: context.tt.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: qualified ? accent : cs.onSurface,
+                      ),
+                    ),
+                    if (reason != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          reason,
+                          style: context.tt.labelSmall
+                              ?.copyWith(color: cs.onSurfaceVariant),
                         ),
-                  style: context.tt.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: qualified ? accent : cs.onSurface,
-                  ),
+                      ),
+                  ],
                 ),
               ),
             ],
           ),
-          Gap.h8,
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: freeShipping.progress),
-              duration: context.motion(const Duration(milliseconds: 520)),
-              curve: Motion.emphasized,
-              builder: (context, value, _) => LinearProgressIndicator(
-                value: value,
-                minHeight: 6,
-                backgroundColor: cs.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation(accent),
-              ),
-            ),
-          ),
+          if (freeShipping.isActive) ...[
+            Gap.h8,
+            _Progress(progress: freeShipping.progress, accent: accent),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _Progress extends StatelessWidget {
+  const _Progress({required this.progress, required this.accent});
+
+  final double progress;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: progress),
+        duration: context.motion(const Duration(milliseconds: 520)),
+        curve: Motion.emphasized,
+        builder: (context, value, _) => LinearProgressIndicator(
+          value: value,
+          minHeight: 6,
+          backgroundColor: cs.surfaceContainerHighest,
+          valueColor: AlwaysStoppedAnimation(accent),
+        ),
       ),
     );
   }

@@ -14,6 +14,8 @@ import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/totals_card.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
+import '../../loyalty/data/loyalty_repository.dart';
+import '../../loyalty/presentation/widgets/claim_reward_sheet.dart';
 import '../data/cart_controller.dart';
 import '../data/cart_models.dart';
 import 'widgets/cart_line.dart';
@@ -113,8 +115,12 @@ class _Loaded extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                if (cart.freeShipping.isActive) ...[
-                  FreeShippingBar(freeShipping: cart.freeShipping),
+                if (cart.freeShipping.isActive || cart.loyalty.hasDeliveryPerk) ...[
+                  FreeShippingBar(
+                    freeShipping: cart.freeShipping,
+                    freeDeliveryReason: cart.loyalty.freeDeliveryReason,
+                    expressFreeReason: cart.loyalty.expressFreeReason,
+                  ),
                   Gap.h16,
                 ],
                 for (final item in cart.items) ...[
@@ -137,15 +143,54 @@ class _Loaded extends ConsumerWidget {
                   ],
                 ],
                 Gap.h16,
+                const _UseRewardButton(),
                 CouponField(coupons: cart.coupons),
                 Gap.h20,
-                TotalsCard(totals: cart.totals),
+                TotalsCard(
+                  totals: cart.totals,
+                  pawsToEarn: cart.loyalty.pawsToEarn,
+                ),
               ],
             ),
           ),
         ),
         _CheckoutBar(total: cart.totals.total),
       ],
+    );
+  }
+}
+
+/// «استخدم مكافأة» — visible only when there is actually a reward to use.
+///
+/// It reads the grants rather than the tier, so a customer who has nothing in
+/// hand is never shown a button that can only disappoint them, and a loyalty
+/// outage removes the button instead of breaking the basket.
+class _UseRewardButton extends ConsumerWidget {
+  const _UseRewardButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(isAuthenticatedProvider)) return const SizedBox.shrink();
+    // The summary is already in hand (kept alive for the session) and says how
+    // many grants this customer holds; only when that is non-zero is the
+    // catalogue worth a request. A cart with nothing to use costs no call.
+    final held = ref.watch(loyaltySummaryProvider).value?.rewards.activeCount ?? 0;
+    if (held <= 0) return const SizedBox.shrink();
+    final grants = ref.watch(claimableGrantsProvider);
+    if (grants.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: OutlinedButton.icon(
+        onPressed: () => showClaimRewardSheet(context),
+        icon: const Icon(Icons.card_giftcard_rounded, size: 18),
+        label: Text(L.of(context).rewardUseButton),
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(double.infinity, 48),
+          foregroundColor: context.cs.primary,
+          side: BorderSide(color: context.cs.primary.withValues(alpha: 0.5)),
+        ),
+      ),
     );
   }
 }

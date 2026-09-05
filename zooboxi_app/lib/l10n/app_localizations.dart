@@ -2190,6 +2190,840 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'إبقاء العنوان المحدد'**
   String get driftKeep;
+
+  /// No description provided for @familyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عائلة زوبوكسي'**
+  String get familyTitle;
+
+  /// No description provided for @familyTagline.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل طلب يقرّبك من هدية لصديقك'**
+  String get familyTagline;
+
+  /// No description provided for @familyGuestTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضم إلى عائلة زوبوكسي'**
+  String get familyGuestTitle;
+
+  /// No description provided for @familyGuestBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف حيوانك وابدأ جمع البصمات — هدايا وتوصيل مجاني، بلا خصومات ولا شروط.'**
+  String get familyGuestBody;
+
+  /// No description provided for @familyGuestCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابدأ الآن'**
+  String get familyGuestCta;
+
+  /// No description provided for @familyAddPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف حيوانك'**
+  String get familyAddPet;
+
+  /// No description provided for @familyNoPetTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'من هو صديقك؟'**
+  String get familyNoPetTitle;
+
+  /// No description provided for @familyNoPetBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرّفنا على حيوانك واكسب 50 بصمة فورًا'**
+  String get familyNoPetBody;
+
+  /// No description provided for @familyDue.
+  ///
+  /// In ar, this message translates to:
+  /// **'حان وقت إعادة طلب {product}'**
+  String familyDue(String product);
+
+  /// No description provided for @familyOrderNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب الآن'**
+  String get familyOrderNow;
+
+  /// No description provided for @familyMemberSince.
+  ///
+  /// In ar, this message translates to:
+  /// **'عضو منذ {date}'**
+  String familyMemberSince(String date);
+
+  /// No description provided for @familyPerksTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مزاياك'**
+  String get familyPerksTitle;
+
+  /// No description provided for @familyPerkFrom.
+  ///
+  /// In ar, this message translates to:
+  /// **'من مستوى {tier}'**
+  String familyPerkFrom(String tier);
+
+  /// No description provided for @familyMyRewards.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآتي'**
+  String get familyMyRewards;
+
+  /// No description provided for @familyRedeemTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدل بصماتك'**
+  String get familyRedeemTitle;
+
+  /// No description provided for @familySealedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'بطاقات تنتظر الخدش'**
+  String get familySealedTitle;
+
+  /// No description provided for @familyLedgerLink.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل البصمات'**
+  String get familyLedgerLink;
+
+  /// No description provided for @familyReferralCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز الدعوة {code}'**
+  String familyReferralCode(String code);
+
+  /// No description provided for @familyTierOrders.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا طلبات خلال 12 شهرًا} =1{طلب واحد خلال 12 شهرًا} =2{طلبان خلال 12 شهرًا} few{{count} طلبات خلال 12 شهرًا} many{{count} طلبًا خلال 12 شهرًا} other{{count} طلب خلال 12 شهرًا}}'**
+  String familyTierOrders(int count);
+
+  /// No description provided for @familyTierNext.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{طلب واحد يفصلك عن {tier}} =2{طلبان يفصلانك عن {tier}} few{{count} طلبات تفصلك عن {tier}} many{{count} طلبًا يفصلك عن {tier}} other{{count} طلب يفصلك عن {tier}}}'**
+  String familyTierNext(int count, String tier);
+
+  /// No description provided for @familyTierTop.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنت في أعلى مستوى — شكرًا لثقتك'**
+  String get familyTierTop;
+
+  /// No description provided for @pawsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصماتك'**
+  String get pawsTitle;
+
+  /// No description provided for @pawsUnit.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصمة'**
+  String get pawsUnit;
+
+  /// No description provided for @pawsCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا بصمات} =1{بصمة واحدة} =2{بصمتان} few{{value} بصمات} many{{value} بصمة} other{{value} بصمة}}'**
+  String pawsCount(int count, String value);
+
+  /// No description provided for @pawsPending.
+  ///
+  /// In ar, this message translates to:
+  /// **'{value} بصمة قيد التفعيل'**
+  String pawsPending(String value);
+
+  /// No description provided for @pawsPendingHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُضاف عند تسليم طلبك'**
+  String get pawsPendingHint;
+
+  /// No description provided for @pawsExpires.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنتهي في {date}'**
+  String pawsExpires(String date);
+
+  /// No description provided for @pawsHowTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيف أكسب البصمات؟'**
+  String get pawsHowTitle;
+
+  /// No description provided for @pawsHowOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصمة لكل ريال من قيمة أي طلب يصلك'**
+  String get pawsHowOrder;
+
+  /// No description provided for @pawsHowProfile.
+  ///
+  /// In ar, this message translates to:
+  /// **'100 بصمة عند إكمال ملف صديقك بالوزن وتاريخ الميلاد'**
+  String get pawsHowProfile;
+
+  /// No description provided for @pawsHowPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'50 بصمة لكل حيوان تضيفه'**
+  String get pawsHowPet;
+
+  /// No description provided for @pawsHowPlay.
+  ///
+  /// In ar, this message translates to:
+  /// **'مهمات الشهر وبطاقة «اخدش واربح» مع كل طلب من التطبيق'**
+  String get pawsHowPlay;
+
+  /// No description provided for @pawsHowExpiry.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنتهي البصمات بعد 12 شهرًا بلا طلبات'**
+  String get pawsHowExpiry;
+
+  /// No description provided for @pawsHowDelivered.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاستحقاق بعد التسليم — لا شيء يُحتسب قبل أن يصلك الطلب'**
+  String get pawsHowDelivered;
+
+  /// No description provided for @pawsToEarn.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لن تكسب بصمات من هذه السلة} =1{ستكسب بصمة واحدة} =2{ستكسب بصمتين} few{ستكسب {value} بصمات} many{ستكسب {value} بصمة} other{ستكسب {value} بصمة}}'**
+  String pawsToEarn(int count, String value);
+
+  /// No description provided for @pawsEarned.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{كسبت بصمة واحدة} =2{كسبت بصمتين} few{كسبت {value} بصمات} many{كسبت {value} بصمة} other{كسبت {value} بصمة}}'**
+  String pawsEarned(int count, String value);
+
+  /// No description provided for @pawsLedgerTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل البصمات'**
+  String get pawsLedgerTitle;
+
+  /// No description provided for @pawsLedgerEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'السجل فارغ'**
+  String get pawsLedgerEmpty;
+
+  /// No description provided for @pawsLedgerEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أول طلب يصلك يفتح السجل'**
+  String get pawsLedgerEmptyHint;
+
+  /// No description provided for @pawsLedgerMore.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض المزيد'**
+  String get pawsLedgerMore;
+
+  /// No description provided for @pawsBalanceAfter.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرصيد {value}'**
+  String pawsBalanceAfter(String value);
+
+  /// No description provided for @pawsReason.
+  ///
+  /// In ar, this message translates to:
+  /// **'{reason, select, order_earn{طلب مسلَّم} profile_complete{إكمال ملف} pet_added{إضافة حيوان} mission{مهمة الشهر} scratch{اخدش واربح} redeem{استبدال} reverse{عكس قيد} expire{انتهاء صلاحية} adjust{تعديل يدوي} welcome{هدية ترحيب} other{حركة}}'**
+  String pawsReason(String reason);
+
+  /// No description provided for @missionsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مهمات الشهر'**
+  String get missionsTitle;
+
+  /// No description provided for @missionsSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أربع مهمات، تتجدد أول كل شهر'**
+  String get missionsSubtitle;
+
+  /// No description provided for @missionProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'{progress} من {target}'**
+  String missionProgress(int progress, int target);
+
+  /// No description provided for @missionDone.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتملت'**
+  String get missionDone;
+
+  /// No description provided for @missionRewardGift.
+  ///
+  /// In ar, this message translates to:
+  /// **'هدية'**
+  String get missionRewardGift;
+
+  /// No description provided for @missionSuggested.
+  ///
+  /// In ar, this message translates to:
+  /// **'يناسب صديقك'**
+  String get missionSuggested;
+
+  /// No description provided for @missionsEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا مهمات هذا الشهر'**
+  String get missionsEmpty;
+
+  /// No description provided for @missionsEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مهمات جديدة تصلك أول الشهر القادم'**
+  String get missionsEmptyHint;
+
+  /// No description provided for @rewardsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'المكافآت'**
+  String get rewardsTitle;
+
+  /// No description provided for @rewardsMine.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآتي'**
+  String get rewardsMine;
+
+  /// No description provided for @rewardsCatalog.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدل بصماتك'**
+  String get rewardsCatalog;
+
+  /// No description provided for @rewardsEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا مكافآت بعد'**
+  String get rewardsEmpty;
+
+  /// No description provided for @rewardsEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اجمع البصمات واستبدلها بهدية أو توصيل مجاني'**
+  String get rewardsEmptyHint;
+
+  /// No description provided for @rewardsCatalogEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكتالوج فارغ الآن'**
+  String get rewardsCatalogEmpty;
+
+  /// No description provided for @rewardCost.
+  ///
+  /// In ar, this message translates to:
+  /// **'{value} بصمة'**
+  String rewardCost(String value);
+
+  /// No description provided for @rewardValue.
+  ///
+  /// In ar, this message translates to:
+  /// **'قيمتها {price}'**
+  String rewardValue(String price);
+
+  /// No description provided for @rewardValidity.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{صالحة يومًا واحدًا} =2{صالحة يومين} few{صالحة {count} أيام} many{صالحة {count} يومًا} other{صالحة {count} يوم}}'**
+  String rewardValidity(int count);
+
+  /// No description provided for @rewardExpires.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنتهي {date}'**
+  String rewardExpires(String date);
+
+  /// No description provided for @rewardRedeem.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدل'**
+  String get rewardRedeem;
+
+  /// No description provided for @rewardRedeemTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الاستبدال'**
+  String get rewardRedeemTitle;
+
+  /// No description provided for @rewardRedeemBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنخصم {value} بصمة مقابل «{title}». تصبح جاهزة للاستخدام في طلبك القادم.'**
+  String rewardRedeemBody(String value, String title);
+
+  /// No description provided for @rewardRedeemDone.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصبحت في مكافآتك'**
+  String get rewardRedeemDone;
+
+  /// No description provided for @rewardRedeemFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الاستبدال'**
+  String get rewardRedeemFailed;
+
+  /// No description provided for @rewardUseInCart.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدم في السلة'**
+  String get rewardUseInCart;
+
+  /// No description provided for @rewardInCart.
+  ///
+  /// In ar, this message translates to:
+  /// **'في سلتك'**
+  String get rewardInCart;
+
+  /// No description provided for @rewardRemove.
+  ///
+  /// In ar, this message translates to:
+  /// **'إزالة من السلة'**
+  String get rewardRemove;
+
+  /// No description provided for @rewardPendingOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُفعَّل عند تسليم الطلب {number}'**
+  String rewardPendingOrder(String number);
+
+  /// No description provided for @rewardPending.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُفعَّل عند تسليم طلبك'**
+  String get rewardPending;
+
+  /// No description provided for @rewardKindGift.
+  ///
+  /// In ar, this message translates to:
+  /// **'هدية'**
+  String get rewardKindGift;
+
+  /// No description provided for @rewardKindExpress.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل سريع مجاني'**
+  String get rewardKindExpress;
+
+  /// No description provided for @rewardKindDelivery.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل مجاني'**
+  String get rewardKindDelivery;
+
+  /// No description provided for @rewardKindPaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصمات'**
+  String get rewardKindPaws;
+
+  /// No description provided for @rewardUseButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدم مكافأة'**
+  String get rewardUseButton;
+
+  /// No description provided for @rewardSheetTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآتك الجاهزة'**
+  String get rewardSheetTitle;
+
+  /// No description provided for @rewardSheetHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُضاف إلى هذا الطلب فورًا'**
+  String get rewardSheetHint;
+
+  /// No description provided for @rewardSheetEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا مكافآت جاهزة الآن'**
+  String get rewardSheetEmpty;
+
+  /// No description provided for @rewardGiftChip.
+  ///
+  /// In ar, this message translates to:
+  /// **'هدية'**
+  String get rewardGiftChip;
+
+  /// No description provided for @rewardGiftFree.
+  ///
+  /// In ar, this message translates to:
+  /// **'مجانًا'**
+  String get rewardGiftFree;
+
+  /// No description provided for @rewardClaimFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر استخدام المكافأة'**
+  String get rewardClaimFailed;
+
+  /// No description provided for @rewardGiftUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذه الهدية لا تصل موقعك حاليًا'**
+  String get rewardGiftUnavailable;
+
+  /// No description provided for @rewardInsufficientPaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصماتك لا تكفي'**
+  String get rewardInsufficientPaws;
+
+  /// No description provided for @rewardTierRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتطلب مستوى أعلى'**
+  String get rewardTierRequired;
+
+  /// No description provided for @rewardFreeDeliveryTier.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل مجاني بفضل مستواك'**
+  String get rewardFreeDeliveryTier;
+
+  /// No description provided for @rewardFreeDeliveryReward.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل مجاني بمكافأتك'**
+  String get rewardFreeDeliveryReward;
+
+  /// No description provided for @rewardExpressFreeTier.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل سريع مجاني بفضل مستواك'**
+  String get rewardExpressFreeTier;
+
+  /// No description provided for @rewardExpressFreeReward.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل سريع مجاني بمكافأتك'**
+  String get rewardExpressFreeReward;
+
+  /// No description provided for @scratchTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اخدش واربح'**
+  String get scratchTitle;
+
+  /// No description provided for @scratchHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'امسح البطاقة بإصبعك'**
+  String get scratchHint;
+
+  /// No description provided for @scratchOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'بطاقة الطلب {number}'**
+  String scratchOrder(String number);
+
+  /// No description provided for @scratchPrizePaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'{value} بصمة!'**
+  String scratchPrizePaws(String value);
+
+  /// No description provided for @scratchActivation.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُفعَّل عند تسليم الطلب'**
+  String get scratchActivation;
+
+  /// No description provided for @scratchSettled.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصبحت في حسابك'**
+  String get scratchSettled;
+
+  /// No description provided for @scratchDone.
+  ///
+  /// In ar, this message translates to:
+  /// **'رائع'**
+  String get scratchDone;
+
+  /// No description provided for @scratchOpen.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكشف البطاقة'**
+  String get scratchOpen;
+
+  /// No description provided for @scratchEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا بطاقات الآن'**
+  String get scratchEmpty;
+
+  /// No description provided for @scratchEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل طلب من التطبيق يأتي ببطاقة'**
+  String get scratchEmptyHint;
+
+  /// No description provided for @petsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عائلتي'**
+  String get petsTitle;
+
+  /// No description provided for @petsEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا حيوانات بعد'**
+  String get petsEmpty;
+
+  /// No description provided for @petsEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرّفنا على صديقك لنقترح ما يناسبه فعلًا'**
+  String get petsEmptyHint;
+
+  /// No description provided for @petsAdd.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف حيوانًا'**
+  String get petsAdd;
+
+  /// No description provided for @petsFull.
+  ///
+  /// In ar, this message translates to:
+  /// **'{max, plural, =1{يمكنك إضافة حيوان واحد} =2{يمكنك إضافة حيوانين} few{يمكنك إضافة {max} حيوانات} other{يمكنك إضافة {max} حيوان}}'**
+  String petsFull(int max);
+
+  /// No description provided for @petNewTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'صديق جديد'**
+  String get petNewTitle;
+
+  /// No description provided for @petEditTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملف {name}'**
+  String petEditTitle(String name);
+
+  /// No description provided for @petFieldName.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم'**
+  String get petFieldName;
+
+  /// No description provided for @petFieldNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشمش'**
+  String get petFieldNameHint;
+
+  /// No description provided for @petFieldSpecies.
+  ///
+  /// In ar, this message translates to:
+  /// **'النوع'**
+  String get petFieldSpecies;
+
+  /// No description provided for @petFieldBreed.
+  ///
+  /// In ar, this message translates to:
+  /// **'السلالة'**
+  String get petFieldBreed;
+
+  /// No description provided for @petFieldBreedHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختياري'**
+  String get petFieldBreedHint;
+
+  /// No description provided for @petFieldWeight.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوزن'**
+  String get petFieldWeight;
+
+  /// No description provided for @petFieldBirthDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ الميلاد'**
+  String get petFieldBirthDate;
+
+  /// No description provided for @petFieldSex.
+  ///
+  /// In ar, this message translates to:
+  /// **'الجنس'**
+  String get petFieldSex;
+
+  /// No description provided for @petFieldNeutered.
+  ///
+  /// In ar, this message translates to:
+  /// **'معقّم'**
+  String get petFieldNeutered;
+
+  /// No description provided for @petWeightUnit.
+  ///
+  /// In ar, this message translates to:
+  /// **'كجم'**
+  String get petWeightUnit;
+
+  /// No description provided for @petSexMale.
+  ///
+  /// In ar, this message translates to:
+  /// **'ذكر'**
+  String get petSexMale;
+
+  /// No description provided for @petSexFemale.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنثى'**
+  String get petSexFemale;
+
+  /// No description provided for @petSexUnset.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير محدد'**
+  String get petSexUnset;
+
+  /// No description provided for @petNotSet.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير مسجّل'**
+  String get petNotSet;
+
+  /// No description provided for @petSpeciesCat.
+  ///
+  /// In ar, this message translates to:
+  /// **'قط'**
+  String get petSpeciesCat;
+
+  /// No description provided for @petSpeciesDog.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلب'**
+  String get petSpeciesDog;
+
+  /// No description provided for @petSpeciesBird.
+  ///
+  /// In ar, this message translates to:
+  /// **'طائر'**
+  String get petSpeciesBird;
+
+  /// No description provided for @petSpeciesFish.
+  ///
+  /// In ar, this message translates to:
+  /// **'سمك'**
+  String get petSpeciesFish;
+
+  /// No description provided for @petSpeciesSmall.
+  ///
+  /// In ar, this message translates to:
+  /// **'قارض'**
+  String get petSpeciesSmall;
+
+  /// No description provided for @petSpeciesReptile.
+  ///
+  /// In ar, this message translates to:
+  /// **'زاحف'**
+  String get petSpeciesReptile;
+
+  /// No description provided for @petSpeciesOther.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير ذلك'**
+  String get petSpeciesOther;
+
+  /// No description provided for @petNameRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتب اسم صديقك'**
+  String get petNameRequired;
+
+  /// No description provided for @petWeightInvalid.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل وزنًا بين 0.1 و200 كجم'**
+  String get petWeightInvalid;
+
+  /// No description provided for @petBirthDateInvalid.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ الميلاد لا يمكن أن يكون في المستقبل'**
+  String get petBirthDateInvalid;
+
+  /// No description provided for @petSaveFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الحفظ'**
+  String get petSaveFailed;
+
+  /// No description provided for @petSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم الحفظ'**
+  String get petSaved;
+
+  /// No description provided for @petDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الملف'**
+  String get petDelete;
+
+  /// No description provided for @petDeleteConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف ملف {name}؟'**
+  String petDeleteConfirm(String name);
+
+  /// No description provided for @petDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الملف'**
+  String get petDeleted;
+
+  /// No description provided for @petBirthdaySoon.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{عيد ميلاده اليوم} =1{عيد ميلاده غدًا} =2{عيد ميلاده بعد يومين} few{عيد ميلاده بعد {count} أيام} other{عيد ميلاده بعد {count} يومًا}}'**
+  String petBirthdaySoon(int count);
+
+  /// No description provided for @petIncompleteHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف الوزن وتاريخ الميلاد واكسب 100 بصمة'**
+  String get petIncompleteHint;
+
+  /// No description provided for @petAgeUnknown.
+  ///
+  /// In ar, this message translates to:
+  /// **'العمر غير مسجّل'**
+  String get petAgeUnknown;
+
+  /// No description provided for @petPickDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر التاريخ'**
+  String get petPickDate;
+
+  /// No description provided for @petLimitReached.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصلت إلى الحد الأقصى للحيوانات'**
+  String get petLimitReached;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

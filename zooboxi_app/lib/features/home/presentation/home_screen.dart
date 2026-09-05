@@ -18,15 +18,19 @@ import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
 import '../../../core/location/location_controller.dart';
+import '../../../core/session/session_controller.dart';
 import '../../location/presentation/location_drift_sheet.dart';
+import '../../loyalty/data/loyalty_repository.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/address_nav_bar.dart';
 import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
 import 'widgets/clearance_band.dart';
+import 'widgets/family_card.dart';
 import 'widgets/hero_carousel.dart';
 import 'widgets/home_header.dart';
+import 'widgets/missions_strip.dart';
 import 'widgets/trust_strip.dart';
 
 /// The storefront.
@@ -220,6 +224,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final wishlist = ref.watch(wishlistProductsProvider).value ?? const <ProductCard>[];
     final freeShipping = ref.watch(cartFreeShippingNudgeProvider);
 
+    // The loyalty layer is *additive* to the storefront: a guest resolves to
+    // null without a call, and a failed or slow read is indistinguishable from
+    // "no program" — the slot simply doesn't draw. Home must never wait on it.
+    final loyalty = ref.watch(loyaltySummaryProvider).value;
+    final loyaltyPending =
+        ref.watch(isAuthenticatedProvider) && loyalty == null;
+
     // Hearts settle on the first frame instead of popping in a beat later.
     // Deferred past build: seeding writes to a provider that the hearts on
     // this very screen are watching.
@@ -306,6 +317,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onSeeAll: personal.kind == 'buyagain'
                   ? () => context.push('/buy-again')
                   : null,
+            ),
+          );
+
+        // «عائلة زوبوكسي» — the pet, what it needs next, and where its owner
+        // stands. Hidden while a member's summary is still in flight rather
+        // than flashing the guest invitation at someone who has an account.
+        case 'family':
+          if (loyaltyPending) break;
+          emit(
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
+              child: FamilyCard(summary: loyalty, feed: feedData),
+            ),
+          );
+
+        case 'missions':
+          if (!MissionsStrip.hasContent(loyalty)) break;
+          emit(
+            MissionsStrip(
+              missions: loyalty!.missions.items,
+              holdout: loyalty.member.holdout,
             ),
           );
 

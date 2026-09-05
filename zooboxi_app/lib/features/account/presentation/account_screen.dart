@@ -13,6 +13,7 @@ import '../../../core/widgets/app_toast.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
 import '../../location/presentation/location_sheet.dart';
+import '../../loyalty/data/loyalty_repository.dart';
 import 'widgets/account_header.dart';
 import 'widgets/settings_tile.dart';
 
@@ -29,6 +30,9 @@ class AccountScreen extends ConsumerWidget {
     final l = L.of(context);
     final session = ref.watch(sessionProvider);
     final settings = ref.watch(appSettingsProvider);
+    // Read, never awaited: the account tab renders in full whether or not the
+    // loyalty layer answers.
+    final loyalty = ref.watch(loyaltySummaryProvider).value;
 
     return Scaffold(
       appBar: AppBar(title: Text(l.accountTitle)),
@@ -40,6 +44,9 @@ class AccountScreen extends ConsumerWidget {
           AccountHeader(
             user: session.user,
             onSignIn: () => showAuthSheet(context, reason: l.accountGuestHint),
+            tier: loyalty?.tier,
+            paws: loyalty?.paws.balance,
+            onOpenFamily: () => context.push('/family'),
           ),
           Gap.h24,
 
@@ -60,6 +67,16 @@ class AccountScreen extends ConsumerWidget {
                 icon: Icons.favorite_border_rounded,
                 label: l.accountWishlist,
                 onTap: () => context.push('/wishlist'),
+              ),
+              SettingsTile(
+                icon: Icons.pets_rounded,
+                label: l.familyTitle,
+                onTap: () => context.push('/family'),
+              ),
+              SettingsTile(
+                icon: Icons.diversity_1_rounded,
+                label: l.petsTitle,
+                onTap: () => _requireAuth(context, ref, () => context.push('/pets')),
               ),
               SettingsTile(
                 icon: Icons.place_outlined,

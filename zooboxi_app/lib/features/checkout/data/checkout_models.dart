@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/envelope.dart';
 import '../../account/data/account_models.dart';
 import '../../cart/data/cart_models.dart';
+import '../../loyalty/data/loyalty_models.dart';
 
 /// A payment method offered for this basket. `id` is opaque to the app — it
 /// goes straight back on `POST /checkout` — so the server can add or retire
@@ -130,6 +131,8 @@ class PlacedOrder {
     this.paymentMethod = 'cod',
     this.paymentRequired = false,
     this.promise = const DeliveryPromise(),
+    this.scratchCard,
+    this.pawsToEarn = 0,
   });
 
   final int orderId;
@@ -146,6 +149,14 @@ class PlacedOrder {
   /// dated promise without a second round trip.
   final DeliveryPromise promise;
 
+  /// The sealed «اخدش واربح» card this order earned, or null — a web order, a
+  /// control-group member, or a store with the program off all answer null,
+  /// and the success screen simply doesn't show one.
+  final ScratchCard? scratchCard;
+
+  /// Paws this order will be worth once it is delivered.
+  final int pawsToEarn;
+
   PlacedOrder withPromise(DeliveryPromise value) => PlacedOrder(
         orderId: orderId,
         orderNumber: orderNumber,
@@ -155,6 +166,8 @@ class PlacedOrder {
         paymentMethod: paymentMethod,
         paymentRequired: paymentRequired,
         promise: value,
+        scratchCard: scratchCard,
+        pawsToEarn: pawsToEarn,
       );
 
   factory PlacedOrder.fromJson(Map<String, dynamic> json) => PlacedOrder(
@@ -165,5 +178,7 @@ class PlacedOrder {
         total: asDouble(json['total']),
         paymentMethod: asString(json['payment_method'], fallback: 'cod'),
         paymentRequired: asBool(json['payment_required']),
+        scratchCard: ScratchCard.maybe(json['scratch_card']),
+        pawsToEarn: asInt(json['paws_to_earn']),
       );
 }

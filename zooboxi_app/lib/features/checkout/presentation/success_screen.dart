@@ -14,6 +14,8 @@ import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/mascot_peek.dart';
 import '../../../core/widgets/sparkles.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../loyalty/data/loyalty_repository.dart';
+import '../../loyalty/presentation/widgets/scratch_card_view.dart';
 import '../data/checkout_models.dart';
 import 'widgets/promise_recap.dart';
 
@@ -47,6 +49,9 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
           ),
         );
     WidgetsBinding.instance.addPostFrameCallback((_) => Haptics.success());
+    // The order just moved the wallet and may have minted a card; whatever the
+    // family hub had cached is now stale.
+    invalidateLoyalty(ref);
   }
 
   @override
@@ -81,6 +86,15 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                     textAlign: TextAlign.center,
                   ),
                   Gap.h20,
+                  // The card lands *between* the confirmation and the
+                  // receipt: it is the reward for the order that just
+                  // happened, and burying it under the totals would make it
+                  // look like an ad. Nothing about it blocks the flow — the
+                  // tracking button below works whether or not it is rubbed.
+                  if (order.scratchCard != null) ...[
+                    ScratchCardView(card: order.scratchCard!, compact: true),
+                    Gap.h24,
+                  ],
                   // The receipt block is a card so the mascots have an edge to
                   // peek over — the screen had no card of its own.
                   MascotPeek(

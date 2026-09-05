@@ -1218,4 +1218,549 @@ class LEn extends L {
 
   @override
   String get driftKeep => 'Keep my saved address';
+
+  @override
+  String get familyTitle => 'Zooboxi Family';
+
+  @override
+  String get familyTagline => 'Every order brings your friend closer to a gift';
+
+  @override
+  String get familyGuestTitle => 'Join the Zooboxi Family';
+
+  @override
+  String get familyGuestBody =>
+      'Add your pet and start collecting paws — gifts and free delivery, no discounts, no catches.';
+
+  @override
+  String get familyGuestCta => 'Get started';
+
+  @override
+  String get familyAddPet => 'Add your pet';
+
+  @override
+  String get familyNoPetTitle => 'Who is your friend?';
+
+  @override
+  String get familyNoPetBody =>
+      'Introduce your pet and earn 50 paws right away';
+
+  @override
+  String familyDue(String product) {
+    return 'Time to reorder $product';
+  }
+
+  @override
+  String get familyOrderNow => 'Order now';
+
+  @override
+  String familyMemberSince(String date) {
+    return 'Member since $date';
+  }
+
+  @override
+  String get familyPerksTitle => 'Your perks';
+
+  @override
+  String familyPerkFrom(String tier) {
+    return 'From $tier';
+  }
+
+  @override
+  String get familyMyRewards => 'My rewards';
+
+  @override
+  String get familyRedeemTitle => 'Spend your paws';
+
+  @override
+  String get familySealedTitle => 'Cards waiting to be scratched';
+
+  @override
+  String get familyLedgerLink => 'Paws history';
+
+  @override
+  String familyReferralCode(String code) {
+    return 'Invite code $code';
+  }
+
+  @override
+  String familyTierOrders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders in 12 months',
+      one: '1 order in 12 months',
+      zero: 'No orders in 12 months',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String familyTierNext(int count, String tier) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders away from $tier',
+      one: '1 order away from $tier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get familyTierTop => 'You\'re at the top tier — thank you';
+
+  @override
+  String get pawsTitle => 'Your paws';
+
+  @override
+  String get pawsUnit => 'paws';
+
+  @override
+  String pawsCount(int count, String value) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$value paws',
+      one: '1 paw',
+      zero: 'No paws',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pawsPending(String value) {
+    return '$value paws pending';
+  }
+
+  @override
+  String get pawsPendingHint => 'They land when your order is delivered';
+
+  @override
+  String pawsExpires(String date) {
+    return 'Expire on $date';
+  }
+
+  @override
+  String get pawsHowTitle => 'How do I earn paws?';
+
+  @override
+  String get pawsHowOrder =>
+      'One paw for every riyal of an order that reaches you';
+
+  @override
+  String get pawsHowProfile =>
+      '100 paws when your pet\'s profile has a weight and a birth date';
+
+  @override
+  String get pawsHowPet => '50 paws for every pet you add';
+
+  @override
+  String get pawsHowPlay =>
+      'Monthly missions, plus a scratch card with every app order';
+
+  @override
+  String get pawsHowExpiry => 'Paws expire after 12 months with no orders';
+
+  @override
+  String get pawsHowDelivered =>
+      'Everything counts on delivery — nothing before the order is in your hands';
+
+  @override
+  String pawsToEarn(int count, String value) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You\'ll earn $value paws',
+      one: 'You\'ll earn 1 paw',
+      zero: 'No paws from this basket',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pawsEarned(int count, String value) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You earned $value paws',
+      one: 'You earned 1 paw',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pawsLedgerTitle => 'Paws history';
+
+  @override
+  String get pawsLedgerEmpty => 'Nothing here yet';
+
+  @override
+  String get pawsLedgerEmptyHint => 'Your first delivered order opens it';
+
+  @override
+  String get pawsLedgerMore => 'Show more';
+
+  @override
+  String pawsBalanceAfter(String value) {
+    return 'Balance $value';
+  }
+
+  @override
+  String pawsReason(String reason) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'order_earn': 'Delivered order',
+      'profile_complete': 'Profile completed',
+      'pet_added': 'Pet added',
+      'mission': 'Monthly mission',
+      'scratch': 'Scratch card',
+      'redeem': 'Redeemed',
+      'reverse': 'Reversed',
+      'expire': 'Expired',
+      'adjust': 'Manual adjustment',
+      'welcome': 'Welcome gift',
+      'other': 'Entry',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get missionsTitle => 'This month\'s missions';
+
+  @override
+  String get missionsSubtitle =>
+      'Four missions, renewed at the start of every month';
+
+  @override
+  String missionProgress(int progress, int target) {
+    return '$progress of $target';
+  }
+
+  @override
+  String get missionDone => 'Done';
+
+  @override
+  String get missionRewardGift => 'A gift';
+
+  @override
+  String get missionSuggested => 'Good picks for your friend';
+
+  @override
+  String get missionsEmpty => 'No missions this month';
+
+  @override
+  String get missionsEmptyHint => 'New ones arrive at the start of next month';
+
+  @override
+  String get rewardsTitle => 'Rewards';
+
+  @override
+  String get rewardsMine => 'My rewards';
+
+  @override
+  String get rewardsCatalog => 'Spend your paws';
+
+  @override
+  String get rewardsEmpty => 'No rewards yet';
+
+  @override
+  String get rewardsEmptyHint =>
+      'Collect paws and turn them into a gift or free delivery';
+
+  @override
+  String get rewardsCatalogEmpty => 'The catalogue is empty right now';
+
+  @override
+  String rewardCost(String value) {
+    return '$value paws';
+  }
+
+  @override
+  String rewardValue(String price) {
+    return 'Worth $price';
+  }
+
+  @override
+  String rewardValidity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Valid for $count days',
+      one: 'Valid for 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rewardExpires(String date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String get rewardRedeem => 'Redeem';
+
+  @override
+  String get rewardRedeemTitle => 'Confirm redemption';
+
+  @override
+  String rewardRedeemBody(String value, String title) {
+    return 'We\'ll take $value paws for “$title”. It will be ready for your next order.';
+  }
+
+  @override
+  String get rewardRedeemDone => 'It\'s in your rewards now';
+
+  @override
+  String get rewardRedeemFailed => 'Couldn\'t redeem that';
+
+  @override
+  String get rewardUseInCart => 'Use in cart';
+
+  @override
+  String get rewardInCart => 'In your cart';
+
+  @override
+  String get rewardRemove => 'Remove from cart';
+
+  @override
+  String rewardPendingOrder(String number) {
+    return 'Activates when order $number is delivered';
+  }
+
+  @override
+  String get rewardPending => 'Activates when your order is delivered';
+
+  @override
+  String get rewardKindGift => 'Gift';
+
+  @override
+  String get rewardKindExpress => 'Free express';
+
+  @override
+  String get rewardKindDelivery => 'Free delivery';
+
+  @override
+  String get rewardKindPaws => 'Paws';
+
+  @override
+  String get rewardUseButton => 'Use a reward';
+
+  @override
+  String get rewardSheetTitle => 'Rewards ready to use';
+
+  @override
+  String get rewardSheetHint => 'Applied to this order right away';
+
+  @override
+  String get rewardSheetEmpty => 'Nothing ready just yet';
+
+  @override
+  String get rewardGiftChip => 'Gift';
+
+  @override
+  String get rewardGiftFree => 'Free';
+
+  @override
+  String get rewardClaimFailed => 'Couldn\'t use that reward';
+
+  @override
+  String get rewardGiftUnavailable =>
+      'That gift can\'t reach your location right now';
+
+  @override
+  String get rewardInsufficientPaws => 'Not enough paws';
+
+  @override
+  String get rewardTierRequired => 'Needs a higher tier';
+
+  @override
+  String get rewardFreeDeliveryTier => 'Free delivery, thanks to your tier';
+
+  @override
+  String get rewardFreeDeliveryReward => 'Free delivery from your reward';
+
+  @override
+  String get rewardExpressFreeTier => 'Free express, thanks to your tier';
+
+  @override
+  String get rewardExpressFreeReward => 'Free express from your reward';
+
+  @override
+  String get scratchTitle => 'Scratch and win';
+
+  @override
+  String get scratchHint => 'Scratch it with your finger';
+
+  @override
+  String scratchOrder(String number) {
+    return 'Card for order $number';
+  }
+
+  @override
+  String scratchPrizePaws(String value) {
+    return '$value paws!';
+  }
+
+  @override
+  String get scratchActivation => 'Activates when your order is delivered';
+
+  @override
+  String get scratchSettled => 'It\'s in your account';
+
+  @override
+  String get scratchDone => 'Nice';
+
+  @override
+  String get scratchOpen => 'Open the card';
+
+  @override
+  String get scratchEmpty => 'No cards right now';
+
+  @override
+  String get scratchEmptyHint => 'Every app order comes with one';
+
+  @override
+  String get petsTitle => 'My family';
+
+  @override
+  String get petsEmpty => 'No pets yet';
+
+  @override
+  String get petsEmptyHint =>
+      'Introduce your friend and we\'ll suggest what actually suits them';
+
+  @override
+  String get petsAdd => 'Add a pet';
+
+  @override
+  String petsFull(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'You can add up to $max pets',
+      one: 'You can add 1 pet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get petNewTitle => 'A new friend';
+
+  @override
+  String petEditTitle(String name) {
+    return '$name\'s profile';
+  }
+
+  @override
+  String get petFieldName => 'Name';
+
+  @override
+  String get petFieldNameHint => 'Mishmish';
+
+  @override
+  String get petFieldSpecies => 'Species';
+
+  @override
+  String get petFieldBreed => 'Breed';
+
+  @override
+  String get petFieldBreedHint => 'Optional';
+
+  @override
+  String get petFieldWeight => 'Weight';
+
+  @override
+  String get petFieldBirthDate => 'Birth date';
+
+  @override
+  String get petFieldSex => 'Sex';
+
+  @override
+  String get petFieldNeutered => 'Neutered';
+
+  @override
+  String get petWeightUnit => 'kg';
+
+  @override
+  String get petSexMale => 'Male';
+
+  @override
+  String get petSexFemale => 'Female';
+
+  @override
+  String get petSexUnset => 'Not set';
+
+  @override
+  String get petNotSet => 'Not set';
+
+  @override
+  String get petSpeciesCat => 'Cat';
+
+  @override
+  String get petSpeciesDog => 'Dog';
+
+  @override
+  String get petSpeciesBird => 'Bird';
+
+  @override
+  String get petSpeciesFish => 'Fish';
+
+  @override
+  String get petSpeciesSmall => 'Small pet';
+
+  @override
+  String get petSpeciesReptile => 'Reptile';
+
+  @override
+  String get petSpeciesOther => 'Other';
+
+  @override
+  String get petNameRequired => 'Give your friend a name';
+
+  @override
+  String get petWeightInvalid => 'Enter a weight between 0.1 and 200 kg';
+
+  @override
+  String get petBirthDateInvalid => 'A birth date can\'t be in the future';
+
+  @override
+  String get petSaveFailed => 'Couldn\'t save that';
+
+  @override
+  String get petSaved => 'Saved';
+
+  @override
+  String get petDelete => 'Delete profile';
+
+  @override
+  String petDeleteConfirm(String name) {
+    return 'Delete $name\'s profile?';
+  }
+
+  @override
+  String get petDeleted => 'Profile deleted';
+
+  @override
+  String petBirthdaySoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Birthday in $count days',
+      one: 'Birthday tomorrow',
+      zero: 'Birthday today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get petIncompleteHint =>
+      'Add a weight and a birth date to earn 100 paws';
+
+  @override
+  String get petAgeUnknown => 'Age not recorded';
+
+  @override
+  String get petPickDate => 'Pick a date';
+
+  @override
+  String get petLimitReached => 'You\'ve reached the pet limit';
 }
