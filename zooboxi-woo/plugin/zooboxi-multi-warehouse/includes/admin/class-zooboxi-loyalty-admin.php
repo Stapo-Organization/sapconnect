@@ -25,6 +25,8 @@ class Zooboxi_Loyalty_Admin
         'rewards'  => ['🎁', 'الهدايا'],
         'scratch'  => ['🃏', 'اخدش واربح'],
         'missions' => ['🎯', 'المهمات'],
+        'habit'    => ['🔁', 'العادة'],
+        'stamps'   => ['🏷️', 'بطاقات الماركات'],
         'metrics'  => ['📊', 'المؤشرات'],
         'member'   => ['🔎', 'بحث عن عضو'],
     ];
@@ -114,6 +116,12 @@ class Zooboxi_Loyalty_Admin
                 case 'missions':
                     self::tab_missions();
                     break;
+                case 'habit':
+                    self::tab_habit();
+                    break;
+                case 'stamps':
+                    self::tab_stamps();
+                    break;
                 case 'metrics':
                     self::tab_metrics();
                     break;
@@ -154,6 +162,19 @@ class Zooboxi_Loyalty_Admin
                 return self::save_scratch();
             case 'missions':
                 return self::save_missions();
+            case 'habit':
+                return self::save_habit();
+            case 'referral_decide':
+                return self::decide_referral();
+            case 'stamp_save':
+                return self::save_stamp_program();
+            case 'stamp_toggle':
+                $id = absint($_POST['program_id'] ?? 0);
+                Zooboxi_Loyalty_Stamps::toggle($id, !empty($_POST['active']));
+                return __('تم تحديث البرنامج', 'zooboxi');
+            case 'habit_daily':
+                $r = Zooboxi_Loyalty_Moments::run_daily();
+                return sprintf(__('تم تشغيل مهام العادة: تذكيرات %d · إحالات %d · أعياد ميلاد %d · استرجاع %d', 'zooboxi'), (int) $r['sub_reminders'], (int) $r['referrals_paid'], (int) $r['birthdays'], (int) $r['winbacks']);
             case 'adjust':
                 return self::save_adjust();
             case 'baseline':
@@ -734,6 +755,19 @@ class Zooboxi_Loyalty_Admin
                 ?>
             </div>
 
+            <h3><?php esc_html_e('العادة (المرحلة 2)', 'zooboxi'); ?></h3>
+            <div class="zbl-stats">
+                <?php
+                $h = $m['habit'] ?? [];
+                self::stat(__('اشتراكات نشطة', 'zooboxi'), (string) ($h['subs_active'] ?? 0));
+                self::stat(__('توصيلات اشتراك هذا الشهر', 'zooboxi'), (string) ($h['sub_deliveries'] ?? 0));
+                self::stat(__('إحالات مكافأة هذا الشهر', 'zooboxi'), (string) ($h['referrals_rewarded'] ?? 0));
+                self::stat(__('إحالات قيد المراجعة', 'zooboxi'), (string) ($h['referrals_review'] ?? 0));
+                self::stat(__('هدايا عيد ميلاد', 'zooboxi'), (string) ($h['birthdays'] ?? 0));
+                self::stat(__('مهمات استرجاع', 'zooboxi'), (string) ($h['winbacks'] ?? 0));
+                ?>
+            </div>
+
             <h3><?php esc_html_e('المنح', 'zooboxi'); ?></h3>
             <p><?php
                 $parts = [];
@@ -1002,8 +1036,301 @@ class Zooboxi_Loyalty_Admin
             'frequency'        => __('طلبات الشهر', 'zooboxi'),
             'try_new_brand'    => __('جرّب ماركة جديدة', 'zooboxi'),
             'species_category' => __('جرّب تصنيفاً جديداً', 'zooboxi'),
+            'on_time'          => __('اطلب في وقتك', 'zooboxi'),
+            'refer_friend'     => __('ادعُ صديقاً', 'zooboxi'),
         ];
         return $map[$key] ?? $key;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PHASE 2 — «العادة»
+       ══════════════════════════════════════════════════════════════ */
+
+    private static function save_habit(): string
+    {
+        $post = wp_unslash($_POST);
+
+        foreach (['supply_enabled', 'subscriptions_enabled', 'referral_enabled', 'birthday_enabled', 'winback_enabled', 'mail_enabled'] as $flag) {
+            update_option('zooboxi_loyalty_' . $flag, !empty($post[$flag]) ? 'yes' : 'no');
+        }
+
+        $numbers = [
+            'on_time_pct', 'on_time_before', 'on_time_after',
+            'max_subscriptions', 'sub_reminder_days', 'sub_bonus_pct', 'sub_gift_every', 'sub_gift_paws',
+            'referral_paws', 'referral_cap', 'referral_hold_days', 'referral_welcome_paws',
+            'birthday_paws', 'winback_days', 'winback_paws', 'mail_weekly_cap',
+        ];
+        foreach ($numbers as $key) {
+            if (isset($post[$key])) {
+                update_option('zooboxi_loyalty_' . $key, absint($post[$key]));
+            }
+        }
+
+        $tier = sanitize_key((string) ($post['birthday_min_tier'] ?? 'friend'));
+        update_option('zooboxi_loyalty_birthday_min_tier', in_array($tier, Zooboxi_Loyalty_Tiers::ORDER, true) ? $tier : 'friend');
+
+        foreach (['supply_food_cats', 'supply_treat_cats'] as $key) {
+            update_option('zooboxi_loyalty_' . $key, sanitize_text_field((string) ($post[$key] ?? '')));
+        }
+
+        // species roots: lines "cat=107"
+        $roots = [];
+        foreach (preg_split('/[\r\n]+/', (string) ($post['species_roots'] ?? '')) as $line) {
+            if (strpos($line, '=') === false) {
+                continue;
+            }
+            [$species, $id] = array_map('trim', explode('=', $line, 2));
+            $species = sanitize_key($species);
+            if ($species !== '' && absint($id) > 0) {
+                $roots[$species] = absint($id);
+            }
+        }
+        update_option('zooboxi_loyalty_species_roots', wp_json_encode($roots));
+
+        // feeding table: raw JSON, validated
+        $json = trim((string) ($post['feeding_table'] ?? ''));
+        if ($json === '') {
+            delete_option('zooboxi_loyalty_feeding_table');
+        } else {
+            $decoded = json_decode($json, true);
+            if (!is_array($decoded)) {
+                return __('جدول التغذية ليس JSON صالحاً — لم يُحفظ', 'zooboxi');
+            }
+            update_option('zooboxi_loyalty_feeding_table', wp_json_encode($decoded, JSON_UNESCAPED_UNICODE));
+        }
+
+        return __('تم حفظ إعدادات العادة', 'zooboxi');
+    }
+
+    private static function decide_referral(): string
+    {
+        $id = absint($_POST['referral_id'] ?? 0);
+        if ($id <= 0) {
+            return '';
+        }
+        if (!empty($_POST['approve'])) {
+            return Zooboxi_Loyalty_Referrals::pay($id) ? __('تم اعتماد الإحالة ودفع المكافأة', 'zooboxi') : __('تعذّر اعتماد الإحالة', 'zooboxi');
+        }
+        Zooboxi_Loyalty_Referrals::reject($id);
+        return __('تم رفض الإحالة', 'zooboxi');
+    }
+
+    private static function save_stamp_program(): string
+    {
+        $post = wp_unslash($_POST);
+        $id   = Zooboxi_Loyalty_Stamps::save([
+            'id'             => $post['program_id'] ?? 0,
+            'title_ar'       => $post['title_ar'] ?? '',
+            'title_en'       => $post['title_en'] ?? '',
+            'brand_term_id'  => $post['brand_term_id'] ?? 0,
+            'units_required' => $post['units_required'] ?? 6,
+            'min_pack_kg'    => $post['min_pack_kg'] ?? 0,
+            'reward_id'      => $post['reward_id'] ?? 0,
+            'is_active'      => !empty($post['is_active']),
+            'sort'           => $post['sort'] ?? 0,
+        ]);
+        return $id > 0 ? __('تم حفظ برنامج الماركة', 'zooboxi') : __('تعذّر الحفظ', 'zooboxi');
+    }
+
+    private static function check_field(string $key, string $label, string $hint = ''): void
+    {
+        ?>
+        <label class="zbl-check"><input type="checkbox" name="<?php echo esc_attr($key); ?>" value="1" <?php checked(Zooboxi_Loyalty::opt($key), 'yes'); ?>> <?php echo esc_html($label); ?>
+            <?php if ($hint !== ''): ?><em style="display:block;color:#6b6b6b;font-weight:400;margin-inline-start:26px"><?php echo esc_html($hint); ?></em><?php endif; ?>
+        </label>
+        <?php
+    }
+
+    private static function tab_habit(): void
+    {
+        $roots = [];
+        foreach (Zooboxi_Loyalty_Supply::species_roots() as $species => $id) {
+            $roots[] = $species . '=' . $id;
+        }
+        $feeding = Zooboxi_Loyalty::opt_json('feeding_table', []);
+        $feeding_json = wp_json_encode($feeding ?: Zooboxi_Loyalty_Supply::DEFAULT_FEEDING, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $review  = Zooboxi_Loyalty_Referrals::in_review();
+        $ran     = (string) get_option('zooboxi_loyalty_habit_ran_at', '');
+        ?>
+        <form method="post" class="zbl-card">
+            <?php wp_nonce_field('zbl_habit'); ?>
+            <input type="hidden" name="zbl_action" value="habit">
+
+            <h2><?php esc_html_e('عدّاد الأكل', 'zooboxi'); ?></h2>
+            <p class="zbl-hint"><?php esc_html_e('يتنبأ بموعد نفاد أكل كل حيوان من حجم العبوة وجدول التغذية، ويتعلّم من فواصل الشراء الفعلية وزر «خلص». الطلب داخل النافذة يكسب بصمات إضافية.', 'zooboxi'); ?></p>
+            <?php self::check_field('supply_enabled', __('تفعيل عدّاد الأكل', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <?php
+                self::number_field('on_time_pct', __('مكافأة «في وقته» %', 'zooboxi'), __('نسبة إضافية على بصمات السطور المطلوبة داخل النافذة.', 'zooboxi'));
+                self::number_field('on_time_before', __('النافذة: أيام قبل النفاد', 'zooboxi'));
+                self::number_field('on_time_after', __('النافذة: أيام بعد النفاد', 'zooboxi'));
+                ?>
+            </div>
+            <label class="zbl-field"><span><?php esc_html_e('تصنيفات الطعام (معرّفات، بفاصلة)', 'zooboxi'); ?></span>
+                <input type="text" name="supply_food_cats" value="<?php echo esc_attr(implode(', ', Zooboxi_Loyalty_Supply::food_cats())); ?>"></label>
+            <label class="zbl-field"><span><?php esc_html_e('تصنيفات المكافآت (معرّفات، بفاصلة)', 'zooboxi'); ?></span>
+                <input type="text" name="supply_treat_cats" value="<?php echo esc_attr(implode(', ', Zooboxi_Loyalty_Supply::treat_cats())); ?>"></label>
+            <label class="zbl-field"><span><?php esc_html_e('جذور الأنواع (سطر لكل نوع: species=category_id)', 'zooboxi'); ?></span>
+                <textarea name="species_roots" rows="4" class="zbl-textarea"><?php echo esc_textarea(implode("\n", $roots)); ?></textarea></label>
+            <label class="zbl-field"><span><?php esc_html_e('جدول التغذية (غرام/يوم) — JSON', 'zooboxi'); ?></span>
+                <textarea name="feeding_table" rows="14" class="zbl-textarea" dir="ltr" style="font-family:monospace"><?php echo esc_textarea($feeding_json); ?></textarea>
+                <em><?php esc_html_e('per_kg × وزن الحيوان (أو default_kg)، أو flat. tiers اختيارية للكلاب: [[حتى كجم, غرام/كجم], …]. اتركه فارغاً للعودة للافتراضي.', 'zooboxi'); ?></em></label>
+
+            <h2><?php esc_html_e('الاشتراك المرن', 'zooboxi'); ?></h2>
+            <?php self::check_field('subscriptions_enabled', __('تفعيل «وصّل لي كل شهر»', 'zooboxi'), __('بلا حفظ بطاقة: تذكير قبل الموعد وطلب بضغطة. توصيلة الاشتراك تشحن مجاناً.', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <?php
+                self::number_field('max_subscriptions', __('الحد الأقصى للاشتراكات', 'zooboxi'));
+                self::number_field('sub_reminder_days', __('التذكير قبل (أيام)', 'zooboxi'));
+                self::number_field('sub_bonus_pct', __('بصمات إضافية على التوصيلة %', 'zooboxi'));
+                self::number_field('sub_gift_every', __('هدية كل N توصيلة', 'zooboxi'), __('0 = بلا هدية. تُمنح «هدية الاشتراك» من الكتالوج إن رُبط بها منتج.', 'zooboxi'));
+                self::number_field('sub_gift_paws', __('بديل الهدية بالبصمات', 'zooboxi'));
+                ?>
+            </div>
+
+            <h2><?php esc_html_e('الإحالة', 'zooboxi'); ?></h2>
+            <?php self::check_field('referral_enabled', __('تفعيل «ادعُ صديقاً»', 'zooboxi'), __('الرابط: ' . home_url('/?ref=CODE') . ' — المكافأة بعد اكتمال أول طلب للمدعو ومرور فترة الإرجاع.', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <?php
+                self::number_field('referral_paws', __('بصمات الداعي', 'zooboxi'));
+                self::number_field('referral_welcome_paws', __('بصمات المدعو (إن لم تُربط هدية)', 'zooboxi'));
+                self::number_field('referral_cap', __('سقف الدعوات شهرياً', 'zooboxi'));
+                self::number_field('referral_hold_days', __('فترة الانتظار بعد التسليم (أيام)', 'zooboxi'));
+                ?>
+            </div>
+
+            <h2><?php esc_html_e('اللحظات', 'zooboxi'); ?></h2>
+            <?php self::check_field('birthday_enabled', __('هدية عيد ميلاد الحيوان', 'zooboxi'), __('مرة سنوياً لكل حيوان، قبل أسبوع من الميلاد. تُمنح «هدية عيد الميلاد» من الكتالوج إن رُبط بها منتج، وإلا بصمات.', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <label class="zbl-field"><span><?php esc_html_e('من مستوى', 'zooboxi'); ?></span>
+                    <select name="birthday_min_tier">
+                        <?php foreach (Zooboxi_Loyalty_Tiers::ORDER as $key): ?>
+                            <option value="<?php echo esc_attr($key); ?>" <?php selected(Zooboxi_Loyalty::opt('birthday_min_tier'), $key); ?>><?php echo esc_html(Zooboxi_Loyalty_Tiers::name($key)); ?></option>
+                        <?php endforeach; ?>
+                    </select></label>
+                <?php self::number_field('birthday_paws', __('بديل الهدية بالبصمات', 'zooboxi')); ?>
+            </div>
+            <?php self::check_field('winback_enabled', __('الاسترجاع «نشتاق لـ…»', 'zooboxi'), __('مهمة بهدية أقوى لمن صمت بعد موعده المتوقع. لا تتكرر خلال 90 يوماً. تُمنح «هدية اشتقنا لك» إن رُبط بها منتج.', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <?php
+                self::number_field('winback_days', __('أيام الصمت بعد الموعد المتوقع', 'zooboxi'));
+                self::number_field('winback_paws', __('بديل الهدية بالبصمات', 'zooboxi'));
+                ?>
+            </div>
+
+            <h2><?php esc_html_e('البريد', 'zooboxi'); ?></h2>
+            <?php self::check_field('mail_enabled', __('إرسال تنبيهات بالبريد', 'zooboxi'), __('التطبيق بلا Push بعد؛ البريد يذكّر بالاشتراك وعيد الميلاد والاسترجاع. حسابات OTP بلا بريد تُتجاهل.', 'zooboxi')); ?>
+            <div class="zbl-grid">
+                <?php self::number_field('mail_weekly_cap', __('سقف الرسائل أسبوعياً لكل عضو', 'zooboxi')); ?>
+            </div>
+
+            <p><button type="submit" class="button button-primary button-large"><?php esc_html_e('حفظ', 'zooboxi'); ?></button></p>
+        </form>
+
+        <div class="zbl-card">
+            <h2><?php esc_html_e('الإحالات قيد المراجعة', 'zooboxi'); ?></h2>
+            <p class="zbl-hint"><?php esc_html_e('إحالات تطابق عنوانها أو جوالها مع الداعي — قرارك يدفع المكافأة أو يرفضها.', 'zooboxi'); ?></p>
+            <?php if (empty($review)): ?>
+                <p><?php esc_html_e('لا شيء بانتظارك.', 'zooboxi'); ?></p>
+            <?php else: ?>
+                <table class="widefat striped zbl-table">
+                    <thead><tr><th>#</th><th><?php esc_html_e('الداعي', 'zooboxi'); ?></th><th><?php esc_html_e('المدعو', 'zooboxi'); ?></th><th><?php esc_html_e('الأعلام', 'zooboxi'); ?></th><th><?php esc_html_e('الطلب', 'zooboxi'); ?></th><th></th></tr></thead>
+                    <tbody>
+                    <?php foreach ($review as $row):
+                        $a = get_user_by('id', (int) $row['referrer_id']);
+                        $b = get_user_by('id', (int) $row['referee_id']); ?>
+                        <tr>
+                            <td><?php echo (int) $row['id']; ?></td>
+                            <td><?php echo esc_html($a ? $a->display_name . ' (' . $a->ID . ')' : (string) $row['referrer_id']); ?></td>
+                            <td><?php echo esc_html($b ? $b->display_name . ' (' . $b->ID . ')' : (string) $row['referee_id']); ?></td>
+                            <td><code><?php echo esc_html((string) $row['flags']); ?></code></td>
+                            <td>#<?php echo (int) $row['first_order_id']; ?></td>
+                            <td>
+                                <form method="post" style="display:inline"><?php wp_nonce_field('zbl_referral_decide'); ?><input type="hidden" name="zbl_action" value="referral_decide"><input type="hidden" name="referral_id" value="<?php echo (int) $row['id']; ?>"><input type="hidden" name="approve" value="1"><button class="button button-small button-primary"><?php esc_html_e('اعتماد', 'zooboxi'); ?></button></form>
+                                <form method="post" style="display:inline"><?php wp_nonce_field('zbl_referral_decide'); ?><input type="hidden" name="zbl_action" value="referral_decide"><input type="hidden" name="referral_id" value="<?php echo (int) $row['id']; ?>"><button class="button button-small"><?php esc_html_e('رفض', 'zooboxi'); ?></button></form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <div class="zbl-card">
+            <h2><?php esc_html_e('المهام اليومية', 'zooboxi'); ?></h2>
+            <p class="zbl-hint"><?php echo esc_html($ran !== '' ? sprintf(__('آخر تشغيل: %s UTC', 'zooboxi'), $ran) : __('لم تعمل بعد.', 'zooboxi')); ?></p>
+            <form method="post"><?php wp_nonce_field('zbl_habit_daily'); ?><input type="hidden" name="zbl_action" value="habit_daily"><button class="button"><?php esc_html_e('تشغيل الآن (تذكيرات، إحالات، أعياد ميلاد، استرجاع)', 'zooboxi'); ?></button></form>
+        </div>
+        <?php
+    }
+
+    private static function tab_stamps(): void
+    {
+        $programs = Zooboxi_Loyalty_Stamps::programs(false);
+        $catalog  = Zooboxi_Loyalty_Rewards::catalog(true);
+        $edit     = isset($_GET['program']) ? Zooboxi_Loyalty_Stamps::program(absint($_GET['program'])) : null;
+        $brands   = taxonomy_exists('product_brand') ? get_terms(['taxonomy' => 'product_brand', 'hide_empty' => false, 'orderby' => 'name', 'number' => 300]) : [];
+        $brands   = is_wp_error($brands) ? [] : $brands;
+        ?>
+        <div class="zbl-card">
+            <h2><?php esc_html_e('بطاقات المشتري الدائم للماركات', 'zooboxi'); ?></h2>
+            <p class="zbl-warn"><?php esc_html_e('لا برنامج فعّال افتراضياً. الكيس المجاني يعادل خصماً فعلياً (~14%) ويحتاج اتفاقاً مع الماركة — الهدية آمنة تماماً. فعّل برنامجاً فقط بعد قرار التمويل.', 'zooboxi'); ?></p>
+            <?php if (empty($programs)): ?>
+                <p><?php esc_html_e('لا برامج بعد.', 'zooboxi'); ?></p>
+            <?php else: ?>
+                <table class="widefat striped zbl-table">
+                    <thead><tr><th><?php esc_html_e('البرنامج', 'zooboxi'); ?></th><th><?php esc_html_e('الماركة', 'zooboxi'); ?></th><th><?php esc_html_e('الوحدات', 'zooboxi'); ?></th><th><?php esc_html_e('حد العبوة', 'zooboxi'); ?></th><th><?php esc_html_e('المكافأة', 'zooboxi'); ?></th><th><?php esc_html_e('نشط', 'zooboxi'); ?></th><th></th></tr></thead>
+                    <tbody>
+                    <?php foreach ($programs as $p):
+                        $term = get_term((int) $p['brand_term_id'], 'product_brand');
+                        $rw   = (int) $p['reward_id'] > 0 ? Zooboxi_Loyalty_Rewards::reward((int) $p['reward_id']) : null; ?>
+                        <tr>
+                            <td><strong><?php echo esc_html((string) $p['title_ar']); ?></strong><br><small><?php echo esc_html((string) $p['title_en']); ?></small></td>
+                            <td><?php echo esc_html(($term && !is_wp_error($term)) ? $term->name : '—'); ?></td>
+                            <td><?php echo (int) $p['units_required']; ?></td>
+                            <td><?php echo esc_html((string) (float) $p['min_pack_kg']); ?> كجم</td>
+                            <td><?php echo esc_html($rw ? (string) $rw['title_ar'] : '—'); ?></td>
+                            <td>
+                                <form method="post" style="display:inline"><?php wp_nonce_field('zbl_stamp_toggle'); ?><input type="hidden" name="zbl_action" value="stamp_toggle"><input type="hidden" name="program_id" value="<?php echo (int) $p['id']; ?>"><input type="hidden" name="active" value="<?php echo (int) $p['is_active'] === 1 ? '' : '1'; ?>"><button class="button button-small"><?php echo (int) $p['is_active'] === 1 ? esc_html__('فعّال — إيقاف', 'zooboxi') : esc_html__('متوقف — تفعيل', 'zooboxi'); ?></button></form>
+                            </td>
+                            <td><a class="button button-small" href="<?php echo esc_url(admin_url('admin.php?page=' . self::SLUG . '&tab=stamps&program=' . (int) $p['id'])); ?>"><?php esc_html_e('تعديل', 'zooboxi'); ?></a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <form method="post" class="zbl-card">
+            <?php wp_nonce_field('zbl_stamp_save'); ?>
+            <input type="hidden" name="zbl_action" value="stamp_save">
+            <input type="hidden" name="program_id" value="<?php echo (int) ($edit['id'] ?? 0); ?>">
+            <h2><?php echo $edit ? esc_html__('تعديل برنامج', 'zooboxi') : esc_html__('برنامج جديد', 'zooboxi'); ?></h2>
+            <div class="zbl-grid">
+                <label class="zbl-field"><span><?php esc_html_e('العنوان (عربي)', 'zooboxi'); ?></span><input type="text" name="title_ar" value="<?php echo esc_attr((string) ($edit['title_ar'] ?? '')); ?>" required></label>
+                <label class="zbl-field"><span><?php esc_html_e('العنوان (إنجليزي)', 'zooboxi'); ?></span><input type="text" name="title_en" value="<?php echo esc_attr((string) ($edit['title_en'] ?? '')); ?>"></label>
+                <label class="zbl-field"><span><?php esc_html_e('الماركة', 'zooboxi'); ?></span>
+                    <select name="brand_term_id" required>
+                        <option value="0">—</option>
+                        <?php foreach ($brands as $b): ?>
+                            <option value="<?php echo (int) $b->term_id; ?>" <?php selected((int) ($edit['brand_term_id'] ?? 0), (int) $b->term_id); ?>><?php echo esc_html($b->name); ?></option>
+                        <?php endforeach; ?>
+                    </select></label>
+                <label class="zbl-field"><span><?php esc_html_e('الوحدات المطلوبة', 'zooboxi'); ?></span><input type="number" min="1" name="units_required" value="<?php echo (int) ($edit['units_required'] ?? 6); ?>"></label>
+                <label class="zbl-field"><span><?php esc_html_e('أقل حجم عبوة (كجم، 0 = أي)', 'zooboxi'); ?></span><input type="number" step="0.1" min="0" name="min_pack_kg" value="<?php echo esc_attr((string) (float) ($edit['min_pack_kg'] ?? 1.5)); ?>"></label>
+                <label class="zbl-field"><span><?php esc_html_e('المكافأة', 'zooboxi'); ?></span>
+                    <select name="reward_id">
+                        <option value="0">—</option>
+                        <?php foreach ($catalog as $reward): ?>
+                            <option value="<?php echo (int) $reward['id']; ?>" <?php selected((int) ($edit['reward_id'] ?? 0), (int) $reward['id']); ?>><?php echo esc_html((string) $reward['title_ar']); ?></option>
+                        <?php endforeach; ?>
+                    </select></label>
+                <label class="zbl-field"><span><?php esc_html_e('الترتيب', 'zooboxi'); ?></span><input type="number" name="sort" value="<?php echo (int) ($edit['sort'] ?? 0); ?>"></label>
+            </div>
+            <label class="zbl-check"><input type="checkbox" name="is_active" value="1" <?php checked((int) ($edit['is_active'] ?? 0), 1); ?>> <?php esc_html_e('نشط', 'zooboxi'); ?></label>
+            <p><button type="submit" class="button button-primary button-large"><?php esc_html_e('حفظ البرنامج', 'zooboxi'); ?></button></p>
+        </form>
+        <?php
     }
 
     private static function styles(): void

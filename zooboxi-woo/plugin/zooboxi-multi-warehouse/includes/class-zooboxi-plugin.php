@@ -112,6 +112,13 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-rewards.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-scratch.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-missions.php';
+            // Phase 2 «العادة»
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-mail.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-supply.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-subscriptions.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-referrals.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-moments.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-stamps.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-hooks.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty-cli.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty.php';

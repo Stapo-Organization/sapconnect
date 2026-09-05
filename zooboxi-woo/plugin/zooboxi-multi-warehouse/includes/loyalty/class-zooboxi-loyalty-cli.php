@@ -86,6 +86,55 @@ class Zooboxi_Loyalty_CLI
     }
 
     /**
+     * Run the Phase 2 daily jobs now (subscription reminders, referral payouts,
+     * birthdays, win-back).
+     *
+     * ## EXAMPLES
+     *
+     *     wp zooboxi loyalty habit-daily
+     *
+     * @subcommand habit-daily
+     * @when after_wp_load
+     */
+    public function habit_daily(): void
+    {
+        Zooboxi_Loyalty_Schema::maybe_install();
+        $r = Zooboxi_Loyalty_Moments::run_daily();
+        \WP_CLI::success(sprintf(
+            'subscription reminders: %d · referrals paid: %d · birthdays: %d · win-backs: %d',
+            (int) $r['sub_reminders'],
+            (int) $r['referrals_paid'],
+            (int) $r['birthdays'],
+            (int) $r['winbacks']
+        ));
+    }
+
+    /**
+     * Print one customer's supply gauge (the food forecast) as JSON.
+     *
+     * ## OPTIONS
+     *
+     * <user_id>
+     * : The customer's user id.
+     *
+     * [--fresh]
+     * : Rebuild instead of reading the 15-minute cache.
+     *
+     * ## EXAMPLES
+     *
+     *     wp zooboxi loyalty supply 42 --fresh
+     *
+     * @when after_wp_load
+     */
+    public function supply($args, $assoc_args): void
+    {
+        Zooboxi_Loyalty_Schema::maybe_install();
+        $user_id = (int) ($args[0] ?? 0);
+        $rows    = Zooboxi_Loyalty_Supply::items($user_id, isset($assoc_args['fresh']));
+        \WP_CLI::line(wp_json_encode(Zooboxi_Loyalty_Supply::dtos($rows, $user_id), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
      * Print the current program metrics as JSON.
      *
      * ## EXAMPLES

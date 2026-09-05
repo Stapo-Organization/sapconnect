@@ -1,6 +1,8 @@
 <?php
 /**
- * Zooboxi_Loyalty_Schema — the seven tables behind «عائلة زوبوكسي».
+ * Zooboxi_Loyalty_Schema — the tables behind «عائلة زوبوكسي» (seven in Phase 1, six more
+ * for Phase 2 «العادة»: subscriptions, supply events, referrals, stamp programs, stamps,
+ * notices).
  *
  * WHY LAZY: this store is deployed by scp, so `register_activation_hook` never fires.
  * Exactly like Zooboxi_App_Tokens, one cheap option read guards a dbDelta run, and
@@ -16,7 +18,7 @@ if (!defined('ABSPATH')) {
 class Zooboxi_Loyalty_Schema
 {
     /** ONE version for the whole module — bump when any table below changes. */
-    public const DB_VERSION = 1;
+    public const DB_VERSION = 2;
 
     /** Option holding the installed schema version. */
     public const DB_OPTION = 'zooboxi_loyalty_db_version';
@@ -65,17 +67,61 @@ class Zooboxi_Loyalty_Schema
         return $wpdb->prefix . 'zb_missions';
     }
 
-    /** All seven, keyed by short name (used by the admin health box). */
+    /* ── Phase 2 ── */
+
+    public static function subscriptions(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_subscriptions';
+    }
+
+    public static function supply_events(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_supply_events';
+    }
+
+    public static function referrals(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_referrals';
+    }
+
+    public static function stamp_programs(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_stamp_programs';
+    }
+
+    public static function stamps(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_stamps';
+    }
+
+    public static function notices(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zb_notices';
+    }
+
+    /** All tables, keyed by short name (used by the admin health box). */
     public static function all(): array
     {
         return [
-            'members'  => self::members(),
-            'pets'     => self::pets(),
-            'ledger'   => self::ledger(),
-            'rewards'  => self::rewards(),
-            'grants'   => self::grants(),
-            'scratch'  => self::scratch(),
-            'missions' => self::missions(),
+            'members'        => self::members(),
+            'pets'           => self::pets(),
+            'ledger'         => self::ledger(),
+            'rewards'        => self::rewards(),
+            'grants'         => self::grants(),
+            'scratch'        => self::scratch(),
+            'missions'       => self::missions(),
+            'subscriptions'  => self::subscriptions(),
+            'supply_events'  => self::supply_events(),
+            'referrals'      => self::referrals(),
+            'stamp_programs' => self::stamp_programs(),
+            'stamps'         => self::stamps(),
+            'notices'        => self::notices(),
         ];
     }
 
@@ -109,6 +155,12 @@ class Zooboxi_Loyalty_Schema
         $grants  = self::grants();
         $scratch = self::scratch();
         $missions = self::missions();
+        $subscriptions  = self::subscriptions();
+        $supply_events  = self::supply_events();
+        $referrals      = self::referrals();
+        $stamp_programs = self::stamp_programs();
+        $stamps         = self::stamps();
+        $notices        = self::notices();
 
         $sql = [];
 
@@ -124,6 +176,9 @@ class Zooboxi_Loyalty_Schema
             last_earn_at DATETIME NULL DEFAULT NULL,
             profile_completed_at DATETIME NULL DEFAULT NULL,
             referral_code VARCHAR(12) NULL DEFAULT NULL,
+            winback_at DATETIME NULL DEFAULT NULL,
+            nudge_week CHAR(7) NOT NULL DEFAULT '',
+            nudge_count TINYINT NOT NULL DEFAULT 0,
             PRIMARY KEY  (id),
             UNIQUE KEY user_id (user_id),
             UNIQUE KEY referral_code (referral_code)
@@ -255,6 +310,107 @@ class Zooboxi_Loyalty_Schema
             KEY user_state (user_id, state)
         ) {$charset};";
 
+        /* ── Phase 2 «العادة» ─────────────────────────────────────── */
+
+        // One row per (customer, product, variation): the soft subscription. The
+        // UNIQUE key doubles as the "already subscribed" check.
+        $sql[] = "CREATE TABLE {$subscriptions} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            pet_id BIGINT UNSIGNED NULL DEFAULT NULL,
+            product_id BIGINT UNSIGNED NOT NULL,
+            variation_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            qty INT NOT NULL DEFAULT 1,
+            interval_days INT NOT NULL DEFAULT 30,
+            next_at DATE NULL DEFAULT NULL,
+            state VARCHAR(10) NOT NULL DEFAULT 'active',
+            deliveries INT NOT NULL DEFAULT 0,
+            reminder_for DATE NULL DEFAULT NULL,
+            last_order_id BIGINT UNSIGNED NULL DEFAULT NULL,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY line (user_id, product_id, variation_id),
+            KEY user_state (user_id, state),
+            KEY state_next (state, next_at)
+        ) {$charset};";
+
+        // «خلص الأكل» / «عندي كفاية»: the customer correcting the forecast.
+        $sql[] = "CREATE TABLE {$supply_events} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            product_id BIGINT UNSIGNED NOT NULL,
+            variation_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            kind VARCHAR(8) NOT NULL DEFAULT 'out',
+            until DATE NULL DEFAULT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            KEY user_product (user_id, product_id, created_at)
+        ) {$charset};";
+
+        // A referee belongs to exactly one referrer, forever (UNIQUE referee_id).
+        $sql[] = "CREATE TABLE {$referrals} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            referrer_id BIGINT UNSIGNED NOT NULL,
+            referee_id BIGINT UNSIGNED NOT NULL,
+            code VARCHAR(12) NOT NULL DEFAULT '',
+            state VARCHAR(10) NOT NULL DEFAULT 'pending',
+            first_order_id BIGINT UNSIGNED NULL DEFAULT NULL,
+            qualified_at DATETIME NULL DEFAULT NULL,
+            rewarded_at DATETIME NULL DEFAULT NULL,
+            flags VARCHAR(200) NOT NULL DEFAULT '',
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY referee (referee_id),
+            KEY referrer_state (referrer_id, state),
+            KEY state_created (state, created_at)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$stamp_programs} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            title_ar VARCHAR(120) NOT NULL DEFAULT '',
+            title_en VARCHAR(120) NOT NULL DEFAULT '',
+            brand_term_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            units_required INT NOT NULL DEFAULT 6,
+            min_pack_kg DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+            reward_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 0,
+            sort INT NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            KEY active_sort (is_active, sort)
+        ) {$charset};";
+
+        // One order line stamps once, whatever happens to the hook.
+        $sql[] = "CREATE TABLE {$stamps} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            program_id BIGINT UNSIGNED NOT NULL,
+            order_id BIGINT UNSIGNED NOT NULL,
+            order_item_id BIGINT UNSIGNED NOT NULL,
+            units INT NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY line (program_id, order_item_id),
+            KEY user_program (user_id, program_id)
+        ) {$charset};";
+
+        // Every notice sent (mail or in-app), so the same one is never sent twice and
+        // the weekly cap can be counted.
+        $sql[] = "CREATE TABLE {$notices} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL,
+            kind VARCHAR(24) NOT NULL DEFAULT '',
+            ref VARCHAR(40) NOT NULL DEFAULT '',
+            channel VARCHAR(8) NOT NULL DEFAULT 'mail',
+            sent_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY once (user_id, kind, ref),
+            KEY user_sent (user_id, sent_at)
+        ) {$charset};";
+
         foreach ($sql as $statement) {
             dbDelta($statement);
         }
@@ -353,6 +509,72 @@ class Zooboxi_Loyalty_Schema
                 'value_sar'  => 120.00,
                 'validity_days' => 21,
                 'sort'       => 40,
+            ],
+            // ── Granted-only gifts (paws_cost 0): the moments of Phase 2 ──
+            [
+                'reward_key' => 'welcome_gift',
+                'kind'       => 'gift_product',
+                'title_ar'   => 'هدية الترحيب',
+                'title_en'   => 'Welcome gift',
+                'desc_ar'    => 'هدية صغيرة مع أول طلب من التطبيق.',
+                'desc_en'    => 'A small gift with your first order from the app.',
+                'paws_cost'  => 0,
+                'cost_sar'   => 10.00,
+                'value_sar'  => 20.00,
+                'validity_days' => 30,
+                'sort'       => 50,
+            ],
+            [
+                'reward_key' => 'referral_welcome',
+                'kind'       => 'gift_product',
+                'title_ar'   => 'هدية صديق زوبوكسي',
+                'title_en'   => 'Friend-of-Zooboxi gift',
+                'desc_ar'    => 'جئت بدعوة من صديق — هذه الهدية مع أول طلب لك.',
+                'desc_en'    => 'You came by a friend\'s invitation — this gift rides with your first order.',
+                'paws_cost'  => 0,
+                'cost_sar'   => 10.00,
+                'value_sar'  => 20.00,
+                'validity_days' => 30,
+                'sort'       => 55,
+            ],
+            [
+                'reward_key' => 'birthday_gift',
+                'kind'       => 'gift_product',
+                'title_ar'   => 'هدية عيد الميلاد',
+                'title_en'   => 'Birthday gift',
+                'desc_ar'    => 'هدية باسم حيوانك في أسبوع عيد ميلاده، تُضاف لطلبك مجاناً.',
+                'desc_en'    => 'A gift in your pet\'s name for its birthday week, added to your order free.',
+                'paws_cost'  => 0,
+                'cost_sar'   => 12.00,
+                'value_sar'  => 25.00,
+                'validity_days' => 28,
+                'sort'       => 60,
+            ],
+            [
+                'reward_key' => 'winback_gift',
+                'kind'       => 'gift_product',
+                'title_ar'   => 'هدية «اشتقنا لك»',
+                'title_en'   => '"We missed you" gift',
+                'desc_ar'    => 'مرّ وقت طويل — هذه الهدية مع طلبك القادم.',
+                'desc_en'    => 'It has been a while — this gift comes with your next order.',
+                'paws_cost'  => 0,
+                'cost_sar'   => 15.00,
+                'value_sar'  => 30.00,
+                'validity_days' => 30,
+                'sort'       => 65,
+            ],
+            [
+                'reward_key' => 'sub_gift',
+                'kind'       => 'gift_product',
+                'title_ar'   => 'هدية الاشتراك',
+                'title_en'   => 'Subscription gift',
+                'desc_ar'    => 'مع كل توصيلة اشتراك ثالثة — شكراً لانتظامك.',
+                'desc_en'    => 'With every third subscription delivery — thank you for the rhythm.',
+                'paws_cost'  => 0,
+                'cost_sar'   => 12.00,
+                'value_sar'  => 25.00,
+                'validity_days' => 30,
+                'sort'       => 70,
             ],
         ];
 

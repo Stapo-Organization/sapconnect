@@ -380,6 +380,10 @@ class Zooboxi_Loyalty_Pets
             if (class_exists('Zooboxi_Loyalty_Missions')) {
                 Zooboxi_Loyalty_Missions::progress_profile($user_id);
             }
+            // A new weight or species changes every food forecast.
+            if (class_exists('Zooboxi_Loyalty_Supply')) {
+                Zooboxi_Loyalty_Supply::flush($user_id);
+            }
         } catch (\Throwable $e) {
             error_log('[Zooboxi Loyalty] profile mission progress failed: ' . $e->getMessage());
         }

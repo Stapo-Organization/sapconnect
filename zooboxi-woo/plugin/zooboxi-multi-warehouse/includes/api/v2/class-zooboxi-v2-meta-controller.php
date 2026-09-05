@@ -38,6 +38,11 @@ class Zooboxi_V2_Meta_Controller
                 'badges'          => get_option('zooboxi_dynamic_badges', 'yes') === 'yes',
                 'loyalty'         => class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled(),
                 'pets'            => class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled(),
+                // Phase 2 «العادة»
+                'supply'          => class_exists('Zooboxi_Loyalty_Supply') && Zooboxi_Loyalty_Supply::enabled(),
+                'subscriptions'   => class_exists('Zooboxi_Loyalty_Subscriptions') && Zooboxi_Loyalty_Subscriptions::enabled(),
+                'referral'        => class_exists('Zooboxi_Loyalty_Referrals') && Zooboxi_Loyalty_Referrals::enabled(),
+                'stamps'          => class_exists('Zooboxi_Loyalty_Stamps') && Zooboxi_Loyalty::is_enabled() && !empty(Zooboxi_Loyalty_Stamps::programs(true)),
             ],
             // The program's public constants, so the app never hardcodes a rate or a
             // name. Absent (null) when the module is off — the app hides the tab.

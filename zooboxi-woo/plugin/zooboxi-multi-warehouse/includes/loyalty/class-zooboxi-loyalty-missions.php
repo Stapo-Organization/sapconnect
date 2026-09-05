@@ -27,10 +27,15 @@ class Zooboxi_Loyalty_Missions
     public const TEMPLATES = [
         'profile'          => ['kind' => 'profile',   'paws' => 100, 'target' => 1],
         'first_app_order'  => ['kind' => 'welcome',   'paws' => 150, 'target' => 1, 'reward_key' => 'welcome_gift'],
+        'on_time'          => ['kind' => 'regular',   'paws' => 100, 'target' => 1],
         'frequency'        => ['kind' => 'frequency', 'paws' => 300, 'target' => 2],
         'try_new_brand'    => ['kind' => 'trial',     'paws' => 150, 'target' => 1],
+        'refer_friend'     => ['kind' => 'growth',    'paws' => 100, 'target' => 1],
         'species_category' => ['kind' => 'category',  'paws' => 150, 'target' => 1],
     ];
+
+    /** Minted by the win-back sweep only — never by the monthly assignment. */
+    public const WINBACK_TEMPLATE = ['kind' => 'winback', 'paws' => 200, 'target' => 1, 'reward_key' => 'winback_gift'];
 
     /* ══════════════════════════════════════════════════════════════
        CONFIG
@@ -232,6 +237,37 @@ class Zooboxi_Loyalty_Missions
                     'title_en' => 'Complete your family profile',
                     'body_ar'  => sprintf('أضف وزن %s وتاريخ ميلاده لنقترح عليك بدقة.', $pet),
                     'body_en'  => 'Add your pet\'s weight and birth date so our suggestions actually fit.',
+                    'target'   => 1,
+                    'params'   => [],
+                    'reward'   => $reward,
+                ];
+
+            case 'on_time':
+                // Only when the gauge has something to be on time FOR.
+                if (!class_exists('Zooboxi_Loyalty_Supply') || empty(Zooboxi_Loyalty_Supply::items($user_id))) {
+                    return null;
+                }
+                return [
+                    'kind'     => 'regular',
+                    'title_ar' => 'اطلب في وقتك',
+                    'title_en' => 'Order on time',
+                    'body_ar'  => sprintf('اطلب أكل %s قبل أن ينفد — داخل نافذة العدّاد — واكسب بصمات إضافية.', $pet),
+                    'body_en'  => 'Reorder before the food runs out — inside the gauge window — and earn bonus paws.',
+                    'target'   => 1,
+                    'params'   => [],
+                    'reward'   => $reward,
+                ];
+
+            case 'refer_friend':
+                if (!class_exists('Zooboxi_Loyalty_Referrals') || !Zooboxi_Loyalty_Referrals::enabled()) {
+                    return null;
+                }
+                return [
+                    'kind'     => 'growth',
+                    'title_ar' => 'ادعُ صديقاً',
+                    'title_en' => 'Invite a friend',
+                    'body_ar'  => sprintf('شارك كودك مع صديق — عند اكتمال أول طلب له تكسب %d بصمة، وهذه المهمة فوقها.', Zooboxi_Loyalty_Referrals::reward_paws()),
+                    'body_en'  => sprintf('Share your code with a friend — their first delivered order earns you %d paws, and this mission on top.', Zooboxi_Loyalty_Referrals::reward_paws()),
                     'target'   => 1,
                     'params'   => [],
                     'reward'   => $reward,
@@ -522,6 +558,15 @@ class Zooboxi_Loyalty_Missions
                     $step = $is_app ? 1 : 0;
                     break;
 
+                case 'regular':
+                    // Stamped at checkout by the supply gauge — the window they ordered IN.
+                    $step = class_exists('Zooboxi_Loyalty_Supply') && !empty(Zooboxi_Loyalty_Supply::stamped_ids($order)) ? 1 : 0;
+                    break;
+
+                case 'winback':
+                    $step = 1; // any delivered order brings them back
+                    break;
+
                 case 'trial':
                     // Suggested brands first; otherwise ANY brand new to this customer.
                     $wanted = array_map('intval', $params['brand_ids'] ?? []);
@@ -552,6 +597,53 @@ class Zooboxi_Loyalty_Missions
         self::flush_history($user_id);
 
         return $touched;
+    }
+
+    /** Advance every active mission of one kind (the referral payout uses it for `growth`). */
+    public static function progress_kind(int $user_id, string $kind, int $step = 1): void
+    {
+        if ($user_id <= 0 || !Zooboxi_Loyalty::is_enabled()) {
+            return;
+        }
+        foreach (self::rows($user_id, Zooboxi_Loyalty::period()) as $row) {
+            if ((string) $row['kind'] === $kind && (string) $row['state'] === 'active') {
+                self::advance((int) $row['id'], $user_id, $step);
+            }
+        }
+    }
+
+    /**
+     * «نشتاق لـ{pet}» — the win-back mission, minted by the daily sweep for one member.
+     * Lives in the current period next to the monthly four; UNIQUE on the template key
+     * means one per month at most.
+     */
+    public static function mint_winback(int $user_id, string $pet): bool
+    {
+        if ($user_id <= 0 || !Zooboxi_Loyalty::is_enabled() || Zooboxi_Loyalty::opt('missions_enabled') !== 'yes') {
+            return false;
+        }
+        if (Zooboxi_Loyalty_Members::is_holdout($user_id)) {
+            return false;
+        }
+        Zooboxi_Loyalty_Schema::maybe_install();
+
+        $tpl    = self::WINBACK_TEMPLATE;
+        $reward = ['kind' => 'paws', 'paws' => max(0, Zooboxi_Loyalty::opt_int('winback_paws', (int) $tpl['paws'])), 'reward_id' => 0];
+        $gift   = Zooboxi_Loyalty_Rewards::reward_by_key((string) $tpl['reward_key']);
+        if ($gift !== null && (int) $gift['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($gift) !== null) {
+            $reward = ['kind' => 'reward', 'paws' => 0, 'reward_id' => (int) $gift['id']];
+        }
+
+        return self::insert($user_id, Zooboxi_Loyalty::period(), 'winback', [
+            'kind'     => 'winback',
+            'title_ar' => sprintf('نشتاق لـ%s', $pet),
+            'title_en' => sprintf('We miss %s', $pet),
+            'body_ar'  => 'مرّ وقت من آخر طلب — طلبك القادم يكمل هذه المهمة وهديتها أكبر من المعتاد.',
+            'body_en'  => 'It has been a while — your next order completes this mission, and its gift is bigger than usual.',
+            'target'   => 1,
+            'params'   => [],
+            'reward'   => $reward,
+        ]);
     }
 
     /** The profile mission completes the moment a pet becomes complete. */

@@ -192,6 +192,8 @@ class Zooboxi_Loyalty_Tiers
             ] : null,
             'progress'   => $progress,
             'perks'      => self::perks($key),
+            // The soft drop: "one order keeps your Gold" — null when nothing is at stake.
+            'at_risk'    => class_exists('Zooboxi_Loyalty_Moments') ? Zooboxi_Loyalty_Moments::tier_risk($user_id) : null,
         ];
     }
 
@@ -353,6 +355,8 @@ class Zooboxi_Loyalty_Tiers
         try {
             if (Zooboxi_Loyalty_Rewards::has_claim_of_kind($user_id, 'free_delivery')) {
                 $result = 0.0;
+            } elseif (class_exists('Zooboxi_Loyalty_Subscriptions') && Zooboxi_Loyalty_Subscriptions::free_delivery_active($user_id)) {
+                $result = 0.0; // a subscription delivery ships free
             } else {
                 $tier = Zooboxi_Loyalty_Members::tier_key($user_id);
                 if (self::at_least($tier, 'amb')) {
@@ -417,7 +421,13 @@ class Zooboxi_Loyalty_Tiers
         if (Zooboxi_Loyalty_Rewards::has_claim_of_kind($user_id, 'free_delivery')) {
             return 'reward';
         }
-        return self::at_least(Zooboxi_Loyalty_Members::tier_key($user_id), 'amb') ? 'tier' : null;
+        if (self::at_least(Zooboxi_Loyalty_Members::tier_key($user_id), 'amb')) {
+            return 'tier';
+        }
+        if (class_exists('Zooboxi_Loyalty_Subscriptions') && Zooboxi_Loyalty_Subscriptions::free_delivery_active($user_id)) {
+            return 'subscription';
+        }
+        return null;
     }
 
     /** Why is express free right now? `null` | `'tier'` | `'reward'`. */

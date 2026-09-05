@@ -409,6 +409,7 @@ class Zooboxi_V2_Checkout_Controller
             'shipping_chosen'  => $chosen,
             'scratch_card'     => $loyalty['scratch_card'],
             'paws_to_earn'     => $loyalty['paws_to_earn'],
+            'subscription_order' => $loyalty['subscription_order'],
         ]);
     }
 
@@ -422,7 +423,7 @@ class Zooboxi_V2_Checkout_Controller
      */
     private function loyalty_result(\WC_Order $order): array
     {
-        $out = ['scratch_card' => null, 'paws_to_earn' => 0];
+        $out = ['scratch_card' => null, 'paws_to_earn' => 0, 'subscription_order' => false];
 
         if (!class_exists('Zooboxi_Loyalty') || !Zooboxi_Loyalty::is_enabled()) {
             return $out;
@@ -431,6 +432,9 @@ class Zooboxi_V2_Checkout_Controller
         try {
             $user_id = (int) $order->get_customer_id();
             $out['paws_to_earn'] = Zooboxi_Loyalty_Ledger::order_paws($order);
+            if (class_exists('Zooboxi_Loyalty_Subscriptions')) {
+                $out['subscription_order'] = Zooboxi_Loyalty_Subscriptions::is_subscription_order($order);
+            }
 
             if ($user_id > 0) {
                 $card = Zooboxi_Loyalty_Scratch::by_order((int) $order->get_id());

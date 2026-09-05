@@ -73,6 +73,27 @@ class Zooboxi_Loyalty_Hooks
             Zooboxi_Loyalty_Scratch::settle_for_order($order);
             Zooboxi_Loyalty_Missions::progress_from_order($order);
 
+            // Phase 2 «العادة»: the on-time bonus, the subscription delivery, the brand
+            // stamps, and the referee's first order — each isolated, none may stop the rest.
+            foreach ([
+                static fn () => class_exists('Zooboxi_Loyalty_Supply') ? Zooboxi_Loyalty_Supply::settle_order($order) : 0,
+                static fn () => class_exists('Zooboxi_Loyalty_Subscriptions') ? Zooboxi_Loyalty_Subscriptions::settle_order($order) : 0,
+                static fn () => class_exists('Zooboxi_Loyalty_Stamps') ? Zooboxi_Loyalty_Stamps::on_order_completed($order) : 0,
+                static fn () => class_exists('Zooboxi_Loyalty_Referrals') ? Zooboxi_Loyalty_Referrals::on_order_completed($order) : null,
+            ] as $step) {
+                try {
+                    $step();
+                } catch (\Throwable $e) {
+                    error_log('[Zooboxi Loyalty] on_completed (phase 2) step failed: ' . $e->getMessage());
+                }
+            }
+            if (class_exists('Zooboxi_Loyalty_Supply')) {
+                Zooboxi_Loyalty_Supply::flush($user_id);
+            }
+            if (class_exists('Zooboxi_Loyalty_Moments')) {
+                Zooboxi_Loyalty_Moments::flush_tier_risk($user_id);
+            }
+
             // The tier is a rolling 12-month count — this order just changed it.
             Zooboxi_Loyalty_Members::recompute_tier($user_id);
         } catch (\Throwable $e) {
@@ -99,6 +120,14 @@ class Zooboxi_Loyalty_Hooks
             Zooboxi_Loyalty_Scratch::cancel_for_order((int) $order->get_id());
             // Rewards spent on this basket return to the customer, unharmed.
             Zooboxi_Loyalty_Rewards::restore_for_order((int) $order->get_id());
+            // Phase 2 bonuses paid on delivery come back out too.
+            if (class_exists('Zooboxi_Loyalty_Supply')) {
+                Zooboxi_Loyalty_Supply::reverse_order($order);
+                Zooboxi_Loyalty_Supply::flush((int) $order->get_customer_id());
+            }
+            if (class_exists('Zooboxi_Loyalty_Subscriptions')) {
+                Zooboxi_Loyalty_Subscriptions::reverse_order($order);
+            }
         } catch (\Throwable $e) {
             error_log('[Zooboxi Loyalty] on_reversed failed: ' . $e->getMessage());
         }
@@ -121,8 +150,14 @@ class Zooboxi_Loyalty_Hooks
                 // that fresh count away and force a second order query on the next read.
                 if ((string) $to !== 'completed') {
                     Zooboxi_Loyalty_Members::invalidate_tier($user_id);
+                    if (class_exists('Zooboxi_Loyalty_Moments')) {
+                        Zooboxi_Loyalty_Moments::flush_tier_risk($user_id);
+                    }
                 }
                 Zooboxi_Loyalty_Missions::flush_history($user_id);
+                if (class_exists('Zooboxi_Loyalty_Supply')) {
+                    Zooboxi_Loyalty_Supply::flush($user_id);
+                }
             }
         } catch (\Throwable $e) {
             error_log('[Zooboxi Loyalty] tier invalidation failed: ' . $e->getMessage());
@@ -152,6 +187,19 @@ class Zooboxi_Loyalty_Hooks
 
             Zooboxi_Loyalty_Rewards::settle_for_order($order);
             Zooboxi_Loyalty_Scratch::create_for_order($order);
+
+            // Phase 2: remember the window the customer ordered IN, and which
+            // subscriptions this basket delivers.
+            try {
+                if (class_exists('Zooboxi_Loyalty_Supply')) {
+                    Zooboxi_Loyalty_Supply::stamp_order($order);
+                }
+                if (class_exists('Zooboxi_Loyalty_Subscriptions')) {
+                    Zooboxi_Loyalty_Subscriptions::bind_order($order);
+                }
+            } catch (\Throwable $e) {
+                error_log('[Zooboxi Loyalty] on_order_processed (phase 2) failed: ' . $e->getMessage());
+            }
         } catch (\Throwable $e) {
             error_log('[Zooboxi Loyalty] on_order_processed failed: ' . $e->getMessage());
         }

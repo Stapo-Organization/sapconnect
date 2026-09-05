@@ -35,6 +35,23 @@ class Zooboxi_V2_Loyalty_Controller
         Zooboxi_V2_Bootstrap::route('/pets', 'POST', [$this, 'create_pet']);
         Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)', 'PATCH,PUT', [$this, 'update_pet']);
         Zooboxi_V2_Bootstrap::route('/pets/(?P<id>\d+)', 'DELETE', [$this, 'delete_pet']);
+
+        // ── Phase 2 «العادة» ──
+        Zooboxi_V2_Bootstrap::route('/loyalty/supply', 'GET', [$this, 'supply']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/supply/(?P<id>\d+)/out', 'POST', [$this, 'supply_out']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/supply/(?P<id>\d+)/snooze', 'POST', [$this, 'supply_snooze']);
+
+        Zooboxi_V2_Bootstrap::route('/loyalty/subscriptions', 'GET', [$this, 'subscriptions']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/subscriptions', 'POST', [$this, 'create_subscription']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/subscriptions/(?P<id>\d+)', 'PATCH,PUT', [$this, 'update_subscription']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/subscriptions/(?P<id>\d+)', 'DELETE', [$this, 'delete_subscription']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/subscriptions/(?P<id>\d+)/skip', 'POST', [$this, 'skip_subscription']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/subscriptions/(?P<id>\d+)/order-now', 'POST', [$this, 'order_now']);
+
+        Zooboxi_V2_Bootstrap::route('/loyalty/referral', 'GET', [$this, 'referral']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/referral/apply', 'POST', [$this, 'apply_referral']);
+
+        Zooboxi_V2_Bootstrap::route('/loyalty/stamps', 'GET', [$this, 'stamps']);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -112,8 +129,9 @@ class Zooboxi_V2_Loyalty_Controller
 
         $history = Zooboxi_Loyalty_Missions::history($user_id);
         $pending = $this->pending_orders($user_id);
+        $habit   = $this->habit_blocks($user_id, $missions, $holdout);
 
-        return Zooboxi_V2_Bootstrap::ok([
+        return Zooboxi_V2_Bootstrap::ok($habit + [
             'member' => Zooboxi_Loyalty_Members::dto($user_id),
             'paws'   => [
                 'balance'    => Zooboxi_Loyalty_Ledger::balance($user_id),
@@ -141,6 +159,74 @@ class Zooboxi_V2_Loyalty_Controller
                 'orders_app'   => (int) ($history['app_orders'] ?? 0),
             ],
         ]);
+    }
+
+    /**
+     * The Phase 2 blocks of the summary: the supply gauge, subscriptions, moments, the
+     * referral card, brand stamps, and the dated nudge list. Each block is isolated so a
+     * bug in one can never blank the hub.
+     */
+    private function habit_blocks(int $user_id, array $missions, bool $holdout): array
+    {
+        $out = [
+            'supply'        => ['items' => [], 'due_count' => 0, 'total' => 0, 'window' => ['before' => 7, 'after' => 3]],
+            'subscriptions' => ['active' => 0, 'next' => null],
+            'moments'       => ['birthday' => null],
+            'referral'      => null,
+            'stamps'        => [],
+            'nudges'        => [],
+        ];
+        $supply_rows = [];
+        $subs        = [];
+        $birthday    = null;
+
+        try {
+            if (class_exists('Zooboxi_Loyalty_Supply') && Zooboxi_Loyalty_Supply::enabled()) {
+                $supply_rows   = Zooboxi_Loyalty_Supply::items($user_id);
+                $out['supply'] = Zooboxi_Loyalty_Supply::summary_block($user_id);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary supply failed: ' . $e->getMessage());
+        }
+        try {
+            if (class_exists('Zooboxi_Loyalty_Subscriptions') && Zooboxi_Loyalty_Subscriptions::enabled()) {
+                $subs                 = Zooboxi_Loyalty_Subscriptions::all($user_id);
+                $out['subscriptions'] = Zooboxi_Loyalty_Subscriptions::summary_block($user_id);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary subscriptions failed: ' . $e->getMessage());
+        }
+        try {
+            if (class_exists('Zooboxi_Loyalty_Moments')) {
+                $birthday                   = Zooboxi_Loyalty_Moments::birthday_block($user_id);
+                $out['moments']['birthday'] = $birthday;
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary moments failed: ' . $e->getMessage());
+        }
+        try {
+            if (class_exists('Zooboxi_Loyalty_Referrals')) {
+                $out['referral'] = Zooboxi_Loyalty_Referrals::summary_block($user_id);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary referral failed: ' . $e->getMessage());
+        }
+        try {
+            if (class_exists('Zooboxi_Loyalty_Stamps')) {
+                $out['stamps'] = Zooboxi_Loyalty_Stamps::wallet($user_id);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary stamps failed: ' . $e->getMessage());
+        }
+        try {
+            if (class_exists('Zooboxi_Loyalty_Moments')) {
+                $risk          = Zooboxi_Loyalty_Moments::tier_risk($user_id);
+                $out['nudges'] = Zooboxi_Loyalty_Moments::nudges($user_id, $supply_rows, $subs, $birthday, $risk, $holdout ? [] : $missions);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi Loyalty] summary nudges failed: ' . $e->getMessage());
+        }
+        return $out;
     }
 
     /**
@@ -488,6 +574,234 @@ class Zooboxi_V2_Loyalty_Controller
         }
 
         return Zooboxi_V2_Bootstrap::ok(['pets' => Zooboxi_Loyalty_Pets::dtos($user_id)]);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Phase 2 — Supply gauge
+       ══════════════════════════════════════════════════════════════ */
+
+    private function guard(): array
+    {
+        if (!Zooboxi_Loyalty::is_enabled()) {
+            return [0, $this->disabled()];
+        }
+        $user_id = $this->member();
+        if ($user_id <= 0) {
+            return [0, Zooboxi_V2_Bootstrap::unauthorized()];
+        }
+        return [$user_id, null];
+    }
+
+    public function supply(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        if (!Zooboxi_Loyalty_Supply::enabled()) {
+            return Zooboxi_V2_Bootstrap::ok(['items' => [], 'window' => Zooboxi_Loyalty_Supply::window(), 'on_time_pct' => 0, 'enabled' => false]);
+        }
+        $rows = Zooboxi_Loyalty_Supply::items($user_id, (bool) $request->get_param('fresh'));
+        return Zooboxi_V2_Bootstrap::ok([
+            'items'       => Zooboxi_Loyalty_Supply::dtos($rows, $user_id),
+            'window'      => Zooboxi_Loyalty_Supply::window(),
+            'on_time_pct' => Zooboxi_Loyalty::opt_int('on_time_pct'),
+            'enabled'     => true,
+        ]);
+    }
+
+    public function supply_out(\WP_REST_Request $request): \WP_REST_Response
+    {
+        return $this->supply_event($request, 'out');
+    }
+
+    public function supply_snooze(\WP_REST_Request $request): \WP_REST_Response
+    {
+        return $this->supply_event($request, 'snooze');
+    }
+
+    private function supply_event(\WP_REST_Request $request, string $kind): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        $product_id   = absint($request->get_param('id'));
+        $variation_id = absint($request->get_param('variation_id'));
+        $row = $kind === 'out'
+            ? Zooboxi_Loyalty_Supply::mark_out($user_id, $product_id, $variation_id)
+            : Zooboxi_Loyalty_Supply::snooze($user_id, $product_id, $variation_id, max(1, absint($request->get_param('days')) ?: 7));
+
+        if ($row === null) {
+            return Zooboxi_V2_Bootstrap::fail('supply_not_found', __('هذا المنتج ليس في عدّادك', 'zooboxi'), 'That product is not on your gauge.', 404);
+        }
+        return Zooboxi_V2_Bootstrap::ok(['item' => Zooboxi_Loyalty_Supply::dto($row, $user_id)]);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Phase 2 — Subscriptions
+       ══════════════════════════════════════════════════════════════ */
+
+    private function subscriptions_payload(int $user_id, ?array $row = null): array
+    {
+        $out = [
+            'items' => Zooboxi_Loyalty_Subscriptions::dtos($user_id),
+            'max'   => Zooboxi_Loyalty_Subscriptions::max(),
+            'perks' => Zooboxi_Loyalty_Subscriptions::perks(),
+        ];
+        if ($row !== null) {
+            $out['subscription'] = Zooboxi_Loyalty_Subscriptions::dto($row, $user_id);
+        }
+        return $out;
+    }
+
+    private function subscription_error(array $result): \WP_REST_Response
+    {
+        $status = $result['code'] === 'subscription_not_found' ? 404 : ($result['code'] === 'subscription_invalid' ? 422 : 409);
+        return Zooboxi_V2_Bootstrap::fail($result['code'], $result['ar'], $result['en'], $status);
+    }
+
+    public function subscriptions(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        return Zooboxi_V2_Bootstrap::ok($this->subscriptions_payload($user_id) + ['enabled' => Zooboxi_Loyalty_Subscriptions::enabled()]);
+    }
+
+    public function create_subscription(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        $input = [];
+        foreach (['product_id', 'variation_id', 'qty', 'interval_days', 'next_at', 'pet_id'] as $key) {
+            $value = $request->get_param($key);
+            if ($value !== null) {
+                $input[$key] = $value;
+            }
+        }
+        $result = Zooboxi_Loyalty_Subscriptions::create($user_id, $input);
+        if ($result['code'] !== '') {
+            return $this->subscription_error($result);
+        }
+        return Zooboxi_V2_Bootstrap::ok($this->subscriptions_payload($user_id, $result['row']));
+    }
+
+    public function update_subscription(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        $input = [];
+        foreach (['qty', 'interval_days', 'next_at', 'state', 'pet_id'] as $key) {
+            $value = $request->get_param($key);
+            if ($value !== null) {
+                $input[$key] = $value;
+            }
+        }
+        $result = Zooboxi_Loyalty_Subscriptions::update($user_id, absint($request->get_param('id')), $input);
+        if ($result['code'] !== '') {
+            return $this->subscription_error($result);
+        }
+        return Zooboxi_V2_Bootstrap::ok($this->subscriptions_payload($user_id, $result['row']));
+    }
+
+    public function skip_subscription(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        $result = Zooboxi_Loyalty_Subscriptions::skip($user_id, absint($request->get_param('id')));
+        if ($result['code'] !== '') {
+            return $this->subscription_error($result);
+        }
+        return Zooboxi_V2_Bootstrap::ok($this->subscriptions_payload($user_id, $result['row']));
+    }
+
+    public function delete_subscription(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        if (!Zooboxi_Loyalty_Subscriptions::cancel($user_id, absint($request->get_param('id')))) {
+            return Zooboxi_V2_Bootstrap::fail('subscription_not_found', __('الاشتراك غير موجود', 'zooboxi'), 'That subscription does not exist.', 404);
+        }
+        return Zooboxi_V2_Bootstrap::ok($this->subscriptions_payload($user_id));
+    }
+
+    /** The one-tap basket: the subscription's line goes into the cart, flagged. */
+    public function order_now(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        if (!Zooboxi_V2_Cart_Controller::ensure_cart($request) || !Zooboxi_V2_Cart_Controller::session_ok()) {
+            return Zooboxi_V2_Bootstrap::fail('cart_unavailable', __('السلة غير متاحة حالياً', 'zooboxi'), 'The cart is unavailable right now.', 503);
+        }
+        $id     = absint($request->get_param('id'));
+        $result = Zooboxi_Loyalty_Subscriptions::order_now($user_id, $id);
+        if ($result['code'] !== '') {
+            $status = $result['code'] === 'subscription_not_found' ? 404 : 409;
+            return Zooboxi_V2_Bootstrap::fail($result['code'], $result['ar'], $result['en'], $status);
+        }
+        $row = Zooboxi_Loyalty_Subscriptions::find($id, $user_id);
+        return Zooboxi_V2_Bootstrap::ok([
+            'cart'         => Zooboxi_V2_Cart_Controller::cart_dto(),
+            'subscription' => $row ? Zooboxi_Loyalty_Subscriptions::dto($row, $user_id) : null,
+        ]);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Phase 2 — Referral
+       ══════════════════════════════════════════════════════════════ */
+
+    public function referral(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        return Zooboxi_V2_Bootstrap::ok(Zooboxi_Loyalty_Referrals::overview($user_id));
+    }
+
+    public function apply_referral(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        $result = Zooboxi_Loyalty_Referrals::apply($user_id, (string) $request->get_param('code'));
+        if ($result['code'] !== '') {
+            $status = $result['code'] === 'referral_invalid' ? 404 : 409;
+            return Zooboxi_V2_Bootstrap::fail($result['code'], $result['ar'], $result['en'], $status);
+        }
+        $grant = $result['grant_id'] > 0 ? Zooboxi_Loyalty_Rewards::find_grant((int) $result['grant_id'], $user_id) : null;
+        return Zooboxi_V2_Bootstrap::ok([
+            'applied'      => ['code' => (string) $result['row']['code'], 'state' => (string) $result['row']['state']],
+            'paws_earned'  => (int) $result['paws'],
+            'paws_balance' => Zooboxi_Loyalty_Ledger::balance($user_id),
+            'grant'        => $grant ? Zooboxi_Loyalty_Rewards::grant_dto($grant, $user_id) : null,
+        ]);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Phase 2 — Brand stamps
+       ══════════════════════════════════════════════════════════════ */
+
+    public function stamps(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        return Zooboxi_V2_Bootstrap::ok(['items' => Zooboxi_Loyalty_Stamps::wallet($user_id)]);
     }
 
     /** Only the fields a pet actually has — never the whole request body. */

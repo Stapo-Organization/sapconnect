@@ -44,6 +44,30 @@ class Zooboxi_Loyalty
         'welcome_paws'       => 0,
         'profile_paws'       => 100,
         'pet_paws'           => 50,
+        // ── Phase 2 «العادة» ──
+        'supply_enabled'         => 'yes',
+        'on_time_pct'            => 20,
+        'on_time_before'         => 7,
+        'on_time_after'          => 3,
+        'subscriptions_enabled'  => 'yes',
+        'max_subscriptions'      => 6,
+        'sub_reminder_days'      => 3,
+        'sub_bonus_pct'          => 10,
+        'sub_gift_every'         => 3,
+        'sub_gift_paws'          => 150,
+        'referral_enabled'       => 'yes',
+        'referral_paws'          => 300,
+        'referral_cap'           => 10,
+        'referral_hold_days'     => 7,
+        'referral_welcome_paws'  => 100,
+        'birthday_enabled'       => 'yes',
+        'birthday_min_tier'      => 'friend',
+        'birthday_paws'          => 100,
+        'winback_enabled'        => 'yes',
+        'winback_days'           => 45,
+        'winback_paws'           => 200,
+        'mail_enabled'           => 'yes',
+        'mail_weekly_cap'        => 2,
     ];
 
     private static ?bool $enabled = null;
@@ -62,6 +86,11 @@ class Zooboxi_Loyalty
 
         // Tier perks: the free-shipping-minimum filter + the web account tiers.
         Zooboxi_Loyalty_Tiers::register_filters();
+
+        // Referral capture on the website (`?ref=` cookie → applied at registration).
+        if (class_exists('Zooboxi_Loyalty_Referrals')) {
+            Zooboxi_Loyalty_Referrals::register_hooks();
+        }
 
         if (defined('WP_CLI') && WP_CLI && class_exists('Zooboxi_Loyalty_CLI')) {
             Zooboxi_Loyalty_CLI::register();
@@ -134,6 +163,17 @@ class Zooboxi_Loyalty
             'max_pets'         => self::opt_int('max_pets'),
             'scratch_enabled'  => self::opt('scratch_enabled') === 'yes',
             'missions_enabled' => self::opt('missions_enabled') === 'yes',
+            // Phase 2 constants — the app prints these, never hardcodes them.
+            'supply_enabled'        => self::opt('supply_enabled') === 'yes',
+            'subscriptions_enabled' => self::opt('subscriptions_enabled') === 'yes',
+            'referral_enabled'      => self::opt('referral_enabled') === 'yes',
+            'referral_paws'         => self::opt_int('referral_paws'),
+            'on_time_pct'           => self::opt_int('on_time_pct'),
+            'on_time_before'        => self::opt_int('on_time_before'),
+            'on_time_after'         => self::opt_int('on_time_after'),
+            'sub_bonus_pct'         => self::opt_int('sub_bonus_pct'),
+            'sub_gift_every'        => self::opt_int('sub_gift_every'),
+            'max_subscriptions'     => self::opt_int('max_subscriptions'),
         ];
     }
 
@@ -179,6 +219,11 @@ class Zooboxi_Loyalty
             $out['members_expired'] = (int) $expired['members'];
             $out['grants_expired']  = Zooboxi_Loyalty_Rewards::expire_grants();
             update_option('zooboxi_loyalty_daily_ran_at', current_time('mysql', true), false);
+
+            // Phase 2: reminders, referral payouts, birthdays, win-back.
+            if (class_exists('Zooboxi_Loyalty_Moments')) {
+                $out['habit'] = Zooboxi_Loyalty_Moments::run_daily();
+            }
         } catch (\Throwable $e) {
             error_log('[Zooboxi Loyalty] daily job failed: ' . $e->getMessage());
         }
@@ -281,6 +326,34 @@ class Zooboxi_Loyalty
             self::period()
         ));
 
+        // Phase 2 counters (tables exist from schema v2; guard anyway for a half-deploy).
+        $habit = ['subs_active' => 0, 'sub_deliveries' => 0, 'referrals_rewarded' => 0, 'referrals_review' => 0, 'birthdays' => 0, 'winbacks' => 0];
+        if (Zooboxi_Loyalty_Schema::table_exists(Zooboxi_Loyalty_Schema::subscriptions())) {
+            $habit['subs_active']    = (int) $wpdb->get_var('SELECT COUNT(*) FROM ' . Zooboxi_Loyalty_Schema::subscriptions() . " WHERE state = 'active'");
+            $habit['sub_deliveries'] = (int) $wpdb->get_var($wpdb->prepare(
+                'SELECT COUNT(*) FROM ' . Zooboxi_Loyalty_Schema::ledger() . " WHERE reason = 'sub_bonus' AND ref_type = 'order' AND created_at >= %s AND created_at < %s",
+                $month_start,
+                $next_month
+            ));
+        }
+        if (Zooboxi_Loyalty_Schema::table_exists(Zooboxi_Loyalty_Schema::referrals())) {
+            $habit['referrals_rewarded'] = (int) $wpdb->get_var($wpdb->prepare(
+                'SELECT COUNT(*) FROM ' . Zooboxi_Loyalty_Schema::referrals() . " WHERE state = 'rewarded' AND rewarded_at >= %s AND rewarded_at < %s",
+                $month_start,
+                $next_month
+            ));
+            $habit['referrals_review'] = (int) $wpdb->get_var('SELECT COUNT(*) FROM ' . Zooboxi_Loyalty_Schema::referrals() . " WHERE state = 'review'");
+        }
+        $habit['birthdays'] = (int) $wpdb->get_var($wpdb->prepare(
+            'SELECT COUNT(*) FROM ' . Zooboxi_Loyalty_Schema::grants() . " WHERE source = 'birthday' AND created_at >= %s AND created_at < %s",
+            $month_start,
+            $next_month
+        ));
+        $habit['winbacks'] = (int) $wpdb->get_var($wpdb->prepare(
+            'SELECT COUNT(*) FROM ' . Zooboxi_Loyalty_Schema::missions() . " WHERE template_key = 'winback' AND period = %s",
+            self::period()
+        ));
+
         // Cost: the SAR cost of everything actually redeemed this month, plus the
         // expected cost of the paws we issued this month.
         $redeemed_cost = (float) $wpdb->get_var($wpdb->prepare(
@@ -316,6 +389,7 @@ class Zooboxi_Loyalty
             'cards_total'    => $cards_total,
             'cards_revealed' => $cards_revealed,
             'missions_done'  => $missions_done,
+            'habit'          => $habit,
             'cost_sar'       => round($cost, 2),
             'cost_rewards'   => round($redeemed_cost, 2),
             'cost_paws'      => round($paw_cost, 2),

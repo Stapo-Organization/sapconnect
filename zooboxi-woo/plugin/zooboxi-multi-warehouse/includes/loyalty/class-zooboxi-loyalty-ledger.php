@@ -18,6 +18,8 @@ class Zooboxi_Loyalty_Ledger
     public const REASONS = [
         'order_earn', 'profile_complete', 'pet_added', 'mission',
         'scratch', 'redeem', 'reverse', 'expire', 'adjust', 'welcome',
+        // Phase 2 «العادة»
+        'on_time', 'sub_bonus', 'referral', 'birthday',
     ];
 
     /* ══════════════════════════════════════════════════════════════
@@ -200,6 +202,10 @@ class Zooboxi_Loyalty_Ledger
             'expire'           => ['انتهاء صلاحية', 'Expired'],
             'adjust'           => ['تعديل يدوي', 'Manual adjustment'],
             'welcome'          => ['هدية الترحيب', 'Welcome bonus'],
+            'on_time'          => ['طلب في وقته +20%', 'On-time order +20%'],
+            'sub_bonus'        => ['توصيلة اشتراك', 'Subscription delivery'],
+            'referral'         => ['دعوة صديق', 'Friend referral'],
+            'birthday'         => ['عيد ميلاد', 'Birthday'],
         ];
         return isset($map[$reason]) ? Zooboxi_Loyalty::pick($map[$reason][0], $map[$reason][1]) : $reason;
     }

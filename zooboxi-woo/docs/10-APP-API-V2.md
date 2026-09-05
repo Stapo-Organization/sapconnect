@@ -729,3 +729,85 @@ invitation, not an error.
 `pet_failed` 500 · `insufficient_paws` 409 · `tier_required` 403 · `reward_unavailable` 409 ·
 `not_redeemable` 409 · `grant_not_active` 409 · `already_claimed` 409 · `gift_unavailable` 409 ·
 `scratch_not_found` 404.
+
+## 15. Loyalty — Phase 2 «العادة» (habit)
+
+Contract: `14-LOYALTY-PHASE2-SPEC.md` §8. Every route below is bearer-only and
+`private, no-store`, exactly like §14. Feature flags land in `/meta`:
+
+```json
+"features": { "…": true, "supply": true, "subscriptions": true, "referral": true, "stamps": false },
+"loyalty":  { "…": 1, "referral_paws": 300, "on_time_pct": 20, "on_time_before": 7, "on_time_after": 3,
+              "sub_bonus_pct": 10, "sub_gift_every": 3, "max_subscriptions": 6 }
+```
+`stamps` is true only once the owner has switched a brand program on.
+
+### `GET /loyalty/summary` — additions
+
+```json
+"supply":        { "items": [ Supply ×3 ], "due_count": 1, "total": 5, "window": { "before": 7, "after": 3 } },
+"subscriptions": { "active": 2, "next": Subscription | null },
+"moments":       { "birthday": { "pet": Pet, "days": 3, "grant": Grant | null, "grant_id": 71 | null, "paws": null, "eligible": true } | null },
+"referral":      { "code": "ZBUCNBN", "url": "https://store.zooboxi.com/?ref=ZBUCNBN", "reward_paws": 300, "rewarded": 2 } | null,
+"stamps":        [ StampCard ],
+"nudges":        [ Nudge ],
+"tier": { "…": 1, "at_risk": { "in_days": 12, "orders_dropping": 1, "would_drop_to": "star", "would_drop_to_name": "مميّز" } | null }
+```
+
+**Supply** (the food gauge line):
+`{ "product": Card, "variation_id", "kind": "dry|wet|litter|treat|other", "pet": {"id","name","species"} | null,
+"qty_last", "last_ordered_at", "cycle_days", "days_left", "runs_out_at", "status": "ok|soon|due|overdue",
+"confidence": "low|medium|high", "on_time": bool, "pack_kg": 2.5 | null, "buys", "subscription_id": 12 | null }`.
+`days_left` is the server's; the app never recomputes it. `on_time` = ordering now earns the bonus.
+
+**Subscription**:
+`{ "id", "product": Card, "variation_id", "variation_label", "qty", "interval_days", "next_at": "2026-09-19",
+"days_until": 14, "state": "active|paused|cancelled", "deliveries", "next_gift_in": 2 | null, "pet": {…} | null,
+"perks": { "free_delivery": true, "bonus_pct": 10, "gift_every": 3 } }`.
+
+**Nudge** (dated, soonest first; future ones become local notifications on the phone):
+`{ "kind": "birthday|supply|subscription|winback|tier_risk", "title", "body", "at": ISO, "route": "/family/supply",
+"product_id"?, "subscription_id"?, "pet_id"? }`.
+
+**StampCard**:
+`{ "program": { "id", "title", "brand": {"name","slug"} | null, "units_required", "min_pack_kg", "reward": Reward | null },
+"units", "cycles_done", "remaining" }`.
+
+### The gauge
+- `GET /loyalty/supply` → `{ "items": [Supply], "window": {"before","after"}, "on_time_pct": 20, "enabled": true }`
+  (`?fresh=1` rebuilds instead of reading the 15-minute cache)
+- `POST /loyalty/supply/{product_id}/out` body `{ "variation_id"? }` → `{ "item": Supply }` — «خلص»
+- `POST /loyalty/supply/{product_id}/snooze` body `{ "days": 7, "variation_id"? }` → `{ "item": Supply }` — «عندي كفاية»
+- Errors: `supply_not_found` 404.
+
+### Subscriptions
+- `GET /loyalty/subscriptions` → `{ "items": [Subscription], "max": 6, "perks": {…}, "enabled": true }`
+- `POST /loyalty/subscriptions` body `{ "product_id", "variation_id"?, "qty"?, "interval_days"?, "next_at"?, "pet_id"? }`
+  → the same payload plus `"subscription": Subscription`. Defaults come from the gauge when it knows the product.
+- `PATCH /loyalty/subscriptions/{id}` body `{ "qty"?, "interval_days"?, "next_at"?, "state"?: "active|paused", "pet_id"? }`
+- `POST /loyalty/subscriptions/{id}/skip` — `next_at += interval`
+- `POST /loyalty/subscriptions/{id}/order-now` → `{ "cart": Cart, "subscription": Subscription }` — the line is in the
+  basket and the session is flagged: delivery is free for that basket (`loyalty.free_delivery_reason: "subscription"`).
+- `DELETE /loyalty/subscriptions/{id}` → `{ "items": [...] }`
+- Errors: `subscription_limit` 409 · `subscription_exists` 409 · `subscription_invalid` 422 · `subscription_not_found` 404 · `add_failed` 409.
+
+### Referral
+- `GET /loyalty/referral` → `{ "code", "url", "share_text", "reward_paws", "welcome", "cap", "this_month",
+  "stats": {"invited","qualified","rewarded"}, "items": [{ "name": "م…", "state", "created_at" }],
+  "applied": { "code", "state" } | null, "enabled" }`
+- `POST /loyalty/referral/apply` body `{ "code" }` → `{ "applied": {…}, "paws_earned", "paws_balance", "grant": Grant | null }`
+- Errors: `referral_invalid` 404 · `referral_self` 409 · `referral_used` 409 · `referral_not_new` 409 · `referral_cap` 409.
+- The website captures `?ref=CODE` into a 30-day cookie and applies it on registration.
+
+### Brand stamps
+- `GET /loyalty/stamps` → `{ "items": [StampCard] }` (active programs only — empty hides the section).
+
+### Changes to existing endpoints
+- **Cart DTO** `loyalty.free_delivery_reason` now also takes `"subscription"`; `loyalty.subscription_ids: [12]` lists the
+  subscriptions this basket delivers.
+- **`POST /checkout`** gains `"subscription_order": true|false`.
+- **`POST /events`** — three new `event_type` values: `supply_action` (`{product_id, action: out|snooze|order|subscribe}`),
+  `subscription` (`{subscription_id, action}`), `referral_share`.
+- **Ledger reasons** added: `on_time` (+20% on lines ordered inside their window), `sub_bonus` (+10% on a subscription
+  delivery, and the every-Nth gift fallback), `referral` (the referrer's reward), `birthday` (the gift fallback).
+- **Missions** — new kinds: `regular` (`on_time`), `growth` (`refer_friend`), `winback` (minted by the daily sweep only).

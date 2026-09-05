@@ -810,6 +810,10 @@ class Zooboxi_Loyalty_Rewards
             'claims'               => $user_id > 0 ? self::grant_dtos(self::session_claims($user_id), $user_id) : [],
             'free_delivery_reason' => Zooboxi_Loyalty_Tiers::free_delivery_reason($user_id),
             'express_free_reason'  => Zooboxi_Loyalty_Tiers::express_free_reason($user_id),
+            // Which subscriptions this basket delivers (Phase 2) — empty for a plain basket.
+            'subscription_ids'     => ($user_id > 0 && class_exists('Zooboxi_Loyalty_Subscriptions'))
+                ? Zooboxi_Loyalty_Subscriptions::cart_ids($user_id)
+                : [],
         ];
     }
 }
