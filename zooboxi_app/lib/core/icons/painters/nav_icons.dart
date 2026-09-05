@@ -280,7 +280,9 @@ class ZbCartPainter extends ZbIconPainter with BoxDrawing {
       super.shouldRepaint(old) || old.lidOpen != lidOpen || old.smile != smile;
 }
 
-/// A happy round face: closed ^-eyes, a small smile, blush and a cardboard cap.
+/// The account bust: a clean, bubbly person — cream head, teal shoulders —
+/// in the logo's line weight. Deliberately featureless: at tab size a face
+/// reads as an emoji, and "my account" should read as *you*.
 class ZbAccountPainter extends ZbIconPainter {
   const ZbAccountPainter({required super.ink,
     required super.fill,
@@ -288,70 +290,36 @@ class ZbAccountPainter extends ZbIconPainter {
     super.tint,
     super.rtl});
 
-  static const Offset _centre = Offset(12, 12.4);
-  static const double _radius = 8.3;
+  static const Offset _head = Offset(12, 8.2);
+  static const double _headRadius = 4.1;
+
+  Path get _shoulders => Path()
+    ..moveTo(17.7, 21.2)
+    ..lineTo(6.3, 21.2)
+    ..quadraticBezierTo(5.0, 21.2, 5.1, 19.7)
+    ..quadraticBezierTo(5.8, 14.9, 12, 14.9)
+    ..quadraticBezierTo(18.2, 14.9, 18.9, 19.7)
+    ..quadraticBezierTo(19.0, 21.2, 17.7, 21.2)
+    ..close();
 
   @override
   void draw(Canvas canvas) {
-    if (fill > 0) {
-      canvas.drawCircle(_centre, _radius, fillPaint(ZbTokens.creamLogo));
-      if (detailed) {
-        final blush = fillPaint(ZbTokens.logoCoral, opacity: 0.85);
-        canvas.drawCircle(const Offset(7.4, 15.2), 1.5, blush);
-        canvas.drawCircle(const Offset(16.6, 15.2), 1.5, blush);
-        canvas.drawPath(
-          Path()
-            ..moveTo(4.19, 9.6)
-            ..arcToPoint(const Offset(19.81, 9.6), radius: const Radius.circular(_radius))
-            ..quadraticBezierTo(12, 11.6, 4.19, 9.6)
-            ..close(),
-          fillPaint(tint ?? ZbTokens.cardboard),
-        );
-      }
+    if (fill > 0.02) {
+      canvas.drawCircle(_head, _headRadius, fillPaint(ZbTokens.creamLogo));
+      canvas.drawPath(_shoulders, fillPaint(tint ?? ZbTokens.logoTeal));
     }
-    if (gloss > 0) {
+    final shine = gloss;
+    if (shine > 0) {
       canvas.drawCircle(
-        const Offset(7.0, 11.0),
+        const Offset(10.3, 6.6),
         0.9,
-        Paint()..color = ZbTokens.creamLogo.withValues(alpha: 0.9 * gloss),
+        Paint()..color = Colors.white.withValues(alpha: 0.8 * shine),
       );
     }
 
     final line = strokePaint();
-    canvas.drawCircle(_centre, _radius, line);
-    // The cap is the first thing to go small: two more arcs across the top of
-    // a 23pt circle turn the face into a scribble.
-    if (detailed) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(4.19, 9.6)
-          ..arcToPoint(const Offset(19.81, 9.6), radius: const Radius.circular(_radius)),
-        line,
-      );
-      canvas.drawPath(
-        Path()..moveTo(4.19, 9.6)..quadraticBezierTo(12, 11.6, 19.81, 9.6),
-        line,
-      );
-    }
-
-    final eyes = strokePaint(
-      width: ZbIconPainter.strokeUnits * 0.86,
-      color: featureInk,
-    );
-    for (final x in const [9.0, 15.0]) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(x - 1.6, 13.2)
-          ..quadraticBezierTo(x, 11.6, x + 1.6, 13.2),
-        eyes,
-      );
-    }
-    canvas.drawPath(
-      Path()
-        ..moveTo(10.2, 15.9)
-        ..quadraticBezierTo(12, 18.1, 13.8, 15.9),
-      eyes,
-    );
+    canvas.drawCircle(_head, _headRadius, line);
+    canvas.drawPath(_shoulders, line);
   }
 }
 
