@@ -55,6 +55,8 @@ class Zooboxi_V2_Catalog_Controller
         ['type' => 'rail', 'key' => 'trending'],
         ['type' => 'banner', 'index' => 0],
         ['type' => 'feed_rail', 'key' => 'foryou'],
+        // «البكجات» — live bundles, ranked per viewer by /home/feed.
+        ['type' => 'feed_rail', 'key' => 'bundles'],
         ['type' => 'rail', 'key' => 'bestsellers'],
         ['type' => 'feed_rail', 'key' => 'incity'],
         ['type' => 'clearance_band'],
