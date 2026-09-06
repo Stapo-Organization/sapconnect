@@ -47,7 +47,9 @@ class Zooboxi_V2_Bundles_Controller
         $gift = null;
         foreach ($components as $c) {
             if (($c['role'] ?? '') === 'gift') {
-                $gift = sprintf('%d × %s', max(1, (int) ($c['qty'] ?? 1)), (string) ($c['name'] ?? ''));
+                $qty = max(1, (int) ($c['qty'] ?? 1));
+                $name = (string) ($c['name'] ?? '');
+                $gift = $qty > 1 ? "{$qty} × {$name}" : $name;
                 break;
             }
         }

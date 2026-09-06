@@ -176,7 +176,11 @@ class Zooboxi_Bundles
         wp_set_object_terms($productId, [$this->category_id()], 'product_cat');
 
         update_post_meta($productId, '_zb_bundle_id', $bundleId);
-        update_post_meta($productId, '_zb_bundle_components', wp_json_encode($components));
+        // wp_slash because update_post_meta STRIPS slashes — without it the
+        // \uXXXX escapes lose their backslashes and Arabic names come out as
+        // gibberish. Unescaped unicode keeps the stored JSON human-readable.
+        update_post_meta($productId, '_zb_bundle_components',
+            wp_slash(wp_json_encode($components, JSON_UNESCAPED_UNICODE)));
         update_post_meta($productId, '_zb_bundle_free_label', (string) ($def['free_label'] ?? ''));
         update_post_meta($productId, '_zb_bundle_class', (string) ($def['stock_class'] ?? 'central'));
         update_post_meta($productId, '_zb_bundle_template', (string) ($def['template'] ?? ''));
