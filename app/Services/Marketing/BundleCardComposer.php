@@ -8,14 +8,18 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 
 /**
- * The bundle's product-card image — composed deterministically from the REAL
- * catalog photos (no AI, no cost, same picture every render), in Zooboxi's
- * consumer identity: a deep-teal ground with soft paw ornaments, a floating
- * white stage carrying the products with soft shadows, a coral starburst
- * seal for «مجاناً», and the deal math set big in Aref Ruqaa on the base.
+ * The bundle's product-card artwork — composed deterministically from the
+ * REAL catalog photos (no AI, no cost, same picture every render).
  *
- *   stacking   — the product fanned into a stack
- *   variety    — the flavours side by side, each with its count
+ * v3, after the owner's review: almost NO text in the artwork. The app card
+ * already says the name, the math, the price and the saving — so the image's
+ * whole job is the PRODUCTS: big, tilted, overlapping, floating on soft
+ * shadows over a light airy ground with a teal aura and coral sparks. The
+ * only lettering left is the coral starburst seal («+N مجاناً», Tajawal —
+ * the one face that rasterises crisply at card size).
+ *
+ *   stacking   — the product fanned into a tilted stack
+ *   variety    — the flavours as an overlapping cascade
  *   companion / smart_gift — big anchor + the gift, joined by a coral plus
  *
  * Rendered via the same resvg pipeline as the ad engine (render-banner.mjs).
@@ -26,12 +30,9 @@ class BundleCardComposer
     private const H = 1000;
 
     private const TEAL = '#3E9493';
-    private const TEAL_DEEP = '#275F5E';
-    private const TEAL_DARK = '#1C4746';
+    private const TEAL_DEEP = '#2C6B6A';
     private const CORAL = '#D46856';
     private const CORAL_DEEP = '#B24E3D';
-    private const BONE = '#F6F4EF';
-    private const INK = '#22312F';
 
     /** Render the card; returns the public URL (?v=mtime) or null. */
     public function render(ProductBundle $bundle): ?string
@@ -88,86 +89,101 @@ class BundleCardComposer
             return null;
         }
 
-        [$paid, $free] = $this->ladderOf($bundle);
-        $sealTop = $free > 0 ? "+{$free}" : '';
+        [, $free] = $this->ladderOf($bundle);
+        $seal = $this->seal(180, 210, $free > 0 ? "+{$free}" : '');
 
         $w = self::W;
         $h = self::H;
-        $teal = self::TEAL;
-        $tealDeep = self::TEAL_DEEP;
-        $tealDark = self::TEAL_DARK;
-        $bone = self::BONE;
-        $coral = self::CORAL;
-
-        $wordmark = $this->esc('حزم زوبوكسي');
-        $speciesChip = $this->esc($this->speciesWord($bundle->species));
-        $headline = $this->esc($this->headline($bundle));
-        $subline = $this->esc($this->subline($bundle));
-        $ornaments = $this->ornaments();
-        $seal = $this->seal(196, 236, $sealTop, 'مجاناً');
+        $atmosphere = $this->atmosphere();
 
         return <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" width="{$w}" height="{$h}" viewBox="0 0 {$w} {$h}">
   <defs>
     <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="{$tealDeep}"/>
-      <stop offset="0.55" stop-color="{$teal}"/>
-      <stop offset="1" stop-color="{$tealDeep}"/>
+      <stop offset="0" stop-color="#FDFCFA"/>
+      <stop offset="1" stop-color="#EBF2F1"/>
     </linearGradient>
-    <linearGradient id="stage" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#F4F1E9"/>
-    </linearGradient>
-    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="{$tealDark}" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="{$tealDark}" stop-opacity="0"/>
+    <radialGradient id="aura" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="{$this->tealAt()}" stop-opacity="0.22"/>
+      <stop offset="0.7" stop-color="{$this->tealAt()}" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="{$this->tealAt()}" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="softshadow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#8A8272" stop-opacity="0.38"/>
-      <stop offset="1" stop-color="#8A8272" stop-opacity="0"/>
+      <stop offset="0" stop-color="#3C4A48" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#3C4A48" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <rect width="{$w}" height="{$h}" fill="url(#ground)"/>
-  {$ornaments}
-
-  <!-- header -->
-  <g font-family="Tajawal">
-    <circle cx="936" cy="86" r="9" fill="{$coral}"/>
-    <text x="916" y="101" text-anchor="end" font-size="46" font-weight="700" fill="{$bone}">{$wordmark}</text>
-    <rect x="64" y="52" width="196" height="66" rx="33" fill="{$bone}" fill-opacity="0.16"/>
-    <text x="162" y="97" text-anchor="middle" font-size="34" font-weight="700" fill="{$bone}">{$speciesChip}</text>
-  </g>
-
-  <!-- floating stage -->
-  <ellipse cx="500" cy="812" rx="420" ry="46" fill="url(#shadow)"/>
-  <rect x="60" y="156" width="880" height="644" rx="48" fill="url(#stage)"/>
-  <rect x="60" y="156" width="880" height="644" rx="48" fill="none" stroke="{$bone}" stroke-opacity="0.5" stroke-width="2"/>
+  {$atmosphere}
   {$stage}
   {$seal}
-
-  <!-- deal math on the base -->
-  <text x="500" y="906" text-anchor="middle" font-family="Aref Ruqaa" font-size="76" font-weight="700" fill="{$bone}">{$headline}</text>
-  <rect x="400" y="928" width="200" height="7" rx="3.5" fill="{$coral}"/>
-  <text x="500" y="978" text-anchor="middle" font-family="Tajawal" font-size="33" font-weight="500" fill="{$bone}" fill-opacity="0.85">{$subline}</text>
 </svg>
 SVG;
     }
 
-    /** The product fanned into a stack over a soft shadow. */
+    private function tealAt(): string
+    {
+        return self::TEAL;
+    }
+
+    /**
+     * The airy ground behind the products: a big teal aura, one offset coral
+     * ring, faint paws, and a few coral sparks — atmosphere, not a frame.
+     */
+    private function atmosphere(): string
+    {
+        $teal = self::TEAL;
+        $tealDeep = self::TEAL_DEEP;
+        $coral = self::CORAL;
+
+        $spark = function (int $cx, int $cy, int $r, float $opacity) use ($coral): string {
+            $r2 = (int) round($r * 0.36);
+            return "<path d=\"M{$cx} " . ($cy - $r) . " Q{$cx} " . ($cy - $r2) . ' ' . ($cx + $r) . " {$cy} Q{$cx} " . ($cy + $r2) . " {$cx} " . ($cy + $r)
+                . " Q{$cx} " . ($cy + $r2) . ' ' . ($cx - $r) . " {$cy} Q{$cx} " . ($cy - $r2) . " {$cx} " . ($cy - $r)
+                . " Z\" fill=\"{$coral}\" fill-opacity=\"{$opacity}\"/>";
+        };
+
+        $paw = function (int $x, int $y, float $s, int $rot) use ($tealDeep): string {
+            return <<<SVG
+  <g transform="translate({$x} {$y}) rotate({$rot}) scale({$s})" fill="{$tealDeep}" fill-opacity="0.05">
+    <ellipse cx="0" cy="14" rx="30" ry="24"/>
+    <ellipse cx="-30" cy="-16" rx="12" ry="16"/>
+    <ellipse cx="-10" cy="-26" rx="12" ry="16"/>
+    <ellipse cx="10" cy="-26" rx="12" ry="16"/>
+    <ellipse cx="30" cy="-16" rx="12" ry="16"/>
+  </g>
+SVG;
+        };
+
+        return <<<SVG
+  <circle cx="500" cy="480" r="400" fill="url(#aura)"/>
+  <circle cx="620" cy="420" r="330" fill="none" stroke="{$teal}" stroke-opacity="0.14" stroke-width="3" stroke-dasharray="1 14" stroke-linecap="round"/>
+  <circle cx="330" cy="640" r="210" fill="none" stroke="{$coral}" stroke-opacity="0.12" stroke-width="2.5"/>
+  {$paw(905, 900, 1.3, 18)}
+  {$paw(95, 165, 0.95, -14)}
+  {$spark(862, 250, 26, 0.75)}
+  {$spark(120, 725, 18, 0.55)}
+  {$spark(915, 660, 13, 0.45)}
+  <circle cx="150" cy="530" r="7" fill="{$teal}" fill-opacity="0.30"/>
+  <circle cx="845" cy="470" r="9" fill="{$coral}" fill-opacity="0.28"/>
+SVG;
+    }
+
+    /** The product fanned into a tilted stack — bigger, deeper overlap. */
     private function stackingStage(string $img): string
     {
         return <<<SVG
-  <ellipse cx="500" cy="712" rx="300" ry="38" fill="url(#softshadow)"/>
-  <g>
-    <image href="{$img}" x="215" y="220" width="420" height="420" transform="rotate(-9 425 430)" opacity="0.9"/>
-    <image href="{$img}" x="365" y="220" width="420" height="420" transform="rotate(9 575 430)" opacity="0.95"/>
-    <image href="{$img}" x="275" y="252" width="450" height="450"/>
+  <ellipse cx="500" cy="855" rx="330" ry="42" fill="url(#softshadow)"/>
+  <g transform="rotate(-3 500 520)">
+    <image href="{$img}" x="130" y="205" width="500" height="500" transform="rotate(-13 380 455)" opacity="0.88"/>
+    <image href="{$img}" x="370" y="205" width="500" height="500" transform="rotate(13 620 455)" opacity="0.94"/>
+    <image href="{$img}" x="235" y="265" width="540" height="540"/>
   </g>
 SVG;
     }
 
-    /** The flavours side by side, each with its count. */
+    /** The flavours as an overlapping cascade, front one biggest. */
     private function varietyStage(ProductBundle $bundle): ?string
     {
         $members = $bundle->items->take(5)->values();
@@ -175,43 +191,35 @@ SVG;
         foreach ($members as $m) {
             $uri = $this->imageDataUri($m->item_code);
             if ($uri !== null) {
-                $images[] = ['img' => $uri, 'qty' => (int) $m->qty];
+                $images[] = $uri;
             }
         }
-        if (count($images) < 2) {
+        $n = count($images);
+        if ($n < 2) {
             return null;
         }
 
-        $n = count($images);
-        $cell = (int) min(250, floor(820 / $n));
-        $totalW = $cell * $n;
-        $x0 = (int) ((self::W - $totalW) / 2);
-        $y = (int) (450 - $cell / 2);
-        $coral = self::CORAL;
+        // Back-to-front cascade across the canvas; the front item leads.
+        // Slots tuned for 3–5 items: [x, y, size, rotation, opacity].
+        $slots = match ($n) {
+            2 => [[180, 330, 380, -8, .95], [420, 300, 460, 5, 1]],
+            3 => [[120, 330, 360, -10, .9], [560, 330, 360, 10, .95], [320, 290, 440, 0, 1]],
+            4 => [[90, 350, 330, -12, .88], [590, 350, 330, 12, .92], [230, 320, 380, -4, .96], [420, 290, 430, 4, 1]],
+            default => [[70, 370, 300, -14, .85], [640, 370, 300, 14, .88], [190, 340, 340, -7, .92], [480, 330, 360, 7, .96], [320, 300, 420, 0, 1]],
+        };
 
-        $out = '';
-        foreach ($images as $i => $entry) {
-            $x = $x0 + $i * $cell;
-            $imgW = $cell - 14;
-            $qty = $entry['qty'];
-            $cx = $x + (int) ($cell / 2);
-            $halfShadow = (int) ($imgW / 2);
-            $sy = $y + $imgW + 10;
-            $chipX = $cx - 38;
-            $chipY = $y + $imgW + 24;
-            $chipTextY = $chipY + 32;
-            $out .= <<<SVG
-  <ellipse cx="{$cx}" cy="{$sy}" rx="{$halfShadow}" ry="14" fill="url(#softshadow)"/>
-  <image href="{$entry['img']}" x="{$x}" y="{$y}" width="{$imgW}" height="{$imgW}"/>
-  <rect x="{$chipX}" y="{$chipY}" width="76" height="44" rx="22" fill="{$coral}"/>
-  <text x="{$cx}" y="{$chipTextY}" text-anchor="middle" font-family="Tajawal" font-size="30" font-weight="700" fill="#FFFFFF">×{$qty}</text>
-SVG;
+        $out = "\n  <ellipse cx=\"500\" cy=\"850\" rx=\"360\" ry=\"40\" fill=\"url(#softshadow)\"/>";
+        foreach ($slots as $i => [$x, $y, $size, $rot, $opacity]) {
+            $img = $images[$i];
+            $cx = $x + (int) ($size / 2);
+            $cy = $y + (int) ($size / 2);
+            $out .= "\n  <image href=\"{$img}\" x=\"{$x}\" y=\"{$y}\" width=\"{$size}\" height=\"{$size}\" transform=\"rotate({$rot} {$cx} {$cy})\" opacity=\"{$opacity}\"/>";
         }
 
         return $out;
     }
 
-    /** Big anchor + the gift, joined by a coral plus. */
+    /** Big anchor + the gift leaning in, joined by a coral plus. */
     private function giftStage(ProductBundle $bundle, string $anchorImg): ?string
     {
         $gift = $bundle->items->firstWhere('role', 'gift');
@@ -221,8 +229,8 @@ SVG;
 
         if ($gift === null || $giftImg === null) {
             return <<<SVG
-  <ellipse cx="500" cy="728" rx="280" ry="34" fill="url(#softshadow)"/>
-  <image href="{$anchorImg}" x="255" y="200" width="490" height="540" preserveAspectRatio="xMidYMid meet"/>
+  <ellipse cx="500" cy="850" rx="300" ry="38" fill="url(#softshadow)"/>
+  <image href="{$anchorImg}" x="215" y="200" width="570" height="640" preserveAspectRatio="xMidYMid meet" transform="rotate(3 500 520)"/>
 SVG;
         }
 
@@ -230,50 +238,54 @@ SVG;
         $qtyChip = '';
         if ($qty > 1) {
             $qtyChip = <<<SVG
-  <circle cx="352" cy="392" r="42" fill="{$coralDeep}"/>
-  <text x="352" y="406" text-anchor="middle" font-family="Tajawal" font-size="36" font-weight="700" fill="#FFFFFF">×{$qty}</text>
+  <g transform="rotate(-8 385 425)">
+    <circle cx="385" cy="425" r="48" fill="{$coralDeep}"/>
+    <text x="385" y="440" text-anchor="middle" font-family="Tajawal" font-size="42" font-weight="700" fill="#FFFFFF">×{$qty}</text>
+  </g>
 SVG;
         }
 
         return <<<SVG
-  <ellipse cx="668" cy="738" rx="230" ry="32" fill="url(#softshadow)"/>
-  <ellipse cx="238" cy="700" rx="150" ry="24" fill="url(#softshadow)"/>
-  <image href="{$anchorImg}" x="428" y="196" width="480" height="550" preserveAspectRatio="xMidYMid meet"/>
-  <image href="{$giftImg}" x="92" y="380" width="290" height="316" preserveAspectRatio="xMidYMid meet"/>
-  <g transform="rotate(-8 405 520)">
-    <rect x="369" y="507" width="72" height="26" rx="13" fill="{$coral}"/>
-    <rect x="392" y="484" width="26" height="72" rx="13" fill="{$coral}"/>
+  <ellipse cx="640" cy="858" rx="260" ry="36" fill="url(#softshadow)"/>
+  <ellipse cx="255" cy="820" rx="180" ry="28" fill="url(#softshadow)"/>
+  <image href="{$anchorImg}" x="360" y="180" width="580" height="660" preserveAspectRatio="xMidYMid meet" transform="rotate(3 650 510)"/>
+  <image href="{$giftImg}" x="80" y="430" width="350" height="380" preserveAspectRatio="xMidYMid meet" transform="rotate(-6 255 620)"/>
+  <g transform="rotate(-8 420 585)">
+    <rect x="378" y="570" width="84" height="30" rx="15" fill="{$coral}"/>
+    <rect x="405" y="543" width="30" height="84" rx="15" fill="{$coral}"/>
   </g>
   {$qtyChip}
 SVG;
     }
 
-    /** The coral starburst «مجاناً» seal, tilted like a hand-placed sticker. */
-    private function seal(int $cx, int $cy, string $top, string $word): string
+    /**
+     * The coral starburst seal — the ONE piece of lettering the artwork
+     * keeps. Tajawal only: it is the face that stays crisp at card size.
+     */
+    private function seal(int $cx, int $cy, string $top): string
     {
         $coral = self::CORAL;
         $coralDeep = self::CORAL_DEEP;
-        $star = $this->starPath($cx, $cy, 128, 116, 16);
-        $starBack = $this->starPath($cx + 7, $cy + 9, 128, 116, 16);
-        $word = $this->esc($word);
+        $star = $this->starPath($cx, $cy, 118, 106, 16);
+        $starBack = $this->starPath($cx + 6, $cy + 9, 118, 106, 16);
         $topLine = $top !== ''
-            ? '<text x="' . $cx . '" y="' . ($cy - 6) . '" text-anchor="middle" font-family="Tajawal" font-size="60" font-weight="700" fill="#FFFFFF">' . $this->esc($top) . '</text>'
+            ? '<text x="' . $cx . '" y="' . ($cy - 4) . '" text-anchor="middle" font-family="Tajawal" font-size="58" font-weight="700" fill="#FFFFFF">' . $this->esc($top) . '</text>'
             : '';
-        $wordY = $top !== '' ? $cy + 50 : $cy + 18;
-        $wordSize = $top !== '' ? 40 : 48;
+        $wordY = $top !== '' ? $cy + 48 : $cy + 16;
+        $wordSize = $top !== '' ? 37 : 42;
 
         return <<<SVG
   <g transform="rotate(-10 {$cx} {$cy})">
-    <path d="{$starBack}" fill="{$coralDeep}" fill-opacity="0.55"/>
+    <path d="{$starBack}" fill="{$coralDeep}" fill-opacity="0.45"/>
     <path d="{$star}" fill="{$coral}"/>
-    <circle cx="{$cx}" cy="{$cy}" r="86" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3" stroke-dasharray="2 11" stroke-linecap="round"/>
+    <circle cx="{$cx}" cy="{$cy}" r="79" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3" stroke-dasharray="2 11" stroke-linecap="round"/>
     {$topLine}
-    <text x="{$cx}" y="{$wordY}" text-anchor="middle" font-family="Tajawal" font-size="{$wordSize}" font-weight="700" fill="#FFFFFF">{$word}</text>
+    <text x="{$cx}" y="{$wordY}" text-anchor="middle" font-family="Tajawal" font-size="{$wordSize}" font-weight="700" fill="#FFFFFF">مجاناً</text>
   </g>
 SVG;
     }
 
-    /** A rounded starburst path (alternating outer/inner radius). */
+    /** A starburst path (alternating outer/inner radius). */
     private function starPath(int $cx, int $cy, int $rOut, int $rIn, int $points): string
     {
         $steps = $points * 2;
@@ -288,29 +300,6 @@ SVG;
         return trim($d) . ' Z';
     }
 
-    /** Soft paw-print ornaments on the teal ground. */
-    private function ornaments(): string
-    {
-        $bone = self::BONE;
-        $paw = function (int $x, int $y, float $s, int $rot) use ($bone): string {
-            return <<<SVG
-  <g transform="translate({$x} {$y}) rotate({$rot}) scale({$s})" fill="{$bone}" fill-opacity="0.07">
-    <ellipse cx="0" cy="14" rx="30" ry="24"/>
-    <ellipse cx="-30" cy="-16" rx="12" ry="16"/>
-    <ellipse cx="-10" cy="-26" rx="12" ry="16"/>
-    <ellipse cx="10" cy="-26" rx="12" ry="16"/>
-    <ellipse cx="30" cy="-16" rx="12" ry="16"/>
-  </g>
-SVG;
-        };
-
-        return $paw(120, 940, 1.5, -18)
-            . $paw(895, 175, 1.1, 22)
-            . $paw(60, 400, 0.9, 12)
-            . "\n  <circle cx=\"985\" cy=\"620\" r=\"170\" fill=\"{$bone}\" fill-opacity=\"0.04\"/>"
-            . "\n  <circle cx=\"15\" cy=\"120\" r=\"130\" fill=\"{$bone}\" fill-opacity=\"0.04\"/>";
-    }
-
     /* ═══════════════════════════ words ═══════════════════════════ */
 
     /** "12+3" → [12, 3]; anything else → [0, 0]. */
@@ -320,41 +309,6 @@ SVG;
             return [(int) $m[1], (int) $m[2]];
         }
         return [0, 0];
-    }
-
-    private function headline(ProductBundle $bundle): string
-    {
-        [$paid, $free] = $this->ladderOf($bundle);
-        if ($paid > 0) {
-            return "{$paid} + {$free} مجاناً";
-        }
-        $gift = $bundle->items->firstWhere('role', 'gift');
-        if ($gift) {
-            return $gift->qty > 1 ? "{$gift->qty} هدايا معه" : 'وهدية معه';
-        }
-        return 'بكج زوبوكسي';
-    }
-
-    private function subline(ProductBundle $bundle): string
-    {
-        [$paid, $free] = $this->ladderOf($bundle);
-        if ($paid > 0) {
-            $total = $paid + $free;
-            return "الإجمالي {$total} قطعة — تدفع ثمن {$paid} فقط";
-        }
-        $gift = $bundle->items->firstWhere('role', 'gift');
-        if ($gift) {
-            return 'اشترِ الأساسي واستلم الهدية عليه';
-        }
-        return (string) ($bundle->subtitle_ar ?? '');
-    }
-
-    private function speciesWord(string $species): string
-    {
-        return match ($species) {
-            'cat' => 'للقطط 🐱', 'dog' => 'للكلاب 🐶', 'bird' => 'للطيور',
-            'small_pet' => 'للقوارض', default => 'لأليفك',
-        };
     }
 
     /* ═══════════════════════════ images ═══════════════════════════ */
