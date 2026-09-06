@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\MrsoolDelivery;
 use App\Models\Product;
 use App\Models\ZooboxiOrder;
 use App\Models\ZooboxiOrderLine;
@@ -457,6 +458,66 @@ class WooSyncController extends Controller
     private function stockEffectsEnabled(): bool
     {
         return (bool) config('services.woo.deduct_stock', false);
+    }
+
+    /**
+     * DELETE /api/woo/orders/{woo_order_id}
+     *
+     * The store no longer has this order — it was trashed or deleted — so the
+     * mirror must go too, otherwise it lingers forever in the branch app as a
+     * task nobody can finish. Deleting the source record is the signal; we
+     * simply follow it.
+     *
+     * Idempotent: an order we never had is a success, not a 404, so the store
+     * never retries forever over a row that is already gone.
+     *
+     * Never touches stock (see stockEffectsEnabled) and never touches SAP.
+     */
+    public function deleteOrder(int $wooOrderId): JsonResponse
+    {
+        $order = ZooboxiOrder::where('woo_order_id', $wooOrderId)->first();
+
+        if (!$order) {
+            return response()->json([
+                'status'       => 'already_absent',
+                'woo_order_id' => $wooOrderId,
+            ]);
+        }
+
+        // A courier is mid-flight: destroying the order would take its ledger
+        // row with it (FK cascade) and we would lose the audit of a real,
+        // paid-for delivery. Retire the order instead, and say so.
+        $courierInFlight = $order->mrsoolDeliveries()
+            ->whereNotIn('phase', MrsoolDelivery::TERMINAL_PHASES)
+            ->exists();
+
+        if ($courierInFlight) {
+            $order->update(['delivery_status' => ZooboxiOrder::STATUS_CANCELLED]);
+
+            Log::warning('Zooboxi order deletion refused: courier still in flight', [
+                'order_id'     => $order->id,
+                'woo_order_id' => $wooOrderId,
+            ]);
+
+            return response()->json([
+                'status'       => 'cancelled_instead',
+                'woo_order_id' => $wooOrderId,
+                'reason'       => 'لا يمكن حذف الطلب أثناء وجود مندوب مرسول قائم — أُلغي بدلاً من ذلك.',
+            ]);
+        }
+
+        $localId = $order->id;
+        $order->delete(); // lines cascade
+
+        Log::info('Zooboxi order deleted (mirrors a store trash/delete)', [
+            'order_id'     => $localId,
+            'woo_order_id' => $wooOrderId,
+        ]);
+
+        return response()->json([
+            'status'       => 'deleted',
+            'woo_order_id' => $wooOrderId,
+        ]);
     }
 
     // ─── Sync Status ────────────────────────────────────────────

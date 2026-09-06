@@ -225,6 +225,12 @@ Route::prefix('store')->group(function () {
     Route::get('/news-image/{announcement}', [\App\Http\Controllers\Api\StoreController::class, 'newsImage']);
     // Per-brand intro page (logo + info + product gallery, no prices).
     Route::get('/brands/{code}', [\App\Http\Controllers\Api\StoreController::class, 'getBrand']);
+
+    // Whole-catalogue feed for the Muntajat B2B storefront.
+    // Publishes retail (RRP) prices only — wholesale never leaves the server.
+    Route::get('/b2b/catalog', [\App\Http\Controllers\Api\B2bCatalogController::class, 'catalog']);
+    // Long-form marketing copy, loaded when a product page is opened.
+    Route::get('/b2b/product/{code}', [\App\Http\Controllers\Api\B2bCatalogController::class, 'product']);
 });
 
 // SAP Integration Routes
@@ -267,6 +273,9 @@ Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
     // Orders
     Route::post('/orders', [\App\Http\Controllers\Api\WooSyncController::class, 'receiveOrder']);
     Route::put('/orders/{woo_order_id}/status', [\App\Http\Controllers\Api\WooSyncController::class, 'updateOrderStatus']);
+    // The store trashed or deleted the order — drop the mirror, so it stops
+    // showing in the branch app as work that can never be finished.
+    Route::delete('/orders/{woo_order_id}', [\App\Http\Controllers\Api\WooSyncController::class, 'deleteOrder']);
 
     // Ad Campaigns (banners) — live campaigns + performance rollup
     Route::get('/campaigns/active', [\App\Http\Controllers\Api\CampaignDeliveryController::class, 'active']);
