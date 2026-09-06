@@ -309,10 +309,13 @@ class LEn extends L {
   String get shelfExpressSub => 'Within 2 hours';
 
   @override
-  String get shelfAllSub => 'The whole store';
+  String get shelfAllSub => 'Arrives tomorrow';
 
   @override
   String get shelfExpressOffSub => 'Not here yet';
+
+  @override
+  String get shelfAllSubShipping => 'Ships to your city';
 
   @override
   String get categoriesTitle => 'Categories';

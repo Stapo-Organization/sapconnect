@@ -652,7 +652,7 @@ abstract class L {
   /// No description provided for @shelfAllSub.
   ///
   /// In ar, this message translates to:
-  /// **'كل المتجر'**
+  /// **'يصلك غدًا'**
   String get shelfAllSub;
 
   /// No description provided for @shelfExpressOffSub.
@@ -660,6 +660,12 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'غير متاح هنا'**
   String get shelfExpressOffSub;
+
+  /// No description provided for @shelfAllSubShipping.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيل لمدينتك'**
+  String get shelfAllSubShipping;
 
   /// No description provided for @categoriesTitle.
   ///

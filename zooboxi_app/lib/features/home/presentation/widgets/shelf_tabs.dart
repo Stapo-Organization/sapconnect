@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/motion/motion.dart';
+import '../../../../core/location/location_controller.dart';
 import '../../../../core/shelf/shelf_controller.dart';
 import '../../../../core/shelf/shelf_identity.dart';
 import '../../../../core/utils/haptics.dart';
@@ -63,6 +64,11 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
     final l = L.of(context);
     final shelf = ref.watch(shelfProvider);
     final expressOpen = ref.watch(expressAvailableProvider);
+    // زوبكسي promises tomorrow inside a served city; out of town it ships.
+    final shipping = ref.watch(
+          locationProvider.select((s) => s.location.deliveryType),
+        ) ==
+        'shipping';
     final still = context.reduceMotion;
     final cs = context.cs;
 
@@ -138,7 +144,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                   child: _Sign(
                     identity: ShelfIdentity.of(context, Shelf.all),
                     name: l.shelfAllTab,
-                    promise: l.shelfAllSub,
+                    promise: shipping ? l.shelfAllSubShipping : l.shelfAllSub,
                     selected: !expressSelected,
                     enabled: true,
                     onCanvas: widget.onCanvas,
