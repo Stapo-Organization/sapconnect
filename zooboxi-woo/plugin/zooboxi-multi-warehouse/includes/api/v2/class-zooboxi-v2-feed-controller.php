@@ -76,8 +76,40 @@ class Zooboxi_V2_Feed_Controller
             'personal'    => $personal,
             'foryou'      => $foryou,
             'incity'      => $incity,
+            'bundles'     => $this->bundles($uid, $lat, $lng),
             'login_nudge' => $uid <= 0,
         ], null);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SLOT — «البكجات» (live bundles, ranked for this viewer)
+       ══════════════════════════════════════════════════════════════ */
+
+    /** @return array{kind:string,title:string,products:array<int,array>}|null */
+    private function bundles(int $uid, float $lat, float $lng): ?array
+    {
+        if (!class_exists('Zooboxi_Bundles') || !class_exists('Zooboxi_V2_Bundles_Controller')) {
+            return null;
+        }
+
+        $ids = Zooboxi_Bundles::ranked_ids($uid, $lat, $lng, 8);
+        if (empty($ids)) {
+            return null;
+        }
+
+        $cards = [];
+        foreach (Zooboxi_Product_DTO::cards($ids) as $card) {
+            $cards[] = Zooboxi_V2_Bundles_Controller::extend($card);
+        }
+        if (empty($cards)) {
+            return null;
+        }
+
+        return [
+            'kind'     => 'bundles',
+            'title'    => Zooboxi_V2_Bootstrap::pick('البكجات', 'Bundles'),
+            'products' => $cards,
+        ];
     }
 
     /* ══════════════════════════════════════════════════════════════

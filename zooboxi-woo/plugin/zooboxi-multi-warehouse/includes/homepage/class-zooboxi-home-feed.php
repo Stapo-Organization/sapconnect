@@ -47,6 +47,7 @@ class Zooboxi_Home_Feed
             'login'    => $logged ? null : $this->login_card_html(),
             // "مختار لك" merges recently-viewed + recommendations into one deduped rail.
             'foryou'   => $this->foryou_html($recent) ?: null,
+            'bundles'  => $this->bundles_html($uid, $lat, $lng) ?: null,
             'incity'   => $this->incity_html($lat, $lng, $city) ?: null,
         ];
 
@@ -139,6 +140,28 @@ class Zooboxi_Home_Feed
             . '<span class="zb-promise__text">' . esc_html($line) . '</span>'
             . '<a class="zb-promise__edit" href="#" id="zb-promise-edit">' . esc_html__('تغيير', 'zooboxi') . '</a>'
             . '</div>';
+    }
+
+    /** «البكجات» — live bundles ranked for this viewer (species, gauge, reach). */
+    private function bundles_html(int $uid, float $lat, float $lng): string
+    {
+        if (!class_exists('Zooboxi_Bundles')) {
+            return '';
+        }
+        $ids = Zooboxi_Bundles::ranked_ids($uid, $lat, $lng, 12);
+        if (empty($ids)) {
+            return '';
+        }
+        $catUrl = get_term_link(Zooboxi_Bundles::CAT_SLUG, 'product_cat');
+        return Zooboxi_Product_Rail::render([
+            'ids'      => $ids,
+            'title'    => __('البكجات', 'zooboxi'),
+            'subtitle' => __('حِزم مختارة بتوفير حقيقي — ولا تلمس سعر أي منتج منفرد', 'zooboxi'),
+            'icon'     => '🧺',
+            'zone'     => 'home:bundles',
+            'cta_url'  => is_string($catUrl) ? $catUrl : '',
+            'cta_label' => __('كل البكجات', 'zooboxi'),
+        ]);
     }
 
     private function recent_html(array $recent): string

@@ -87,6 +87,9 @@ class Zooboxi_Plugin
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/homepage/class-zooboxi-home-feed.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/homepage/class-zooboxi-homepage.php';
 
+        // «حزم زوبوكسي» — owner-approved bundles as real WC products.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/bundles/class-zooboxi-bundles.php';
+
         // Brand boutique pages (/brand/<slug>/): backend sync + themed archive takeover.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/intelligence/class-zooboxi-brand-sync.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-brand-page.php';
@@ -143,6 +146,7 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-account-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-events-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-meta-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-bundles-controller.php';
             if (get_option('zooboxi_loyalty_enabled', 'yes') === 'yes') {
                 require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-loyalty-controller.php';
             }
@@ -208,6 +212,8 @@ class Zooboxi_Plugin
         new Zooboxi_Intelligence();
         // Ad campaigns: registered unconditionally (cron + sync-now ajax + hero shortcode)
         new Zooboxi_Campaigns();
+        // «حزم زوبوكسي»: unconditional (hourly pull + stock recompute + order annotation).
+        new Zooboxi_Bundles();
         // Brand boutique sync: unconditional (hourly cron + sync-now ajax).
         new Zooboxi_Brand_Sync();
         // Dynamic homepage: registered unconditionally (shortcode on the front page +

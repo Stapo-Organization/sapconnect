@@ -142,7 +142,24 @@ class Zooboxi_Product_DTO
 
         $post = get_post($id);
 
+        // A bundle PDP carries its component list (name × qty, gifts marked)
+        // so the app can render «محتويات البكج» natively.
+        $bundle = null;
+        if (class_exists('Zooboxi_V2_Bundles_Controller') && get_post_meta($id, '_zb_bundle_id', true)) {
+            $extended = Zooboxi_V2_Bundles_Controller::extend(['id' => $id]);
+            $raw = get_post_meta($id, '_zb_bundle_components', true);
+            $components = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
+            $extended['bundle']['components'] = array_map(static fn($c) => [
+                'name' => (string) ($c['name'] ?? ''),
+                'qty'  => max(1, (int) ($c['qty'] ?? 1)),
+                'role' => (string) ($c['role'] ?? 'member'),
+                'product_id' => (int) ($c['product_id'] ?? 0),
+            ], is_array($components) ? $components : []);
+            $bundle = $extended['bundle'];
+        }
+
         return $card + [
+            'bundle'             => $bundle,
             'gallery'            => self::gallery($product),
             'description_html'   => $post ? wp_kses_post(do_shortcode(wpautop($post->post_content))) : '',
             'short_description'  => $product->get_short_description() !== ''

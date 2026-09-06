@@ -127,7 +127,7 @@
     }
     function dedupeShellRails() {
         var seen = {};
-        ['foryou', 'buyagain', 'incity'].forEach(function (k) {
+        ['foryou', 'buyagain', 'incity', 'bundles'].forEach(function (k) {
             var slot = document.querySelector('.zb-home [data-zb-feed="' + k + '"]');
             if (!slot) { return; }
             slot.querySelectorAll('li.product').forEach(function (li) {

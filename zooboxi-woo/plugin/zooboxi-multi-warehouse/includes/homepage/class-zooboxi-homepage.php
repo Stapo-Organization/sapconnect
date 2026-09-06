@@ -141,6 +141,9 @@ class Zooboxi_Homepage
         // 6) "مختار لك" — recently-viewed + recommendations merged (hydrated).
         echo '<div id="zb-home-foryou" class="zb-home-slot" data-zb-feed="foryou"></div>';
 
+        // 6b) «البكجات» — live bundles ranked per viewer (hydrated).
+        echo '<div id="zb-home-bundles" class="zb-home-slot" data-zb-feed="bundles"></div>';
+
         // Brands slider — placed above the in-city rail (owner preference).
         echo '<div class="zb-home-brands">' . do_shortcode('[zooboxi_brands_slider]') . '</div>';
 

@@ -573,6 +573,12 @@ class Zooboxi_Sync_Engine
             ];
         }
 
+        // Bundle lines become their component lines (real SAP items, priced at
+        // their share of what was paid) so branch picking sees what to pick.
+        if (class_exists('Zooboxi_Bundles')) {
+            $items = Zooboxi_Bundles::expand_payload_items($items, $order);
+        }
+
         return [
             'woo_order_id'     => $order->get_id(),
             'woo_order_number' => $order->get_order_number(),
