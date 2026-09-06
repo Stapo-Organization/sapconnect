@@ -153,6 +153,14 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::post('/promotions/{id}/regenerate', [\App\Http\Controllers\Api\PromotionController::class, 'regenerate']);
     Route::post('/promotions/{id}/refine', [\App\Http\Controllers\Api\PromotionController::class, 'refine']);
 
+    // ─── حزم زوبوكسي — sellable bundles (Owner only — Super Admin) ────
+    Route::get('/bundles/summary', [\App\Http\Controllers\Api\BundleController::class, 'summary']); // before {id}
+    Route::get('/bundles', [\App\Http\Controllers\Api\BundleController::class, 'index']);
+    Route::get('/bundles/{id}', [\App\Http\Controllers\Api\BundleController::class, 'show']);
+    Route::post('/bundles/{id}/approve', [\App\Http\Controllers\Api\BundleController::class, 'approve']);
+    Route::post('/bundles/{id}/reject', [\App\Http\Controllers\Api\BundleController::class, 'reject']);
+    Route::post('/bundles/{id}/retire', [\App\Http\Controllers\Api\BundleController::class, 'retire']);
+
     // ─── Home Dashboard (Exhibition Manager) ─────────────────────
     // Single smart aggregation behind the home screen: ranked priority feed
     // + all module summaries in one round trip.
@@ -276,6 +284,10 @@ Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
     // The store trashed or deleted the order — drop the mirror, so it stops
     // showing in the branch app as work that can never be finished.
     Route::delete('/orders/{woo_order_id}', [\App\Http\Controllers\Api\WooSyncController::class, 'deleteOrder']);
+
+    // حزم زوبوكسي — approved bundle definitions the store materialises
+    Route::get('/bundles/active', [\App\Http\Controllers\Api\BundleFeedController::class, 'active']);
+    Route::post('/bundles/{id}/materialized', [\App\Http\Controllers\Api\BundleFeedController::class, 'materialized']);
 
     // Ad Campaigns (banners) — live campaigns + performance rollup
     Route::get('/campaigns/active', [\App\Http\Controllers\Api\CampaignDeliveryController::class, 'active']);
