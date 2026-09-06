@@ -11,6 +11,7 @@ use App\Models\ZooboxiWarehouse;
 use App\Services\Woo\WooDeliveryService;
 use App\Services\Woo\WooStockService;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -130,25 +131,46 @@ class WooSyncController extends Controller
      *
      * Returns prices for all WooCommerce-synced products.
      */
-    public function getPrices(Request $request): JsonResponse
+    public function getPrices(Request $request): StreamedResponse
     {
-        $query = Product::wooSyncable()->production();
+        // STREAMED on purpose: the catalogue is ~8k products and each carries a
+        // `prices` JSON blob per price list. Building the whole response in
+        // memory exhausted PHP's 512 MB limit and returned a 500 to the store,
+        // which is why price sync had been failing. The JSON shape is
+        // unchanged — {"data":[...],"timestamp":"..."} — so the store plugin
+        // needs no change.
+        $query = Product::wooSyncable()->production()
+            ->select(['id', 'item_code', 'prices', 'updated_at'])
+            ->orderBy('id');
 
         if ($request->has('updated_since')) {
             $query->where('updated_at', '>=', $request->updated_since);
         }
 
-        $products = $query->get(['item_code', 'prices', 'updated_at']);
+        return response()->stream(function () use ($query) {
+            echo '{"data":[';
+            $first = true;
 
-        $data = $products->map(fn(Product $p) => [
-            'item_code' => $p->item_code,
-            'prices' => $p->prices ?? [],
-            'updated_at' => $p->updated_at?->toIso8601String(),
-        ]);
+            $query->chunkById(500, function ($products) use (&$first) {
+                $buffer = [];
+                foreach ($products as $p) {
+                    $buffer[] = json_encode([
+                        'item_code' => $p->item_code,
+                        'prices' => $p->prices ?? [],
+                        'updated_at' => $p->updated_at?->toIso8601String(),
+                    ], JSON_UNESCAPED_UNICODE);
+                }
 
-        return response()->json([
-            'data' => $data,
-            'timestamp' => now()->toIso8601String(),
+                echo ($first ? '' : ',') . implode(',', $buffer);
+                $first = false;
+
+                flush();
+            });
+
+            echo '],"timestamp":' . json_encode(now()->toIso8601String()) . '}';
+        }, 200, [
+            'Content-Type' => 'application/json',
+            'X-Accel-Buffering' => 'no',
         ]);
     }
 
