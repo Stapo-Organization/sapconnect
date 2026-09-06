@@ -59,6 +59,31 @@ class Zooboxi_Loyalty_Cohorts
         return ['wc-completed', 'wc-processing'];
     }
 
+    /**
+     * The live-orders join every query needs — one implementation, shared with the
+     * baseline so the two boards can never drift apart.
+     *
+     * @return array{join:string,status:string}
+     */
+    private static function live(string $alias = 's'): array
+    {
+        return Zooboxi_Loyalty::live_orders_join($alias);
+    }
+
+    /**
+     * A real order, not a refund.
+     *
+     * WooCommerce writes every refund into `wc_order_stats` as its OWN row: the id is
+     * the refund's, `total_sales` is negative, and a refund is always `wc-completed`.
+     * Joining on the row's own id therefore lets refunds through the status filter even
+     * when the parent was refunded or trashed — the order vanishes and its negative twin
+     * stays. Refund rows also double-count as orders. Every aggregate counts parents only.
+     */
+    private static function real(string $alias = 's'): string
+    {
+        return " AND {$alias}.parent_id = 0";
+    }
+
     private static function in(): string
     {
         return implode(',', array_fill(0, count(self::statuses()), '%s'));
@@ -86,7 +111,7 @@ class Zooboxi_Loyalty_Cohorts
         $key  = 'zb_loyalty_cohorts_' . $days;
         if (!$force) {
             $cached = get_transient($key);
-            if (is_array($cached) && ($cached['_v'] ?? 0) === 1) {
+            if (is_array($cached) && ($cached['_v'] ?? 0) === 2) {
                 return $cached;
             }
         }
@@ -94,11 +119,11 @@ class Zooboxi_Loyalty_Cohorts
         $stats  = self::stats();
         $lookup = self::lookup();
         if ($stats === '' || $lookup === '') {
-            return ['_v' => 1, 'available' => false, 'reason' => 'wc_order_stats / wc_customer_lookup missing'];
+            return ['_v' => 2, 'available' => false, 'reason' => 'wc_order_stats / wc_customer_lookup missing'];
         }
 
         $out = [
-            '_v'          => 1,
+            '_v'          => 2,
             'available'   => true,
             'computed_at' => Zooboxi_Loyalty::now(),
             'window_days' => $days,
@@ -127,6 +152,8 @@ class Zooboxi_Loyalty_Cohorts
         $cutoff  = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
         $recent  = gmdate('Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS);
 
+        $live = self::live();
+
         $rows = $wpdb->get_results($wpdb->prepare(
             'SELECT arm, COUNT(*) AS customers, SUM(orders) AS orders, SUM(revenue) AS revenue,'
             . ' SUM(orders >= 2) AS repeaters, SUM(last_at >= %s) AS active_30, SUM(app_orders) AS app_orders'
@@ -136,10 +163,11 @@ class Zooboxi_Loyalty_Cohorts
             . '   COUNT(s.order_id) AS orders, COALESCE(SUM(s.total_sales), 0) AS revenue, MAX(s.date_created_gmt) AS last_at,'
             . '   SUM(CASE WHEN a.meta_value IS NULL THEN 0 ELSE 1 END) AS app_orders'
             . "  FROM {$stats} s"
+            . $live['join']
             . "  INNER JOIN {$lookup} c ON c.customer_id = s.customer_id AND c.user_id > 0"
             . "  LEFT JOIN {$members} m ON m.user_id = c.user_id"
             . "  LEFT JOIN {$meta['table']} a ON a.{$meta['id']} = s.order_id AND a.meta_key = %s"
-            . "  WHERE s.status IN ({$in}) AND s.date_created_gmt >= %s"
+            . "  WHERE {$live['status']} IN ({$in})" . self::real() . ' AND s.date_created_gmt >= %s'
             . '  GROUP BY c.user_id, arm'
             . ' ) t GROUP BY arm',
             array_merge([$recent, Zooboxi_Loyalty::APP_ORDER_META], self::statuses(), [$cutoff])
@@ -236,12 +264,15 @@ class Zooboxi_Loyalty_Cohorts
         $members = Zooboxi_Loyalty_Schema::members();
         $in      = self::in();
 
+        $live = self::live();
+
         $rows = $wpdb->get_results($wpdb->prepare(
             'SELECT m.user_id, m.joined_at, m.holdout,'
             . ' COUNT(s.order_id) AS orders_after, COALESCE(SUM(s.total_sales), 0) AS rev_after, MIN(s.date_created_gmt) AS first_after'
             . " FROM {$members} m"
             . " LEFT JOIN {$lookup} c ON c.user_id = m.user_id"
-            . " LEFT JOIN {$stats} s ON s.customer_id = c.customer_id AND s.status IN ({$in}) AND s.date_created_gmt > m.joined_at"
+            . " LEFT JOIN ({$stats} s" . $live['join'] . ') ON s.customer_id = c.customer_id'
+            . " AND {$live['status']} IN ({$in})" . self::real() . ' AND s.date_created_gmt > m.joined_at'
             . ' GROUP BY m.user_id, m.joined_at, m.holdout',
             self::statuses()
         ), ARRAY_A);
@@ -310,15 +341,19 @@ class Zooboxi_Loyalty_Cohorts
         $in    = self::in();
         $args  = array_merge(self::statuses(), [$from, $to]);
 
+        $live  = self::live();
+        $where = "WHERE {$live['status']} IN ({$in})" . self::real()
+            . ' AND s.date_created_gmt >= %s AND s.date_created_gmt < %s AND s.customer_id > 0';
+
         $row = $wpdb->get_row($wpdb->prepare(
-            'SELECT COUNT(*) AS orders, COUNT(DISTINCT customer_id) AS customers,'
-            . ' COALESCE(SUM(total_sales), 0) AS revenue, COALESCE(AVG(total_sales), 0) AS aov'
-            . " FROM {$stats} WHERE status IN ({$in}) AND date_created_gmt >= %s AND date_created_gmt < %s AND customer_id > 0",
+            'SELECT COUNT(*) AS orders, COUNT(DISTINCT s.customer_id) AS customers,'
+            . ' COALESCE(SUM(s.total_sales), 0) AS revenue, COALESCE(AVG(s.total_sales), 0) AS aov'
+            . " FROM {$stats} s" . $live['join'] . " {$where}",
             $args
         ), ARRAY_A);
         $repeaters = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM (SELECT customer_id FROM {$stats} WHERE status IN ({$in}) AND date_created_gmt >= %s AND date_created_gmt < %s AND customer_id > 0"
-            . ' GROUP BY customer_id HAVING COUNT(*) >= 2) r',
+            "SELECT COUNT(*) FROM (SELECT s.customer_id FROM {$stats} s" . $live['join'] . " {$where}"
+            . ' GROUP BY s.customer_id HAVING COUNT(*) >= 2) r',
             $args
         ));
         $customers = (int) ($row['customers'] ?? 0);
@@ -355,9 +390,12 @@ class Zooboxi_Loyalty_Cohorts
         $in     = self::in();
         $cutoff = gmdate('Y-m-d H:i:s', strtotime('monday this week', time()) - ($weeks - 1) * WEEK_IN_SECONDS);
 
+        $live = self::live();
+
         $orders = $wpdb->get_results($wpdb->prepare(
-            "SELECT YEARWEEK(date_created_gmt, 3) AS yw, COUNT(*) AS orders, COALESCE(SUM(total_sales), 0) AS revenue"
-            . " FROM {$stats} WHERE status IN ({$in}) AND date_created_gmt >= %s GROUP BY yw ORDER BY yw",
+            'SELECT YEARWEEK(s.date_created_gmt, 3) AS yw, COUNT(*) AS orders, COALESCE(SUM(s.total_sales), 0) AS revenue'
+            . " FROM {$stats} s" . $live['join']
+            . " WHERE {$live['status']} IN ({$in})" . self::real() . ' AND s.date_created_gmt >= %s GROUP BY yw ORDER BY yw',
             array_merge(self::statuses(), [$cutoff])
         ), ARRAY_A);
         $joins = $wpdb->get_results($wpdb->prepare(

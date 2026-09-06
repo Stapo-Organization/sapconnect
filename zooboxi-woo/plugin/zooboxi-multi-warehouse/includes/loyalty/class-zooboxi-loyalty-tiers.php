@@ -15,9 +15,9 @@
  *   • `zooboxi_express_fee` — the fulfilment resolver, the delivery engine (×2), the
  *     smart-shipment summary, the express method and the v2 cart/meta read it.
  *
- * NEVER assume a fee's value. `zooboxi_express_fee` currently sits at 0 for a trial
- * and WILL become a paid tier again (owner, 2026-09-05); the express reward is only
- * meaningful because it goes through the filter rather than through a hardcoded 0.
+ * NEVER assume a fee's value. `zooboxi_express_fee` was 0 during the trial and is 25 ﷼
+ * since 2026-09-06 (owner); it will change again. The express reward is only meaningful
+ * because every reader goes through the filter rather than through a hardcoded number.
  *
  * The remaining perks (priority support, samples, WhatsApp line) are honest TEXT: they
  * ship as `perks[]` with `active` flags and no code pretends to enforce them.

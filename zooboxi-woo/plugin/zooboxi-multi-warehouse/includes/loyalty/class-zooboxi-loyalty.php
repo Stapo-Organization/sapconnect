@@ -280,6 +280,47 @@ class Zooboxi_Loyalty
        MEASUREMENT — what the program costs and what it moved
        ══════════════════════════════════════════════════════════════ */
 
+    /**
+     * The join that turns `wc_order_stats` rows into orders that still exist.
+     *
+     * A trashed order keeps its row (and its old status) in the analytics table, so
+     * every revenue aggregate must read the order's CURRENT status instead.
+     *
+     * @return array{join:string,status:string}
+     */
+    public static function live_orders_join(string $alias = 's'): array
+    {
+        global $wpdb;
+        $hpos = class_exists('\Automattic\WooCommerce\Utilities\OrderUtil')
+            && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+
+        if ($hpos && Zooboxi_Loyalty_Schema::table_exists($wpdb->prefix . 'wc_orders')) {
+            $t = 'zbo_' . $alias;
+            return [
+                'join'   => " INNER JOIN {$wpdb->prefix}wc_orders {$t} ON {$t}.id = {$alias}.order_id",
+                'status' => "{$t}.status",
+            ];
+        }
+        $t = 'zbo_' . $alias;
+        return [
+            'join'   => " INNER JOIN {$wpdb->posts} {$t} ON {$t}.ID = {$alias}.order_id",
+            'status' => "{$t}.post_status",
+        ];
+    }
+
+    /**
+     * Refund rows are not orders.
+     *
+     * WooCommerce records each refund as its own `wc_order_stats` row (its own id,
+     * negative `total_sales`, and always `wc-completed`), so a status join on the
+     * row's own id lets refunds survive even when the parent was refunded or trashed.
+     * Every aggregate in this module counts parent orders only.
+     */
+    public static function real_orders_only(string $alias = 's'): string
+    {
+        return " AND {$alias}.parent_id = 0";
+    }
+
     /** WooCommerce Admin's analytics table, or '' when the store has none. */
     public static function stats_table(): string
     {
@@ -376,10 +417,12 @@ class Zooboxi_Loyalty
         $table = self::stats_table();
         if ($table !== '') {
             $statuses = self::sale_statuses();
+            $live     = self::live_orders_join();
             $sales    = (float) $wpdb->get_var($wpdb->prepare(
-                "SELECT COALESCE(SUM(total_sales), 0) FROM {$table}"
-                . ' WHERE status IN (' . implode(',', array_fill(0, count($statuses), '%s')) . ')'
-                . ' AND date_created_gmt >= %s AND date_created_gmt < %s',
+                "SELECT COALESCE(SUM(s.total_sales), 0) FROM {$table} s" . $live['join']
+                . " WHERE {$live['status']} IN (" . implode(',', array_fill(0, count($statuses), '%s')) . ')'
+                . self::real_orders_only()
+                . ' AND s.date_created_gmt >= %s AND s.date_created_gmt < %s',
                 array_merge($statuses, [$month_start, $next_month])
             ));
         }
@@ -427,37 +470,45 @@ class Zooboxi_Loyalty
         if ($table === '') {
             return ['available' => false, 'reason' => 'wc_order_stats is not present on this store.'];
         }
+        $stats_table = $table;
 
         global $wpdb;
         $cutoff   = gmdate('Y-m-d H:i:s', time() - 365 * DAY_IN_SECONDS);
         $statuses = self::sale_statuses();
         $in       = implode(',', array_fill(0, count($statuses), '%s'));
-        $where    = "WHERE status IN ({$in}) AND date_created_gmt >= %s AND customer_id > 0";
+        // `wc_order_stats` keeps rows for trashed orders, so the baseline must read
+        // the order's CURRENT status or it credits the store with deleted revenue.
+        $live     = self::live_orders_join();
+        $table    = $table . ' s' . $live['join'];
+        $where    = "WHERE {$live['status']} IN ({$in})" . self::real_orders_only()
+            . ' AND s.date_created_gmt >= %s AND s.customer_id > 0';
         $args     = array_merge($statuses, [$cutoff]);
 
         // 1) headline totals
         $totals = $wpdb->get_row($wpdb->prepare(
-            "SELECT COUNT(*) AS orders, COUNT(DISTINCT customer_id) AS customers,"
-            . " COALESCE(AVG(total_sales), 0) AS aov, COALESCE(SUM(total_sales), 0) AS revenue"
+            'SELECT COUNT(*) AS orders, COUNT(DISTINCT s.customer_id) AS customers,'
+            . ' COALESCE(AVG(s.total_sales), 0) AS aov, COALESCE(SUM(s.total_sales), 0) AS revenue'
             . " FROM {$table} {$where}",
             $args
         ), ARRAY_A);
 
         // 2) how many orders each customer placed, bucketed
         $buckets = $wpdb->get_row($wpdb->prepare(
-            "SELECT COUNT(*) AS customers,"
-            . " SUM(c = 1) AS b1, SUM(c = 2) AS b2, SUM(c BETWEEN 3 AND 5) AS b35,"
-            . " SUM(c >= 6) AS b6, SUM(c >= 2) AS repeaters"
-            . " FROM (SELECT customer_id, COUNT(*) AS c FROM {$table} {$where} GROUP BY customer_id) t",
+            'SELECT COUNT(*) AS customers,'
+            . ' SUM(c = 1) AS b1, SUM(c = 2) AS b2, SUM(c BETWEEN 3 AND 5) AS b35,'
+            . ' SUM(c >= 6) AS b6, SUM(c >= 2) AS repeaters'
+            . " FROM (SELECT s.customer_id, COUNT(*) AS c FROM {$table} {$where} GROUP BY s.customer_id) t",
             $args
         ), ARRAY_A);
 
         // 3) did the first order lead to a second one within 90 days?
+        $live2 = self::live_orders_join('s2');
         $repurchase = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM ("
-            . " SELECT customer_id, MIN(date_created_gmt) AS first_at FROM {$table} {$where} GROUP BY customer_id"
+            'SELECT COUNT(*) FROM ('
+            . " SELECT s.customer_id, MIN(s.date_created_gmt) AS first_at FROM {$table} {$where} GROUP BY s.customer_id"
             . ') f WHERE EXISTS ('
-            . " SELECT 1 FROM {$table} s2 WHERE s2.customer_id = f.customer_id AND s2.status IN ({$in})"
+            . " SELECT 1 FROM {$stats_table} s2" . $live2['join']
+            . " WHERE s2.customer_id = f.customer_id AND {$live2['status']} IN ({$in})" . self::real_orders_only('s2')
             . ' AND s2.date_created_gmt > f.first_at'
             . ' AND s2.date_created_gmt <= DATE_ADD(f.first_at, INTERVAL 90 DAY))',
             array_merge($args, $statuses)
