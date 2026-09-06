@@ -105,7 +105,9 @@ class Zooboxi_Delivery_Engine
 
     /**
      * Determine the fastest delivery option for a SINGLE product.
-     * Used on product cards and product detail pages.
+     * Used on product cards and product detail pages. Projected from
+     * Zooboxi_Fulfillment::resolve() so a card can never promise a speed the
+     * cart will not honour.
      *
      * @param int   $productId WooCommerce product ID
      * @param float $lat       Customer latitude
@@ -123,66 +125,53 @@ class Zooboxi_Delivery_Engine
     public static function detect_product_delivery(int $productId, float $lat, float $lng, ?string $customerCity = null, int $quantity = 1): array
     {
         $quantity = max(1, $quantity);
-        $warehouseStock = Zooboxi_Stock_Manager::get_warehouse_stock($productId);
 
-        if (empty($warehouseStock)) {
+        // ONE rule for the promise. Zooboxi_Fulfillment::resolve() is the single
+        // source of truth every cart surface already reads; a card that derives
+        // its own answer drifts from it. That drift is exactly how a product
+        // came to advertise "خلال ساعتين" on the card and then land in the cart
+        // as "خلال 24 ساعة": this method used to accept ANY express branch whose
+        // zone covered the customer, while the resolver counts only the NEAREST
+        // one (the owner's reachability rule). At حي الملك فهد, where two express
+        // branches overlap, that disagreed on 114 of 900 products.
+        $plan  = Zooboxi_Fulfillment::resolve($productId, $quantity, $lat, $lng, $customerCity);
+        $alloc = $plan['allocation'] ?? [];
+
+        // Anything the reachable tiers cannot cover ships nationally — which is
+        // what the cart does with the same line — so the honest promise is the
+        // slow one, not the fast tier that covers only part of it.
+        if (empty($alloc) || (int) $plan['shortfall'] > 0) {
             return self::make_delivery_result(self::TYPE_SHIPPING, $lat, $lng);
         }
 
-        // Build lookup: warehouse_code => stock_qty
-        $stockMap = [];
-        foreach ($warehouseStock as $ws) {
-            $code = $ws['warehouse_code'] ?? '';
-            $qty = (float) ($ws['in_stock'] ?? 0);
-            if ($code && $qty > 0) {
-                $stockMap[$code] = $qty;
-            }
-        }
+        // The whole quantity has arrived only when its LAST part does, so the
+        // promise is the slowest allocated tier. For one unit — every card and
+        // every badge — that is simply the fastest reachable tier.
+        $last = end($alloc);
+        $tier = (string) $last['tier'];
 
-        if (empty($stockMap)) {
-            return self::make_delivery_result(self::TYPE_SHIPPING, $lat, $lng);
-        }
+        return [
+            'type'             => $tier,
+            'label'            => (string) ($last['eta'] ?? ''),
+            'warehouse_code'   => (string) ($last['warehouse_code'] ?? ''),
+            'warehouse_name'   => (string) ($last['warehouse_name'] ?? ''),
+            'stock_qty'        => (int) ($last['stock'] ?? 0),
+            'fee'              => (float) ($last['fee'] ?? 0),
+            'is_express_hours' => $tier === self::TYPE_EXPRESS,
+            'distance_km'      => $tier === self::TYPE_EXPRESS
+                ? self::nearest_express_distance($lat, $lng)
+                : null,
+        ];
+    }
 
-        // 1. Check express — find express warehouses in customer's zone that have this product
-        $expressWarehouses = Zooboxi_Warehouse_Manager::find_express_warehouses($lat, $lng);
-        foreach ($expressWarehouses as $ew) {
-            $code = $ew['warehouse']['warehouse_code'];
-            // Quantity-aware: the branch must hold the FULL requested quantity for express.
-            if (isset($stockMap[$code]) && $stockMap[$code] >= $quantity) {
-                $wh = $ew['warehouse'];
-                return [
-                    'type'             => self::TYPE_EXPRESS,
-                    'label'            => __('خلال ساعتين', 'zooboxi'),
-                    'warehouse_code'   => $code,
-                    'warehouse_name'   => is_rtl() ? ($wh['display_name_ar'] ?: $wh['display_name_en']) : ($wh['display_name_en'] ?: $wh['display_name_ar']),
-                    'stock_qty'        => (int) $stockMap[$code],
-                    'fee'              => (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15)),
-                    'is_express_hours' => true,
-                    'distance_km'      => $ew['distance'],
-                ];
-            }
+    /** Distance to the express branch the resolver would use, or null. */
+    private static function nearest_express_distance(float $lat, float $lng): ?float
+    {
+        if (!$lat && !$lng) {
+            return null;
         }
-
-        // 2. Check same-city (standard 24H) — use actual customer city
-        $city = $customerCity ?: self::detect_city($lat, $lng);
-        if ($city) {
-            $central = Zooboxi_Warehouse_Manager::find_central($city);
-            if ($central && isset($stockMap[$central['warehouse_code']]) && $stockMap[$central['warehouse_code']] >= $quantity) {
-                return [
-                    'type'             => self::TYPE_STANDARD,
-                    'label'            => __('خلال 24 ساعة', 'zooboxi'),
-                    'warehouse_code'   => $central['warehouse_code'],
-                    'warehouse_name'   => is_rtl() ? ($central['display_name_ar'] ?: $central['display_name_en']) : ($central['display_name_en'] ?: $central['display_name_ar']),
-                    'stock_qty'        => (int) $stockMap[$central['warehouse_code']],
-                    'fee'              => (float) get_option('zooboxi_standard_fee', 10),
-                    'is_express_hours' => false,
-                    'distance_km'      => null,
-                ];
-            }
-        }
-
-        // 3. Fallback to national shipping
-        return self::make_delivery_result(self::TYPE_SHIPPING, $lat, $lng);
+        $express = Zooboxi_Warehouse_Manager::find_express_warehouses($lat, $lng);
+        return isset($express[0]['distance']) ? (float) $express[0]['distance'] : null;
     }
 
     /**
