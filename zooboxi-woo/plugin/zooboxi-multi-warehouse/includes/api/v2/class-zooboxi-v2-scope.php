@@ -335,19 +335,20 @@ class Zooboxi_V2_Scope
                 : 'كل المتجر — الأصناف الموسومة بـ⚡ تصلك خلال ساعتين';
         }
 
+        // One line on a phone-width ribbon: every word earns its place.
         switch ($scope['tier']) {
             case Zooboxi_Delivery_Engine::TYPE_EXPRESS:
                 return $en
-                    ? sprintf('Showing what %s can bring you within two hours', $scope['warehouse_name'])
-                    : sprintf('نعرض ما يمكن أن يصلك خلال ساعتين من %s', $scope['warehouse_name']);
+                    ? sprintf('Everything here in 2 hours — %s', $scope['warehouse_name'])
+                    : sprintf('كل ما هنا يصلك خلال ساعتين — %s', $scope['warehouse_name']);
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
                 return $en
-                    ? 'Showing what we can deliver to you tomorrow'
-                    : 'نعرض ما يمكن أن يصلك غدًا';
+                    ? 'Everything here reaches you tomorrow'
+                    : 'كل ما هنا يصلك غدًا';
             default:
                 return $en
-                    ? sprintf('Showing what we can ship to you by %s', $scope['date'])
-                    : sprintf('نعرض ما يمكن شحنه إليك ووصوله %s', $scope['date']);
+                    ? sprintf('Ships to you, arriving by %s', $scope['date'])
+                    : sprintf('يصلك شحنًا بحلول %s', $scope['date']);
         }
     }
 }
