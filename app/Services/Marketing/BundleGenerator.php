@@ -92,7 +92,10 @@ class BundleGenerator
         ];
 
         foreach ($builders as $template => $builder) {
-            $count = 0;
+            // Top up to perTemplate OPEN suggestions — never add perTemplate
+            // per run, or an unreviewed queue balloons by 48 every night.
+            $count = ProductBundle::where('template', $template)
+                ->where('status', ProductBundle::STATUS_SUGGESTED)->count();
             $usedAnchors = $openKeys->filter(fn ($v, $k) => str_starts_with($k, $template . ':'))
                 ->values()->filter()->all();
 
@@ -314,7 +317,8 @@ class BundleGenerator
             foreach ($partners as $p) {
                 $gift = $byCode->get($p->item_code_b);
                 if ($gift && in_array($gift['health'], ['healthy', 'overstock'], true)
-                    && $this->speciesCompatible($anchor, $gift)) {
+                    && $this->speciesCompatible($anchor, $gift)
+                    && $this->giftQty($anchor, $gift, self::CAP_HEALTHY) >= 1) {
                     return [$gift, (float) $p->lift];
                 }
             }
@@ -329,16 +333,40 @@ class BundleGenerator
             && $it['kind'] !== null && $it['excess_units'] >= 10)
             ->sortByDesc('capital_at_risk')->values();
 
-        return $this->anchorPlusGift($pool, function (array $anchor) use ($giftPool) {
+        // The section must read as variety, not one gift stamped on every
+        // anchor — a single overstock item rides in at most two bundles.
+        $giftUse = [];
+
+        return $this->anchorPlusGift($pool, function (array $anchor) use ($giftPool, &$giftUse) {
             foreach ($giftPool as $gift) {
                 if ($gift['item_code'] !== $anchor['item_code']
+                    && ($giftUse[$gift['item_code']] ?? 0) < 2
                     && $this->speciesCompatible($anchor, $gift)
-                    && $gift['retail'] <= $anchor['retail'] * 0.5) {
+                    && $gift['retail'] <= $anchor['retail'] * 0.5
+                    && $this->giftQty($anchor, $gift, self::CAP_GIFT) >= 1) {
+                    $giftUse[$gift['item_code']] = ($giftUse[$gift['item_code']] ?? 0) + 1;
                     return [$gift, 0.0];
                 }
             }
             return [null, 0.0];
         }, self::CAP_GIFT, 'smart_gift');
+    }
+
+    /**
+     * Largest gift quantity that satisfies BOTH hard rules at once: the free
+     * share stays under the cap, and — since the customer pays only the
+     * anchor's retail — the gift's own COST never eats through the floor
+     * (anchor_retail >= (anchor_cost + qty*gift_cost) * 1.10).
+     */
+    public function giftQty(array $anchor, array $gift, float $cap): int
+    {
+        if ($gift['retail'] <= 0 || $gift['cost'] <= 0) {
+            return 0;
+        }
+        $byValue = ($cap / 100) * $anchor['retail'] / ((1 - $cap / 100) * $gift['retail']);
+        $byFloor = ($anchor['retail'] / self::MIN_MARKUP - $anchor['cost']) / $gift['cost'];
+
+        return (int) min(floor($byValue), floor($byFloor), 20);
     }
 
     /**
@@ -365,9 +393,7 @@ class BundleGenerator
                 continue;
             }
 
-            // Largest gift qty that keeps the free share under the cap.
-            $qty = (int) floor(($cap / 100) * $anchor['retail'] / ((1 - $cap / 100) * $gift['retail']));
-            $qty = min($qty, 20);
+            $qty = $this->giftQty($anchor, $gift, $cap);
             if ($qty < 1) {
                 continue;
             }
