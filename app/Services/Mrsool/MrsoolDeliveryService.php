@@ -472,15 +472,19 @@ class MrsoolDeliveryService
             return false;
         }
 
-        if ($status) {
-            $this->applyRemote($delivery, ['id' => $remoteId, 'status' => $status]);
+        // Verify BEFORE acting: re-fetch the order so the phase change (and the
+        // Woo push / notification it triggers) carries the courier, photos and
+        // tracking link. Only if Mrsool cannot be reached do we fall back to
+        // the webhook's own {id,status} hint.
+        $synced = false;
+        try {
+            $synced = $this->sync($delivery);
+        } catch (\Throwable $e) {
+            Log::info('mrsool: webhook re-fetch failed: ' . $e->getMessage(), ['context' => 'mrsool']);
         }
 
-        // Best-effort enrichment (courier, events, photos).
-        try {
-            $this->sync($delivery);
-        } catch (\Throwable $e) {
-            Log::info('mrsool: webhook enrichment skipped: ' . $e->getMessage(), ['context' => 'mrsool']);
+        if (!$synced && $status) {
+            $this->applyRemote($delivery, $payload + ['id' => $remoteId, 'status' => $status]);
         }
 
         $event->update(['processed' => true]);
