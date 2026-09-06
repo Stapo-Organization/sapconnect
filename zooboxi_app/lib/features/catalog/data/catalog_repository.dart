@@ -71,6 +71,13 @@ class CatalogRepository {
     return asMapList(asMap(data)['categories']).map(CategoryNode.fromJson).toList();
   }
 
+  /// `GET /bundles` — «البكجات»: live bundles, ranked server-side for this
+  /// viewer (their pets' species, their food gauge, their reachable branch).
+  Future<List<ProductCard>> bundles() async {
+    final data = asMap(await _api.get('/bundles'));
+    return ProductCard.listFrom(data['bundles']);
+  }
+
   Future<ListingResult> products(ListingQuery query, int page) async {
     final data = await _api.get('/catalog/products', query: query.toQueryParameters(page));
     return ListingResult.fromJson(asMap(data));

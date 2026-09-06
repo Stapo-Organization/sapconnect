@@ -400,6 +400,16 @@ class LEn extends L {
   }
 
   @override
+  String get bundlesTitle => 'Bundles';
+
+  @override
+  String get bundlesEmpty => 'No bundles live right now';
+
+  @override
+  String get bundlesEmptyHint =>
+      'We are always building new bundles — check back soon.';
+
+  @override
   String get listingEmpty => 'No matching products';
 
   @override

@@ -163,6 +163,7 @@ void main() {
         'rail:trending',
         'banner:0',
         'feed_rail:foryou',
+        'feed_rail:bundles',
         'rail:bestsellers',
         'feed_rail:incity',
         'clearance_band',

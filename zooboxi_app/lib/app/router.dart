@@ -13,6 +13,7 @@ import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/data/catalog_models.dart';
 import '../features/catalog/data/product_models.dart';
 import '../features/catalog/presentation/categories_screen.dart';
+import '../features/catalog/presentation/bundles_screen.dart';
 import '../features/catalog/presentation/listing_screen.dart';
 import '../features/checkout/data/checkout_models.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
@@ -117,6 +118,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 : ListingQuery.fromJson(state.uri.queryParameters),
           ),
         ),
+      ),
+      // «البكجات» — live bundles ranked for this viewer.
+      GoRoute(
+        path: '/bundles',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => shellPage(state.pageKey, const BundlesScreen()),
       ),
       // A brand is a destination, not a filter: `/listing?brand=` throws away
       // the identity the customer came looking for.

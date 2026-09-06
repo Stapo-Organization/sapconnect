@@ -478,6 +478,7 @@ class HomePayload {
     HomeLayoutSlot('rail', key: 'trending'),
     HomeLayoutSlot('banner', index: 0),
     HomeLayoutSlot('feed_rail', key: 'foryou'),
+    HomeLayoutSlot('feed_rail', key: 'bundles'),
     HomeLayoutSlot('rail', key: 'bestsellers'),
     HomeLayoutSlot('feed_rail', key: 'incity'),
     HomeLayoutSlot('clearance_band'),
@@ -606,12 +607,17 @@ class HomeFeed {
     this.personal = PersonalSlot.none,
     this.forYou,
     this.inCity,
+    this.bundles,
     this.loginNudge = false,
   });
 
   final PersonalSlot personal;
   final FeedRail? forYou;
   final FeedRail? inCity;
+
+  /// «البكجات» — live bundles, already ranked server-side for this viewer
+  /// (their pets' species, their food gauge, their reachable branch).
+  final FeedRail? bundles;
 
   /// The server would have more to show if this person signed in.
   final bool loginNudge;
@@ -622,6 +628,7 @@ class HomeFeed {
         personal: PersonalSlot.fromJson(asMap(json['personal'])),
         forYou: FeedRail.maybe(json['foryou']),
         inCity: FeedRail.maybe(json['incity']),
+        bundles: FeedRail.maybe(json['bundles']),
         loginNudge: asBool(json['login_nudge']),
       );
 }

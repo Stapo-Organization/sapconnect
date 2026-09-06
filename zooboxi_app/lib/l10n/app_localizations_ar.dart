@@ -405,6 +405,15 @@ class LAr extends L {
   }
 
   @override
+  String get bundlesTitle => 'البكجات';
+
+  @override
+  String get bundlesEmpty => 'لا توجد بكجات معروضة الآن';
+
+  @override
+  String get bundlesEmptyHint => 'نجهّز حزماً جديدة باستمرار — عُد قريباً.';
+
+  @override
   String get listingEmpty => 'لا توجد منتجات مطابقة';
 
   @override

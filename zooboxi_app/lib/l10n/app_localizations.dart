@@ -775,6 +775,24 @@ abstract class L {
   /// **'{count, plural, =0{لا توجد نتائج} =1{نتيجة واحدة} =2{نتيجتان} few{{count} نتائج} many{{count} نتيجة} other{{count} نتيجة}}'**
   String listingResults(int count);
 
+  /// No description provided for @bundlesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'البكجات'**
+  String get bundlesTitle;
+
+  /// No description provided for @bundlesEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد بكجات معروضة الآن'**
+  String get bundlesEmpty;
+
+  /// No description provided for @bundlesEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'نجهّز حزماً جديدة باستمرار — عُد قريباً.'**
+  String get bundlesEmptyHint;
+
   /// No description provided for @listingEmpty.
   ///
   /// In ar, this message translates to:

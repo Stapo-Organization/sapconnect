@@ -428,6 +428,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           final rail = switch (slot.key) {
             'foryou' => feedData?.forYou,
             'incity' => feedData?.inCity,
+            'bundles' => feedData?.bundles,
             _ => null,
           };
           if (rail == null) break;
@@ -439,6 +440,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               products: products,
               zone: 'home_${slot.key}',
               onAdd: add,
+              // Bundles have a home of their own; the other feed rails don't.
+              onSeeAll:
+                  slot.key == 'bundles' ? () => context.push('/bundles') : null,
             ),
           );
 
