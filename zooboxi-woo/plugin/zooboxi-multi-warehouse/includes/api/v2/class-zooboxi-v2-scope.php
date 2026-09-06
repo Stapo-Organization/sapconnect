@@ -56,7 +56,8 @@ class Zooboxi_V2_Scope
      *   shelf:string, tier:string, codes:string[],
      *   warehouse_code:string, warehouse_name:string,
      *   label:string, icon:string, date:string,
-     *   express_available:bool, express_branch:string
+     *   express_available:bool, express_branch:string,
+     *   express_hours:array{open:string, close:string, closed:bool}|null
      * }|null
      */
     public static function current(): ?array
@@ -103,9 +104,19 @@ class Zooboxi_V2_Scope
 
         $shelf = Zooboxi_V2_Bootstrap::shelf();
 
+        // The branch whose SIGN the إكسبريس tab carries. Deliberately found
+        // ignoring the clock: at 11pm the tab must be able to say «يفتح 9 ص»
+        // instead of going blank, so opening hours are looked up from the
+        // branch that covers this address whether or not it is open now.
+        // The serving branch first: where two express zones overlap, the one
+        // taking the order owns the sign. The zone lookup only steps in when
+        // nobody is serving — the branch is shut, and the tab must still say
+        // when it opens instead of going blank.
+        $zone_express = $express ?: self::express_in_zone($lat, $lng);
+
         // ── إكسبريس: the dark store, only while it actually exists here.
         if ($shelf === 'express' && $express) {
-            return self::$memo = self::build('express', Zooboxi_Delivery_Engine::TYPE_EXPRESS, $express, [$express], $express);
+            return self::$memo = self::build('express', Zooboxi_Delivery_Engine::TYPE_EXPRESS, $express, [$express], $express, $zone_express);
         }
 
         // ── زوبكسي (and an express request from somewhere without express):
@@ -123,20 +134,118 @@ class Zooboxi_V2_Scope
                 ? Zooboxi_Delivery_Engine::TYPE_STANDARD
                 : Zooboxi_Delivery_Engine::TYPE_SHIPPING;
 
-            return self::$memo = self::build('all', $tier, $anchor, [$anchor], $express);
+            return self::$memo = self::build('all', $tier, $anchor, [$anchor], $express, $zone_express);
         }
 
         // ── No header — an app build from before the tabs: fastest shelf.
         if ($express) {
-            return self::$memo = self::build('auto', Zooboxi_Delivery_Engine::TYPE_EXPRESS, $express, [$express], $express);
+            return self::$memo = self::build('auto', Zooboxi_Delivery_Engine::TYPE_EXPRESS, $express, [$express], $express, $zone_express);
         }
         if ($central) {
-            return self::$memo = self::build('auto', Zooboxi_Delivery_Engine::TYPE_STANDARD, $central, [$central], null);
+            return self::$memo = self::build('auto', Zooboxi_Delivery_Engine::TYPE_STANDARD, $central, [$central], null, $zone_express);
         }
         if ($hub) {
-            return self::$memo = self::build('auto', Zooboxi_Delivery_Engine::TYPE_SHIPPING, $hub, [$hub], null);
+            return self::$memo = self::build('auto', Zooboxi_Delivery_Engine::TYPE_SHIPPING, $hub, [$hub], null, $zone_express);
         }
 
+        return null;
+    }
+
+    /**
+     * The nearest express branch whose ZONE covers this point, open or shut.
+     *
+     * Zooboxi_Warehouse_Manager::find_express_warehouses() drops a branch the
+     * moment it closes — right, for deciding what can be delivered, wrong for
+     * the sign above the door. This is the sign's lookup.
+     */
+    private static function express_in_zone(float $lat, float $lng): ?array
+    {
+        if (!class_exists('Zooboxi_Geo_Helper')) {
+            return null;
+        }
+
+        $best     = null;
+        $best_key = null;
+        // One extra warehouse read per request, and only for app requests:
+        // current() memoises its whole answer, so this runs once.
+        foreach (Zooboxi_Warehouse_Manager::get_active() as $wh) {
+            if (empty($wh['is_express_enabled'])) continue;
+            if (empty($wh['latitude']) || empty($wh['longitude'])) continue;
+            if (!Zooboxi_Warehouse_Manager::is_within_express_zone($wh, $lat, $lng)) continue;
+
+            $km = Zooboxi_Geo_Helper::distance($lat, $lng, (float) $wh['latitude'], (float) $wh['longitude']);
+            if ($best_key === null || $km < $best_key) {
+                $best_key = $km;
+                $best     = $wh;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Today's express opening hours for a branch, as plain "HH:MM" strings —
+     * the app formats and localises them. Null when the branch keeps no
+     * schedule at all (always open).
+     *
+     * @return array{open:string, close:string, closed:bool}|null
+     */
+    private static function hours(?array $wh): ?array
+    {
+        $raw = $wh['express_working_hours'] ?? null;
+        if (empty($raw)) {
+            return null;
+        }
+        $hours = is_string($raw) ? json_decode($raw, true) : $raw;
+        if (!is_array($hours)) {
+            return null;
+        }
+
+        try {
+            $now = new DateTime('now', new DateTimeZone('Asia/Riyadh'));
+        } catch (Exception $e) {
+            return null;
+        }
+
+        $today = $hours[strtolower($now->format('l'))] ?? null;
+
+        // A day the branch takes off is still a branch with hours: the app
+        // says «مغلق اليوم» rather than «غير متاح هنا», which would read as
+        // "express does not reach you" — a different, wrong sentence.
+        $closed = !is_array($today) || !empty($today['closed']);
+        if ($closed) {
+            $any = self::first_scheduled_day($hours);
+            if ($any === null) {
+                return null;
+            }
+            return ['open' => $any['open'], 'close' => $any['close'], 'closed' => true];
+        }
+
+        $open  = (string) ($today['open'] ?? '');
+        $close = (string) ($today['close'] ?? '');
+        if ($open === '' || $close === '') {
+            return null;
+        }
+
+        return ['open' => $open, 'close' => $close, 'closed' => false];
+    }
+
+    /**
+     * The first day in the schedule the branch actually works — used only to
+     * name hours on a day it is shut.
+     *
+     * @return array{open:string, close:string}|null
+     */
+    private static function first_scheduled_day(array $hours): ?array
+    {
+        foreach ($hours as $day) {
+            if (!is_array($day) || !empty($day['closed'])) continue;
+            $open  = (string) ($day['open'] ?? '');
+            $close = (string) ($day['close'] ?? '');
+            if ($open !== '' && $close !== '') {
+                return ['open' => $open, 'close' => $close];
+            }
+        }
         return null;
     }
 
@@ -144,8 +253,10 @@ class Zooboxi_V2_Scope
      * @param array      $anchor  The warehouse whose promise names the shelf.
      * @param array[]    $rungs   Every warehouse whose stock belongs on it.
      * @param array|null $express The express branch serving this point, if any.
+     * @param array|null $sign    The express branch whose hours the tab shows,
+     *                            which exists even while it is shut.
      */
-    private static function build(string $shelf, string $tier, array $anchor, array $rungs, ?array $express): array
+    private static function build(string $shelf, string $tier, array $anchor, array $rungs, ?array $express, ?array $sign = null): array
     {
         $pres  = Zooboxi_Fulfillment::tier_presentation($tier);
         $codes = [];
@@ -167,6 +278,7 @@ class Zooboxi_V2_Scope
             'date'              => (string) $pres['date'],
             'express_available' => $express !== null,
             'express_branch'    => $express ? self::wh_name($express) : '',
+            'express_hours'     => self::hours($sign ?: $express),
         ];
     }
 
@@ -319,6 +431,9 @@ class Zooboxi_V2_Scope
             'date'              => $scope['date'],
             'express_available' => $scope['express_available'],
             'express_branch'    => $scope['express_branch'],
+            // "HH:MM" pair — the app writes the sign («9 ص – 11 م») and, out
+            // of hours, the reopening time, in its own locale.
+            'express_hours'     => $scope['express_hours'],
             'note'              => self::note($scope),
         ];
     }
