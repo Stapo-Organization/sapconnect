@@ -306,6 +306,15 @@ class LEn extends L {
       'Express delivery is not available at your location';
 
   @override
+  String get shelfExpressSub => 'Within 2 hours';
+
+  @override
+  String get shelfAllSub => 'The whole store';
+
+  @override
+  String get shelfExpressOffSub => 'Not here yet';
+
+  @override
   String get categoriesTitle => 'Categories';
 
   @override

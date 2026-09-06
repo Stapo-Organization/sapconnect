@@ -20,6 +20,8 @@ import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
 import '../../../core/location/location_controller.dart';
+import '../../../core/motion/motion.dart';
+import '../../../core/shelf/shelf_controller.dart';
 import '../../../core/session/session_controller.dart';
 import '../../location/presentation/location_drift_sheet.dart';
 import '../../../core/notifications/local_notify.dart';
@@ -34,7 +36,6 @@ import 'widgets/clearance_band.dart';
 import 'widgets/family_card.dart';
 import 'widgets/hero_carousel.dart';
 import 'widgets/home_header.dart';
-import 'widgets/scope_band.dart';
 import 'widgets/missions_strip.dart';
 import 'widgets/trust_strip.dart';
 
@@ -143,6 +144,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     final statusTop = MediaQuery.paddingOf(context).top;
 
+    final shelf = ref.watch(shelfProvider);
+
     final scroll = NotificationListener<ScrollNotification>(
       onNotification: _onScroll,
       child: RefreshIndicator.adaptive(
@@ -158,16 +161,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           slivers: [
             if (canvas) ...[
               SliverToBoxAdapter(
-                child: HeroCarousel(slides: payload.hero, campaigns: payload.campaigns),
+                child: HeroCarousel(
+                  slides: payload.hero,
+                  campaigns: payload.campaigns,
+                  scope: payload.scope,
+                ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
             ] else
-              const SliverToBoxAdapter(child: HomeHeader()),
-            // What this address can actually be sent, named before the first
-            // rail — a one-warehouse catalogue must explain itself or it looks
-            // like an out-of-stock store.
-            if (payload?.scope != null)
-              SliverToBoxAdapter(child: ScopeBand(scope: payload!.scope!)),
+              SliverToBoxAdapter(child: HomeHeader(scope: payload?.scope)),
             if (payload != null && !payload.isEmpty)
               ..._slots(context, ref, payload)
             else if (payload != null)
@@ -208,13 +210,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ? SystemUiOverlayStyle.light
         : SystemUiOverlayStyle.dark;
 
+    // Crossing the tabs replays the whole page from the other side — a
+    // storefront enters, it doesn't refresh. Directional: إكسبريس lives at
+    // the start edge, زوبكسي at the end, in both reading directions.
+    final storefront = AnimatedSwitcher(
+      duration: context.motion(const Duration(milliseconds: 380)),
+      switchInCurve: Motion.emphasized,
+      switchOutCurve: Motion.emphasized.flipped,
+      layoutBuilder: (current, previous) =>
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
+      transitionBuilder: (child, animation) {
+        final entering = child.key == ValueKey(shelf);
+        final fromStart = (child.key == const ValueKey(Shelf.express)) == entering;
+        final dx = (fromStart ? -0.12 : 0.12) * (context.isRtl ? -1 : 1);
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween(begin: Offset(dx, 0), end: Offset.zero).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: KeyedSubtree(key: ValueKey(shelf), child: scroll),
+    );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: statusStyle,
       child: Scaffold(
         body: canvas
             ? Stack(
                 children: [
-                  scroll,
+                  storefront,
                   // Pinned over the feed: the address that scrolled away with
                   // the canvas, back within thumb's reach.
                   PositionedDirectional(
@@ -225,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ],
               )
-            : SafeArea(bottom: false, child: scroll),
+            : SafeArea(bottom: false, child: storefront),
       ),
     );
   }

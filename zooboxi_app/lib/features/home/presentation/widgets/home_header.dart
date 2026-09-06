@@ -11,7 +11,9 @@ import '../../../../core/motion/motion.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
+import 'shelf_ribbon.dart';
 import 'shelf_tabs.dart';
 
 /// The home header: who we're delivering to, and the two things a customer
@@ -21,9 +23,14 @@ import 'shelf_tabs.dart';
 /// header fuses with — so every stroke turns light and the search field stays
 /// a bright, obvious well on top of the color.
 class HomeHeader extends ConsumerWidget {
-  const HomeHeader({super.key, this.onCanvas = false});
+  const HomeHeader({super.key, this.onCanvas = false, this.scope});
 
   final bool onCanvas;
+
+  /// The active shelf's server sentence for the ribbon. Null (the ghost twin,
+  /// a payload still loading) falls back to the shelf's own line — same
+  /// single-line height either way, so ghost and overlay always agree.
+  final CatalogScope? scope;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,6 +81,12 @@ class HomeHeader extends ConsumerWidget {
               onTap: () => context.push('/search'),
               onScan: () => context.push('/scan'),
             ),
+          ),
+          // The fascia board: the active storefront's promise closes the
+          // header in that store's own colour.
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 8, end: 8, top: 8),
+            child: ShelfRibbon(scope: scope),
           ),
         ],
       ),

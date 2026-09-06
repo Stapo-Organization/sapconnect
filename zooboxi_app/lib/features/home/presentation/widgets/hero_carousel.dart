@@ -104,10 +104,13 @@ abstract final class HeroMetrics {
 /// page reserves its exact height with an invisible twin — so the two can
 /// never drift apart, at any text size.
 class HeroCarousel extends ConsumerStatefulWidget {
-  const HeroCarousel({super.key, required this.slides, this.campaigns = const []});
+  const HeroCarousel({super.key, required this.slides, this.campaigns = const [], this.scope});
 
   final List<HeroSlide> slides;
   final List<Campaign> campaigns;
+
+  /// The active shelf's sentence, threaded down to the header's ribbon.
+  final CatalogScope? scope;
 
   /// Whether there is anything at all to show — campaigns count, which is the
   /// point: a campaign-only hero used to be hidden by an `hero.isEmpty` gate.
@@ -278,7 +281,7 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: statusTop),
-                const HomeHeader(onCanvas: true),
+                HomeHeader(onCanvas: true, scope: widget.scope),
                 SizedBox(height: HeroMetrics.height(context, width)),
                 const SizedBox(height: HeroMetrics.dotsBand),
               ],

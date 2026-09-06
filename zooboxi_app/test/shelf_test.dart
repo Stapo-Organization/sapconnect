@@ -123,7 +123,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(c.read(shelfProvider), Shelf.all);
-      expect(find.textContaining('غير متاح'), findsOneWidget);
+      // The dimmed sign already says «غير متاح هنا»; the toast is the longer
+      // sentence naming the location.
+      expect(find.text('غير متاح هنا'), findsOneWidget);
+      expect(find.text('التوصيل السريع غير متاح في موقعك الحالي'), findsOneWidget);
       // Let the toast's own dismissal timer fire before the tree goes away.
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();

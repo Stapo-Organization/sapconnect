@@ -305,6 +305,15 @@ class LAr extends L {
   String get shelfExpressClosed => 'التوصيل السريع غير متاح في موقعك الحالي';
 
   @override
+  String get shelfExpressSub => 'خلال ساعتين';
+
+  @override
+  String get shelfAllSub => 'كل المتجر';
+
+  @override
+  String get shelfExpressOffSub => 'غير متاح هنا';
+
+  @override
   String get categoriesTitle => 'الأقسام';
 
   @override

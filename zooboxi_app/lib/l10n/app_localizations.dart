@@ -643,6 +643,24 @@ abstract class L {
   /// **'التوصيل السريع غير متاح في موقعك الحالي'**
   String get shelfExpressClosed;
 
+  /// No description provided for @shelfExpressSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلال ساعتين'**
+  String get shelfExpressSub;
+
+  /// No description provided for @shelfAllSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل المتجر'**
+  String get shelfAllSub;
+
+  /// No description provided for @shelfExpressOffSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير متاح هنا'**
+  String get shelfExpressOffSub;
+
   /// No description provided for @categoriesTitle.
   ///
   /// In ar, this message translates to:
