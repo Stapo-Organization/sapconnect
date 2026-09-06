@@ -373,6 +373,22 @@ class Zooboxi_Product_DTO
             return null; // no location → the app shows the "set your location" chip
         }
 
+        // On a storefront tab the shelf IS the promise: everything on إكسبريس
+        // is branch stock («خلال ساعتين»), everything on زوبكسي is main-
+        // warehouse stock («يوصلك غدًا») — and زوبكسي never mentions the fast
+        // tier, by the owner's rule, even for products the branch also holds.
+        // The catalogue filter already guarantees membership, so no per-card
+        // stock resolution is needed at all.
+        $scope = Zooboxi_V2_Scope::current();
+        if ($scope !== null && in_array($scope['shelf'], ['express', 'all'], true)) {
+            $tier = (string) $scope['tier'];
+            return [
+                'tier'  => $tier,
+                'label' => self::promise_label($tier),
+                'icon'  => self::tier_icon($tier),
+            ];
+        }
+
         $delivery = Zooboxi_Delivery_Engine::detect_product_delivery($product_id, $lat, $lng);
         $tier     = (string) ($delivery['type'] ?? Zooboxi_Delivery_Engine::TYPE_SHIPPING);
 
@@ -431,7 +447,7 @@ class Zooboxi_Product_DTO
     public static function delivery_plan(int $product_id, float $lat, float $lng, int $qty = 1, int $units = 1): array
     {
         $units = max(1, $units);
-        $plan  = Zooboxi_Fulfillment::resolve($product_id, max(1, $qty) * $units, $lat, $lng);
+        $plan  = self::shelf_plan($product_id, max(1, $qty) * $units, $lat, $lng);
         $tiers = [];
 
         foreach ($plan['tiers'] as $t) {
@@ -452,13 +468,96 @@ class Zooboxi_Product_DTO
             ];
         }
 
+        $headline = Zooboxi_Fulfillment::headline($plan);
+        if (empty($tiers) && !empty($plan['other_shelf'])) {
+            $headline = self::cross_shelf_headline((string) ($plan['shelf'] ?? ''), (string) $plan['other_shelf']);
+        }
+
         return [
-            'headline'        => Zooboxi_Fulfillment::headline($plan),
+            'headline'        => $headline,
             'tiers'           => $tiers,
             'reachable_total' => min(self::STOCK_DISPLAY_CAP, Zooboxi_Units::units_from_pieces((int) $plan['reachable_total'], $units)),
             'fastest'         => (string) $plan['fastest'],
             'is_split'        => (bool) $plan['is_split'],
         ];
+    }
+
+    /**
+     * Fulfillment::resolve, seen through the active storefront.
+     *
+     * On a tab, only the shelf's own warehouses exist: إكسبريس never offers
+     * the central as a fallback, and زوبكسي never mentions the branch — the
+     * dark store's stock is not this storefront's to promise. Tiers outside
+     * the shelf are dropped and the allocation, totals and shortfall are
+     * recomputed from what remains. Off the tabs (an older build) the plan
+     * passes through untouched.
+     */
+    private static function shelf_plan(int $product_id, int $qty, float $lat, float $lng): array
+    {
+        $plan  = Zooboxi_Fulfillment::resolve($product_id, $qty, $lat, $lng);
+        $scope = Zooboxi_V2_Scope::current();
+        if ($scope === null || !in_array($scope['shelf'], ['express', 'all'], true)) {
+            return $plan;
+        }
+
+        $codes = array_flip($scope['codes']);
+        $tiers = array_values(array_filter(
+            (array) $plan['tiers'],
+            static fn($t) => isset($codes[(string) ($t['warehouse_code'] ?? '')])
+        ));
+
+        // A product reached from outside the storefront's own catalogue — a
+        // wishlist entry, a scanned barcode, a shared link — may live on the
+        // OTHER shelf. Remember that, so the plan can point across instead of
+        // claiming the whole area cannot be served.
+        $other = '';
+        if (empty($tiers) && !empty($plan['tiers'])) {
+            $other = (string) ($plan['tiers'][0]['tier'] ?? '');
+        }
+
+        $alloc     = [];
+        $remaining = $qty;
+        $reachable = 0;
+        foreach ($tiers as $t) {
+            $reachable += (int) $t['stock'];
+            if ($remaining > 0) {
+                $take = min($remaining, (int) $t['stock']);
+                if ($take > 0) {
+                    $alloc[]    = array_merge($t, ['qty' => $take]);
+                    $remaining -= $take;
+                }
+            }
+        }
+
+        return array_merge($plan, [
+            'tiers'           => $tiers,
+            'allocation'      => $alloc,
+            'reachable_total' => $reachable,
+            'fulfillable'     => min($qty, $reachable),
+            'shortfall'       => max(0, $qty - $reachable),
+            'is_split'        => count($alloc) > 1,
+            'fastest'         => $alloc[0]['tier'] ?? ($tiers[0]['tier'] ?? Zooboxi_Delivery_Engine::TYPE_SHIPPING),
+            'slowest'         => !empty($alloc) ? end($alloc)['tier'] : Zooboxi_Delivery_Engine::TYPE_SHIPPING,
+            'other_shelf'     => $other,
+            'shelf'           => (string) $scope['shelf'],
+        ]);
+    }
+
+    /** «متوفر في المتجر الآخر» — the honest line for a cross-shelf product. */
+    private static function cross_shelf_headline(string $shelf, string $other_tier): string
+    {
+        if ($shelf === 'express') {
+            // It exists on زوبكسي.
+            return Zooboxi_V2_Bootstrap::pick(
+                'غير متوفر في إكسبريس — تجده في متجر زوبكسي، يوصلك غدًا',
+                'Not on Express — find it in the Zooboxi store, arriving tomorrow'
+            );
+        }
+        // It exists only at the express branch.
+        return Zooboxi_V2_Bootstrap::pick(
+            'من متجر إكسبريس — بدّل إليه ليصلك خلال ساعتين',
+            'An Express item — switch over and it reaches you in two hours'
+        );
     }
 
     /**
@@ -469,7 +568,7 @@ class Zooboxi_Product_DTO
     private static function per_warehouse(int $product_id, float $lat, float $lng, int $units = 1): array
     {
         $units = max(1, $units);
-        $plan  = Zooboxi_Fulfillment::resolve($product_id, 1, $lat, $lng);
+        $plan  = self::shelf_plan($product_id, 1, $lat, $lng);
         $out   = [];
         foreach ($plan['tiers'] as $t) {
             $out[] = [

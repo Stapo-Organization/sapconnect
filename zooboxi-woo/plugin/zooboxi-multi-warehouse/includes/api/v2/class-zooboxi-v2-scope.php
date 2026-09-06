@@ -109,21 +109,21 @@ class Zooboxi_V2_Scope
         }
 
         // ── زوبكسي (and an express request from somewhere without express):
-        //    everything reachable, guaranteed by the slowest rung present.
+        //    the MAIN warehouse alone — owner's rule. Not a union with the
+        //    express branch: the dark store's shelf is its own, its stock is
+        //    not advertised here, and nothing on this storefront ever says
+        //    "خلال ساعتين". One warehouse, one promise: tomorrow in a served
+        //    city, a dated shipment elsewhere.
         if ($shelf !== '') {
-            $rungs = array_values(array_filter([$express, $central, $hub]));
-            if (empty($rungs)) {
+            $anchor = $central ?: $hub;
+            if ($anchor === null) {
                 return null;
             }
-            // The guarantee the whole shelf can honour comes from the slowest
-            // NON-express rung — express items are a faster subset, flagged by
-            // their own chips.
-            $anchor = $central ?: ($hub ?: $express);
-            $tier   = $central
+            $tier = $central
                 ? Zooboxi_Delivery_Engine::TYPE_STANDARD
-                : ($hub ? Zooboxi_Delivery_Engine::TYPE_SHIPPING : Zooboxi_Delivery_Engine::TYPE_EXPRESS);
+                : Zooboxi_Delivery_Engine::TYPE_SHIPPING;
 
-            return self::$memo = self::build('all', $tier, $anchor, $rungs, $express);
+            return self::$memo = self::build('all', $tier, $anchor, [$anchor], $express);
         }
 
         // ── No header — an app build from before the tabs: fastest shelf.
@@ -326,14 +326,6 @@ class Zooboxi_V2_Scope
     private static function note(array $scope): string
     {
         $en = Zooboxi_V2_Bootstrap::lang() === 'en';
-
-        // The full store, browsed by someone who also has the express tab:
-        // point at the ⚡ subset instead of restating the slow guarantee.
-        if ($scope['shelf'] === 'all' && $scope['express_available']) {
-            return $en
-                ? 'The whole store — items marked ⚡ reach you within two hours'
-                : 'كل المتجر — الأصناف الموسومة بـ⚡ تصلك خلال ساعتين';
-        }
 
         // One line on a phone-width ribbon: every word earns its place.
         switch ($scope['tier']) {

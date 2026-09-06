@@ -204,11 +204,21 @@ class Zooboxi_V2_Catalog_Controller
         $shop = function_exists('wc_get_page_permalink') ? (wc_get_page_permalink('shop') ?: null) : null;
         $out  = [];
 
-        // 1) The speed promise — but only the one this address actually gets.
-        // "خلال ساعتين" on the hero of a customer outside every express zone is
-        // an over-promise the cart would immediately contradict.
+        // 1) The speed promise — the STOREFRONT's promise, not the address's.
+        // إكسبريس sells the two hours; زوبكسي sells tomorrow and, by the
+        // owner's rule, never utters the fast tier even where it exists. An
+        // older build (no tab header) keeps the address-based behaviour, and
+        // a shipping-only shelf gets no speed hero at all — clearance, the
+        // brand and the bestsellers carry the top instead.
         $scope = Zooboxi_V2_Scope::current();
-        if ($scope === null || !empty($scope['express_available'])) {
+        $shelf = $scope['shelf'] ?? '';
+        $express_hero = $scope === null
+            || $shelf === 'express'
+            || ($shelf === 'auto' && !empty($scope['express_available']));
+        $tomorrow_hero = !$express_hero
+            && ($scope['tier'] ?? '') === Zooboxi_Delivery_Engine::TYPE_STANDARD;
+
+        if ($express_hero) {
             $out[] = $this->auto_slide(
                 'express',
                 Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered in two hours'),
@@ -218,17 +228,15 @@ class Zooboxi_V2_Catalog_Controller
                 Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
                 $shop
             );
-        } elseif ($scope['tier'] === Zooboxi_Delivery_Engine::TYPE_STANDARD) {
+        } elseif ($tomorrow_hero) {
             $out[] = $this->auto_slide(
                 'express',
                 Zooboxi_V2_Bootstrap::pick('اطلب الآن ويوصلك غدًا', 'Order now, arrives tomorrow'),
-                Zooboxi_V2_Bootstrap::pick('من مستودع مدينتك مباشرة إلى بابك', 'From your city\'s warehouse straight to your door'),
+                Zooboxi_V2_Bootstrap::pick('من مستودعنا الرئيسي مباشرة إلى بابك', 'From our main warehouse straight to your door'),
                 Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
                 $shop
             );
         }
-        // Shipping-only addresses get no speed slide — a 4-5 day promise is
-        // not a hero; clearance, the brand and the bestsellers carry the top.
 
         // 2) Clearance — only when the collection actually has stock. The badge
         // carries the real number ("up to 45% off") because "offers" without a
