@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
+import '../../../core/location/location_controller.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/error_text.dart';
@@ -153,7 +154,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (_draftAddress == null &&
         (_addressId == null ||
             !review.addresses.any((a) => a.id == _addressId))) {
-      _addressId = review.defaultAddress?.id;
+      // The address the whole shop has been quoting — the header said «يوصلك
+      // في العمل», the stock and the ETA were computed for it, so checkout
+      // opening on «المنزل» would be the app changing its mind at the till.
+      final active = ref.read(locationProvider).location.addressId;
+      final quoted = active == null
+          ? null
+          : review.addresses.where((a) => a.id == active).firstOrNull;
+      _addressId = (quoted ?? review.defaultAddress)?.id;
     }
     if (_paymentId == null ||
         !review.paymentMethods.any((m) => m.id == _paymentId)) {

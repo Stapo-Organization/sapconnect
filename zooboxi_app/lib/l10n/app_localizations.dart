@@ -487,6 +487,72 @@ abstract class L {
   /// **'التوصيل إلى'**
   String get locationDeliverTo;
 
+  /// No description provided for @locationSheetSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّد موقعك على الخريطة ليصل الطلب إلى بابك بالضبط — ونحفظه لك للطلبات القادمة'**
+  String get locationSheetSubtitle;
+
+  /// No description provided for @locationMyAddresses.
+  ///
+  /// In ar, this message translates to:
+  /// **'عناويني'**
+  String get locationMyAddresses;
+
+  /// No description provided for @locationSetOnMap.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّد موقعي على الخريطة'**
+  String get locationSetOnMap;
+
+  /// No description provided for @locationAddOnMap.
+  ///
+  /// In ar, this message translates to:
+  /// **'عنوان جديد على الخريطة'**
+  String get locationAddOnMap;
+
+  /// No description provided for @locationSignInToSave.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل الدخول لتحفظ عناوينك'**
+  String get locationSignInToSave;
+
+  /// No description provided for @locationSignInReason.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل الدخول لتحفظ عناوينك وتختار بينها في كل طلب'**
+  String get locationSignInReason;
+
+  /// No description provided for @locationResolveFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحديد الموقع، حاول مرة أخرى'**
+  String get locationResolveFailed;
+
+  /// No description provided for @locationAddressNotSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حفظ العنوان في دفترك — سنوصّل إليه الآن، وتقدر تحفظه لاحقًا'**
+  String get locationAddressNotSaved;
+
+  /// No description provided for @locationSheetSubtitlePick.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر عنوانًا من عناوينك، أو حدّد موقعًا جديدًا على الخريطة'**
+  String get locationSheetSubtitlePick;
+
+  /// No description provided for @locationArrivesAtPoint.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوصلك إلى موقعك'**
+  String get locationArrivesAtPoint;
+
+  /// No description provided for @locationAddressesFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل عناوينك'**
+  String get locationAddressesFailed;
+
   /// No description provided for @locationChoose.
   ///
   /// In ar, this message translates to:
@@ -685,11 +751,11 @@ abstract class L {
   /// **'مفتوح الآن'**
   String get shelfExpressOpenNow;
 
-  /// No description provided for @locationArrivesAt.
+  /// No description provided for @locationArrivesAtNamed.
   ///
   /// In ar, this message translates to:
-  /// **'يوصلك في المنزل'**
-  String get locationArrivesAt;
+  /// **'يوصلك في {label}'**
+  String locationArrivesAtNamed(String label);
 
   /// No description provided for @etaAt.
   ///

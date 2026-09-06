@@ -71,6 +71,17 @@
   "citiesEmpty": "لا توجد مدن مطابقة",
   "locationSheetTitle": "التوصيل إلى",
   "locationDeliverTo": "التوصيل إلى",
+  "locationSheetSubtitle": "حدّد موقعك على الخريطة ليصل الطلب إلى بابك بالضبط — ونحفظه لك للطلبات القادمة",
+  "locationMyAddresses": "عناويني",
+  "locationSetOnMap": "حدّد موقعي على الخريطة",
+  "locationAddOnMap": "عنوان جديد على الخريطة",
+  "locationSignInToSave": "سجّل الدخول لتحفظ عناوينك",
+  "locationSignInReason": "سجّل الدخول لتحفظ عناوينك وتختار بينها في كل طلب",
+  "locationResolveFailed": "تعذّر تحديد الموقع، حاول مرة أخرى",
+  "locationAddressNotSaved": "تعذّر حفظ العنوان في دفترك — سنوصّل إليه الآن، وتقدر تحفظه لاحقًا",
+  "locationSheetSubtitlePick": "اختر عنوانًا من عناوينك، أو حدّد موقعًا جديدًا على الخريطة",
+  "locationArrivesAtPoint": "يوصلك إلى موقعك",
+  "locationAddressesFailed": "تعذّر تحميل عناوينك",
   "locationChoose": "حدّد موقعك",
   "locationChange": "تغيير",
   "locationUnknownCity": "غير محدّد",
@@ -152,7 +163,14 @@
   },
   "shelfExpressClosedToday": "مغلق اليوم",
   "shelfExpressOpenNow": "مفتوح الآن",
-  "locationArrivesAt": "يوصلك في المنزل",
+  "locationArrivesAtNamed": "يوصلك في {label}",
+  "@locationArrivesAtNamed": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "etaAt": "الساعة {time}",
   "@etaAt": {
     "placeholders": {

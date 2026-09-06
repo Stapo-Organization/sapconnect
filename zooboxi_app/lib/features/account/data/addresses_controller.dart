@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'dart:async';
+
+import '../../../core/location/location_controller.dart';
 import '../../../core/session/session_controller.dart';
 import 'account_models.dart';
 import 'account_repository.dart';
@@ -42,7 +45,21 @@ class AddressesController extends AsyncNotifier<List<Address>> {
         ? await _repo.updateAddress(address.id, address)
         : await _repo.createAddress(address);
     state = AsyncValue.data(result.addresses);
-    return result.address;
+
+    // Moving the pin of the address we are delivering to moves the delivery
+    // point with it. Without this the shop would keep quoting the old street
+    // — stock, promise and all — while the book already shows the new one.
+    final saved = result.address;
+    final current = ref.read(locationProvider).location;
+    if (saved.id == current.addressId && saved.lat != null && saved.lng != null) {
+      unawaited(ref.read(locationProvider.notifier).resolve(
+            saved.lat!,
+            saved.lng!,
+            addressId: saved.id,
+            label: saved.label,
+          ));
+    }
+    return saved;
   }
 
   Future<void> remove(String id) async {

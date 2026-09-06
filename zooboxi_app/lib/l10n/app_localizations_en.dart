@@ -212,6 +212,44 @@ class LEn extends L {
   String get locationDeliverTo => 'Deliver to';
 
   @override
+  String get locationSheetSubtitle =>
+      'Pin your spot on the map so the order reaches your door exactly — we keep it for next time';
+
+  @override
+  String get locationMyAddresses => 'My addresses';
+
+  @override
+  String get locationSetOnMap => 'Pin my location on the map';
+
+  @override
+  String get locationAddOnMap => 'New address on the map';
+
+  @override
+  String get locationSignInToSave => 'Sign in to save your addresses';
+
+  @override
+  String get locationSignInReason =>
+      'Sign in to save your addresses and pick between them at every order';
+
+  @override
+  String get locationResolveFailed =>
+      'We couldn\'t set that location — please try again';
+
+  @override
+  String get locationAddressNotSaved =>
+      'We couldn\'t save it to your address book — we\'ll deliver there now, and you can save it later';
+
+  @override
+  String get locationSheetSubtitlePick =>
+      'Choose one of your addresses, or pin a new one on the map';
+
+  @override
+  String get locationArrivesAtPoint => 'Arriving at your location';
+
+  @override
+  String get locationAddressesFailed => 'We couldn\'t load your addresses';
+
+  @override
   String get locationChoose => 'Set your location';
 
   @override
@@ -331,7 +369,9 @@ class LEn extends L {
   String get shelfExpressOpenNow => 'Open now';
 
   @override
-  String get locationArrivesAt => 'Arriving at home';
+  String locationArrivesAtNamed(String label) {
+    return 'Arriving at $label';
+  }
 
   @override
   String etaAt(String time) {

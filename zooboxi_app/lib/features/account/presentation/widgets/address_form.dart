@@ -87,9 +87,14 @@ class AddressForm extends StatelessWidget {
             controller: customLabel,
             enabled: enabled,
             textInputAction: TextInputAction.next,
+            // A name for the place, not a description of it: the header says
+            // «يوصلك في {label}» on one line and a sentence would push the
+            // address itself off the chip.
+            maxLength: 24,
             decoration: InputDecoration(
               labelText: l.addressLabelTitle,
               hintText: l.commonOptional,
+              counterText: '',
             ),
           ),
         ],

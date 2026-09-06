@@ -13,9 +13,13 @@ import 'package:zooboxi_app/features/location/presentation/location_sheet.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
 class _AtKingFahd extends LocationController {
-  _AtKingFahd(this._type);
+  _AtKingFahd(this._type, {this.label});
 
   final String _type;
+
+  /// What the customer calls this place, when the point came from one of
+  /// their saved addresses.
+  final String? label;
 
   @override
   LocationState build() => LocationState(
@@ -25,6 +29,7 @@ class _AtKingFahd extends LocationController {
           city: 'الرياض',
           district: 'الملك فهد',
           deliveryType: _type,
+          label: label,
         ),
       );
 }
@@ -62,12 +67,13 @@ Future<void> _pump(
   required String deliveryType,
   CatalogScope? scope,
   Widget? child,
+  String? label,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final container = ProviderContainer(overrides: [
     localStoreProvider.overrideWithValue(LocalStore(prefs)),
-    locationProvider.overrideWith(() => _AtKingFahd(deliveryType)),
+    locationProvider.overrideWith(() => _AtKingFahd(deliveryType, label: label)),
   ]);
   addTearDown(container.dispose);
 
@@ -108,13 +114,28 @@ void main() {
   testWidgets('the header says where it lands, not how fast we are', (tester) async {
     await _pump(tester, deliveryType: 'express', scope: _scope('express'));
 
-    expect(find.text('يوصلك في المنزل'), findsOneWidget);
+    // No saved address behind this point yet, so the chip says where without
+    // claiming to know what the customer calls it.
+    expect(find.text('يوصلك إلى موقعك'), findsOneWidget);
     expect(find.text('حي الملك فهد، الرياض'), findsOneWidget);
     // The hour itself moves with the real clock — that it is *an* arrival
     // sentence is what the header owes; the exact wording is asserted below
     // at fixed moments.
     expect(_arrival(), findsOneWidget);
     expect(find.text('خلال ساعتين'), findsNothing);
+  });
+
+  testWidgets('an address the customer named is called by its name',
+      (tester) async {
+    await _pump(
+      tester,
+      deliveryType: 'express',
+      scope: _scope('express'),
+      label: 'العمل',
+    );
+
+    expect(find.text('يوصلك في العمل'), findsOneWidget);
+    expect(find.text('يوصلك إلى موقعك'), findsNothing);
   });
 
   testWidgets('express answers with a clock time', (tester) async {

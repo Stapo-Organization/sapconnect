@@ -65,6 +65,17 @@
   "citiesEmpty": "No matching cities",
   "locationSheetTitle": "Deliver to",
   "locationDeliverTo": "Deliver to",
+  "locationSheetSubtitle": "Pin your spot on the map so the order reaches your door exactly — we keep it for next time",
+  "locationMyAddresses": "My addresses",
+  "locationSetOnMap": "Pin my location on the map",
+  "locationAddOnMap": "New address on the map",
+  "locationSignInToSave": "Sign in to save your addresses",
+  "locationSignInReason": "Sign in to save your addresses and pick between them at every order",
+  "locationResolveFailed": "We couldn't set that location — please try again",
+  "locationAddressNotSaved": "We couldn't save it to your address book — we'll deliver there now, and you can save it later",
+  "locationSheetSubtitlePick": "Choose one of your addresses, or pin a new one on the map",
+  "locationArrivesAtPoint": "Arriving at your location",
+  "locationAddressesFailed": "We couldn't load your addresses",
   "locationChoose": "Set your location",
   "locationChange": "Change",
   "locationUnknownCity": "Not set",
@@ -143,7 +154,14 @@
   },
   "shelfExpressClosedToday": "Closed today",
   "shelfExpressOpenNow": "Open now",
-  "locationArrivesAt": "Arriving at home",
+  "locationArrivesAtNamed": "Arriving at {label}",
+  "@locationArrivesAtNamed": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "etaAt": "by {time}",
   "@etaAt": {
     "placeholders": {

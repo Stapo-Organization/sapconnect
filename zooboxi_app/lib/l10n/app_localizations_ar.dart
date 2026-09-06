@@ -211,6 +211,43 @@ class LAr extends L {
   String get locationDeliverTo => 'التوصيل إلى';
 
   @override
+  String get locationSheetSubtitle =>
+      'حدّد موقعك على الخريطة ليصل الطلب إلى بابك بالضبط — ونحفظه لك للطلبات القادمة';
+
+  @override
+  String get locationMyAddresses => 'عناويني';
+
+  @override
+  String get locationSetOnMap => 'حدّد موقعي على الخريطة';
+
+  @override
+  String get locationAddOnMap => 'عنوان جديد على الخريطة';
+
+  @override
+  String get locationSignInToSave => 'سجّل الدخول لتحفظ عناوينك';
+
+  @override
+  String get locationSignInReason =>
+      'سجّل الدخول لتحفظ عناوينك وتختار بينها في كل طلب';
+
+  @override
+  String get locationResolveFailed => 'تعذّر تحديد الموقع، حاول مرة أخرى';
+
+  @override
+  String get locationAddressNotSaved =>
+      'تعذّر حفظ العنوان في دفترك — سنوصّل إليه الآن، وتقدر تحفظه لاحقًا';
+
+  @override
+  String get locationSheetSubtitlePick =>
+      'اختر عنوانًا من عناوينك، أو حدّد موقعًا جديدًا على الخريطة';
+
+  @override
+  String get locationArrivesAtPoint => 'يوصلك إلى موقعك';
+
+  @override
+  String get locationAddressesFailed => 'تعذّر تحميل عناوينك';
+
+  @override
   String get locationChoose => 'حدّد موقعك';
 
   @override
@@ -330,7 +367,9 @@ class LAr extends L {
   String get shelfExpressOpenNow => 'مفتوح الآن';
 
   @override
-  String get locationArrivesAt => 'يوصلك في المنزل';
+  String locationArrivesAtNamed(String label) {
+    return 'يوصلك في $label';
+  }
 
   @override
   String etaAt(String time) {

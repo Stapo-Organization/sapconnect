@@ -22,6 +22,8 @@ class ZbLocation {
     this.warehouseCode,
     this.warehouseName,
     this.promiseLabel,
+    this.addressId,
+    this.label,
     this.setAt,
   });
 
@@ -39,6 +41,15 @@ class ZbLocation {
 
   /// Human promise for the header chip, e.g. "خلال ساعتين".
   final String? promiseLabel;
+
+  /// The saved address this point came from, when it came from one. Kept so
+  /// the sheet can tick the row the customer is actually being delivered to.
+  final String? addressId;
+
+  /// What the customer calls this place — «المنزل», «العمل». The header says
+  /// «يوصلك في المنزل» with it, and something vaguer without.
+  final String? label;
+
   final DateTime? setAt;
 
   static const ZbLocation none = ZbLocation();
@@ -118,6 +129,8 @@ class ZbLocation {
         warehouseCode: asStringOrNull(json['warehouse_code']),
         warehouseName: asStringOrNull(json['warehouse_name']),
         promiseLabel: asStringOrNull(json['promise_label']),
+        addressId: asStringOrNull(json['address_id']),
+        label: asStringOrNull(json['label']),
         setAt: asDate(json['set_at']),
       );
 
@@ -131,6 +144,8 @@ class ZbLocation {
         'warehouse_code': warehouseCode,
         'warehouse_name': warehouseName,
         'promise_label': promiseLabel,
+        'address_id': addressId,
+        'label': label,
         'set_at': (setAt ?? DateTime.now()).toIso8601String(),
       };
 
@@ -252,7 +267,11 @@ class LocationController extends Notifier<LocationState> {
   }
 
   /// Resolves raw coordinates through the server's fulfilment engine.
-  Future<bool> resolve(double lat, double lng) async {
+  ///
+  /// [addressId] and [label] travel with the point when it came from a saved
+  /// address; both are cleared otherwise, because a pin dropped somewhere new
+  /// is not «المنزل» any more.
+  Future<bool> resolve(double lat, double lng, {String? addressId, String? label}) async {
     state = state.copyWith(phase: LocationPhase.locating);
     try {
       final result = await ref.read(locationRepositoryProvider).resolve(lat: lat, lng: lng);
@@ -267,6 +286,8 @@ class LocationController extends Notifier<LocationState> {
           warehouseCode: best?.warehouseCode,
           warehouseName: best?.warehouseName,
           promiseLabel: best?.promiseLabel,
+          addressId: addressId,
+          label: label,
           setAt: DateTime.now(),
         ),
       );
