@@ -37,6 +37,7 @@ class BundleFeedController extends Controller
                 'warehouse_scope' => $b->warehouse_scope,
                 'anchor_item_code' => $b->anchor_item_code,
                 'wc_product_id' => $b->wc_product_id,
+                'image_url' => $b->image_url,
                 'items' => $b->items->map(fn ($it) => [
                     'item_code' => $it->item_code,
                     'barcode' => $it->barcode,

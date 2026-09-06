@@ -115,6 +115,15 @@ class BundleController extends Controller
             'approved_at' => now(),
         ]);
 
+        // Compose the collage card AFTER the response (image fetches + resvg
+        // take a few seconds; the approval tap must not wait on them).
+        dispatch(function () use ($bundle) {
+            $url = app(\App\Services\Marketing\BundleCardComposer::class)->render($bundle->fresh('items'));
+            if ($url !== null) {
+                $bundle->update(['image_url' => $url]);
+            }
+        })->afterResponse();
+
         return response()->json(['bundle' => $this->row($bundle->fresh('items'))]);
     }
 
