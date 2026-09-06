@@ -193,7 +193,12 @@ class Zooboxi_Bundles
             update_post_meta($productId, '_sku', 'BNDL-' . $bundleId);
         }
 
-        // Image: the anchor's photo until the AI collage lands (Phase 2).
+        // Image: the composed collage card from the backend when it exists
+        // (re-sideloaded whenever its ?v= changes); else the anchor's photo.
+        $cardUrl = (string) ($def['image_url'] ?? '');
+        if ($cardUrl !== '') {
+            $this->set_card_image($productId, $cardUrl);
+        }
         if (!get_post_thumbnail_id($productId)) {
             foreach ($components as $c) {
                 if ($c['role'] === 'anchor') {
@@ -213,6 +218,38 @@ class Zooboxi_Bundles
             'store_sum' => round($storeSum, 2),
             'store_price' => $salePrice,
         ]);
+    }
+
+    /**
+     * Sideload the composed card once per version and set it as the product
+     * image. `_zb_bundle_img_src` remembers the exact URL (the backend
+     * cache-busts with ?v=mtime), so an unchanged card costs nothing.
+     */
+    private function set_card_image(int $productId, string $url): void
+    {
+        if (get_post_meta($productId, '_zb_bundle_img_src', true) === $url
+            && get_post_thumbnail_id($productId)) {
+            return;
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+
+        $attachmentId = media_sideload_image($url, $productId, null, 'id');
+        if (is_wp_error($attachmentId)) {
+            return; // keep whatever image the product has
+        }
+
+        $old = get_post_thumbnail_id($productId);
+        set_post_thumbnail($productId, (int) $attachmentId);
+        update_post_meta($productId, '_zb_bundle_img_src', $url);
+
+        // Drop the previous card attachment (only ones we sideloaded ourselves).
+        if ($old && $old !== (int) $attachmentId
+            && (int) get_post_field('post_parent', $old) === $productId) {
+            wp_delete_attachment($old, true);
+        }
     }
 
     /**
