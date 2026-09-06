@@ -81,6 +81,12 @@ class ApiEndpoints {
   static String zooboxiOrderStart(int id) => '$baseUrl/zooboxi-orders/$id/start';
   static String zooboxiOrderPrepare(int id) => '$baseUrl/zooboxi-orders/$id/prepare';
 
+  // ─── Mrsool (مرسول) express last-mile ──────────────────────
+  static String zooboxiOrderMrsool(int id) => '$baseUrl/zooboxi-orders/$id/mrsool';
+  static String zooboxiOrderMrsoolQuote(int id) => '$baseUrl/zooboxi-orders/$id/mrsool/quote';
+  static String zooboxiOrderMrsoolRequest(int id) => '$baseUrl/zooboxi-orders/$id/mrsool/request';
+  static String zooboxiOrderMrsoolCancel(int id) => '$baseUrl/zooboxi-orders/$id/mrsool/cancel';
+
   // ─── Promotions / Ad Campaigns (owner only) ────────────────
   static const String promotions = '$baseUrl/promotions';
   static const String promotionsSummary = '$baseUrl/promotions/summary';

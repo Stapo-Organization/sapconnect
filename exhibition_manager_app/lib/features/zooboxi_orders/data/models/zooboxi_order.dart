@@ -1,6 +1,8 @@
 // Models for the Zooboxi express-order fulfillment feature
 // (GET /zooboxi-orders/*).
 
+import 'mrsool_delivery.dart';
+
 class ZooboxiOrderLine {
   final int id;
   final String itemCode;
@@ -36,15 +38,47 @@ class ZooboxiCustomer {
   final String? phone;
   final String? city;
   final String? address;
+  final double? latitude;
+  final double? longitude;
 
-  ZooboxiCustomer({this.name, this.phone, this.city, this.address});
+  ZooboxiCustomer({
+    this.name,
+    this.phone,
+    this.city,
+    this.address,
+    this.latitude,
+    this.longitude,
+  });
 
   factory ZooboxiCustomer.fromJson(Map<String, dynamic> json) => ZooboxiCustomer(
         name: json['name']?.toString(),
         phone: json['phone']?.toString(),
         city: json['city']?.toString(),
         address: json['address']?.toString(),
+        latitude: _toNullableDouble(json['latitude']),
+        longitude: _toNullableDouble(json['longitude']),
       );
+
+  bool get hasCoords => latitude != null && longitude != null;
+}
+
+/// The pickup branch behind a Zooboxi order (needed for the Mrsool map).
+class ZooboxiOrderWarehouse {
+  final String code;
+  final String? name;
+  final double? latitude;
+  final double? longitude;
+
+  const ZooboxiOrderWarehouse({this.code = '', this.name, this.latitude, this.longitude});
+
+  factory ZooboxiOrderWarehouse.fromJson(Map<String, dynamic> json) => ZooboxiOrderWarehouse(
+        code: json['code']?.toString() ?? '',
+        name: json['name']?.toString(),
+        latitude: _toNullableDouble(json['latitude']),
+        longitude: _toNullableDouble(json['longitude']),
+      );
+
+  bool get hasCoords => latitude != null && longitude != null;
 }
 
 class ZooboxiOrder {
@@ -66,6 +100,12 @@ class ZooboxiOrder {
   final String? createdAt;
   final List<ZooboxiOrderLine> lines;
 
+  /// Mrsool (مرسول) last-mile — `mrsool.eligible` / `mrsool.active` on the
+  /// order resource. Both stay false/null when the integration is off.
+  final bool mrsoolEligible;
+  final MrsoolDelivery? mrsoolActive;
+  final ZooboxiOrderWarehouse? warehouse;
+
   ZooboxiOrder({
     required this.id,
     required this.wooOrderId,
@@ -84,6 +124,9 @@ class ZooboxiOrder {
     this.minutesSinceCreated = 0,
     this.createdAt,
     this.lines = const [],
+    this.mrsoolEligible = false,
+    this.mrsoolActive,
+    this.warehouse,
   });
 
   factory ZooboxiOrder.fromJson(Map<String, dynamic> json) => ZooboxiOrder(
@@ -109,6 +152,15 @@ class ZooboxiOrder {
         lines: ((json['lines'] as List?) ?? [])
             .map((e) => ZooboxiOrderLine.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
+        mrsoolEligible: ((json['mrsool'] as Map?) ?? const {})['eligible'] == true,
+        mrsoolActive: ((json['mrsool'] as Map?)?['active'] is Map)
+            ? MrsoolDelivery.fromJson(
+                Map<String, dynamic>.from((json['mrsool'] as Map)['active'] as Map))
+            : null,
+        warehouse: (json['warehouse'] is Map)
+            ? ZooboxiOrderWarehouse.fromJson(
+                Map<String, dynamic>.from(json['warehouse'] as Map))
+            : null,
       );
 
   bool get isPending => deliveryStatus == 'pending';
@@ -123,10 +175,30 @@ class ZooboxiOrder {
       deliveryStatus == 'out_for_delivery' ||
       deliveryStatus == 'delivered';
 
+  // ─── Mrsool convenience accessors ──────────────────────────
+  double? get customerLat => customer.latitude;
+  double? get customerLng => customer.longitude;
+  double? get warehouseLat => warehouse?.latitude;
+  double? get warehouseLng => warehouse?.longitude;
+  String? get warehouseName =>
+      (warehouse?.name != null && warehouse!.name!.isNotEmpty) ? warehouse!.name : null;
+
+  /// The Mrsool card only makes sense once the branch has finished picking.
+  bool get mrsoolStageReached =>
+      deliveryStatus == 'ready_for_pickup' ||
+      deliveryStatus == 'out_for_delivery' ||
+      deliveryStatus == 'delivered';
+
   /// A short order reference for headers/cards.
   String get reference => (wooOrderNumber != null && wooOrderNumber!.isNotEmpty)
       ? wooOrderNumber!
       : '#$wooOrderId';
+}
+
+double? _toNullableDouble(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v.toDouble();
+  return double.tryParse(v.toString());
 }
 
 double _toDouble(dynamic v) {

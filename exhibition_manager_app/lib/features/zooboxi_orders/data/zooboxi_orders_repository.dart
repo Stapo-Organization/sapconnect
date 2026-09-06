@@ -1,5 +1,6 @@
 import 'package:exhibition_manager_app/core/network/api_client.dart';
 import 'package:exhibition_manager_app/core/network/api_endpoints.dart';
+import 'models/mrsool_delivery.dart';
 import 'models/zooboxi_order.dart';
 
 /// Zooboxi express-order repository — mirrors the record-return style used by
@@ -78,4 +79,59 @@ class ZooboxiOrdersRepository {
     }
     return (success: false, wooSynced: false, order: null, error: result.errorMessage);
   }
+
+  // ─── Mrsool (مرسول) express last-mile ──────────────────────
+
+  /// Eligibility + the current (or last) courier request for this order.
+  Future<({bool success, bool eligible, String? reason, MrsoolDelivery? delivery, String? error})>
+      getMrsool(int id) async {
+    final result = await _api.get(ApiEndpoints.zooboxiOrderMrsool(id));
+    if (result.isSuccess) {
+      try {
+        final eligible = (result.data['eligible'] as Map?) ?? const {};
+        return (
+          success: true,
+          eligible: eligible['ok'] == true,
+          reason: eligible['reason']?.toString(),
+          delivery: _delivery(result.data['delivery']),
+          error: null,
+        );
+      } catch (e) {
+        return (success: false, eligible: false, reason: null, delivery: null, error: 'parse: $e');
+      }
+    }
+    return (success: false, eligible: false, reason: null, delivery: null, error: result.errorMessage);
+  }
+
+  /// Indicative courier price. [price] is null when Mrsool cannot quote.
+  Future<({bool success, double? price, String? error})> getMrsoolQuote(int id) async {
+    final result = await _api.get(ApiEndpoints.zooboxiOrderMrsoolQuote(id));
+    if (result.isSuccess) {
+      final raw = result.data['price'];
+      final price = raw == null ? null : (raw is num ? raw.toDouble() : double.tryParse('$raw'));
+      return (success: true, price: price, error: null);
+    }
+    return (success: false, price: null, error: result.errorMessage);
+  }
+
+  /// Ask Mrsool for a courier (manual, branch-triggered).
+  Future<({bool success, MrsoolDelivery? delivery, String? error})> requestMrsool(int id) async {
+    final result = await _api.post(ApiEndpoints.zooboxiOrderMrsoolRequest(id));
+    if (result.isSuccess) {
+      return (success: true, delivery: _delivery(result.data['delivery']), error: null);
+    }
+    return (success: false, delivery: null, error: result.errorMessage);
+  }
+
+  /// Cancel a courier request that has not been picked up yet.
+  Future<({bool success, MrsoolDelivery? delivery, String? error})> cancelMrsool(int id) async {
+    final result = await _api.post(ApiEndpoints.zooboxiOrderMrsoolCancel(id));
+    if (result.isSuccess) {
+      return (success: true, delivery: _delivery(result.data['delivery']), error: null);
+    }
+    return (success: false, delivery: null, error: result.errorMessage);
+  }
+
+  MrsoolDelivery? _delivery(dynamic raw) =>
+      raw is Map ? MrsoolDelivery.fromJson(Map<String, dynamic>.from(raw)) : null;
 }
