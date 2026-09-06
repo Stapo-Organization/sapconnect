@@ -108,7 +108,9 @@ class Zooboxi_Bundles
             return false;
         }
 
-        // Resolve every component to a live store product.
+        // Resolve every component to a live store product. Store products are
+        // often VARIABLE (حبة/كرتون variations) — the bundle speaks in pieces,
+        // so a variable component prices at its single-piece variation.
         $components = [];
         $storeSum = 0.0;
         foreach ((array) $def['items'] as $item) {
@@ -118,25 +120,38 @@ class Zooboxi_Bundles
                 return $this->report($bundleId, null, 'failed', 'component missing: ' . ($item['item_code'] ?? '?'));
             }
             $qty = max(1, (int) ($item['qty'] ?? 1));
-            $storeSum += $qty * (float) $product->get_regular_price();
+            [$unitPrice, $variationId] = $this->piece_price($product, (string) ($item['barcode'] ?? ''));
+            if ($unitPrice <= 0) {
+                return $this->report($bundleId, null, 'failed', 'no piece price: ' . ($item['item_code'] ?? '?'));
+            }
+            $storeSum += $qty * $unitPrice;
             $components[] = [
-                'item_code'  => (string) $item['item_code'],
-                'barcode'    => (string) ($item['barcode'] ?? $product->get_sku()),
-                'name'       => (string) ($item['name'] ?? $product->get_name()),
-                'qty'        => $qty,
-                'role'       => (string) ($item['role'] ?? 'member'),
-                'product_id' => $pid,
+                'item_code'    => (string) $item['item_code'],
+                'barcode'      => (string) ($item['barcode'] ?? $product->get_sku()),
+                'name'         => (string) ($item['name'] ?? $product->get_name()),
+                'qty'          => $qty,
+                'role'         => (string) ($item['role'] ?? 'member'),
+                'product_id'   => $pid,
+                'variation_id' => $variationId,
+                'unit_retail'  => $unitPrice,
             ];
         }
 
-        // Price-drift guard: if the store's own retail sum walked away from the
-        // approved snapshot, refuse — the backend re-suggests with fresh prices.
+        // The approved thing is the SAVINGS PERCENTAGE, not the absolute
+        // number: the backend prices from SAP's list 1, the store sells at
+        // its own (higher, VAT-inclusive) retail. Reprice on the store's own
+        // sum with the approved percentage — that can only sit FURTHER above
+        // the cost floor. A store sum that dropped BELOW the snapshot is the
+        // dangerous direction (the floor was proven against the snapshot), so
+        // that one is refused and the nightly run re-suggests with fresh data.
         $snapshotSum = (float) ($def['sum_retail'] ?? 0);
         if ($snapshotSum <= 0 || $storeSum <= 0
-            || abs($storeSum - $snapshotSum) / $snapshotSum > self::PRICE_DRIFT) {
+            || $storeSum < $snapshotSum * (1 - self::PRICE_DRIFT)) {
             return $this->report($bundleId, null, 'failed',
-                sprintf('price drift: snapshot %.2f vs store %.2f', $snapshotSum, $storeSum));
+                sprintf('price drift down: snapshot %.2f vs store %.2f', $snapshotSum, $storeSum));
         }
+        $savingsPct = max(0.0, min(45.0, (float) ($def['savings_pct'] ?? 0)));
+        $salePrice = round($storeSum * (1 - $savingsPct / 100), 2);
 
         $existing = (int) ($def['wc_product_id'] ?? 0) ?: $this->product_by_bundle_id($bundleId);
 
@@ -167,8 +182,8 @@ class Zooboxi_Bundles
         update_post_meta($productId, '_zb_bundle_template', (string) ($def['template'] ?? ''));
         update_post_meta($productId, '_zb_bundle_species', (string) ($def['species'] ?? 'mixed'));
         update_post_meta($productId, '_regular_price', (string) round($storeSum, 2));
-        update_post_meta($productId, '_sale_price', (string) (float) $def['bundle_price']);
-        update_post_meta($productId, '_price', (string) (float) $def['bundle_price']);
+        update_post_meta($productId, '_sale_price', (string) $salePrice);
+        update_post_meta($productId, '_price', (string) $salePrice);
         update_post_meta($productId, '_virtual', 'no');
         update_post_meta($productId, '_sold_individually', 'no');
         update_post_meta($productId, '_visibility', 'visible');
@@ -194,7 +209,47 @@ class Zooboxi_Bundles
         $this->stock_for($productId, $components);
         wc_delete_product_transients($productId);
 
-        return $this->report($bundleId, (int) $productId, 'live');
+        return $this->report($bundleId, (int) $productId, 'live', '', [
+            'store_sum' => round($storeSum, 2),
+            'store_price' => $salePrice,
+        ]);
+    }
+
+    /**
+     * The single-PIECE price of a component (and the variation carrying it).
+     * Simple product → its own regular price. Variable → the variation whose
+     * units factor is 1 (else the one whose SKU is the piece barcode, else
+     * the smallest pack), at that variation's regular price.
+     *
+     * @return array{0:float,1:int} [unit_price, variation_id (0 = simple)]
+     */
+    private function piece_price(\WC_Product $product, string $barcode): array
+    {
+        if (!$product->is_type('variable')) {
+            return [(float) $product->get_regular_price(), 0];
+        }
+
+        $best = null; // [units, price, id]
+        foreach ($product->get_children() as $childId) {
+            $child = wc_get_product($childId);
+            if (!$child) {
+                continue;
+            }
+            $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_id($childId) : 1;
+            $price = (float) $child->get_regular_price();
+            if ($price <= 0) {
+                continue;
+            }
+            if ($units === 1 || ($barcode !== '' && $child->get_sku() === $barcode)) {
+                return [$price, $childId];
+            }
+            if ($best === null || $units < $best[0]) {
+                $best = [$units, $price, $childId];
+            }
+        }
+
+        // Only multi-piece packs exist: price one piece as pack ÷ units.
+        return $best === null ? [0.0, 0] : [round($best[1] / max(1, $best[0]), 2), $best[2]];
     }
 
     private function retire(int $bundleId, int $wcProductId): bool
@@ -209,9 +264,9 @@ class Zooboxi_Bundles
         return $this->report($bundleId, null, 'retired');
     }
 
-    private function report(int $bundleId, ?int $wcProductId, string $status, string $error = ''): bool
+    private function report(int $bundleId, ?int $wcProductId, string $status, string $error = '', array $extra = []): bool
     {
-        $payload = ['status' => $status];
+        $payload = array_merge(['status' => $status], $extra);
         if ($wcProductId) {
             $payload['wc_product_id'] = $wcProductId;
         }

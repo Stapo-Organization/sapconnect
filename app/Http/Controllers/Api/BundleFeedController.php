@@ -65,12 +65,22 @@ class BundleFeedController extends Controller
             'wc_product_id' => 'sometimes|nullable|integer',
             'status' => 'required|in:live,failed,retired',
             'error' => 'sometimes|nullable|string|max:500',
+            'store_sum' => 'sometimes|nullable|numeric',
+            'store_price' => 'sometimes|nullable|numeric',
         ]);
 
         if ($data['status'] === 'live') {
+            // The store reprices on its own (VAT-inclusive) retail with the
+            // approved percentage — keep the real numbers for the owner's app.
+            $rationale = $bundle->rationale ?? [];
+            if (isset($data['store_sum'])) {
+                $rationale['store_sum'] = (float) $data['store_sum'];
+                $rationale['store_price'] = (float) ($data['store_price'] ?? 0);
+            }
             $bundle->update([
                 'wc_product_id' => $data['wc_product_id'] ?? $bundle->wc_product_id,
                 'status' => ProductBundle::STATUS_LIVE,
+                'rationale' => $rationale,
             ]);
         } elseif ($data['status'] === 'retired') {
             $bundle->update(['wc_product_id' => null]);
