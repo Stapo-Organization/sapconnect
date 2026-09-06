@@ -232,7 +232,7 @@ class Zooboxi_V2_Feed_Controller
         // The exact order query the website's rail uses (Zooboxi_Home_Feed::buyagain_ids).
         $orders = wc_get_orders([
             'customer_id' => $uid,
-            'status'      => ['completed', 'processing', 'zb-ready', 'on-hold'],
+            'status'      => ['completed', 'processing', 'zb-ready', 'zb-out-for-delivery', 'on-hold'],
             'limit'       => self::ORDER_SCAN,
             'orderby'     => 'date',
             'order'       => 'DESC',

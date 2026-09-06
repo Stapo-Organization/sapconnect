@@ -88,6 +88,11 @@ class Zooboxi_Rest_Controller extends WP_REST_Controller
 
     /**
      * POST /orders/{id}/status — set a WooCommerce order's status.
+     *
+     * Optionally carries a `mrsool` object — {order_id, status, courier_name,
+     * courier_phone, tracking_url} — pushed by sapconnect whenever a Mrsool
+     * (مرسول) delivery changes phase. It is entirely optional: callers that send
+     * only `status` + `token` behave exactly as before.
      */
     public function update_order_status(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -104,13 +109,117 @@ class Zooboxi_Rest_Controller extends WP_REST_Controller
             return new \WP_REST_Response(['status' => 'error', 'message' => 'invalid_status', 'requested' => $status], 400);
         }
 
-        $order->update_status($status, __('تم التجهيز عبر تطبيق مدير المعرض', 'zooboxi'));
+        // Stamp the courier meta BEFORE the transition so anything listening on
+        // woocommerce_order_status_changed already sees the delivery details.
+        $mrsool = ($order instanceof \WC_Order)
+            ? $this->save_mrsool_meta($order, $request->get_param('mrsool'))
+            : null;
+
+        $order->update_status($status, $mrsool === null
+            ? __('تم التجهيز عبر تطبيق مدير المعرض', 'zooboxi')
+            : __('تحديث حالة التوصيل من مرسول', 'zooboxi'));
 
         return new \WP_REST_Response([
             'status'     => 'updated',
             'order_id'   => $order_id,
             'new_status' => $order->get_status(),
+            'mrsool'     => $mrsool,
         ], 200);
+    }
+
+    /** Arabic labels for the 14 Mrsool LaaS statuses (used in the order note). */
+    private static function mrsool_status_label(string $status): string
+    {
+        $map = [
+            'COURIER_PENDING'     => 'بانتظار مندوب',
+            'COURIER_ASSIGNED'    => 'تم تعيين مندوب',
+            'COURIER_REASSIGNED'  => 'تم تغيير المندوب',
+            'PICKUP_ARRIVED'      => 'المندوب وصل الفرع',
+            'COLLECTING'          => 'جاري الاستلام',
+            'CONFIRMED_PICKUP'    => 'تم استلام الطلب',
+            'WAITING_FOR_DELIVERY' => 'بانتظار التوصيل',
+            'DELIVERING'          => 'في الطريق إليك',
+            'DROPOFF_ARRIVED'     => 'المندوب وصل الموقع',
+            'PARTIALLY_DELIVERED' => 'تم التسليم جزئياً',
+            'DELIVERED'           => 'تم التسليم',
+            'RETURN'              => 'مرتجع',
+            'CANCELED'            => 'ملغى',
+            'EXPIRED'             => 'منتهي الصلاحية',
+        ];
+
+        return $map[$status] ?? $status;
+    }
+
+    /**
+     * Persist the optional `mrsool` payload on the order and log an Arabic note.
+     *
+     * Returns the sanitized values that were saved, or null when the caller sent
+     * nothing (or nothing usable) — never throws, never blocks the status update.
+     */
+    private function save_mrsool_meta(\WC_Order $order, $raw): ?array
+    {
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true); // tolerate form-encoded callers
+            $raw     = is_array($decoded) ? $decoded : null;
+        }
+        if (!is_array($raw) || $raw === []) {
+            return null;
+        }
+
+        $mrsool_id     = isset($raw['order_id']) ? absint($raw['order_id']) : 0;
+        $mrsool_status = isset($raw['status']) ? sanitize_text_field((string) $raw['status']) : '';
+        $courier_name  = isset($raw['courier_name']) ? sanitize_text_field((string) $raw['courier_name']) : '';
+        $courier_phone = isset($raw['courier_phone']) ? sanitize_text_field((string) $raw['courier_phone']) : '';
+        $tracking_url  = isset($raw['tracking_url']) ? esc_url_raw((string) $raw['tracking_url']) : '';
+
+        if ($mrsool_id <= 0 && $mrsool_status === '') {
+            return null; // nothing identifiable — ignore rather than write empty meta
+        }
+
+        $previous_status  = (string) $order->get_meta('_mrsool_status');
+        $previous_courier = (string) $order->get_meta('_mrsool_courier_name');
+
+        if ($mrsool_id > 0) {
+            $order->update_meta_data('_mrsool_order_id', $mrsool_id);
+        }
+        if ($mrsool_status !== '') {
+            $order->update_meta_data('_mrsool_status', $mrsool_status);
+        }
+        if ($courier_name !== '') {
+            $order->update_meta_data('_mrsool_courier_name', $courier_name);
+        }
+        if ($courier_phone !== '') {
+            $order->update_meta_data('_mrsool_courier_phone', $courier_phone);
+        }
+        if ($tracking_url !== '') {
+            $order->update_meta_data('_mrsool_tracking_url', $tracking_url);
+        }
+        $order->save_meta_data();
+
+        // Only note real movement — the backend may re-push the same phase.
+        if ($mrsool_status !== '' && ($mrsool_status !== $previous_status || $courier_name !== $previous_courier)) {
+            $note = sprintf(
+                /* translators: 1: Arabic Mrsool status label, 2: Mrsool order id */
+                __('مرسول: %1$s (رقم الطلب لدى مرسول: %2$s)', 'zooboxi'),
+                self::mrsool_status_label($mrsool_status),
+                $mrsool_id > 0 ? (string) $mrsool_id : '—'
+            );
+            if ($courier_name !== '') {
+                $note .= ' — ' . sprintf(__('المندوب: %s', 'zooboxi'), $courier_name);
+                if ($courier_phone !== '') {
+                    $note .= ' (' . $courier_phone . ')';
+                }
+            }
+            $order->add_order_note($note);
+        }
+
+        return [
+            'order_id'      => $mrsool_id ?: (int) $order->get_meta('_mrsool_order_id'),
+            'status'        => $mrsool_status !== '' ? $mrsool_status : $previous_status,
+            'courier_name'  => $courier_name,
+            'courier_phone' => $courier_phone,
+            'tracking_url'  => $tracking_url,
+        ];
     }
 
     public function detect_warehouse(\WP_REST_Request $request): \WP_REST_Response

@@ -139,7 +139,7 @@ class Zooboxi_Loyalty_Referrals
         }
         $ids = wc_get_orders([
             'customer_id' => $user_id,
-            'status'      => ['pending', 'on-hold', 'processing', 'completed', 'zb-ready', 'refunded'],
+            'status'      => ['pending', 'on-hold', 'processing', 'completed', 'zb-ready', 'zb-out-for-delivery', 'refunded'],
             'limit'       => 1,
             'return'      => 'ids',
         ]);

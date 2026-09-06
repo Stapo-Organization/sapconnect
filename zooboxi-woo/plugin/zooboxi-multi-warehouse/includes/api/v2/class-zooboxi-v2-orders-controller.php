@@ -21,6 +21,13 @@ class Zooboxi_V2_Orders_Controller
     private const SHIPGO_CARRIER  = '_shipgo_carrier';
     private const SHIPGO_STATUS   = '_shipgo_status';
 
+    /** Mrsool (مرسول) express courier meta, written by Zooboxi_Rest_Controller. */
+    private const MRSOOL_ORDER_ID      = '_mrsool_order_id';
+    private const MRSOOL_STATUS        = '_mrsool_status';
+    private const MRSOOL_COURIER_NAME  = '_mrsool_courier_name';
+    private const MRSOOL_COURIER_PHONE = '_mrsool_courier_phone';
+    private const MRSOOL_TRACKING_URL  = '_mrsool_tracking_url';
+
     public function register_routes(): void
     {
         Zooboxi_V2_Bootstrap::route('/orders', 'GET', [$this, 'index']);
@@ -256,7 +263,7 @@ class Zooboxi_V2_Orders_Controller
             'delivery_type' => (string) $order->get_meta('_zooboxi_delivery_type'),
             'items_preview' => $preview,
             'items_count'   => (int) $order->get_item_count(),
-            'can_reorder'   => in_array($status, ['completed', 'processing', 'zb-ready', 'cancelled', 'refunded'], true),
+            'can_reorder'   => in_array($status, ['completed', 'processing', 'zb-ready', 'zb-out-for-delivery', 'cancelled', 'refunded'], true),
         ];
     }
 
@@ -269,6 +276,7 @@ class Zooboxi_V2_Orders_Controller
             'pending'    => ['بانتظار الدفع', 'Pending payment'],
             'processing' => ['قيد التجهيز', 'Preparing'],
             'zb-ready'   => ['جاهز للتسليم', 'Ready for pickup-delivery'],
+            'zb-out-for-delivery' => ['في الطريق إليك', 'Out for delivery'],
             'on-hold'    => ['قيد المراجعة', 'On hold'],
             'completed'  => ['مكتمل', 'Completed'],
             'cancelled'  => ['ملغى', 'Cancelled'],
@@ -283,8 +291,9 @@ class Zooboxi_V2_Orders_Controller
     }
 
     /**
-     * placed → paid → preparing → ready → completed, each with the moment it happened
-     * (from the `_zb_status_{status}_at` stamps) and whether it is done.
+     * placed → paid → preparing → ready → [out for delivery] → completed, each with the
+     * moment it happened (from the `_zb_status_{status}_at` stamps) and whether it is done.
+     * The courier leg only appears for orders that actually have one (Mrsool express).
      */
     private function timeline(\WC_Order $order): array
     {
@@ -299,15 +308,30 @@ class Zooboxi_V2_Orders_Controller
 
         $ready_at     = $stamp($order, 'zb-ready');
         $preparing_at = $stamp($order, 'processing');
+        $on_way_at    = $stamp($order, 'zb-out-for-delivery');
         $completed_at = $stamp($order, 'completed');
         if ($completed_at === null && $order->get_date_completed()) {
             $completed_at = $order->get_date_completed()->date(DATE_ATOM);
         }
 
-        $rank = ['pending' => 0, 'failed' => 0, 'on-hold' => 1, 'processing' => 2, 'zb-ready' => 3, 'completed' => 4];
+        $rank = [
+            'pending'             => 0,
+            'failed'              => 0,
+            'on-hold'             => 1,
+            'processing'          => 2,
+            'zb-ready'            => 3,
+            'zb-out-for-delivery' => 4,
+            'completed'           => 5,
+        ];
         $now  = $rank[$status] ?? 0;
 
-        return [
+        // The courier leg is only part of the story for express orders handled by
+        // Mrsool — shipped orders keep the original five-step timeline.
+        $has_courier_leg = $on_way_at !== null
+            || $status === 'zb-out-for-delivery'
+            || (string) $order->get_meta(self::MRSOOL_ORDER_ID) !== '';
+
+        $steps = [
             [
                 'key'   => 'placed',
                 'label' => Zooboxi_V2_Bootstrap::pick(__('تم استلام الطلب', 'zooboxi'), 'Order placed'),
@@ -332,18 +356,52 @@ class Zooboxi_V2_Orders_Controller
                 'at'    => $ready_at,
                 'done'  => $now >= 3,
             ],
-            [
-                'key'   => 'completed',
-                'label' => Zooboxi_V2_Bootstrap::pick(__('تم التسليم', 'zooboxi'), 'Delivered'),
-                'at'    => $completed_at,
-                'done'  => $now >= 4,
-            ],
         ];
+
+        if ($has_courier_leg) {
+            $steps[] = [
+                'key'   => 'out_for_delivery',
+                'label' => Zooboxi_V2_Bootstrap::pick(__('في الطريق إليك', 'zooboxi'), 'Out for delivery'),
+                'at'    => $on_way_at,
+                'done'  => $now >= 4,
+            ];
+        }
+
+        $steps[] = [
+            'key'   => 'completed',
+            'label' => Zooboxi_V2_Bootstrap::pick(__('تم التسليم', 'zooboxi'), 'Delivered'),
+            'at'    => $completed_at,
+            'done'  => $now >= 5,
+        ];
+
+        return $steps;
     }
 
-    /** ShipGo tracking, when the fulfilment connector has stamped it. */
+    /**
+     * Mrsool courier tracking first (express last-mile), otherwise the ShipGo
+     * tracking the fulfilment connector has stamped.
+     */
     private function tracking(\WC_Order $order): ?array
     {
+        $mrsool_id = (string) $order->get_meta(self::MRSOOL_ORDER_ID);
+        if ($mrsool_id !== '') {
+            $courier_name  = (string) $order->get_meta(self::MRSOOL_COURIER_NAME);
+            $courier_phone = (string) $order->get_meta(self::MRSOOL_COURIER_PHONE);
+            $url           = (string) $order->get_meta(self::MRSOOL_TRACKING_URL);
+
+            return [
+                'number'        => $mrsool_id,
+                'carrier'       => 'mrsool',
+                'carrier_label' => 'مرسول',
+                'url'           => $url !== '' ? $url : null,
+                'status'        => (string) $order->get_meta(self::MRSOOL_STATUS),
+                'courier'       => [
+                    'name'  => $courier_name !== '' ? $courier_name : null,
+                    'phone' => $courier_phone !== '' ? $courier_phone : null,
+                ],
+            ];
+        }
+
         $number = (string) $order->get_meta(self::SHIPGO_TRACKING);
         if ($number === '') {
             return null;

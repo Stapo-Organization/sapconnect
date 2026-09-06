@@ -169,7 +169,7 @@ class Zooboxi_Home_Feed
 
         $orders = wc_get_orders([
             'customer_id' => $uid,
-            'status'      => ['completed', 'processing', 'zb-ready', 'on-hold'],
+            'status'      => ['completed', 'processing', 'zb-ready', 'zb-out-for-delivery', 'on-hold'],
             'limit'       => 20,
             'orderby'     => 'date',
             'order'       => 'DESC',

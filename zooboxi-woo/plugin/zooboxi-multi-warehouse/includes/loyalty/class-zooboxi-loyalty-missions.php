@@ -401,7 +401,7 @@ class Zooboxi_Loyalty_Missions
         try {
             $orders = wc_get_orders([
                 'customer_id' => $user_id,
-                'status'      => ['completed', 'processing', 'zb-ready'],
+                'status'      => ['completed', 'processing', 'zb-ready', 'zb-out-for-delivery'],
                 'date_created' => '>' . (time() - 365 * DAY_IN_SECONDS),
                 'limit'       => 60,
                 'orderby'     => 'date',
