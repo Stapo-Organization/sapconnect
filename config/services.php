@@ -39,6 +39,16 @@ return [
 
         // Default price list to use for WooCommerce regular price
         'default_price_list' => env('WOO_DEFAULT_PRICE_LIST', 1),
+
+        // Do store orders move stock inside sapconnect?
+        //
+        // `warehouse_item_stocks` is a READ-ONLY MIRROR of SAP, refreshed by
+        // sap:sync-recent-stock every 10 minutes. Deducting a Zooboxi order
+        // from it therefore (a) never reaches SAP, and (b) is erased at the
+        // next sync — so while it lasts it only makes the mirror disagree with
+        // SAP. Owner decision 2026-09-06: store orders must NOT touch stock.
+        // Flip to true only if sapconnect ever becomes the stock authority.
+        'deduct_stock' => env('WOO_DEDUCT_STOCK', false),
     ],
 
     // ShipGo WMS read API (catalog mirror) — Bearer token + which SAP price
@@ -116,6 +126,39 @@ return [
         'credentials'    => env('GOOGLE_SHEETS_CREDENTIALS', 'storage/app/google/traqo-sheets.json'),
         'spreadsheet_id' => env('GOOGLE_SHEETS_SPREADSHEET_ID'),
         'tab'            => env('GOOGLE_SHEETS_TAB'), // null = first tab
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SFDA developer API — official product-registry lookup (READ-ONLY)
+    |--------------------------------------------------------------------------
+    | https://developer.sfda.gov.sa — WSO2 gateway, OAuth2 client_credentials
+    | (Consumer Key = username, Consumer Secret = password), Bearer, JSON, token
+    | valid 24h. We ONLY GET the PUBLIC registry (search food products by
+    | barcode/keyword) to cross-check our SAP catalog — mirroring the SAP/Traqo
+    | no-write rule. It does NOT touch the private GHAD workflow (submissions and
+    | pipeline statuses have no public API and stay manual in sapconnect).
+    |
+    | token_url / base_url / food_path / *_param are BEST-GUESS WSO2 defaults —
+    | confirm the exact values from your app's "Technical" tab on the portal
+    | (visible after the app is created) and override via .env if they differ.
+    */
+    'sfda' => [
+        'key'        => env('SFDA_CONSUMER_KEY'),
+        'secret'     => env('SFDA_CONSUMER_SECRET'),
+        // Apigee gateway on port 9002 (verified live 2026-07-09). Token proxy:
+        // POST /accesstoken?grant_type=client_credentials with HTTP Basic (key:secret).
+        'token_url'  => env('SFDA_TOKEN_URL', 'https://apis.sfda.gov.sa:9002/v2/oauth/accesstoken'),
+        // Food registry base. Lookup by barcode = GET {base}/product/barcode/{barcode}
+        // (barcode is a PATH segment, digits only). Response envelope: {code,message,data,metadata}
+        // where code 200 = registered, 404 = not found. NOTE: the barcode endpoint emits
+        // slightly MALFORMED JSON (unquoted string values) — SfdaClient parses it tolerantly.
+        'base_url'   => env('SFDA_API_BASE_URL', 'https://apis.sfda.gov.sa:9002/v2/Food'),
+        'timeout'    => env('SFDA_API_TIMEOUT', 30),
+        'ssl_verify' => env('SFDA_SSL_VERIFY', true),
+        // Politeness delay (ms) between sweep calls — the gateway has a Spike-arrest
+        // rate limit that returns HTTP 429 / code 429-01 when exceeded.
+        'sweep_delay_ms' => env('SFDA_SWEEP_DELAY_MS', 300),
     ],
 
     /*

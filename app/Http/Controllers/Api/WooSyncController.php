@@ -306,8 +306,8 @@ class WooSyncController extends Controller
                     }
                 }
 
-                // Deduct stock
-                if (!empty($stockItems) && ($payment['status'] ?? '') === 'paid') {
+                // Deduct stock (OFF by default — see stockEffectsEnabled()).
+                if (!empty($stockItems) && ($payment['status'] ?? '') === 'paid' && $this->stockEffectsEnabled()) {
                     try {
                         $this->stockService->deductStock($stockItems);
                     } catch (\RuntimeException $e) {
@@ -394,7 +394,7 @@ class WooSyncController extends Controller
         // Creation-time deduction only runs for orders that arrive already paid;
         // a pending→paid transition settles the same debt exactly once.
         $newPayment = $updates['payment_status'] ?? $oldPayment;
-        if ($newPayment === 'paid' && $oldPayment !== 'paid' && $oldStatus !== 'cancelled') {
+        if ($newPayment === 'paid' && $oldPayment !== 'paid' && $oldStatus !== 'cancelled' && $this->stockEffectsEnabled()) {
             try {
                 $this->stockService->deductStock($stockItems());
             } catch (\RuntimeException $e) {
@@ -407,7 +407,7 @@ class WooSyncController extends Controller
         // Restore only on the transition INTO cancelled (a repeated cancel push must
         // never restore twice), and only when the money side had deducted.
         $newStatus = $updates['delivery_status'] ?? $oldStatus;
-        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled' && $newPayment === 'paid') {
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled' && $newPayment === 'paid' && $this->stockEffectsEnabled()) {
             $this->stockService->restoreStock($stockItems());
         }
 
@@ -418,6 +418,23 @@ class WooSyncController extends Controller
             'new_status' => $newStatus,
             'payment_status' => $newPayment,
         ]);
+    }
+
+    /**
+     * May a store order move stock inside sapconnect?
+     *
+     * `warehouse_item_stocks` is a read-only MIRROR of SAP (refreshed by
+     * sap:sync-recent-stock every 10 minutes) and nothing here ever writes to
+     * SAP itself. A deduction is therefore erased at the next sync and, until
+     * then, only makes the mirror disagree with SAP — which the branch app and
+     * the store both read. Owner decision 2026-09-06: OFF.
+     *
+     * Deduct and restore share this one gate on purpose: stock we never took
+     * must never be given back.
+     */
+    private function stockEffectsEnabled(): bool
+    {
+        return (bool) config('services.woo.deduct_stock', false);
     }
 
     // ─── Sync Status ────────────────────────────────────────────
