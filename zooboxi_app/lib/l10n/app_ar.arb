@@ -128,10 +128,56 @@
   "shelfExpressTab": "إكسبريس",
   "shelfAllTab": "زوبكسي",
   "shelfExpressClosed": "التوصيل السريع غير متاح في موقعك الحالي",
-  "shelfExpressSub": "خلال ساعتين",
   "shelfAllSub": "يصلك غدًا",
   "shelfExpressOffSub": "غير متاح هنا",
   "shelfAllSubShipping": "توصيل لمدينتك",
+  "shelfExpressHours": "{open} – {close}",
+  "@shelfExpressHours": {
+    "placeholders": {
+      "open": {
+        "type": "String"
+      },
+      "close": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfExpressOpensAt": "يفتح {time}",
+  "@shelfExpressOpensAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfExpressClosedToday": "مغلق اليوم",
+  "shelfExpressOpenNow": "مفتوح الآن",
+  "locationArrivesAt": "يوصلك في المنزل",
+  "etaAt": "الساعة {time}",
+  "@etaAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "etaTomorrowAt": "غدًا {time}",
+  "@etaTomorrowAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "etaTomorrow": "غدًا",
+  "etaOn": "بحلول {date}",
+  "@etaOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "categoriesTitle": "الأقسام",
   "categoriesEmpty": "لا توجد أقسام حاليًا",
   "categoriesShopAll": "تسوّق الكل",

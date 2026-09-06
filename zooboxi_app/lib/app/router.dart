@@ -42,6 +42,17 @@ import '../features/wishlist/presentation/wishlist_screen.dart';
 import 'shell/main_shell.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+/// A pushed page that keeps the main menu with it.
+///
+/// Every destination in this app is reached *from* the shop, and the owner's
+/// rule is that the shop's own menu never leaves the screen: a product, a
+/// brand, the wishlist, an order all draw the same floating bar the four tabs
+/// draw. Only the pages that are deliberately a single task — first run, the
+/// barcode scanner, the checkout funnel, a scratch card — take the screen for
+/// themselves.
+CustomTransitionPage<void> shellPage(LocalKey key, Widget child) =>
+    sharedAxisPage(key, NavChrome(child: child));
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Bridges Riverpod's session state into go_router's refresh mechanism.
@@ -84,7 +95,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/product/:id',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(
+        pageBuilder: (_, state) => shellPage(
           state.pageKey,
           ProductScreen(
             productId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
@@ -97,7 +108,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/listing',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(
+        pageBuilder: (_, state) => shellPage(
           state.pageKey,
           ListingScreen(
             title: state.uri.queryParameters['title'] ?? '',
@@ -112,12 +123,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/brands',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const BrandsScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const BrandsScreen()),
       ),
       GoRoute(
         path: '/brand/:slug',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(
+        pageBuilder: (_, state) => shellPage(
           state.pageKey,
           BrandScreen(
             slug: state.pathParameters['slug'] ?? '',
@@ -130,7 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/search',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const SearchScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const SearchScreen()),
       ),
       GoRoute(
         path: '/scan',
@@ -140,17 +151,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/wishlist',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const WishlistScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const WishlistScreen()),
       ),
       GoRoute(
         path: '/orders',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const OrdersScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const OrdersScreen()),
       ),
       GoRoute(
         path: '/orders/:id',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(
+        pageBuilder: (_, state) => shellPage(
           state.pageKey,
           OrderDetailScreen(
             orderId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
@@ -160,7 +171,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/addresses',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const AddressBookScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const AddressBookScreen()),
       ),
       // «عائلة زوبوكسي». Pushed like /orders rather than owning a tab: it is a
       // place you go to from the storefront or the account, and it must be
@@ -168,33 +179,33 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/family',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const FamilyHubScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const FamilyHubScreen()),
         routes: [
           GoRoute(
             path: 'rewards',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const RewardsScreen()),
+            pageBuilder: (_, state) => shellPage(state.pageKey, const RewardsScreen()),
           ),
           GoRoute(
             path: 'ledger',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const LedgerScreen()),
+            pageBuilder: (_, state) => shellPage(state.pageKey, const LedgerScreen()),
           ),
           // Phase 2 «العادة»: the gauge, the subscriptions, the invitation.
           GoRoute(
             path: 'supply',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const SupplyScreen()),
+            pageBuilder: (_, state) => shellPage(state.pageKey, const SupplyScreen()),
           ),
           GoRoute(
             path: 'subscriptions',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const SubscriptionsScreen()),
+            pageBuilder: (_, state) => shellPage(state.pageKey, const SubscriptionsScreen()),
           ),
           GoRoute(
             path: 'referral',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const ReferralScreen()),
+            pageBuilder: (_, state) => shellPage(state.pageKey, const ReferralScreen()),
           ),
           // A card the customer already holds — the object rides in `extra`
           // when there is one, so the foil is on screen before the fetch.
@@ -214,19 +225,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/pets',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const PetsScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const PetsScreen()),
         routes: [
           GoRoute(
             path: 'new',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const PetEditorScreen()),
+            pageBuilder: (_, state) => shellPage(state.pageKey, const PetEditorScreen()),
           ),
           // `:id` must be declared after `new`, or "new" would be parsed as an
           // id and the profile would try to load pet 0.
           GoRoute(
             path: ':id',
             parentNavigatorKey: rootNavigatorKey,
-            pageBuilder: (_, state) => sharedAxisPage(
+            pageBuilder: (_, state) => shellPage(
               state.pageKey,
               PetProfileScreen(
                 petId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
@@ -237,7 +248,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'edit',
                 parentNavigatorKey: rootNavigatorKey,
-                pageBuilder: (_, state) => sharedAxisPage(
+                pageBuilder: (_, state) => shellPage(
                   state.pageKey,
                   PetEditorScreen(
                     petId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
@@ -252,7 +263,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/buy-again',
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const BuyAgainScreen()),
+        pageBuilder: (_, state) => shellPage(state.pageKey, const BuyAgainScreen()),
       ),
       GoRoute(
         path: '/checkout',

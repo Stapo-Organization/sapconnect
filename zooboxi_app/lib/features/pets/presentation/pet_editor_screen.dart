@@ -238,7 +238,7 @@ class _PetEditorScreenState extends ConsumerState<PetEditorScreen> {
         children: [
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.paddingOf(context).bottom),
               children: [
                 _Label(text: l.petFieldSpecies),
                 Gap.h8,
@@ -337,16 +337,28 @@ class _PetEditorScreenState extends ConsumerState<PetEditorScreen> {
           // Full width on purpose: a Column centres its children, and a bar
           // that shrinks to its button leaves the screen showing through on
           // either side of it.
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: cs.surface,
-              border: Border(top: BorderSide(color: cs.outlineVariant)),
-            ),
-            child: SafeArea(
-              top: false,
+          // A card, not a wall — the same treatment as the product page's
+          // add-to-cart bar, since the main menu now floats below it and a
+          // full-bleed bar hanging in mid-air reads as a mistake.
+          SafeArea(
+            top: false,
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(ZbTokens.rLg),
+                border: Border.all(color: cs.outlineVariant),
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.shadow.withValues(alpha: context.isDark ? 0.5 : 0.10),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                 child: FilledButton(
                   onPressed: _saving ? null : _save,
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),

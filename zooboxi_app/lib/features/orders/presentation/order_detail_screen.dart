@@ -74,7 +74,7 @@ class _DetailState extends ConsumerState<_Detail> {
     final locale = Localizations.localeOf(context).languageCode;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 28 + MediaQuery.paddingOf(context).bottom),
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         _Header(summary: summary),
@@ -304,7 +304,7 @@ class _DetailSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShimmerGroup(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 28 + MediaQuery.paddingOf(context).bottom),
           physics: const NeverScrollableScrollPhysics(),
           children: [
             const SkeletonBox(width: 150, height: 28, radius: ZbTokens.rXs),

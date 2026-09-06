@@ -31,6 +31,7 @@ class _PresetLocation extends LocationController {
         location: ZbLocation(
           city: 'الرياض',
           district: 'النرجس',
+          deliveryType: 'express',
           promiseLabel: 'خلال ساعتين',
         ),
       );
@@ -214,8 +215,18 @@ void main() {
     await _tap(tester, 'يلا نبدأ');
 
     expect(find.text('وصلناك!'), findsOneWidget);
-    expect(find.text('النرجس، الرياض'), findsOneWidget);
-    expect(find.text('خلال ساعتين'), findsOneWidget);
+    // The district is said the way it is said out loud: «حي النرجس».
+    expect(find.text('حي النرجس، الرياض'), findsOneWidget);
+    // The card now names the arrival hour rather than the tier — the exact
+    // clock moves with the time of day, so match the sentence.
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Text &&
+            ((w.data ?? '').startsWith('الساعة ') || (w.data ?? '').startsWith('غدًا ')),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('استمرار'), findsOneWidget);
     expect(find.text('حدد موقعي على الخريطة'), findsNothing, reason: 'we already know');
 

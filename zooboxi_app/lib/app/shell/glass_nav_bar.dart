@@ -229,7 +229,7 @@ class _NavItem extends StatelessWidget {
 /// finger. The badge animates in and bumps on change, which is the app's
 /// confirmation that "add to cart" landed even when the customer is three
 /// screens away from the cart.
-class _Glyph extends StatelessWidget {
+class _Glyph extends StatefulWidget {
   const _Glyph({
     required this.destination,
     required this.selected,
@@ -241,10 +241,25 @@ class _Glyph extends StatelessWidget {
   final Color color;
 
   @override
+  State<_Glyph> createState() => _GlyphState();
+}
+
+class _GlyphState extends State<_Glyph> {
+  /// The count this glyph last painted. The bump means "one just landed", so
+  /// it may only play when the number actually moved — a pushed page builds a
+  /// fresh bar of its own, and a bar arriving is not a cart event.
+  int? _painted;
+
+  @override
   Widget build(BuildContext context) {
+    final destination = widget.destination;
+    final selected = widget.selected;
+    final color = widget.color;
     final cs = context.cs;
     final zb = context.zb;
     final count = destination.badge;
+    final bumped = _painted != null && _painted != count;
+    _painted = count;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -258,7 +273,7 @@ class _Glyph extends StatelessWidget {
               key: ValueKey(count),
               // A bump, not a grow-in: the badge is already there, it just
               // got bigger by one.
-              tween: Tween(begin: context.reduceMotion ? 1 : 1.35, end: 1),
+              tween: Tween(begin: bumped && !context.reduceMotion ? 1.35 : 1, end: 1),
               duration: Motion.select,
               curve: Motion.decelerate,
               builder: (context, scale, child) =>

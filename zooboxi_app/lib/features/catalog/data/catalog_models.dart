@@ -320,6 +320,9 @@ class CatalogScope {
     this.label = '',
     this.icon,
     this.date = '',
+    this.expressHours,
+    this.expressAvailable,
+    this.expressBranch = '',
   });
 
   /// `express` | `same_day` | `shipping`.
@@ -336,6 +339,18 @@ class CatalogScope {
   /// The date the shipping tier lands on; empty for the fast tiers.
   final String date;
 
+  /// When the express branch covering this address opens and shuts today —
+  /// present even while it is shut, so the tab can say when it reopens.
+  final ExpressHours? expressHours;
+
+  /// Whether the store would serve an express order **right now**, as the
+  /// server sees it. The saved delivery type was decided when the address was
+  /// chosen and goes stale the moment the branch closes; this does not.
+  final bool? expressAvailable;
+
+  /// The branch that serves this address, named for the customer.
+  final String expressBranch;
+
   /// Null means the catalogue is not narrowed — nothing to explain.
   static CatalogScope? maybe(dynamic value) {
     final map = asMap(value);
@@ -348,7 +363,58 @@ class CatalogScope {
       label: asString(map['label']),
       icon: asStringOrNull(map['icon']),
       date: asString(map['date']),
+      expressHours: ExpressHours.maybe(map['express_hours']),
+      expressAvailable: map.containsKey('express_available')
+          ? asBool(map['express_available'])
+          : null,
+      expressBranch: asString(map['express_branch']),
     );
+  }
+}
+
+/// The express branch's opening hours today, as minutes past midnight.
+///
+/// [closedToday] carries the branch that keeps a schedule which has this day
+/// off: there are hours to name, but not today's.
+///
+/// The server sends the branch's own schedule ("09:00"/"23:00"); the app owns
+/// the wording and the arithmetic, because the arrival time has to stay true
+/// as the evening passes and a cached payload must never freeze a clock.
+@immutable
+class ExpressHours {
+  const ExpressHours({
+    required this.openMinutes,
+    required this.closeMinutes,
+    this.closedToday = false,
+  });
+
+  final int openMinutes;
+  final int closeMinutes;
+  final bool closedToday;
+
+  /// True when the branch works past midnight ("09:00" → "02:00").
+  bool get overnight => closeMinutes <= openMinutes;
+
+  static ExpressHours? maybe(dynamic value) {
+    final map = asMap(value);
+    final open = _minutes(asStringOrNull(map['open']));
+    final close = _minutes(asStringOrNull(map['close']));
+    if (open == null || close == null) return null;
+    return ExpressHours(
+      openMinutes: open,
+      closeMinutes: close,
+      closedToday: asBool(map['closed']),
+    );
+  }
+
+  static int? _minutes(String? hhmm) {
+    if (hhmm == null) return null;
+    final parts = hhmm.split(':');
+    if (parts.length < 2) return null;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null || h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
   }
 }
 

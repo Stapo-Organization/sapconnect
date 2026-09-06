@@ -8,6 +8,7 @@ import 'package:zooboxi_app/core/location/location_controller.dart';
 import 'package:zooboxi_app/core/providers.dart';
 import 'package:zooboxi_app/core/shelf/shelf_controller.dart';
 import 'package:zooboxi_app/core/storage/local_store.dart';
+import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/shelf_tabs.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
@@ -80,6 +81,34 @@ void main() {
   });
 
   group('ShelfTabs', () {
+    Future<void> pumpWith(
+      WidgetTester tester,
+      ProviderContainer container,
+      ExpressHours? hours,
+    ) =>
+        tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              locale: const Locale('ar'),
+              theme: AppTheme.light(const Locale('ar')),
+              localizationsDelegates: const [
+                L.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [Locale('ar')],
+              home: Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ShelfTabs(hours: hours),
+                ),
+              ),
+            ),
+          ),
+        );
+
     Future<void> pump(WidgetTester tester, ProviderContainer container) => tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
@@ -111,6 +140,68 @@ void main() {
       await tester.tap(find.text('زوبكسي'));
       await tester.pumpAndSettle();
       expect(c.read(shelfProvider), Shelf.all);
+    });
+
+    testWidgets('the express sign carries the branch hours, not its speed', (tester) async {
+      final c = await _container(deliveryType: 'express');
+      await pumpWith(
+        tester,
+        c,
+        const ExpressHours(openMinutes: 9 * 60, closeMinutes: 23 * 60),
+      );
+
+      expect(find.text('9 ص – 11 م'), findsOneWidget);
+      expect(find.text('خلال ساعتين'), findsNothing);
+      expect(find.text('يصلك غدًا'), findsOneWidget);
+    });
+
+    testWidgets('the server, not the saved address, decides the sign is shut',
+        (tester) async {
+      // Saved as express at noon, opened at midnight: the app must follow the
+      // server's live answer, not the address's memory.
+      final c = await _container(deliveryType: 'express');
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: c,
+          child: MaterialApp(
+            locale: const Locale('ar'),
+            theme: AppTheme.light(const Locale('ar')),
+            localizationsDelegates: const [
+              L.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('ar')],
+            home: const Scaffold(
+              body: Padding(
+                padding: EdgeInsets.all(16),
+                child: ShelfTabs(
+                  hours: ExpressHours(openMinutes: 9 * 60, closeMinutes: 23 * 60),
+                  expressAvailable: false,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('يفتح 9 ص'), findsOneWidget);
+      // And the lit sign is زوبكسي, which is the shelf being served.
+      expect(c.read(shelfProvider), Shelf.express, reason: 'the preference is kept');
+    });
+
+    testWidgets('out of hours the same sign says when it reopens', (tester) async {
+      // Outside express hours the server stops offering express at all, so
+      // the tab dims — but it still knows the branch and its schedule.
+      final c = await _container(deliveryType: 'same_day');
+      await pumpWith(
+        tester,
+        c,
+        const ExpressHours(openMinutes: 9 * 60, closeMinutes: 23 * 60),
+      );
+
+      expect(find.text('يفتح 9 ص'), findsOneWidget);
     });
 
     testWidgets('outside the zone the express tab explains itself instead of switching',

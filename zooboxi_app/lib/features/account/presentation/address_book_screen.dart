@@ -53,7 +53,7 @@ class AddressBookScreen extends ConsumerWidget {
               );
             }
             return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 96 + MediaQuery.paddingOf(context).bottom),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: list.length,
               separatorBuilder: (_, _) => Gap.h12,

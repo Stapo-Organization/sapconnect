@@ -305,9 +305,6 @@ class LAr extends L {
   String get shelfExpressClosed => 'التوصيل السريع غير متاح في موقعك الحالي';
 
   @override
-  String get shelfExpressSub => 'خلال ساعتين';
-
-  @override
   String get shelfAllSub => 'يصلك غدًا';
 
   @override
@@ -315,6 +312,43 @@ class LAr extends L {
 
   @override
   String get shelfAllSubShipping => 'توصيل لمدينتك';
+
+  @override
+  String shelfExpressHours(String open, String close) {
+    return '$open – $close';
+  }
+
+  @override
+  String shelfExpressOpensAt(String time) {
+    return 'يفتح $time';
+  }
+
+  @override
+  String get shelfExpressClosedToday => 'مغلق اليوم';
+
+  @override
+  String get shelfExpressOpenNow => 'مفتوح الآن';
+
+  @override
+  String get locationArrivesAt => 'يوصلك في المنزل';
+
+  @override
+  String etaAt(String time) {
+    return 'الساعة $time';
+  }
+
+  @override
+  String etaTomorrowAt(String time) {
+    return 'غدًا $time';
+  }
+
+  @override
+  String get etaTomorrow => 'غدًا';
+
+  @override
+  String etaOn(String date) {
+    return 'بحلول $date';
+  }
 
   @override
   String get categoriesTitle => 'الأقسام';

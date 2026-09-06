@@ -119,10 +119,56 @@
   "shelfExpressTab": "Express",
   "shelfAllTab": "Zooboxi",
   "shelfExpressClosed": "Express delivery is not available at your location",
-  "shelfExpressSub": "Within 2 hours",
   "shelfAllSub": "Arrives tomorrow",
   "shelfExpressOffSub": "Not here yet",
   "shelfAllSubShipping": "Ships to your city",
+  "shelfExpressHours": "{open} – {close}",
+  "@shelfExpressHours": {
+    "placeholders": {
+      "open": {
+        "type": "String"
+      },
+      "close": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfExpressOpensAt": "Opens {time}",
+  "@shelfExpressOpensAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfExpressClosedToday": "Closed today",
+  "shelfExpressOpenNow": "Open now",
+  "locationArrivesAt": "Arriving at home",
+  "etaAt": "by {time}",
+  "@etaAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "etaTomorrowAt": "tomorrow {time}",
+  "@etaTomorrowAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "etaTomorrow": "Tomorrow",
+  "etaOn": "by {date}",
+  "@etaOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "categoriesTitle": "Categories",
   "categoriesEmpty": "No categories yet",
   "categoriesShopAll": "Shop all",

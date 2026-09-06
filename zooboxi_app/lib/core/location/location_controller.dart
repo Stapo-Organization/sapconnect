@@ -49,13 +49,51 @@ class ZbLocation {
   /// ("النرجس، الرياض"). Null when nothing is set.
   String? detailLabel(String locale) {
     final cityLabel = cityFor(locale);
+    final districtLabel = _districtLabel(locale, cityLabel);
     final parts = [
-      if (district != null && district!.trim().isNotEmpty) district!.trim(),
+      ?districtLabel,
       if (cityLabel != null && cityLabel.isNotEmpty) cityLabel,
     ];
     if (parts.isEmpty) return null;
     return parts.join(locale == 'ar' ? '، ' : ', ');
   }
+
+  /// «حي الملك فهد» — the way the neighbourhood is said out loud, not the way
+  /// the geocoder returns it.
+  ///
+  /// The word is only added where it is certainly true. A geocoder answers
+  /// with all sorts of things: a Latin transliteration, the city itself on a
+  /// coarse fix, «المنطقة الصناعية», «مخطط 12», «ضاحية …». None of those are
+  /// حي, so anything that is not a plain Arabic neighbourhood name is left
+  /// exactly as it came.
+  String? _districtLabel(String locale, String? cityLabel) {
+    final raw = district?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    if (locale != 'ar') return raw;
+    if (raw == cityLabel || raw == city || raw == cityEn) return null;
+    if (!_arabicOnly.hasMatch(raw)) return raw;
+    if (_notADistrict.any(raw.startsWith)) return raw;
+    return 'حي $raw';
+  }
+
+  /// Arabic letters and spaces only — no Latin, no digits.
+  static final RegExp _arabicOnly = RegExp(r'^[\u0621-\u064A\u0670-\u06D3 ]+$');
+
+  /// Openings that already name what the place is.
+  static const List<String> _notADistrict = [
+    'حي',
+    'الحي',
+    'مخطط',
+    'المخطط',
+    'ضاحية',
+    'المنطقة',
+    'منطقة',
+    'مدينة',
+    'قرية',
+    'مركز',
+    'طريق',
+    'شارع',
+  ];
   bool get hasCoordinates => lat != null && lng != null;
 
   /// Coordinates drift: a customer who set their location a month ago may well

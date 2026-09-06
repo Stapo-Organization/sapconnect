@@ -44,22 +44,29 @@ class AddToCartBar extends StatelessWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final lineTotal = unitPrice * qty;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: cs.surface,
-        border: Border(top: BorderSide(color: cs.outlineVariant)),
-        boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withValues(alpha: context.isDark ? 0.5 : 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
+    // A card, not a wall. The main menu now travels with the customer on to
+    // the product page, so this bar is no longer the last thing on screen:
+    // the safe-area reservation is taken *outside* the paint, and the ink
+    // hugs the controls. That keeps the page visible in the gap between this
+    // card and the glass menu beneath it, instead of stacking two slabs.
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(ZbTokens.rLg),
+          border: Border.all(color: cs.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: cs.shadow.withValues(alpha: context.isDark ? 0.5 : 0.10),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           child: Row(
             children: [
               if (!outOfStock) ...[

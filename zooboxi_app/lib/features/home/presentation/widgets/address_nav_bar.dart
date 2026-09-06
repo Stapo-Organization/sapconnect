@@ -7,6 +7,7 @@ import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/location/location_controller.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
 
 /// The address bar that follows the customer down the page.
@@ -16,9 +17,13 @@ import '../../../location/presentation/location_sheet.dart';
 /// going?" is answerable from anywhere in the feed — the pattern every
 /// delivery app trains people on. Tap → the location sheet.
 class AddressNavBar extends ConsumerWidget {
-  const AddressNavBar({super.key, required this.visible});
+  const AddressNavBar({super.key, required this.visible, this.scope});
 
   final bool visible;
+
+  /// The active storefront's promise, so the pill on the right agrees with
+  /// the header the customer just scrolled past.
+  final CatalogScope? scope;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,7 +92,7 @@ class AddressNavBar extends ConsumerWidget {
                         color: cs.onSurfaceVariant,
                       ),
                       const Spacer(),
-                      const PromiseLine(),
+                      PromiseLine(scope: scope),
                     ],
                   ),
                 ),

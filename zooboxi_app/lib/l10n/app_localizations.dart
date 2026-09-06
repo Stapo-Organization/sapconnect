@@ -643,12 +643,6 @@ abstract class L {
   /// **'التوصيل السريع غير متاح في موقعك الحالي'**
   String get shelfExpressClosed;
 
-  /// No description provided for @shelfExpressSub.
-  ///
-  /// In ar, this message translates to:
-  /// **'خلال ساعتين'**
-  String get shelfExpressSub;
-
   /// No description provided for @shelfAllSub.
   ///
   /// In ar, this message translates to:
@@ -666,6 +660,60 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'توصيل لمدينتك'**
   String get shelfAllSubShipping;
+
+  /// No description provided for @shelfExpressHours.
+  ///
+  /// In ar, this message translates to:
+  /// **'{open} – {close}'**
+  String shelfExpressHours(String open, String close);
+
+  /// No description provided for @shelfExpressOpensAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'يفتح {time}'**
+  String shelfExpressOpensAt(String time);
+
+  /// No description provided for @shelfExpressClosedToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'مغلق اليوم'**
+  String get shelfExpressClosedToday;
+
+  /// No description provided for @shelfExpressOpenNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'مفتوح الآن'**
+  String get shelfExpressOpenNow;
+
+  /// No description provided for @locationArrivesAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوصلك في المنزل'**
+  String get locationArrivesAt;
+
+  /// No description provided for @etaAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'الساعة {time}'**
+  String etaAt(String time);
+
+  /// No description provided for @etaTomorrowAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'غدًا {time}'**
+  String etaTomorrowAt(String time);
+
+  /// No description provided for @etaTomorrow.
+  ///
+  /// In ar, this message translates to:
+  /// **'غدًا'**
+  String get etaTomorrow;
+
+  /// No description provided for @etaOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'بحلول {date}'**
+  String etaOn(String date);
 
   /// No description provided for @categoriesTitle.
   ///

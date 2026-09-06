@@ -20,6 +20,7 @@ import '../../../core/session/session_controller.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
 import '../../../core/widgets/press_scale.dart';
+import '../../location/presentation/delivery_when.dart';
 import '../../../core/widgets/sparkles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/data/addresses_controller.dart';
@@ -1002,7 +1003,9 @@ class _LocationSetCard extends StatelessWidget {
     final fg = _canvasFg(context);
     final locale = Localizations.localeOf(context).languageCode;
     final detail = location.detailLabel(locale);
-    final promise = location.promiseLabel;
+    // The arrival sentence, not the tier's name — the same words the store's
+    // header will greet them with a second from now.
+    final promise = deliveryWhenLabel(context, location: location);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -1031,7 +1034,7 @@ class _LocationSetCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                if (promise != null && promise.isNotEmpty) ...[
+                if (promise.isNotEmpty) ...[
                   Gap.h8,
                   Container(
                     padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 5),

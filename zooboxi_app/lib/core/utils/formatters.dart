@@ -108,6 +108,22 @@ abstract final class Fmt {
     return '$day · $time';
   }
 
+  /// "10:30 م" / "10:30 PM" — the arrival clock on the header.
+  ///
+  /// `intl` separates the meridiem with a narrow no-break space; these strings
+  /// get concatenated into sentences and compared in tests, so the separator
+  /// is normalised to an ordinary space.
+  static String clock(DateTime time, String locale) =>
+      _space(_latin(DateFormat.jm(locale).format(time.toLocal())));
+
+  /// The same clock with a whole hour written bare: "9 ص", "11 م". Opening
+  /// hours are read as a range, and ":00" twice in one line is noise.
+  static String clockShort(DateTime time, String locale) {
+    final local = time.toLocal();
+    if (local.minute != 0) return clock(local, locale);
+    return _space(_latin(DateFormat.j(locale).format(local)));
+  }
+
   /// The weekday index the calendar week starts on. Saudi weeks start Sunday
   /// in both languages of this app.
   static const int firstDayOfWeek = DateTime.sunday;
@@ -123,6 +139,8 @@ abstract final class Fmt {
     }
     return out;
   }
+
+  static String _space(String s) => s.replaceAll('\u202f', ' ').replaceAll('\u00a0', ' ');
 
   static int _pow10(int n) {
     var r = 1;

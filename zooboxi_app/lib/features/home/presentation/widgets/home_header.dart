@@ -13,7 +13,6 @@ import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
-import 'shelf_ribbon.dart';
 import 'shelf_tabs.dart';
 
 /// The home header: who we're delivering to, and the two things a customer
@@ -27,9 +26,10 @@ class HomeHeader extends ConsumerWidget {
 
   final bool onCanvas;
 
-  /// The active shelf's server sentence for the ribbon. Null (the ghost twin,
-  /// a payload still loading) falls back to the shelf's own line — same
-  /// single-line height either way, so ghost and overlay always agree.
+  /// The active shelf, as the server resolved it: it decides the arrival time
+  /// on the address line and carries the express branch's opening hours for
+  /// the tab. Null (the ghost twin, a payload still loading) falls back to
+  /// the saved location — same height either way, so ghost and overlay agree.
   final CatalogScope? scope;
 
   @override
@@ -46,19 +46,20 @@ class HomeHeader extends ConsumerWidget {
           // page is which shop you are in, not which product you want.
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 8, end: 8, bottom: 10),
-            child: ShelfTabs(onCanvas: onCanvas),
+            child: ShelfTabs(
+              onCanvas: onCanvas,
+              hours: scope?.expressHours,
+              expressAvailable: scope?.expressAvailable,
+            ),
           ),
           Row(
             children: [
               const _LogoSticker(),
               Gap.w10,
               // The chip stays Expanded, so the sticker's fixed width is the
-              // only thing it gives up.
-              Expanded(child: LocationChip(onCanvas: onCanvas)),
-              // The delivery promise rides the top row, shoulder to shoulder
-              // with the wishlist — owner's call: no greeting line, the
-              // header is address, promise, heart, search.
-              PromiseLine(onCanvas: onCanvas),
+              // only thing it gives up. It now carries the arrival time on
+              // its own second line, so no promise badge rides beside it.
+              Expanded(child: LocationChip(onCanvas: onCanvas, scope: scope)),
               IconButton(
                 onPressed: () {
                   Haptics.light();
@@ -81,12 +82,6 @@ class HomeHeader extends ConsumerWidget {
               onTap: () => context.push('/search'),
               onScan: () => context.push('/scan'),
             ),
-          ),
-          // The fascia board: the active storefront's promise closes the
-          // header in that store's own colour.
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 8, end: 8, top: 8),
-            child: ShelfRibbon(scope: scope),
           ),
         ],
       ),

@@ -8,7 +8,9 @@ import '../../../core/location/location_controller.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../catalog/data/catalog_models.dart';
 import '../data/location_models.dart';
+import 'delivery_when.dart';
 import 'widgets/city_picker.dart';
 
 /// Opens the delivery-location sheet — the in-store way to change where we
@@ -97,6 +99,7 @@ class _LocationBody extends StatelessWidget {
     final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
     final city = current.cityFor(locale);
+    final when = deliveryWhenLabel(context, location: current);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,9 +124,12 @@ class _LocationBody extends StatelessWidget {
                         style: context.tt.titleSmall
                             ?.copyWith(color: cs.onPrimaryContainer),
                       ),
-                      if (current.promiseLabel != null)
+                      // The same arrival sentence the header shows — this
+                      // sheet opens from that very chip, so a duration here
+                      // and a clock time there would read as two answers.
+                      if (when.isNotEmpty)
                         Text(
-                          current.promiseLabel!,
+                          when,
                           style: context.tt.bodySmall
                               ?.copyWith(color: cs.onPrimaryContainer),
                         ),
@@ -158,15 +164,25 @@ class _LocationBody extends StatelessWidget {
   }
 }
 
-/// The header chip: where we're delivering, and how fast. Tapping it opens
-/// the sheet. On a store where the same product has three different answers
-/// depending on where you stand, this is the most important control on Home.
+/// The header chip: where this is going, and **when it lands**. Tapping it
+/// opens the sheet. On a store where the same product has three different
+/// answers depending on where you stand, this is the most important control
+/// on Home.
+///
+/// Two lines, in the order a person asks the questions: «يوصلك في المنزل»,
+/// then «حي الملك فهد، الرياض · الساعة 10:30 م». The arrival time is part of
+/// the address line rather than a badge beside it, because the address and
+/// the hour are one fact — this parcel, at this door, by then.
 class LocationChip extends ConsumerWidget {
-  const LocationChip({super.key, this.onCanvas = false});
+  const LocationChip({super.key, this.onCanvas = false, this.scope});
 
   /// Renders the chip for the hero canvas: every stroke turns light, since
   /// the canvas colors are deep by design.
   final bool onCanvas;
+
+  /// The active storefront's promise, so the زوبكسي tab says tomorrow even
+  /// while standing inside an express zone.
+  final CatalogScope? scope;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,6 +193,9 @@ class LocationChip extends ConsumerWidget {
     // The full line a person recognises as *their* address: district, city.
     final detail = location.detailLabel(locale);
     final isSet = detail != null && detail.isNotEmpty;
+    final when = isSet
+        ? deliveryWhenLabel(context, scope: scope, location: location)
+        : '';
 
     final fg = onCanvas ? (context.isDark ? ZbTokens.inkDark : Colors.white) : null;
     final accent = fg ?? cs.primary;
@@ -210,17 +229,45 @@ class LocationChip extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      l.locationDeliverTo,
+                      isSet ? l.locationArrivesAt : l.locationDeliverTo,
                       style: context.tt.labelSmall?.copyWith(
                         color: muted,
                         height: 1.1,
                       ),
                     ),
-                    Text(
-                      isSet ? detail : l.locationChoose,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.tt.titleSmall?.copyWith(height: 1.2, color: fg),
+                    // Address then hour on one line. The address gives way
+                    // first: an ellipsised district is still recognisable,
+                    // a half-printed time is not.
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            isSet ? detail : l.locationChoose,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.tt.titleSmall?.copyWith(height: 1.2, color: fg),
+                          ),
+                        ),
+                        if (when.isNotEmpty) ...[
+                          Gap.w6,
+                          // Flexible too: a shipping date («بحلول الخميس 10
+                          // سبتمبر») is long enough to overflow the row on a
+                          // small phone at a large text scale.
+                          Flexible(
+                            child: Text(
+                              when,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: context.tt.titleSmall?.copyWith(
+                                height: 1.2,
+                                fontWeight: FontWeight.w800,
+                                color: accent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -235,21 +282,28 @@ class LocationChip extends ConsumerWidget {
   }
 }
 
-/// The promise line under the header, e.g. "خلال ساعتين من فرع النخيل".
+/// The arrival pill for the compact bar that follows the customer down the
+/// page: the same answer the header gives, in one word — «الساعة 10:30 م».
 class PromiseLine extends ConsumerWidget {
-  const PromiseLine({super.key, this.onCanvas = false});
+  const PromiseLine({super.key, this.onCanvas = false, this.scope});
 
   /// On the hero canvas the pill goes translucent-light instead of tinted —
   /// the tier colors were mixed for surfaces, not for a deep teal.
   final bool onCanvas;
 
+  /// The active storefront's promise; falls back to the saved location's.
+  final CatalogScope? scope;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = ref.watch(currentLocationProvider);
-    final promise = location.promiseLabel;
-    if (promise == null || promise.isEmpty) return const SizedBox.shrink();
+    final when = deliveryWhenLabel(context, scope: scope, location: location);
+    if (when.isEmpty) return const SizedBox.shrink();
 
-    final pair = context.zb.tier(location.deliveryType);
+    final tier = (scope != null && scope!.tier.isNotEmpty)
+        ? scope!.tier
+        : location.deliveryType;
+    final pair = context.zb.tier(tier);
     final canvasFg = context.isDark ? ZbTokens.inkDark : Colors.white;
     final fg = onCanvas ? canvasFg : pair.fg;
     final bg = onCanvas ? canvasFg.withValues(alpha: 0.16) : pair.bg;
@@ -263,10 +317,14 @@ class PromiseLine extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.bolt_rounded, size: 13, color: fg),
+          Icon(
+            tier == 'express' ? Icons.bolt_rounded : Icons.schedule_rounded,
+            size: 13,
+            color: fg,
+          ),
           Gap.w4,
           Text(
-            promise,
+            when,
             style: context.tt.labelSmall?.copyWith(color: fg, fontWeight: FontWeight.w700),
           ),
         ],

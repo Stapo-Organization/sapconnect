@@ -47,7 +47,7 @@ class BuyAgainScreen extends ConsumerWidget {
               );
             }
             return GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 28 + MediaQuery.paddingOf(context).bottom),
               physics: const AlwaysScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,

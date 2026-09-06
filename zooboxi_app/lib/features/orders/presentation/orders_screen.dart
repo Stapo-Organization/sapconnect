@@ -47,7 +47,7 @@ class OrdersScreen extends ConsumerWidget {
               );
             }
             return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 28 + MediaQuery.paddingOf(context).bottom),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: page.orders.length,
               separatorBuilder: (_, _) => Gap.h12,
@@ -161,7 +161,7 @@ class _OrdersSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShimmerGroup(
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 28 + MediaQuery.paddingOf(context).bottom),
           physics: const NeverScrollableScrollPhysics(),
           itemCount: 4,
           separatorBuilder: (_, _) => Gap.h12,

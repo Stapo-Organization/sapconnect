@@ -178,7 +178,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),
       itemCount: _suggestions.length + 1,
       separatorBuilder: (_, _) => Divider(height: 1, color: context.cs.outlineVariant),
       itemBuilder: (context, index) {
@@ -253,7 +253,7 @@ class _RecentSearches extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + MediaQuery.paddingOf(context).bottom),
       children: [
         Row(
           children: [

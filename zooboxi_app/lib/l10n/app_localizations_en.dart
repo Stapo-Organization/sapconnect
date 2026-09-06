@@ -306,9 +306,6 @@ class LEn extends L {
       'Express delivery is not available at your location';
 
   @override
-  String get shelfExpressSub => 'Within 2 hours';
-
-  @override
   String get shelfAllSub => 'Arrives tomorrow';
 
   @override
@@ -316,6 +313,43 @@ class LEn extends L {
 
   @override
   String get shelfAllSubShipping => 'Ships to your city';
+
+  @override
+  String shelfExpressHours(String open, String close) {
+    return '$open – $close';
+  }
+
+  @override
+  String shelfExpressOpensAt(String time) {
+    return 'Opens $time';
+  }
+
+  @override
+  String get shelfExpressClosedToday => 'Closed today';
+
+  @override
+  String get shelfExpressOpenNow => 'Open now';
+
+  @override
+  String get locationArrivesAt => 'Arriving at home';
+
+  @override
+  String etaAt(String time) {
+    return 'by $time';
+  }
+
+  @override
+  String etaTomorrowAt(String time) {
+    return 'tomorrow $time';
+  }
+
+  @override
+  String get etaTomorrow => 'Tomorrow';
+
+  @override
+  String etaOn(String date) {
+    return 'by $date';
+  }
 
   @override
   String get categoriesTitle => 'Categories';

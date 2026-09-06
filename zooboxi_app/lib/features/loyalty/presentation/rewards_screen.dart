@@ -238,7 +238,7 @@ class _RewardsSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShimmerGroup(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.paddingOf(context).bottom),
           children: const [
             SkeletonBox(width: double.infinity, height: 150, radius: ZbTokens.rXl),
             Gap.h12,

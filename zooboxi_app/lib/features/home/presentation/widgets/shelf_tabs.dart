@@ -3,14 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/delivery/delivery_eta.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/location/location_controller.dart';
 import '../../../../core/shelf/shelf_controller.dart';
 import '../../../../core/shelf/shelf_identity.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../catalog/data/catalog_models.dart';
 
 /// The two storefronts, as signage above everything else.
 ///
@@ -23,11 +26,29 @@ import '../../../../l10n/app_localizations.dart';
 ///
 /// Outside an express zone the إكسبريس sign stays up but dims and its promise
 /// line changes to «غير متاح هنا»; tapping it explains instead of ignoring.
+///
+/// The إكسبريس line carries the branch's **opening hours** («9 ص – 11 م»), not
+/// its speed. A shop sign says when the door is open; how fast the shop is
+/// belongs to the order, and the header already answers that with an arrival
+/// time. Out of hours the same line turns into «يفتح 9 ص».
 class ShelfTabs extends ConsumerStatefulWidget {
-  const ShelfTabs({super.key, this.onCanvas = false});
+  const ShelfTabs({
+    super.key,
+    this.onCanvas = false,
+    this.hours,
+    this.expressAvailable,
+  });
 
   /// True when the tabs sit on the hero's deep-coloured canvas.
   final bool onCanvas;
+
+  /// Today's express opening hours, from the shelf payload.
+  final ExpressHours? hours;
+
+  /// The server's live answer to "would express serve this address now?".
+  /// The saved delivery type was decided when the address was chosen and does
+  /// not know the branch has since closed, so this wins when it is present.
+  final bool? expressAvailable;
 
   @override
   ConsumerState<ShelfTabs> createState() => _ShelfTabsState();
@@ -59,11 +80,34 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
     }
   }
 
+  /// What the إكسبريس sign says underneath its name: the branch's hours while
+  /// they mean something, the reopening time once the shutter is down, and
+  /// «غير متاح هنا» where there is no branch at all.
+  String _expressLine(BuildContext context, L l, bool open) {
+    final hours = widget.hours;
+    final locale = Localizations.localeOf(context).languageCode;
+    if (hours == null) {
+      return open ? l.shelfExpressOpenNow : l.shelfExpressOffSub;
+    }
+    // A branch that keeps a schedule with today off is closed, not absent.
+    if (hours.closedToday) return l.shelfExpressClosedToday;
+    if (open) {
+      return l.shelfExpressHours(
+        Fmt.clockShort(timeOfDayToday(hours.openMinutes), locale),
+        Fmt.clockShort(timeOfDayToday(hours.closeMinutes), locale),
+      );
+    }
+    return l.shelfExpressOpensAt(
+      Fmt.clockShort(timeOfDayToday(hours.openMinutes), locale),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final shelf = ref.watch(shelfProvider);
-    final expressOpen = ref.watch(expressAvailableProvider);
+    final bool expressOpen =
+        widget.expressAvailable ?? ref.watch(expressAvailableProvider);
     // زوبكسي promises tomorrow inside a served city; out of town it ships.
     final shipping = ref.watch(
           locationProvider.select((s) => s.location.deliveryType),
@@ -77,7 +121,12 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
         ? Colors.black.withValues(alpha: 0.20)
         : cs.surfaceContainerHigh;
 
-    final expressSelected = shelf == Shelf.express;
+    // A lit sign over a shut shop is a lie. When the server says express is
+    // not serving this address right now it is already returning the زوبكسي
+    // shelf, so the زوبكسي sign is the one that is lit — without rewriting
+    // the customer's remembered preference, which is still express for
+    // tomorrow morning.
+    final expressSelected = shelf == Shelf.express && expressOpen;
     // In RTL the first child sits on the right — إكسبريس leads the reading.
     final align = expressSelected
         ? AlignmentDirectional.centerStart
@@ -126,9 +175,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                   child: _Sign(
                     identity: ShelfIdentity.of(context, Shelf.express),
                     name: l.shelfExpressTab,
-                    promise: expressOpen
-                        ? l.shelfExpressSub
-                        : l.shelfExpressOffSub,
+                    promise: _expressLine(context, l, expressOpen),
                     selected: expressSelected,
                     enabled: expressOpen,
                     onCanvas: widget.onCanvas,

@@ -247,7 +247,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     top: 0,
                     start: 0,
                     end: 0,
-                    child: AddressNavBar(visible: _navVisible),
+                    child: AddressNavBar(visible: _navVisible, scope: payload.scope),
                   ),
                 ],
               )
