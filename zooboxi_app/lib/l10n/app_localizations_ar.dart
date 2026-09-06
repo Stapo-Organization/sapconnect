@@ -293,6 +293,18 @@ class LAr extends L {
   String get homeTrustReturns => 'إرجاع سهل';
 
   @override
+  String get shelfTabsLabel => 'اختيار المتجر';
+
+  @override
+  String get shelfExpressTab => 'إكسبريس';
+
+  @override
+  String get shelfAllTab => 'زوبكسي';
+
+  @override
+  String get shelfExpressClosed => 'التوصيل السريع غير متاح في موقعك الحالي';
+
+  @override
   String get categoriesTitle => 'الأقسام';
 
   @override

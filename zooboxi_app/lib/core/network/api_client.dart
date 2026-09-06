@@ -27,6 +27,7 @@ class ApiClient {
     required this.readGuestId,
     required this.readLocationHeaders,
     required this.readLanguageCode,
+    required this.readShelf,
     this.onAuthRequired,
   }) : _store = store {
     dio = Dio(
@@ -75,6 +76,10 @@ class ApiClient {
   final ValueReader<Map<String, String>> readLocationHeaders;
   final ValueReader<String> readLanguageCode;
 
+  /// Which storefront tab is browsing ('express' | 'all') — every catalogue
+  /// read is scoped to it server-side.
+  final ValueReader<String> readShelf;
+
   /// Fired when the server rejects a *bearer* call. It does **not** log a
   /// guest out — guests are expected to hit account routes and be refused;
   /// that is a prompt to sign in, not a session teardown.
@@ -105,6 +110,7 @@ class ApiClient {
     }
 
     options.headers.addAll(readLocationHeaders());
+    options.headers['X-ZB-Shelf'] = readShelf();
     options.headers['X-ZB-App'] = '${_platformName()}/${Env.appVersion}';
 
     // The server maps ids through Polylang from this parameter.
@@ -202,7 +208,7 @@ class ApiClient {
     // different shelves inside one city, and their payloads must not share a
     // cache entry.
     final scope = '${loc['X-ZB-City'] ?? ''}|${loc['X-ZB-Delivery-Type'] ?? ''}'
-        '|${loc['X-ZB-Branch'] ?? ''}';
+        '|${loc['X-ZB-Branch'] ?? ''}|${readShelf()}';
     return '${options.path}?${query.join('&')}#$scope';
   }
 

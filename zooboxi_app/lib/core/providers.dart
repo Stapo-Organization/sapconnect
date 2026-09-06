@@ -4,6 +4,7 @@ import '../app/settings/app_settings.dart';
 import 'location/location_controller.dart';
 import 'network/api_client.dart';
 import 'session/session_controller.dart';
+import 'shelf/shelf_controller.dart';
 import 'storage/local_store.dart';
 import 'storage/secure_store.dart';
 
@@ -35,6 +36,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     readGuestId: () => ref.read(sessionProvider).guestId,
     readLocationHeaders: () => ref.read(locationProvider).location.headersMap(),
     readLanguageCode: () => ref.read(appSettingsProvider).languageCode,
+    readShelf: () => ref.read(shelfProvider).wire,
     onAuthRequired: () => ref.read(sessionProvider.notifier).onServerRejectedToken(),
   );
 });

@@ -293,6 +293,19 @@ class LEn extends L {
   String get homeTrustReturns => 'Easy returns';
 
   @override
+  String get shelfTabsLabel => 'Choose storefront';
+
+  @override
+  String get shelfExpressTab => 'Express';
+
+  @override
+  String get shelfAllTab => 'Zooboxi';
+
+  @override
+  String get shelfExpressClosed =>
+      'Express delivery is not available at your location';
+
+  @override
   String get categoriesTitle => 'Categories';
 
   @override

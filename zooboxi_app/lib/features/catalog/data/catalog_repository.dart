@@ -8,6 +8,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/network/envelope.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
+import '../../../core/shelf/shelf_controller.dart';
 import '../../../core/storage/local_store.dart';
 import 'catalog_models.dart';
 import 'product_models.dart';
@@ -20,20 +21,22 @@ class CatalogRepository {
 
   /// The storefront. The raw body is kept on disk so the *next* cold start
   /// paints a real page instead of a shimmer — see [cachedHome].
-  Future<HomePayload> home() async {
+  Future<HomePayload> home({required String shelf}) async {
     final data = asMap(await _api.get('/home'));
     // Fire-and-forget: a disk write must never delay the first frame.
-    unawaited(_store.setHomeCache(data));
+    unawaited(_store.setHomeCache(data, shelf: shelf));
     return HomePayload.fromJson(data);
   }
 
-  /// Last good `/home` body, decoded. Null on a first run or after a
-  /// location change (which drops it — it described another city).
-  HomePayload? cachedHome() {
-    final json = _store.homeCache;
-    if (json == null) return null;
+  /// Last good `/home` body, decoded — but only when it was captured under
+  /// the shelf now being browsed, so the express storefront never flashes
+  /// under the full-store tab. Null on a first run or after a location
+  /// change (which drops it — it described another city).
+  HomePayload? cachedHome({required String shelf}) {
+    final cached = _store.homeCache;
+    if (cached == null || cached.shelf != shelf) return null;
     try {
-      final payload = HomePayload.fromJson(json);
+      final payload = HomePayload.fromJson(cached.data);
       return payload.isEmpty ? null : payload;
     } catch (_) {
       return null;
@@ -130,7 +133,8 @@ final catalogRepositoryProvider = Provider<CatalogRepository>(
 
 final homeProvider = FutureProvider<HomePayload>((ref) {
   ref.watch(catalogRevisionProvider);
-  return ref.watch(catalogRepositoryProvider).home();
+  final shelf = ref.watch(shelfProvider);
+  return ref.watch(catalogRepositoryProvider).home(shelf: shelf.wire);
 });
 
 /// Yesterday's storefront, read straight off disk.
@@ -141,7 +145,8 @@ final homeProvider = FutureProvider<HomePayload>((ref) {
 /// customer keeps a browsable store instead of an error page.
 final homeCacheProvider = Provider<HomePayload?>((ref) {
   ref.watch(catalogRevisionProvider);
-  return ref.watch(catalogRepositoryProvider).cachedHome();
+  final shelf = ref.watch(shelfProvider);
+  return ref.watch(catalogRepositoryProvider).cachedHome(shelf: shelf.wire);
 });
 
 /// `GET /home/feed`. Refetched when the catalog revision bumps (language or

@@ -22,6 +22,7 @@ class LocalStore {
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
   static const _kHomeCache = 'catalog.home_cache';
+  static const _kShelf = 'shelf.selected';
   static const _kHomeFeedCache = 'catalog.home_feed_cache';
   static const _kEvents = 'analytics.pending';
   static const _kCachePrefix = 'cache.';
@@ -119,10 +120,29 @@ class LocalStore {
   // 304 and still needs a round trip. This one is what paints the storefront
   // on the frame the app opens, while the refresh happens behind it.
 
-  Map<String, dynamic>? get homeCache => _json(_kHomeCache);
+  /// The home snapshot is shelf-specific — an express storefront painted
+  /// under the full-store tab would flash the wrong catalogue — so the shelf
+  /// it was captured under travels with it, like the feed's sign-in state.
+  ({String shelf, Map<String, dynamic> data})? get homeCache {
+    final wrapper = _json(_kHomeCache);
+    if (wrapper == null) return null;
+    final data = wrapper['data'];
+    if (data is! Map) return null;
+    return (
+      shelf: wrapper['shelf'] as String? ?? '',
+      data: Map<String, dynamic>.from(data),
+    );
+  }
 
-  Future<void> setHomeCache(Map<String, dynamic> json) =>
-      _prefs.setString(_kHomeCache, jsonEncode(json));
+  Future<void> setHomeCache(Map<String, dynamic> json, {required String shelf}) =>
+      _prefs.setString(_kHomeCache, jsonEncode({'shelf': shelf, 'data': json}));
+
+  // ── Storefront tab ───────────────────────────────────────────────────
+
+  /// The shelf the customer last chose ('express' | 'all'), null on first run.
+  String? get shelf => _prefs.getString(_kShelf);
+
+  Future<void> setShelf(String value) => _prefs.setString(_kShelf, value);
 
   /// The feed is per-customer, so the sign-in state it was captured under is
   /// stored with it — one person's "buy again" must never flash on another's

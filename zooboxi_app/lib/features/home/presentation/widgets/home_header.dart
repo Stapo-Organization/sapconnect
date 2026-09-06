@@ -12,6 +12,7 @@ import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../location/presentation/location_sheet.dart';
+import 'shelf_tabs.dart';
 
 /// The home header: who we're delivering to, and the two things a customer
 /// reaches for first — search and their saved list.
@@ -34,6 +35,12 @@ class HomeHeader extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // The two storefronts, above everything — the first decision on the
+          // page is which shop you are in, not which product you want.
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 8, end: 8, bottom: 10),
+            child: ShelfTabs(onCanvas: onCanvas),
+          ),
           Row(
             children: [
               const _LogoSticker(),

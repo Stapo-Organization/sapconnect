@@ -619,6 +619,30 @@ abstract class L {
   /// **'إرجاع سهل'**
   String get homeTrustReturns;
 
+  /// No description provided for @shelfTabsLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار المتجر'**
+  String get shelfTabsLabel;
+
+  /// No description provided for @shelfExpressTab.
+  ///
+  /// In ar, this message translates to:
+  /// **'إكسبريس'**
+  String get shelfExpressTab;
+
+  /// No description provided for @shelfAllTab.
+  ///
+  /// In ar, this message translates to:
+  /// **'زوبكسي'**
+  String get shelfAllTab;
+
+  /// No description provided for @shelfExpressClosed.
+  ///
+  /// In ar, this message translates to:
+  /// **'التوصيل السريع غير متاح في موقعك الحالي'**
+  String get shelfExpressClosed;
+
   /// No description provided for @categoriesTitle.
   ///
   /// In ar, this message translates to:
