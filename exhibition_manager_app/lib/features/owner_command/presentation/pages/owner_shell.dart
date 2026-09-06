@@ -13,6 +13,7 @@ import 'package:exhibition_manager_app/features/retail_dashboard/presentation/ch
 import 'package:exhibition_manager_app/features/retail_dashboard/presentation/pages/retail_dashboard_page.dart';
 import 'package:exhibition_manager_app/features/stock_distribution/presentation/pages/stock_distribution_page.dart';
 import 'package:exhibition_manager_app/features/container_tracking/presentation/pages/container_tracking_page.dart';
+import 'package:exhibition_manager_app/features/bundles/presentation/pages/bundles_page.dart';
 import 'package:exhibition_manager_app/features/promotions/presentation/pages/promotions_page.dart';
 import 'package:exhibition_manager_app/features/quality_control/presentation/pages/quality_admin_page.dart';
 import 'package:exhibition_manager_app/features/profile/presentation/pages/profile_page.dart';
@@ -146,6 +147,13 @@ class _OwnerShellState extends State<OwnerShell> with SingleTickerProviderStateM
               titleKey: 'owner_approvals_promos',
               subtitleKey: 'owner_approvals_promos_sub',
               builder: (_) => const PromotionsPage(initialStatus: 'suggested'),
+            ),
+            OwnerHubEntry(
+              icon: Icons.inventory_2_rounded,
+              color: AppDomain.zooboxi.accent,
+              titleKey: 'owner_approvals_bundles',
+              subtitleKey: 'owner_approvals_bundles_sub',
+              builder: (_) => const BundlesPage(),
             ),
             OwnerHubEntry(
               icon: Icons.fact_check_rounded,

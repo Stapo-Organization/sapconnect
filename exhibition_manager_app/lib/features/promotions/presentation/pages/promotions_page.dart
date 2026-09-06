@@ -13,6 +13,7 @@ import 'package:exhibition_manager_app/features/promotions/data/models/campaign.
 import 'package:exhibition_manager_app/features/promotions/presentation/widgets/compact_promotion_card.dart';
 import 'package:exhibition_manager_app/features/promotions/presentation/widgets/promotion_card.dart'
     show campaignTypeColor, campaignTypeIcon, campaignTypeLabel;
+import 'package:exhibition_manager_app/features/bundles/presentation/pages/bundles_page.dart';
 import 'package:exhibition_manager_app/features/promotions/presentation/widgets/reject_feedback_sheet.dart';
 import 'promotion_detail_page.dart';
 
@@ -95,7 +96,20 @@ class _PromotionsPageState extends State<PromotionsPage> {
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: MuntajatAppBar(title: context.tr('promotions')),
+        appBar: MuntajatAppBar(
+          title: context.tr('promotions'),
+          actions: [
+            // «حزم زوبوكسي» — the sellable-bundles approval feed.
+            IconButton(
+              tooltip: context.tr('bundles_title'),
+              icon: const Icon(Icons.inventory_2_outlined),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BundlesPage()),
+              ),
+            ),
+          ],
+        ),
         body: Column(
           children: [
             Container(

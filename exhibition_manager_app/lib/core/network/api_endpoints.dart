@@ -98,6 +98,13 @@ class ApiEndpoints {
   static String promotionRegenerate(int id) => '$baseUrl/promotions/$id/regenerate';
   static String promotionRefine(int id) => '$baseUrl/promotions/$id/refine';
 
+  // «حزم زوبوكسي» — sellable bundles (owner only)
+  static const String bundles = '$baseUrl/bundles';
+  static const String bundlesSummary = '$baseUrl/bundles/summary';
+  static String bundleApprove(int id) => '$baseUrl/bundles/$id/approve';
+  static String bundleReject(int id) => '$baseUrl/bundles/$id/reject';
+  static String bundleRetire(int id) => '$baseUrl/bundles/$id/retire';
+
   // ─── Showroom Pulse / نبض المعرض ────────────────────────────
   static const String showroomPulse = '$baseUrl/showroom-pulse';
   static const String showroomPulseLever = '$baseUrl/showroom-pulse/lever';
