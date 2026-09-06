@@ -59,6 +59,32 @@ class ZooboxiOrder extends Model
     }
 
     /**
+     * Every Mrsool (مرسول) courier request ever made for this order.
+     */
+    public function mrsoolDeliveries()
+    {
+        return $this->hasMany(MrsoolDelivery::class, 'zooboxi_order_id');
+    }
+
+    /**
+     * The one courier request still in flight (non-terminal), if any.
+     */
+    public function activeMrsoolDelivery()
+    {
+        return $this->hasOne(MrsoolDelivery::class, 'zooboxi_order_id')
+            ->whereNotIn('phase', MrsoolDelivery::TERMINAL_PHASES)
+            ->latestOfMany();
+    }
+
+    /**
+     * The most recent courier request, terminal or not (for the "last attempt" card).
+     */
+    public function latestMrsoolDelivery()
+    {
+        return $this->hasOne(MrsoolDelivery::class, 'zooboxi_order_id')->latestOfMany();
+    }
+
+    /**
      * The branch manager who marked the order prepared.
      */
     public function preparedBy()

@@ -118,4 +118,31 @@ return [
         'tab'            => env('GOOGLE_SHEETS_TAB'), // null = first tab
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mrsool (مرسول) — express last-mile courier (LaaS API)
+    |--------------------------------------------------------------------------
+    | Powers the manual "طلب مندوب مرسول" button in the branch-manager app for
+    | Zooboxi EXPRESS orders. Every write is guarded: the master switch is OFF
+    | by default, only the pilot warehouses may request a courier, COD orders
+    | are excluded, and a calendar-day cap bounds the blast radius of any bug.
+    | The webhook has no signature — we authenticate by a secret token in the
+    | URL path and always re-fetch the order before trusting the payload.
+    */
+    'mrsool' => [
+        'enabled'       => env('MRSOOL_ENABLED', false),
+        'base_url'      => env('MRSOOL_API_BASE_URL', 'https://logistics.staging.mrsool.co'),
+        'api_key'       => env('MRSOOL_API_KEY'),
+        'timeout'       => env('MRSOOL_API_TIMEOUT', 20),
+        // Random secret embedded in the webhook URL path (POST /api/webhooks/mrsool/{token}).
+        'webhook_token' => env('MRSOOL_WEBHOOK_TOKEN'),
+        // Pilot gate: comma-separated Zooboxi warehouse_codes allowed to request a courier.
+        'warehouses'    => env('MRSOOL_WAREHOUSES', 'RUH010'),
+        // Hard ceiling on courier requests per calendar day (all branches).
+        'daily_cap'     => env('MRSOOL_DAILY_CAP', 20),
+        'allow_cod'     => env('MRSOOL_ALLOW_COD', false),
+        'store_name'    => env('MRSOOL_STORE_NAME', 'Zooboxi'),
+        'store_phone'   => env('MRSOOL_STORE_PHONE'),
+    ],
+
 ];

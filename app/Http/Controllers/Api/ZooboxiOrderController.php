@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\Concerns\ResolvesZooboxiWarehouses;
 use App\Http\Resources\ZooboxiOrderApiResource;
 use App\Models\ZooboxiOrder;
-use App\Models\ZooboxiWarehouse;
 use App\Services\Woo\WooStoreClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +19,13 @@ use Illuminate\Support\Facades\Log;
  */
 class ZooboxiOrderController extends Controller
 {
+    use ResolvesZooboxiWarehouses;
+
     public function __construct(private WooStoreClient $store) {}
+
+    // Eager-loaded on every order payload: lines for the picking list, the
+    // warehouse + active Mrsool delivery for the courier card/map (avoids N+1).
+    private const EAGER = ['lines', 'zooboxiWarehouse', 'activeMrsoolDelivery'];
 
     // Un-prepared = still actionable by the branch (the "waiting" tab).
     private const OPEN_STATUSES = [
@@ -43,7 +49,7 @@ class ZooboxiOrderController extends Controller
 
         $base = $this->baseQuery($codes);
         $count = (clone $base)->count();
-        $orders = $base->with('lines')->latest()->limit(10)->get();
+        $orders = $base->with(self::EAGER)->latest()->limit(10)->get();
 
         return response()->json([
             'urgent_count' => $count,
@@ -60,7 +66,7 @@ class ZooboxiOrderController extends Controller
 
         $query = ZooboxiOrder::query()
             ->byDeliveryType(ZooboxiOrder::DELIVERY_EXPRESS)
-            ->with('lines')
+            ->with(self::EAGER)
             ->latest();
 
         $query->whereIn('warehouse_code', $codes ?: ['__none__']);
@@ -83,7 +89,7 @@ class ZooboxiOrderController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $order = $this->scopedQuery($request->user())->with('lines')->findOrFail($id);
+        $order = $this->scopedZooboxiOrders($request->user())->with(self::EAGER)->findOrFail($id);
 
         return new ZooboxiOrderApiResource($order);
     }
@@ -94,7 +100,7 @@ class ZooboxiOrderController extends Controller
      */
     public function startPreparing(Request $request, int $id)
     {
-        $order = $this->scopedQuery($request->user())->findOrFail($id);
+        $order = $this->scopedZooboxiOrders($request->user())->findOrFail($id);
 
         if ($order->delivery_status !== ZooboxiOrder::STATUS_PENDING) {
             return response()->json([
@@ -103,7 +109,7 @@ class ZooboxiOrderController extends Controller
         }
 
         $order->update(['delivery_status' => ZooboxiOrder::STATUS_PREPARING]);
-        $order->load('lines');
+        $order->load(self::EAGER);
 
         return new ZooboxiOrderApiResource($order);
     }
@@ -115,7 +121,7 @@ class ZooboxiOrderController extends Controller
     public function markPrepared(Request $request, int $id)
     {
         $user = $request->user();
-        $order = $this->scopedQuery($user)->findOrFail($id);
+        $order = $this->scopedZooboxiOrders($user)->findOrFail($id);
 
         if (!in_array($order->delivery_status, self::OPEN_STATUSES, true)) {
             return response()->json([
@@ -140,7 +146,7 @@ class ZooboxiOrderController extends Controller
             ]);
         }
 
-        $order->load('lines');
+        $order->load(self::EAGER);
 
         return response()->json([
             'data' => new ZooboxiOrderApiResource($order),
@@ -159,60 +165,5 @@ class ZooboxiOrderController extends Controller
             ->byDeliveryType(ZooboxiOrder::DELIVERY_EXPRESS)
             ->whereIn('delivery_status', self::OPEN_STATUSES)
             ->whereIn('warehouse_code', $codes ?: ['__none__']);
-    }
-
-    /**
-     * Query scoped to the orders the user's branch is allowed to act on.
-     */
-    private function scopedQuery($user)
-    {
-        $codes = $this->resolveZooboxiWarehouseCodes($user);
-
-        return ZooboxiOrder::query()->whereIn('warehouse_code', $codes ?: ['__none__']);
-    }
-
-    /**
-     * Resolve the Zooboxi warehouse codes for a manager.
-     *
-     * The user carries SAP warehouse codes; orders carry Zooboxi codes. We map
-     * via ZooboxiWarehouse.sap_warehouse_codes and union with the raw SAP codes
-     * so it works whether the codes are bridged or simply coincide.
-     */
-    private function resolveZooboxiWarehouseCodes($user): array
-    {
-        $sapCodes = $this->getUserWarehouseCodes($user);
-        if (empty($sapCodes)) {
-            return [];
-        }
-
-        $mapped = ZooboxiWarehouse::query()
-            ->where(function ($q) use ($sapCodes) {
-                foreach ($sapCodes as $code) {
-                    $q->orWhereJsonContains('sap_warehouse_codes', $code);
-                }
-            })
-            ->pluck('warehouse_code')
-            ->all();
-
-        return array_values(array_unique(array_merge($sapCodes, $mapped)));
-    }
-
-    /**
-     * Decode the user's warehouse codes (JSON array or scalar).
-     * Mirrors InventoryCountingController::getUserWarehouseCodes.
-     */
-    private function getUserWarehouseCodes($user): array
-    {
-        if (!$user || !$user->warehouse_code) {
-            return [];
-        }
-        $codes = $user->warehouse_code;
-        if (is_string($codes)) {
-            $decoded = json_decode($codes, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                $codes = $decoded;
-            }
-        }
-        return is_array($codes) ? $codes : [$codes];
     }
 }

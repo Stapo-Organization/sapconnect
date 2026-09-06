@@ -21,6 +21,13 @@ Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']
 Route::post('/verify-otp', [\App\Http\Controllers\Api\AuthController::class, 'verifyOtp'])
     ->middleware('throttle:6,1');
 
+// Mrsool (مرسول) status webhook — PUBLIC by design: Mrsool cannot send an
+// Authorization header, so the credential is the random token in the path
+// (hash_equals in the controller) and the payload is re-verified against the
+// Mrsool API before anything is trusted.
+Route::post('/webhooks/mrsool/{token}', [\App\Http\Controllers\Api\MrsoolWebhookController::class, 'handle'])
+    ->middleware('throttle:120,1');
+
 // Protected Mobile App Routes
 Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     // Auth Management
@@ -128,6 +135,12 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::get('/zooboxi-orders/{id}', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'show']);
     Route::post('/zooboxi-orders/{id}/start', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'startPreparing']);
     Route::post('/zooboxi-orders/{id}/prepare', [\App\Http\Controllers\Api\ZooboxiOrderController::class, 'markPrepared']);
+
+    // Mrsool (مرسول) express last-mile — manual courier request per order.
+    Route::get('/zooboxi-orders/{id}/mrsool/quote', [\App\Http\Controllers\Api\MrsoolDeliveryController::class, 'quote']);
+    Route::get('/zooboxi-orders/{id}/mrsool', [\App\Http\Controllers\Api\MrsoolDeliveryController::class, 'show']);
+    Route::post('/zooboxi-orders/{id}/mrsool/request', [\App\Http\Controllers\Api\MrsoolDeliveryController::class, 'request']);
+    Route::post('/zooboxi-orders/{id}/mrsool/cancel', [\App\Http\Controllers\Api\MrsoolDeliveryController::class, 'cancel']);
 
     // ─── Promotions / Ad Campaigns (Owner only — Super Admin) ────
     Route::get('/promotions/summary', [\App\Http\Controllers\Api\PromotionController::class, 'summary']); // before {id}

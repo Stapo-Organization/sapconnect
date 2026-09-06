@@ -29,10 +29,13 @@ class WooStoreClient
      * Set a WooCommerce order's status via the Zooboxi plugin endpoint.
      *
      * @param  string  $status  WooCommerce status slug WITHOUT the wc- prefix
-     *                           (e.g. 'zb-ready', 'completed').
+     *                           (e.g. 'zb-ready', 'zb-out-for-delivery', 'completed').
+     * @param  array   $extra   Extra keys merged into the POST body — e.g.
+     *                           ['mrsool' => [...]] so the store can record the
+     *                           courier meta alongside the status change.
      * @return bool  Whether the store accepted the change.
      */
-    public function setOrderStatus(int $wooOrderId, string $status = 'zb-ready'): bool
+    public function setOrderStatus(int $wooOrderId, string $status = 'zb-ready', array $extra = []): bool
     {
         $storeUrl = rtrim((string) config('services.woo.store_url'), '/');
         $token = (string) config('services.woo.api_token');
@@ -48,10 +51,10 @@ class WooStoreClient
         try {
             $response = Http::acceptJson()
                 ->timeout(20)
-                ->post("{$storeUrl}/wp-json/zooboxi/v1/orders/{$wooOrderId}/status", [
+                ->post("{$storeUrl}/wp-json/zooboxi/v1/orders/{$wooOrderId}/status", array_merge($extra, [
                     'status' => $status,
                     'token' => $token,
-                ]);
+                ]));
 
             if ($response->successful()) {
                 return true;
