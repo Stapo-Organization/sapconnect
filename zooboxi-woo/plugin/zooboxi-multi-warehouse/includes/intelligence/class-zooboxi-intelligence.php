@@ -384,6 +384,10 @@ class Zooboxi_Intelligence
         // «عائلة زوبوكسي» — must match the Laravel validator in
         // ZooboxiIntelligenceController::storeEvent, or these are dropped there.
         'loyalty_scratch', 'loyalty_mission', 'loyalty_redeem', 'loyalty_claim', 'pet_added', 'family_card',
+        // Phase 2 «العادة» and Phase 3a «الرفيق». A type missing here is dropped
+        // SILENTLY (forward_event returns false), so this list and the Laravel
+        // validator must be extended in the same change, every time.
+        'supply_action', 'subscription', 'referral_share', 'care_action', 'weight_logged',
     ];
 
     /**

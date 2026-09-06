@@ -278,6 +278,7 @@ class Zooboxi_Loyalty_Admin
             'desc_en'       => mb_substr(sanitize_textarea_field($post['desc_en'] ?? ''), 0, 240),
             'product_id'    => absint($post['product_id'] ?? 0) ?: null,
             'variation_id'  => absint($post['variation_id'] ?? 0) ?: null,
+            'products_json' => self::species_gift_map($post),
             'paws_cost'     => absint($post['paws_cost'] ?? 0),
             'cost_sar'      => (float) ($post['cost_sar'] ?? 0),
             'value_sar'     => (float) ($post['value_sar'] ?? 0),
@@ -301,18 +302,43 @@ class Zooboxi_Loyalty_Admin
             $data['reward_key'] = 'r' . substr(md5($data['title_en'] . $data['title_ar'] . microtime(true)), 0, 10);
         }
 
+        // A map with no default still works (the resolver falls back to any sellable
+        // mapping) but leaves species we never mapped with nothing — say so out loud.
+        $warn = '';
+        if ($kind === 'gift_product' && $data['products_json'] !== null && !$data['product_id']) {
+            $warn = ' — ' . __('تنبيه: بلا منتج افتراضي، فمن لا حيوان في ملفه أو نوعه غير محدَّد يأخذ أول منتج متاح من القائمة', 'zooboxi');
+        }
+
         $id = absint($post['reward_id'] ?? 0);
         if ($id > 0) {
             $wpdb->update(Zooboxi_Loyalty_Schema::rewards(), $data, ['id' => $id]);
-            return __('تم تحديث المكافأة', 'zooboxi');
+            return __('تم تحديث المكافأة', 'zooboxi') . $warn;
         }
 
         $data['created_at'] = Zooboxi_Loyalty::now();
         $wpdb->insert(Zooboxi_Loyalty_Schema::rewards(), $data);
-        return __('تمت إضافة المكافأة', 'zooboxi');
+        return __('تمت إضافة المكافأة', 'zooboxi') . $warn;
     }
 
     /** Rewards are never deleted — a redeemed grant must keep its meaning. */
+    /**
+     * The per-species gift map from the reward form: one product id per species.
+     *
+     * Empty (or all-zero) saves NULL, which is what the resolver reads as "one
+     * gift for everyone" and falls back to `product_id`.
+     */
+    private static function species_gift_map(array $post): ?string
+    {
+        $map = [];
+        foreach (Zooboxi_Loyalty_Pets::SPECIES as $species) {
+            $id = absint($post['gift_' . $species] ?? 0);
+            if ($id > 0) {
+                $map[$species] = $id;
+            }
+        }
+        return empty($map) ? null : wp_json_encode($map);
+    }
+
     private static function toggle_reward(): string
     {
         global $wpdb;
@@ -510,12 +536,22 @@ class Zooboxi_Loyalty_Admin
                             <td><strong><?php echo esc_html($row['title_ar']); ?></strong><br><code><?php echo esc_html($row['reward_key']); ?></code></td>
                             <td><?php echo esc_html(self::kind_label((string) $row['kind'])); ?></td>
                             <td><?php
+                                $map = Zooboxi_Loyalty_Rewards::gift_map($row);
                                 if ((string) $row['kind'] !== 'gift_product') {
                                     echo '—';
                                 } elseif ($product) {
                                     echo esc_html($product->get_name());
+                                } elseif (!empty($map)) {
+                                    echo '<span style="color:#8a6d3b">' . esc_html__('حسب نوع الحيوان فقط — بلا منتج افتراضي', 'zooboxi') . '</span>';
                                 } else {
                                     echo '<span style="color:#b32d2e">' . esc_html__('لم يُربط منتج', 'zooboxi') . '</span>';
+                                }
+                                if (!empty($map)) {
+                                    $names = [];
+                                    foreach ($map as $sp => $pid) {
+                                        $names[] = self::species_label((string) $sp);
+                                    }
+                                    echo '<br><span class="zbl-hint">' . esc_html(implode(' · ', $names)) . '</span>';
                                 }
                             ?></td>
                             <td><?php echo esc_html((string) (int) $row['paws_cost']); ?></td>
@@ -588,6 +624,32 @@ class Zooboxi_Loyalty_Admin
                     <?php endif; ?>
                 </select>
             </label>
+
+            <div class="zbl-field zbl-field--wide">
+                <span><?php esc_html_e('هدية لكل نوع حيوان (اختياري)', 'zooboxi'); ?>
+                    <em><?php esc_html_e('صاحب الكلب لا يفرح بلعبة قطط. إن حدّدت منتجاً لنوع، يُعطى لأصحاب هذا النوع، ويبقى المنتج أعلاه للباقين ولمن لا حيوان في ملفه. المنتج غير المتوفر يعود تلقائياً للمنتج الأساسي.', 'zooboxi'); ?></em>
+                </span>
+                <div class="zbl-grid" style="margin-top:8px">
+                    <?php
+                    $map = $editing ? Zooboxi_Loyalty_Rewards::gift_map($editing) : [];
+                    foreach (Zooboxi_Loyalty_Pets::SPECIES as $species):
+                        $sid = (int) ($map[$species] ?? 0);
+                        $sp  = $sid && function_exists('wc_get_product') ? wc_get_product($sid) : null;
+                    ?>
+                        <label class="zbl-field">
+                            <span><?php echo esc_html(self::species_label($species)); ?></span>
+                            <select class="wc-product-search" name="gift_<?php echo esc_attr($species); ?>" style="width:100%"
+                                    data-placeholder="<?php esc_attr_e('بلا تخصيص', 'zooboxi'); ?>"
+                                    data-action="woocommerce_json_search_products_and_variations"
+                                    data-allow_clear="true">
+                                <?php if ($sp): ?>
+                                    <option value="<?php echo esc_attr((string) $sid); ?>" selected><?php echo esc_html(wp_strip_all_tags($sp->get_formatted_name())); ?></option>
+                                <?php endif; ?>
+                            </select>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
 
             <label class="zbl-field zbl-field--wide"><span><?php esc_html_e('الوصف (عربي)', 'zooboxi'); ?></span><textarea name="desc_ar" rows="2" class="zbl-textarea"><?php echo esc_textarea($editing['desc_ar'] ?? ''); ?></textarea></label>
             <label class="zbl-field zbl-field--wide"><span><?php esc_html_e('الوصف (إنجليزي)', 'zooboxi'); ?></span><textarea name="desc_en" rows="2" class="zbl-textarea"><?php echo esc_textarea($editing['desc_en'] ?? ''); ?></textarea></label>
@@ -1030,6 +1092,20 @@ class Zooboxi_Loyalty_Admin
     private static function stat(string $label, string $value): void
     {
         echo '<div class="zbl-stat"><span>' . esc_html($label) . '</span><strong>' . esc_html($value) . '</strong></div>';
+    }
+
+    private static function species_label(string $species): string
+    {
+        $map = [
+            'cat'     => __('قط', 'zooboxi'),
+            'dog'     => __('كلب', 'zooboxi'),
+            'bird'    => __('طائر', 'zooboxi'),
+            'fish'    => __('سمك', 'zooboxi'),
+            'small'   => __('قارض', 'zooboxi'),
+            'reptile' => __('زاحف', 'zooboxi'),
+            'other'   => __('غير ذلك', 'zooboxi'),
+        ];
+        return $map[$species] ?? $species;
     }
 
     private static function kind_label(string $kind): string

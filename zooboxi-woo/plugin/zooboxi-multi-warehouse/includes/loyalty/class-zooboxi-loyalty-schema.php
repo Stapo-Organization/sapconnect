@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 class Zooboxi_Loyalty_Schema
 {
     /** ONE version for the whole module — bump when any table below changes. */
-    public const DB_VERSION = 3;
+    public const DB_VERSION = 4;
 
     /** Option holding the installed schema version. */
     public const DB_OPTION = 'zooboxi_loyalty_db_version';
@@ -256,6 +256,7 @@ class Zooboxi_Loyalty_Schema
             desc_en VARCHAR(240) NOT NULL DEFAULT '',
             product_id BIGINT UNSIGNED NULL DEFAULT NULL,
             variation_id BIGINT UNSIGNED NULL DEFAULT NULL,
+            products_json TEXT NULL DEFAULT NULL,
             paws_cost INT NOT NULL DEFAULT 0,
             cost_sar DECIMAL(8,2) NOT NULL DEFAULT 0.00,
             value_sar DECIMAL(8,2) NOT NULL DEFAULT 0.00,

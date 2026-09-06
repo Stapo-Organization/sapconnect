@@ -652,7 +652,7 @@ class Zooboxi_Loyalty_Missions
         $tpl    = self::WINBACK_TEMPLATE;
         $reward = ['kind' => 'paws', 'paws' => max(0, Zooboxi_Loyalty::opt_int('winback_paws', (int) $tpl['paws'])), 'reward_id' => 0];
         $gift   = Zooboxi_Loyalty_Rewards::reward_by_key((string) $tpl['reward_key']);
-        if ($gift !== null && (int) $gift['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($gift) !== null) {
+        if ($gift !== null && (int) $gift['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($gift, $user_id) !== null) {
             $reward = ['kind' => 'reward', 'paws' => 0, 'reward_id' => (int) $gift['id']];
         }
 

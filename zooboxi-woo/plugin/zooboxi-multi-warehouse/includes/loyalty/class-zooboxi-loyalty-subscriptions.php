@@ -619,7 +619,7 @@ class Zooboxi_Loyalty_Subscriptions
     private static function give_gift(int $user_id, int $sub_id, int $deliveries): void
     {
         $reward = Zooboxi_Loyalty_Rewards::reward_by_key('sub_gift');
-        if ($reward !== null && (int) $reward['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($reward) !== null) {
+        if ($reward !== null && (int) $reward['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($reward, $user_id) !== null) {
             Zooboxi_Loyalty_Rewards::grant($user_id, (int) $reward['id'], 'subscription', $sub_id, null);
             return;
         }

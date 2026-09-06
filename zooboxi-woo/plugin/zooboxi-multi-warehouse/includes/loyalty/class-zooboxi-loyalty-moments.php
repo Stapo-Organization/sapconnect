@@ -97,7 +97,7 @@ class Zooboxi_Loyalty_Moments
 
         $reward = Zooboxi_Loyalty_Rewards::reward_by_key('birthday_gift');
         $gift   = false;
-        if ($reward !== null && (int) $reward['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($reward) !== null) {
+        if ($reward !== null && (int) $reward['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($reward, $user_id, (string) $pet['species']) !== null) {
             $gift = Zooboxi_Loyalty_Rewards::grant($user_id, (int) $reward['id'], 'birthday', $pet_id, null) > 0;
         } else {
             $paws = max(0, Zooboxi_Loyalty::opt_int('birthday_paws', 100));

@@ -81,14 +81,107 @@ class Zooboxi_Loyalty_Rewards
     }
 
     /** The product behind a gift reward (variation wins), or null. */
-    public static function reward_product(array $reward): ?\WC_Product
+    public static function reward_product(array $reward, int $user_id = 0, string $prefer_species = ''): ?\WC_Product
     {
-        $id = (int) ($reward['variation_id'] ?? 0) ?: (int) ($reward['product_id'] ?? 0);
+        $id = self::gift_product_id($reward, $user_id, $prefer_species);
         if ($id <= 0 || !function_exists('wc_get_product')) {
             return null;
         }
         $product = wc_get_product($id);
         return $product instanceof \WC_Product ? $product : null;
+    }
+
+    /**
+     * Which product this gift actually is FOR THIS CUSTOMER.
+     *
+     * A single product per gift means a dog's owner unwraps a cat toy, so a gift
+     * may carry a per-species map (`products_json`, e.g. {"cat":16700,"dog":15395}).
+     * The customer's own pets decide; the plain `product_id` is the fallback for a
+     * member with no pet on file, an unmapped species, or a sold-out mapping.
+     */
+    public static function gift_product_id(array $reward, int $user_id = 0, string $prefer_species = ''): int
+    {
+        $default = (int) ($reward['variation_id'] ?? 0) ?: (int) ($reward['product_id'] ?? 0);
+
+        $map = self::gift_map($reward);
+        if (empty($map)) {
+            return $default;
+        }
+
+        // Most specific first: the animal this gift is FOR (a birthday belongs to one
+        // pet, not to the household), then whatever the household actually keeps.
+        $wanted = [];
+        if ($prefer_species !== '') {
+            $wanted[] = $prefer_species;
+        }
+        if ($user_id > 0 && class_exists('Zooboxi_Loyalty_Pets')) {
+            foreach (Zooboxi_Loyalty_Pets::species_of($user_id) as $species) {
+                $wanted[] = $species;
+            }
+        }
+        foreach ($wanted as $species) {
+            $id = (int) ($map[$species] ?? 0);
+            if ($id > 0 && self::gift_is_sellable($id)) {
+                return $id;
+            }
+        }
+
+        // A gift configured ONLY as a map must still be giveable. Without this the
+        // cron grants it (its own check passes) and every claim then fails with
+        // «الهدية غير متاحة» until the grant expires — the customer gets nothing.
+        if ($default <= 0) {
+            foreach ($map as $id) {
+                $id = (int) $id;
+                if ($id > 0 && self::gift_is_sellable($id)) {
+                    return $id;
+                }
+            }
+        }
+        return $default;
+    }
+
+    /** The species this grant is really about, when it was minted for one pet. */
+    public static function grant_species(array $grant): string
+    {
+        if ((string) ($grant['source'] ?? '') !== 'birthday') {
+            return '';
+        }
+        $pet_id = (int) ($grant['source_ref'] ?? 0);
+        $user_id = (int) ($grant['user_id'] ?? 0);
+        if ($pet_id <= 0 || $user_id <= 0 || !class_exists('Zooboxi_Loyalty_Pets')) {
+            return '';
+        }
+        $pet = Zooboxi_Loyalty_Pets::find($pet_id, $user_id);
+        return $pet !== null ? (string) $pet['species'] : '';
+    }
+
+    /** The gift's per-species map, decoded. */
+    public static function gift_map(array $reward): array
+    {
+        $raw = $reward['products_json'] ?? '';
+        if (is_array($raw)) {
+            return $raw;
+        }
+        if (!is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /** Is this id a product we could actually hand over today? */
+    private static function gift_is_sellable(int $id): bool
+    {
+        if (!function_exists('wc_get_product')) {
+            return false;
+        }
+        $product = wc_get_product($id);
+        if (!($product instanceof \WC_Product) || !$product->is_purchasable() || !$product->is_in_stock()) {
+            return false;
+        }
+        // A variable PARENT looks sellable (WooCommerce answers for its children) but
+        // cannot be a gift line — a variant has to be chosen first.
+        return in_array($product->get_type(), ['simple', 'variation'], true);
     }
 
     /**
@@ -107,7 +200,7 @@ class Zooboxi_Loyalty_Rewards
         if ((int) $reward['paws_cost'] <= 0) {
             return $no('not_redeemable', 'تُمنح هذه المكافأة ولا تُستبدل بالبصمات', 'This reward is granted, not bought with paws.');
         }
-        if ((string) $reward['kind'] === 'gift_product' && self::reward_product($reward) === null) {
+        if ((string) $reward['kind'] === 'gift_product' && self::reward_product($reward, $user_id) === null) {
             return $no('reward_unavailable', 'لم يُربط منتج بهذه الهدية بعد', 'No product is attached to this gift yet.');
         }
 
@@ -466,7 +559,7 @@ class Zooboxi_Loyalty_Rewards
         $notice_en = '';
 
         if ((string) $reward['kind'] === 'gift_product') {
-            $product = self::reward_product($reward);
+            $product = self::reward_product($reward, $user_id, self::grant_species($grant));
             if ($product === null || !$product->is_purchasable()) {
                 return $fail('gift_unavailable', 'الهدية غير متاحة حالياً', 'The gift is unavailable right now.');
             }
@@ -713,11 +806,11 @@ class Zooboxi_Loyalty_Rewards
        DTOs
        ══════════════════════════════════════════════════════════════ */
 
-    public static function reward_dto(array $reward, int $user_id = 0): array
+    public static function reward_dto(array $reward, int $user_id = 0, string $prefer_species = ''): array
     {
         $product = null;
         if ((string) $reward['kind'] === 'gift_product' && class_exists('Zooboxi_Product_DTO')) {
-            $wc = self::reward_product($reward);
+            $wc = self::reward_product($reward, $user_id, $prefer_species);
             if ($wc !== null) {
                 $product = Zooboxi_Product_DTO::card($wc);
             }
@@ -758,9 +851,24 @@ class Zooboxi_Loyalty_Rewards
             ];
         }
 
+        $reward_dto = $reward ? self::reward_dto($reward, $user_id, self::grant_species($grant)) : null;
+
+        // Once claimed, the truth is the cart line, not a re-resolution: the customer
+        // must never be shown one gift while another sits in their basket.
+        if ($reward_dto !== null && (string) $grant['state'] === 'claimed' && class_exists('Zooboxi_Product_DTO')) {
+            $key = self::find_gift_key((int) $grant['id']);
+            if ($key !== '' && Zooboxi_Loyalty::wc_ready() && WC()->cart) {
+                $item = WC()->cart->get_cart()[$key] ?? null;
+                $line = is_array($item) && ($item['data'] ?? null) instanceof \WC_Product ? $item['data'] : null;
+                if ($line !== null) {
+                    $reward_dto['product'] = Zooboxi_Product_DTO::card($line);
+                }
+            }
+        }
+
         return [
             'id'                 => (int) $grant['id'],
-            'reward'             => $reward ? self::reward_dto($reward, $user_id) : null,
+            'reward'             => $reward_dto,
             'source'             => (string) $grant['source'],
             'state'              => (string) $grant['state'],
             'expires_at'         => Zooboxi_Loyalty::iso($grant['expires_at'] ?? null),

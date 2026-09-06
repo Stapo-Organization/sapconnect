@@ -204,7 +204,7 @@ class Zooboxi_Loyalty_Referrals
         $grant_id = 0;
         $paws     = 0;
         $reward   = Zooboxi_Loyalty_Rewards::reward_by_key('referral_welcome');
-        if ($reward !== null && (int) $reward['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($reward) !== null) {
+        if ($reward !== null && (int) $reward['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($reward, $referee_id) !== null) {
             $grant_id = Zooboxi_Loyalty_Rewards::grant($referee_id, (int) $reward['id'], 'referral', $id, null);
         } else {
             $paws = max(0, Zooboxi_Loyalty::opt_int('referral_welcome_paws', 100));
@@ -464,7 +464,7 @@ class Zooboxi_Loyalty_Referrals
 
         $applied = self::for_referee($user_id);
         $welcome = Zooboxi_Loyalty_Rewards::reward_by_key('referral_welcome');
-        $welcome_text = ($welcome !== null && (int) $welcome['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($welcome) !== null)
+        $welcome_text = ($welcome !== null && (int) $welcome['is_active'] === 1 && Zooboxi_Loyalty_Rewards::reward_product($welcome, $user_id) !== null)
             ? Zooboxi_Loyalty::pick((string) $welcome['title_ar'], (string) $welcome['title_en'])
             : sprintf(Zooboxi_Loyalty::pick('%d بصمة ترحيب', '%d welcome paws'), max(0, Zooboxi_Loyalty::opt_int('referral_welcome_paws', 100)));
 
