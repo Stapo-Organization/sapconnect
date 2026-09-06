@@ -10,6 +10,7 @@ import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
+import '../../../core/widgets/bundle_card.dart';
 import '../../../core/widgets/rail.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
@@ -434,15 +435,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (rail == null) break;
           final products = claim(rail.products);
           if (products == null) break;
+          // Bundles get their own bigger card — the collage artwork is the
+          // pitch — and a home of their own behind «عرض الكل».
+          if (slot.key == 'bundles') {
+            emit(
+              BundleRailView(
+                title: rail.title,
+                products: products,
+                zone: 'home_bundles',
+                onAdd: add,
+                onSeeAll: () => context.push('/bundles'),
+              ),
+            );
+            break;
+          }
           emit(
             ProductRailView(
               title: rail.title,
               products: products,
               zone: 'home_${slot.key}',
               onAdd: add,
-              // Bundles have a home of their own; the other feed rails don't.
-              onSeeAll:
-                  slot.key == 'bundles' ? () => context.push('/bundles') : null,
             ),
           );
 

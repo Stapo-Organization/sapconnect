@@ -211,6 +211,11 @@
       }
     }
   },
+  "bundleSavePercent": "Save {percent}%",
+  "@bundleSavePercent": {"placeholders": {"percent": {"type": "int"}}},
+  "bundleExpressChip": "Within 2 hours",
+  "bundlePiecesLine": "{count} pieces in the bundle",
+  "@bundlePiecesLine": {"placeholders": {"count": {"type": "int"}}},
   "bundlesTitle": "Bundles",
   "bundlesEmpty": "No bundles live right now",
   "bundlesEmptyHint": "We are always building new bundles — check back soon.",

@@ -444,6 +444,19 @@ class LAr extends L {
   }
 
   @override
+  String bundleSavePercent(int percent) {
+    return 'وفّر $percent٪';
+  }
+
+  @override
+  String get bundleExpressChip => 'خلال ساعتين';
+
+  @override
+  String bundlePiecesLine(int count) {
+    return '$count قطعة في البكج';
+  }
+
+  @override
   String get bundlesTitle => 'البكجات';
 
   @override

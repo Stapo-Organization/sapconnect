@@ -841,6 +841,24 @@ abstract class L {
   /// **'{count, plural, =0{لا توجد نتائج} =1{نتيجة واحدة} =2{نتيجتان} few{{count} نتائج} many{{count} نتيجة} other{{count} نتيجة}}'**
   String listingResults(int count);
 
+  /// No description provided for @bundleSavePercent.
+  ///
+  /// In ar, this message translates to:
+  /// **'وفّر {percent}٪'**
+  String bundleSavePercent(int percent);
+
+  /// No description provided for @bundleExpressChip.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلال ساعتين'**
+  String get bundleExpressChip;
+
+  /// No description provided for @bundlePiecesLine.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count} قطعة في البكج'**
+  String bundlePiecesLine(int count);
+
   /// No description provided for @bundlesTitle.
   ///
   /// In ar, this message translates to:

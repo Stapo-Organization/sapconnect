@@ -220,6 +220,11 @@
       }
     }
   },
+  "bundleSavePercent": "وفّر {percent}٪",
+  "@bundleSavePercent": {"placeholders": {"percent": {"type": "int"}}},
+  "bundleExpressChip": "خلال ساعتين",
+  "bundlePiecesLine": "{count} قطعة في البكج",
+  "@bundlePiecesLine": {"placeholders": {"count": {"type": "int"}}},
   "bundlesTitle": "البكجات",
   "bundlesEmpty": "لا توجد بكجات معروضة الآن",
   "bundlesEmptyHint": "نجهّز حزماً جديدة باستمرار — عُد قريباً.",

@@ -82,6 +82,40 @@ class DeliveryChip {
   }
 }
 
+/// The bundle keys a «بكج» product card carries on top of the normal shape —
+/// what makes its card render as a deal, not as a plain product.
+@immutable
+class BundleTag {
+  const BundleTag({
+    this.freeLabel = '',
+    this.template = '',
+    this.stockClass = '',
+    this.pieces = 0,
+    this.giftLine,
+  });
+
+  /// The Mowkly headline math — "12+3".
+  final String freeLabel;
+  final String template; // stacking | variety | companion | smart_gift
+  final String stockClass; // express | central
+  final int pieces;
+
+  /// "6 × اكانا معلبات تونة" when the bundle carries a gift.
+  final String? giftLine;
+
+  static BundleTag? maybe(dynamic value) {
+    final map = asMap(value);
+    if (map.isEmpty) return null;
+    return BundleTag(
+      freeLabel: asString(map['free_label']),
+      template: asString(map['template']),
+      stockClass: asString(map['stock_class']),
+      pieces: asInt(map['pieces']),
+      giftLine: asStringOrNull(map['gift_line']),
+    );
+  }
+}
+
 /// The card DTO — the single product shape used by rails, grids, search
 /// results, wishlist, buy-again and the "frequently bought" strips.
 @immutable
@@ -104,6 +138,7 @@ class ProductCard {
     this.badge,
     this.deliveryChip,
     this.wishlisted = false,
+    this.bundle,
   });
 
   final int id;
@@ -130,6 +165,9 @@ class ProductCard {
   final ProductBadge? badge;
   final DeliveryChip? deliveryChip;
   final bool wishlisted;
+
+  /// Present only on «بكج» products — see [BundleTag].
+  final BundleTag? bundle;
 
   bool get inStock => stockStatus != 'outofstock';
 
@@ -158,6 +196,7 @@ class ProductCard {
         badge: ProductBadge.maybe(json['badge']),
         deliveryChip: DeliveryChip.maybe(json['delivery_chip']),
         wishlisted: asBool(json['wishlisted']),
+        bundle: BundleTag.maybe(json['bundle']),
       );
 
   static List<ProductCard> listFrom(dynamic value) =>
@@ -182,6 +221,7 @@ class ProductCard {
         badge: badge,
         deliveryChip: deliveryChip,
         wishlisted: wishlisted,
+        bundle: bundle,
       );
 
   ProductCard copyWith({bool? wishlisted}) => ProductCard(
@@ -202,6 +242,7 @@ class ProductCard {
         badge: badge,
         deliveryChip: deliveryChip,
         wishlisted: wishlisted ?? this.wishlisted,
+        bundle: bundle,
       );
 }
 

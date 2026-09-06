@@ -440,6 +440,19 @@ class LEn extends L {
   }
 
   @override
+  String bundleSavePercent(int percent) {
+    return 'Save $percent%';
+  }
+
+  @override
+  String get bundleExpressChip => 'Within 2 hours';
+
+  @override
+  String bundlePiecesLine(int count) {
+    return '$count pieces in the bundle';
+  }
+
+  @override
   String get bundlesTitle => 'Bundles';
 
   @override

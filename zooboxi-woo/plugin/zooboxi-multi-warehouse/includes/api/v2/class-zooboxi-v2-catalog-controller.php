@@ -44,6 +44,8 @@ class Zooboxi_V2_Catalog_Controller
     /** The default app home composition (option `zooboxi_app_home_layout` overrides). */
     private const DEFAULT_LAYOUT = [
         ['type' => 'hero'],
+        // «البكجات» leads the page — the owner wants the deals first.
+        ['type' => 'feed_rail', 'key' => 'bundles'],
         // «عائلة زوبوكسي»: the home page stays cacheable, so these two slots carry no
         // loyalty data — the app hydrates them from /loyalty/summary the same way it
         // hydrates `personal` from /home/feed.
@@ -55,8 +57,6 @@ class Zooboxi_V2_Catalog_Controller
         ['type' => 'rail', 'key' => 'trending'],
         ['type' => 'banner', 'index' => 0],
         ['type' => 'feed_rail', 'key' => 'foryou'],
-        // «البكجات» — live bundles, ranked per viewer by /home/feed.
-        ['type' => 'feed_rail', 'key' => 'bundles'],
         ['type' => 'rail', 'key' => 'bestsellers'],
         ['type' => 'feed_rail', 'key' => 'incity'],
         ['type' => 'clearance_band'],
