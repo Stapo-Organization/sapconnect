@@ -198,7 +198,11 @@ class ApiClient {
         .toList()
       ..sort();
     final loc = readLocationHeaders();
-    final scope = '${loc['X-ZB-City'] ?? ''}|${loc['X-ZB-Delivery-Type'] ?? ''}';
+    // The branch matters, not just the city: two express branches serve
+    // different shelves inside one city, and their payloads must not share a
+    // cache entry.
+    final scope = '${loc['X-ZB-City'] ?? ''}|${loc['X-ZB-Delivery-Type'] ?? ''}'
+        '|${loc['X-ZB-Branch'] ?? ''}';
     return '${options.path}?${query.join('&')}#$scope';
   }
 

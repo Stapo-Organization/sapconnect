@@ -34,6 +34,7 @@ import 'widgets/clearance_band.dart';
 import 'widgets/family_card.dart';
 import 'widgets/hero_carousel.dart';
 import 'widgets/home_header.dart';
+import 'widgets/scope_band.dart';
 import 'widgets/missions_strip.dart';
 import 'widgets/trust_strip.dart';
 
@@ -162,6 +163,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
             ] else
               const SliverToBoxAdapter(child: HomeHeader()),
+            // What this address can actually be sent, named before the first
+            // rail — a one-warehouse catalogue must explain itself or it looks
+            // like an out-of-stock store.
+            if (payload?.scope != null)
+              SliverToBoxAdapter(child: ScopeBand(scope: payload!.scope!)),
             if (payload != null && !payload.isEmpty)
               ..._slots(context, ref, payload)
             else if (payload != null)

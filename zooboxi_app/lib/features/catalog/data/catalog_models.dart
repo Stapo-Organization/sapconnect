@@ -304,6 +304,54 @@ class BrandSummary {
       );
 }
 
+/// What the app is allowed to show right now.
+///
+/// The store is a quick-commerce shelf, not a warehouse index: the server
+/// narrows the catalogue to the single warehouse that can serve this customer
+/// fastest, and says which one in [note] so a smaller catalogue reads as a
+/// promise ("everything here reaches you in two hours") rather than as missing
+/// stock.
+@immutable
+class CatalogScope {
+  const CatalogScope({
+    required this.tier,
+    required this.note,
+    this.warehouseName = '',
+    this.label = '',
+    this.icon,
+    this.date = '',
+  });
+
+  /// `express` | `same_day` | `shipping`.
+  final String tier;
+
+  /// One localized sentence, ready to render.
+  final String note;
+  final String warehouseName;
+
+  /// The promise every product on this shelf carries.
+  final String label;
+  final String? icon;
+
+  /// The date the shipping tier lands on; empty for the fast tiers.
+  final String date;
+
+  /// Null means the catalogue is not narrowed — nothing to explain.
+  static CatalogScope? maybe(dynamic value) {
+    final map = asMap(value);
+    final note = asString(map['note']);
+    if (note.isEmpty) return null;
+    return CatalogScope(
+      tier: asString(map['tier']),
+      note: note,
+      warehouseName: asString(map['warehouse_name']),
+      label: asString(map['label']),
+      icon: asStringOrNull(map['icon']),
+      date: asString(map['date']),
+    );
+  }
+}
+
 /// One entry in the server-driven home order.
 ///
 /// The server merchandises the page: it decides that clearance runs above the
@@ -339,6 +387,7 @@ class HomePayload {
     this.rails = const [],
     this.brands = const [],
     this.layout = const [],
+    this.scope,
   });
 
   final List<HeroSlide> hero;
@@ -350,6 +399,9 @@ class HomePayload {
   /// Empty means "use [defaultLayout]" — an older server, or a payload that
   /// predates the layout engine.
   final List<HomeLayoutSlot> layout;
+
+  /// Null when the server is showing the whole catalogue.
+  final CatalogScope? scope;
 
   /// The order the app falls back to when the server sends none.
   static const List<HomeLayoutSlot> defaultLayout = [
@@ -396,6 +448,7 @@ class HomePayload {
             .map(HomeLayoutSlot.fromJson)
             .where((slot) => slot.type.isNotEmpty)
             .toList(),
+        scope: CatalogScope.maybe(json['scope']),
       );
 }
 

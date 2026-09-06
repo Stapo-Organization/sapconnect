@@ -114,6 +114,11 @@ class ZbLocation {
     if (deliveryType != null && deliveryType!.isNotEmpty) {
       headers['X-ZB-Delivery-Type'] = deliveryType!;
     }
+    // The serving branch, so the catalogue cache is keyed to the shelf it
+    // describes rather than to the city as a whole.
+    if (warehouseCode != null && warehouseCode!.isNotEmpty) {
+      headers['X-ZB-Branch'] = warehouseCode!;
+    }
     return headers;
   }
 
