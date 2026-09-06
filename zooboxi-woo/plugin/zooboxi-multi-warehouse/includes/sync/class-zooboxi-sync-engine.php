@@ -182,7 +182,7 @@ class Zooboxi_Sync_Engine
      * woocommerce_order_status_changed, which fires on the storefront and in wp-admin —
      * a slow backend must never stall a status change. Failures are logged, not raised.
      */
-    public function push_order_status(int $orderId, string $newStatus): bool
+    public function push_order_status(int $orderId, string $newStatus, string $oldStatus = ''): bool
     {
         try {
             $order = wc_get_order($orderId);
@@ -199,6 +199,7 @@ class Zooboxi_Sync_Engine
             // — Woo statuses must not stomp it. Only a real cancellation crosses over;
             // everything else updates payment state only.
             $woo = preg_replace('/^wc-/', '', $newStatus);
+            $old = preg_replace('/^wc-/', '', $oldStatus);
             $body = [
                 'woo_order_id'   => $orderId,
                 'payment_status' => $order->is_paid() ? 'paid' : 'pending',
@@ -207,6 +208,13 @@ class Zooboxi_Sync_Engine
             ];
             if (in_array($woo, ['cancelled', 'refunded'], true)) {
                 $body['delivery_status'] = 'cancelled';
+            } elseif (in_array($old, ['cancelled', 'refunded'], true)) {
+                // Leaving a cancellation is the one other transition that must
+                // cross over: `cancelled` is a dead end in the mirror, so without
+                // this the order stays invisible to the branch forever even
+                // though the store shows it as live again. Back to the top of the
+                // prep pipeline — the branch decides what happens next.
+                $body['delivery_status'] = 'pending';
             }
 
             $response = wp_remote_request($this->api_base . '/orders/' . $orderId . '/status', [

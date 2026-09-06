@@ -578,7 +578,7 @@ class Zooboxi_V2_Bootstrap
             }
 
             if (class_exists('Zooboxi_Sync_Engine')) {
-                (new Zooboxi_Sync_Engine())->push_order_status($order_id, $to);
+                (new Zooboxi_Sync_Engine())->push_order_status($order_id, $to, (string) $from);
             }
         } catch (\Throwable $e) {
             error_log('[Zooboxi v2] order status hook failed: ' . $e->getMessage());
