@@ -65,6 +65,19 @@ class Zooboxi_V2_Bootstrap
 
         // Order timeline stamps + the status mirror the Laravel side was missing.
         add_action('woocommerce_order_status_changed', [__CLASS__, 'on_order_status_changed'], 20, 4);
+
+        // Trash / delete / restore mirror. Without these, an order deleted in
+        // the store lived on in sapconnect and kept appearing in the branch app
+        // as a task nobody could finish. Both the HPOS actions and the legacy
+        // post actions are bound, because which pair fires depends on whether
+        // HPOS is enabled — on_order_removed() is idempotent either way.
+        add_action('woocommerce_trash_order', [__CLASS__, 'on_order_removed'], 20, 1);
+        add_action('woocommerce_delete_order', [__CLASS__, 'on_order_removed'], 20, 1);
+        add_action('wp_trash_post', [__CLASS__, 'on_post_removed'], 20, 1);
+        add_action('before_delete_post', [__CLASS__, 'on_post_removed'], 20, 1);
+
+        add_action('woocommerce_untrash_order', [__CLASS__, 'on_order_restored'], 20, 1);
+        add_action('untrashed_post', [__CLASS__, 'on_post_restored'], 20, 1);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -570,5 +583,86 @@ class Zooboxi_V2_Bootstrap
         } catch (\Throwable $e) {
             error_log('[Zooboxi v2] order status hook failed: ' . $e->getMessage());
         }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       ORDER TRASHED / DELETED / RESTORED → mirror the removal
+       ══════════════════════════════════════════════════════════════ */
+
+    /** Orders already pushed this request, so HPOS + legacy hooks don't double-fire. */
+    private static array $removed_pushed = [];
+
+    /**
+     * The order is being trashed or deleted here, so sapconnect must drop its
+     * mirror — otherwise it lingers in the branch app as work that can never be
+     * finished. Never allowed to break the deletion itself.
+     */
+    public static function on_order_removed($order_id): void
+    {
+        try {
+            $order_id = (int) $order_id;
+            if ($order_id <= 0 || isset(self::$removed_pushed[$order_id])) {
+                return;
+            }
+            self::$removed_pushed[$order_id] = true;
+
+            if (class_exists('Zooboxi_Sync_Engine')) {
+                (new Zooboxi_Sync_Engine())->push_order_deleted($order_id);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi v2] order removal hook failed: ' . $e->getMessage());
+        }
+    }
+
+    /** Legacy (non-HPOS) post hooks — only act on real orders. */
+    public static function on_post_removed($post_id): void
+    {
+        if (self::is_order_post((int) $post_id)) {
+            self::on_order_removed($post_id);
+        }
+    }
+
+    /**
+     * Restored from the trash — push the whole order back so the branch sees it
+     * again. push_order() recreates the mirror row that on_order_removed() took.
+     */
+    public static function on_order_restored($order_id): void
+    {
+        try {
+            $order_id = (int) $order_id;
+            if ($order_id <= 0) {
+                return;
+            }
+            unset(self::$removed_pushed[$order_id]);
+
+            $order = wc_get_order($order_id);
+            if (!($order instanceof \WC_Order)) {
+                return;
+            }
+
+            // push_order() sets `_zooboxi_synced`; clear it so the re-push is
+            // treated as the fresh create that it now is on the backend.
+            $order->delete_meta_data('_zooboxi_synced');
+            $order->save_meta_data();
+
+            if (class_exists('Zooboxi_Sync_Engine')) {
+                (new Zooboxi_Sync_Engine())->push_order($order_id);
+            }
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi v2] order restore hook failed: ' . $e->getMessage());
+        }
+    }
+
+    /** Legacy (non-HPOS) untrash hook. */
+    public static function on_post_restored($post_id): void
+    {
+        if (self::is_order_post((int) $post_id)) {
+            self::on_order_restored($post_id);
+        }
+    }
+
+    private static function is_order_post(int $post_id): bool
+    {
+        return $post_id > 0 && get_post_type($post_id) === 'shop_order';
     }
 }

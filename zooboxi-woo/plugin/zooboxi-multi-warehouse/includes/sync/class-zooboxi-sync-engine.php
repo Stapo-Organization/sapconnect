@@ -240,6 +240,51 @@ class Zooboxi_Sync_Engine
         }
     }
 
+    /**
+     * Tell sapconnect this order no longer exists here (trashed or deleted).
+     *
+     * Without this, a trashed order lives on in the mirror and keeps showing up
+     * in the branch app as a task nobody can ever finish — the staff-facing
+     * symptom of a store-only delete. The backend is idempotent, so an order it
+     * never had still answers 200.
+     *
+     * Runs inside the trash/delete hooks, so it is deliberately short-timeout
+     * and non-retrying: a slow backend must never block deleting an order.
+     */
+    public function push_order_deleted(int $orderId): bool
+    {
+        try {
+            if ($this->api_token === '') {
+                return false;
+            }
+
+            $response = wp_remote_request($this->api_base . '/orders/' . $orderId, [
+                'method'  => 'DELETE',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->api_token,
+                    'Accept'        => 'application/json',
+                ],
+                'timeout' => 8,
+            ]);
+
+            if (is_wp_error($response)) {
+                error_log('[Zooboxi] push_order_deleted failed for #' . $orderId . ': ' . $response->get_error_message());
+                return false;
+            }
+
+            $code = (int) wp_remote_retrieve_response_code($response);
+            if ($code < 200 || $code >= 300) {
+                error_log('[Zooboxi] push_order_deleted #' . $orderId . ' returned HTTP ' . $code);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi] push_order_deleted threw for #' . $orderId . ': ' . $e->getMessage());
+            return false;
+        }
+    }
+
     /* ── Private Helpers ──────────────────────────── */
 
     /**
