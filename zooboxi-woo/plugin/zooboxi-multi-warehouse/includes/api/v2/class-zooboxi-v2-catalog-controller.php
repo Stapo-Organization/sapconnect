@@ -204,14 +204,31 @@ class Zooboxi_V2_Catalog_Controller
         $shop = function_exists('wc_get_page_permalink') ? (wc_get_page_permalink('shop') ?: null) : null;
         $out  = [];
 
-        // 1) Express promise — always true, always available.
-        $out[] = $this->auto_slide(
-            'express',
-            Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered in two hours'),
-            Zooboxi_V2_Bootstrap::pick('من أقرب مستودع إليك داخل مدينتك', 'From the nearest warehouse in your city'),
-            Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
-            $shop
-        );
+        // 1) The speed promise — but only the one this address actually gets.
+        // "خلال ساعتين" on the hero of a customer outside every express zone is
+        // an over-promise the cart would immediately contradict.
+        $scope = Zooboxi_V2_Scope::current();
+        if ($scope === null || !empty($scope['express_available'])) {
+            $out[] = $this->auto_slide(
+                'express',
+                Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered in two hours'),
+                $scope !== null && $scope['express_branch'] !== ''
+                    ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s مباشرة إلى بابك', 'Straight to your door from %s'), $scope['express_branch'])
+                    : Zooboxi_V2_Bootstrap::pick('من أقرب مستودع إليك داخل مدينتك', 'From the nearest warehouse in your city'),
+                Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
+                $shop
+            );
+        } elseif ($scope['tier'] === Zooboxi_Delivery_Engine::TYPE_STANDARD) {
+            $out[] = $this->auto_slide(
+                'express',
+                Zooboxi_V2_Bootstrap::pick('اطلب الآن ويوصلك غدًا', 'Order now, arrives tomorrow'),
+                Zooboxi_V2_Bootstrap::pick('من مستودع مدينتك مباشرة إلى بابك', 'From your city\'s warehouse straight to your door'),
+                Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
+                $shop
+            );
+        }
+        // Shipping-only addresses get no speed slide — a 4-5 day promise is
+        // not a hero; clearance, the brand and the bestsellers carry the top.
 
         // 2) Clearance — only when the collection actually has stock. The badge
         // carries the real number ("up to 45% off") because "offers" without a
@@ -582,9 +599,8 @@ class Zooboxi_V2_Catalog_Controller
         // Pools are cached per warehouse: a rail drawn from the الملك فهد shelf is
         // a different list from the same rail drawn from the city central, and
         // the unscoped key belongs to the website.
-        $scope_code   = Zooboxi_V2_Scope::warehouse_code();
         $scope_clause = Zooboxi_V2_Scope::meta_clause();
-        $tkey = 'zbhome_ids_' . $key . '_' . get_locale() . ($scope_code !== '' ? '_' . $scope_code : '');
+        $tkey = 'zbhome_ids_' . $key . '_' . get_locale() . Zooboxi_V2_Scope::cache_suffix();
         $ids  = get_transient($tkey);
 
         if ($ids === false) {

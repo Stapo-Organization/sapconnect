@@ -289,6 +289,18 @@ class Zooboxi_V2_Bootstrap
         return [$lat, $lng];
     }
 
+    /**
+     * Which storefront the app is browsing — its top tabs.
+     * 'express' = the 2-hour dark-store shelf, 'all' = the full reachable
+     * store. '' = the app did not say (an older build): the scope layer then
+     * falls back to auto-picking the fastest shelf, yesterday's behaviour.
+     */
+    public static function shelf(): string
+    {
+        $raw = strtolower(trim((string) (self::read_header('X-ZB-Shelf', self::$request) ?? '')));
+        return in_array($raw, ['express', 'all'], true) ? $raw : '';
+    }
+
     /** Customer city for this request ('' when unknown). */
     public static function city(): string
     {

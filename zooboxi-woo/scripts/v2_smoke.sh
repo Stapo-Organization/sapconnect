@@ -210,6 +210,34 @@ else
   c_bad "no product id from the listing — PDP skipped"
 fi
 
+# ────────────────────────────────────── storefront shelves (X-ZB-Shelf)
+c_head "Storefront shelves"
+
+EXPRESS_COORDS=(-H "X-ZB-Lat: 24.7480" -H "X-ZB-Lng: 46.6650" -H "X-ZB-City: ${CITY}" -H 'X-ZB-App: smoke/1.0' -H 'Accept: application/json')
+
+shelf_total() { # <shelf or empty>
+  local -a h=("${EXPRESS_COORDS[@]}")
+  if [ -n "$1" ]; then h+=(-H "X-ZB-Shelf: $1"); fi
+  curl -sS "${h[@]}" "${BASE}/catalog/products?per_page=1&lang=ar" 2>/dev/null | jq -r '.data.total // 0'
+}
+
+EXP_TOTAL="$(shelf_total express)"
+ALL_TOTAL="$(shelf_total all)"
+AUTO_TOTAL="$(shelf_total "")"
+if [ "${EXP_TOTAL:-0}" -gt 0 ] && [ "${ALL_TOTAL:-0}" -gt "${EXP_TOTAL:-0}" ]; then
+  c_ok "express shelf (${EXP_TOTAL}) is a strict subset of the full store (${ALL_TOTAL})"
+else
+  c_bad "shelf totals wrong — express=${EXP_TOTAL} all=${ALL_TOTAL}"
+fi
+if [ "${AUTO_TOTAL:-0}" = "${EXP_TOTAL:-0}" ]; then
+  c_ok "no-header (older app) still gets the fastest shelf (${AUTO_TOTAL})"
+else
+  c_bad "auto shelf drifted — auto=${AUTO_TOTAL} express=${EXP_TOTAL}"
+fi
+
+curl -sS "${EXPRESS_COORDS[@]}" -H 'X-ZB-Shelf: all' "${BASE}/home?lang=ar" 2>/dev/null > "$BODY_FILE"
+expect_jq '.data.scope.shelf == "all" and .data.scope.express_available == true and (.data.scope.express_branch | length) > 0'   "home scope names the shelf and the express branch"
+
 # ────────────────────────────────────── rail-scoped listings
 # The app's "عرض الكل" on a home rail must keep the rail's filter, with real paging.
 c_head "GET /catalog/products?rail=…"
