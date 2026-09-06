@@ -163,7 +163,7 @@ class Zooboxi_V2_Feed_Controller
             }
         }
 
-        $ids = $this->live_ids($recent);
+        $ids = Zooboxi_V2_Scope::filter_ids($this->live_ids($recent));
         if (!empty($ids)) {
             $cards = Zooboxi_Product_DTO::cards(array_slice($ids, 0, self::PERSONAL_MAX));
             if (!empty($cards)) {
@@ -192,7 +192,7 @@ class Zooboxi_V2_Feed_Controller
             $meta[(int) $row['id']] = $row;
         }
 
-        $cards = Zooboxi_Product_DTO::cards(array_keys($meta));
+        $cards = Zooboxi_Product_DTO::cards(Zooboxi_V2_Scope::filter_ids(array_keys($meta)));
         foreach ($cards as &$card) {
             $row = $meta[(int) ($card['id'] ?? 0)] ?? null;
             $card['last_ordered_days'] = $row ? (int) $row['last_ordered_days'] : 0;
@@ -360,7 +360,7 @@ class Zooboxi_V2_Feed_Controller
         if (!empty($exclude)) {
             $ids = array_values(array_diff($ids, $exclude));
         }
-        $ids = array_slice($ids, 0, self::FORYOU_MAX);
+        $ids = array_slice(Zooboxi_V2_Scope::filter_ids($ids), 0, self::FORYOU_MAX);
         if (count($ids) < self::MIN_PRODUCTS) {
             return null;
         }
@@ -438,6 +438,7 @@ class Zooboxi_V2_Feed_Controller
         if (!empty($exclude)) {
             $ids = array_values(array_diff($ids, $exclude));
         }
+        $ids = Zooboxi_V2_Scope::filter_ids($ids);
         if (count($ids) < self::MIN_PRODUCTS) {
             return null;
         }

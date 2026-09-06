@@ -132,6 +132,7 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-app-tokens.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-bootstrap.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-product-dto.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-scope.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-auth-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-location-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-catalog-controller.php';

@@ -115,6 +115,7 @@ class Zooboxi_V2_Catalog_Controller
             'rails'         => array_values(array_filter($rails)),
             'brands'        => $this->brand_list(12),
             'layout'        => $this->layout(),
+            'scope'         => Zooboxi_V2_Scope::payload(),
             'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
         ], Zooboxi_V2_Bootstrap::TTL_HOME);
     }
@@ -554,6 +555,15 @@ class Zooboxi_V2_Catalog_Controller
                 'icon'  => $emoji,
             ];
         }
+
+        if (Zooboxi_V2_Scope::warehouse_code() !== '') {
+            $counts = Zooboxi_V2_Scope::category_counts();
+            $out    = array_values(array_filter(
+                $out,
+                static fn($pet) => ($counts[(int) $pet['id']] ?? 0) > 0
+            ));
+        }
+
         return $out;
     }
 
@@ -569,7 +579,12 @@ class Zooboxi_V2_Catalog_Controller
      */
     private function rail(string $key, string $title, array $queries, array &$used): ?array
     {
-        $tkey = 'zbhome_ids_' . $key . '_' . get_locale();
+        // Pools are cached per warehouse: a rail drawn from the الملك فهد shelf is
+        // a different list from the same rail drawn from the city central, and
+        // the unscoped key belongs to the website.
+        $scope_code   = Zooboxi_V2_Scope::warehouse_code();
+        $scope_clause = Zooboxi_V2_Scope::meta_clause();
+        $tkey = 'zbhome_ids_' . $key . '_' . get_locale() . ($scope_code !== '' ? '_' . $scope_code : '');
         $ids  = get_transient($tkey);
 
         if ($ids === false) {
@@ -577,6 +592,11 @@ class Zooboxi_V2_Catalog_Controller
             foreach ($queries as $args) {
                 $args['fields']        = 'ids';
                 $args['no_found_rows'] = true;
+                if ($scope_clause) {
+                    $args['meta_query'] = empty($args['meta_query'])
+                        ? [$scope_clause]
+                        : ['relation' => 'AND', $args['meta_query'], $scope_clause];
+                }
                 $q   = new WP_Query($args);
                 $ids = is_array($q->posts) ? array_map('intval', $q->posts) : [];
                 wp_reset_postdata();
@@ -631,6 +651,9 @@ class Zooboxi_V2_Catalog_Controller
                 $dto          = $this->term_dto($term, true);
                 $dto['image'] = $animal['image'] ?: $dto['image'];
                 $dto['icon']  = $dto['icon'] !== '' ? $dto['icon'] : (string) $animal['icon'];
+                if (Zooboxi_V2_Scope::warehouse_code() !== '' && $dto['count'] === 0) {
+                    continue;
+                }
                 $out[]        = $dto;
             }
 
@@ -653,12 +676,17 @@ class Zooboxi_V2_Catalog_Controller
             $terms = [];
         }
 
-        $out = [];
+        $out     = [];
+        $scoping = Zooboxi_V2_Scope::warehouse_code() !== '';
         foreach ($terms as $t) {
             if ($t->slug === 'uncategorized') {
                 continue;
             }
-            $out[] = $this->term_dto($t, true);
+            $dto = $this->term_dto($t, true);
+            if ($scoping && $dto['count'] === 0) {
+                continue;
+            }
+            $out[] = $dto;
         }
 
         return Zooboxi_V2_Bootstrap::ok([
@@ -712,13 +740,20 @@ class Zooboxi_V2_Catalog_Controller
             $icon_art = '';
         }
 
+        // Under a scoped catalogue the taxonomy's own count describes products
+        // the customer will never see; count this warehouse's shelf instead.
+        $scoped = Zooboxi_V2_Scope::category_counts();
+        $count  = empty($scoped)
+            ? (int) $t->count
+            : (int) ($scoped[(int) $t->term_id] ?? 0);
+
         $dto = [
             'id'       => (int) $t->term_id,
             'slug'     => (string) $t->slug,
             'name'     => (string) $t->name,
             'image'    => $img ?: ($icon_art !== '' ? esc_url_raw($icon_art) : null),
             'icon'     => $emoji,
-            'count'    => (int) $t->count,
+            'count'    => $count,
             'children' => [],
         ];
 
@@ -736,8 +771,14 @@ class Zooboxi_V2_Catalog_Controller
                 'lang'       => self::term_lang($t),
             ]);
             if (!is_wp_error($kids)) {
+                $scoping = Zooboxi_V2_Scope::warehouse_code() !== '';
                 foreach ($kids as $k) {
-                    $dto['children'][] = $this->term_dto($k, false);
+                    $child = $this->term_dto($k, false);
+                    // An aisle with nothing on it is a dead end, not a category.
+                    if ($scoping && $child['count'] === 0) {
+                        continue;
+                    }
+                    $dto['children'][] = $child;
                 }
             }
         }
@@ -838,6 +879,12 @@ class Zooboxi_V2_Catalog_Controller
         // relation (bestsellers is an OR pair) survives the merge with the facets.
         if (!empty($rail_args['meta_query'])) {
             $meta_query[] = $rail_args['meta_query'];
+        }
+
+        // The app browses one warehouse's shelf; the website still sees all of it.
+        $scope_clause = Zooboxi_V2_Scope::meta_clause();
+        if ($scope_clause) {
+            $meta_query[] = $scope_clause;
         }
 
         $args = [
@@ -1227,10 +1274,14 @@ class Zooboxi_V2_Catalog_Controller
                     ON m.post_id = p.ID AND m.meta_key IN ('_sku', '_zooboxi_item_code')
              WHERE p.post_type = 'product' AND p.post_status = 'publish'
                AND (p.post_title LIKE %s OR m.meta_value LIKE %s)
-             LIMIT 8",
+             LIMIT 40",
             $like,
             $prefix
         ));
+
+        // Suggest only what this customer can actually be sent. Over-fetched
+        // above so the list still fills up after the shelf filter.
+        $ids = array_slice(Zooboxi_V2_Scope::filter_ids(array_map('intval', (array) $ids)), 0, 8);
 
         $out = [];
         foreach (array_map('intval', (array) $ids) as $id) {
@@ -1379,7 +1430,7 @@ class Zooboxi_V2_Catalog_Controller
             $ids = is_array($q->posts) ? array_map('intval', $q->posts) : [];
             wp_reset_postdata();
             if (!empty($ids)) {
-                $curated = Zooboxi_Product_DTO::cards($ids);
+                $curated = Zooboxi_Product_DTO::cards(Zooboxi_V2_Scope::filter_ids($ids));
                 break;
             }
         }
@@ -1545,6 +1596,12 @@ class Zooboxi_V2_Catalog_Controller
         $per_page = $per_page > 0 ? min(self::PER_PAGE_MAX, $per_page) : self::PER_PAGE_DEFAULT;
 
         $args = Zooboxi_Product_Rail::q_clearance($per_page);
+        $scope_clause = Zooboxi_V2_Scope::meta_clause();
+        if ($scope_clause) {
+            $args['meta_query'] = empty($args['meta_query'])
+                ? [$scope_clause]
+                : ['relation' => 'AND', $args['meta_query'], $scope_clause];
+        }
         // The rail helper opts out of counting; a paginated screen needs the totals.
         $args['no_found_rows'] = false;
         $args['paged']         = $page;

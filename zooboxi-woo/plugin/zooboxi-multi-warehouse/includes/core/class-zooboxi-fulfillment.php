@@ -261,6 +261,16 @@ class Zooboxi_Fulfillment
     /** Like day_label but skips KSA weekend (Fri/Sat) — used for the shipping ETA. */
     private static function business_day_label(int $days): string
     {
+        return self::format_ar_date(self::business_day_ts($days));
+    }
+
+    /**
+     * Timestamp [$days] business days out, skipping the KSA weekend. Public so
+     * a caller that needs to render the date in another language works from the
+     * same arithmetic instead of copying the rule.
+     */
+    public static function business_day_ts(int $days): int
+    {
         $ts = (function_exists('current_time') ? current_time('timestamp') : time());
         $added = 0;
         while ($added < $days) {
@@ -270,7 +280,7 @@ class Zooboxi_Fulfillment
                 $added++;
             }
         }
-        return self::format_ar_date($ts);
+        return $ts;
     }
 
     private static function format_ar_date(int $ts): string
@@ -297,6 +307,17 @@ class Zooboxi_Fulfillment
 
     private static function detect_city(float $lat, float $lng): ?string
     {
+        // The city the customer actually set beats a guess from the nearest
+        // branch. A shopper in Tabuk is not "in Madinah" because Madinah holds
+        // the closest warehouse — that inference promised them next-day
+        // delivery from 700 km away. With no declared city (a web visitor who
+        // never opened the location picker) the old guess still applies.
+        $declared = isset($_COOKIE['zooboxi_city'])
+            ? sanitize_text_field((string) $_COOKIE['zooboxi_city'])
+            : '';
+        if ($declared !== '') {
+            return $declared;
+        }
         if (!$lat && !$lng) {
             return null;
         }

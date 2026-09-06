@@ -16,6 +16,9 @@ if (!defined('ABSPATH')) {
 
 class Zooboxi_Product_DTO
 {
+    /** Working days the national-shipping promise is built on. */
+    private const SHIPPING_DAYS = 4;
+
     /** Displayed stock is capped — an exact warehouse count is commercial information. */
     private const STOCK_DISPLAY_CAP = 99;
 
@@ -375,20 +378,37 @@ class Zooboxi_Product_DTO
 
         return [
             'tier'  => $tier,
-            'label' => self::chip_label($tier),
+            'label' => self::promise_label($tier),
             'icon'  => self::tier_icon($tier),
         ];
     }
 
-    private static function chip_label(string $tier): string
+    /**
+     * The promise a customer reads on a card, in their language.
+     *
+     * The two fast tiers speak in time because that is what a quick-commerce
+     * customer is buying — "within two hours", "tomorrow". National shipping
+     * names the actual weekday it lands (the KSA weekend already skipped), which
+     * is far more useful than "4-5 working days" and is what the owner asked to
+     * show for out-of-town orders.
+     */
+    public static function promise_label(string $tier): string
     {
         switch ($tier) {
             case Zooboxi_Delivery_Engine::TYPE_EXPRESS:
-                return __('توصيل خلال ساعتين', 'zooboxi');
+                return Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered within 2 hours');
+
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
-                return __('توصيل خلال 24 ساعة', 'zooboxi');
+                return Zooboxi_V2_Bootstrap::pick('يوصلك غدًا', 'Arrives tomorrow');
+
             default:
-                return __('شحن 4-5 أيام', 'zooboxi');
+                $ts = Zooboxi_Fulfillment::business_day_ts(self::SHIPPING_DAYS);
+                return Zooboxi_V2_Bootstrap::lang() === 'en'
+                    ? sprintf('Arrives %s', date_i18n('l j F', $ts))
+                    : sprintf(
+                        'يصلك %s',
+                        (string) Zooboxi_Fulfillment::tier_presentation(Zooboxi_Delivery_Engine::TYPE_SHIPPING)['date']
+                    );
         }
     }
 
