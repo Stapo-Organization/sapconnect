@@ -356,6 +356,7 @@ class MrsoolDeliveryTest extends TestCase
         Http::fake([
             self::BASE . '/api/v1/orders/7788' => Http::response($this->remoteOrder('DELIVERED', [
                 'dropoff_confirmation_images' => ['https://cdn.mrsool.test/proof.jpg'],
+                'merchant_tracking_link' => 'https://logistic-portal.mrsool.test/tracking_link?track=abc',
             ]), 200),
             self::STORE . '/wp-json/zooboxi/v1/orders/*' => Http::response(['success' => true], 200),
         ]);
@@ -373,13 +374,16 @@ class MrsoolDeliveryTest extends TestCase
         $this->assertSame('DELIVERED', $delivery->status);
         $this->assertNotNull($delivery->delivered_at);
         $this->assertSame(['https://cdn.mrsool.test/proof.jpg'], $delivery->dropoff_images);
+        $this->assertSame('https://logistic-portal.mrsool.test/tracking_link?track=abc', $delivery->tracking_url);
+        $this->assertNotNull($delivery->picked_up_at);
         $this->assertSame(ZooboxiOrder::STATUS_DELIVERED, $order->refresh()->delivery_status);
         $this->assertNotNull($order->woo_status_synced_at);
 
         Http::assertSent(function (Request $request) {
             return str_contains($request->url(), '/wp-json/zooboxi/v1/orders/32579/status')
                 && $request['status'] === 'completed'
-                && ($request['mrsool']['order_id'] ?? null) === 7788;
+                && ($request['mrsool']['order_id'] ?? null) === 7788
+                && ($request['mrsool']['tracking_url'] ?? null) === 'https://logistic-portal.mrsool.test/tracking_link?track=abc';
         });
     }
 

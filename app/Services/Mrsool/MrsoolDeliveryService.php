@@ -313,6 +313,11 @@ class MrsoolDeliveryService
             $attrs['courier_lng'] = (float) $loc['longitude'];
         }
 
+        // Mrsool's merchant tracking page (seen in webhook + GET payloads).
+        if (!empty($remote['merchant_tracking_link']) && is_string($remote['merchant_tracking_link'])) {
+            $attrs['tracking_url'] = $remote['merchant_tracking_link'];
+        }
+
         foreach (['events_history' => 'events', 'pickup_confirmation_images' => 'pickup_images', 'dropoff_confirmation_images' => 'dropoff_images'] as $src => $col) {
             if (is_array($remote[$src] ?? null)) {
                 $attrs[$col] = $remote[$src];
@@ -329,6 +334,10 @@ class MrsoolDeliveryService
         }
         if ($phase === MrsoolDelivery::PHASE_DELIVERED && !$delivery->delivered_at) {
             $attrs['delivered_at'] = now();
+            // Staging (and a fast courier) can jump straight to DELIVERED —
+            // keep the earlier milestones non-null so the timeline reads sanely.
+            $attrs['assigned_at']  = $delivery->assigned_at ?: now();
+            $attrs['picked_up_at'] = $delivery->picked_up_at ?: now();
         }
         if ($phase === MrsoolDelivery::PHASE_FAILED && !$delivery->failed_at) {
             $attrs['failed_at'] = now();
@@ -544,7 +553,7 @@ class MrsoolDeliveryService
                 'status'        => $delivery->status,
                 'courier_name'  => $delivery->courier_name,
                 'courier_phone' => $delivery->courier_phone,
-                'tracking_url'  => $delivery->awb_url,
+                'tracking_url'  => $delivery->tracking_url ?: $delivery->awb_url,
             ], fn ($v) => $v !== null && $v !== ''),
         ]);
 

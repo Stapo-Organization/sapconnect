@@ -37,6 +37,7 @@ class MrsoolDeliveryResource extends JsonResource
             'pickup_images'  => array_values($this->pickup_images ?? []),
             'dropoff_images' => array_values($this->dropoff_images ?? []),
             'awb_url'        => $this->awb_url,
+            'tracking_url'   => $this->tracking_url,
             'last_error'     => $this->last_error,
             'requested_at'   => $this->requested_at,
             'assigned_at'    => $this->assigned_at,
