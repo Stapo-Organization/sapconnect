@@ -102,16 +102,22 @@ function zooboxi_custom_exact_header() {
     $lang_html = '';
     if (function_exists('pll_the_languages')) {
         $languages = pll_the_languages(['raw' => 1]);
-        if (!empty($languages)) {
+        // A language with no products behind it is not offered. Polylang skips
+        // its own filter for the raw array, so the list is trimmed here.
+        if (class_exists('Zooboxi_Language_Visibility')) {
+            $languages = Zooboxi_Language_Visibility::keep_public($languages);
+        }
+        // One language is not a choice — a switcher offering it is just chrome.
+        if (count((array) $languages) > 1) {
             foreach ($languages as $lang) {
                 $active_class = $lang['current_lang'] ? 'class="active"' : '';
                 $lang_html .= '<a href="' . esc_url($lang['url']) . '" ' . $active_class . '>' . esc_html($lang['name']) . '</a>';
             }
         }
     }
-    if (empty($lang_html)) {
-        $lang_html = '<a href="#" class="active">العربية</a><a href="#">English</a>';
-    }
+    // No fallback markup: an empty switcher is correct when only one language
+    // is public. The hard-coded «English» link that used to live here pointed at
+    // a storefront with four products in it.
 
     // Build WP menu items for the drawer
     $menu_items = wp_get_nav_menu_items('new');
@@ -168,14 +174,14 @@ function zooboxi_custom_exact_header() {
                         <span class="zbx-city-text">' . esc_html($location_text) . '</span>
                     </button>
 
-                    <div class="zooboxi-lang-wrapper">
-                        <button id="zooboxi-lang-trigger" class="icon-btn" title="تغيير اللغة">
+                    ' . ($lang_html === '' ? '' : '<div class="zooboxi-lang-wrapper">
+                        <button id="zooboxi-lang-trigger" class="icon-btn" title="' . esc_attr__('تغيير اللغة', 'zooboxi') . '">
                             ' . $icon_globe . '
                         </button>
                         <div id="zooboxi-lang-menu" class="zooboxi-lang-dropdown">
                             ' . $lang_html . '
                         </div>
-                    </div>
+                    </div>') . '
 
                     <a href="' . esc_url(function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url('wishlist') : wc_get_page_permalink('myaccount')) . '" class="icon-btn zbx-hide-mobile zbx-fav-link" title="' . esc_attr__('المفضلة', 'zooboxi') . '">' . $icon_heart . '
                         <span class="count zbx-fav-count' . ($fav_count ? '' : ' is-empty') . '">' . esc_html($fav_count) . '</span>
@@ -244,11 +250,11 @@ function zooboxi_custom_exact_header() {
                 <div class="zbx-drawer-section-title">🐾 ' . __('الأقسام', 'zooboxi') . '</div>
                 <div class="zbx-drawer-cats">' . $cat_links . '</div>
             </div>
-            <div class="zbx-drawer-divider"></div>
+            ' . ($lang_html === '' ? '' : '<div class="zbx-drawer-divider"></div>
             <div class="zbx-drawer-section">
                 <div class="zbx-drawer-section-title">🌐 ' . __('اللغة', 'zooboxi') . '</div>
                 <div class="zbx-drawer-langs">' . $lang_html . '</div>
-            </div>
+            </div>') . '
         </div>
         <div class="zbx-drawer-footer">
             <a href="' . wc_get_page_permalink('myaccount') . '" class="zbx-drawer-footer-btn">👤 ' . __('حسابي', 'zooboxi') . '</a>

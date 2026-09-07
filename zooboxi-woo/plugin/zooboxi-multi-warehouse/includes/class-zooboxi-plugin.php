@@ -100,6 +100,16 @@ class Zooboxi_Plugin
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-cart-shelf.php';
         Zooboxi_Cart_Shelf::hooks();
 
+        // An archive that lists nothing is not a search destination: keep empty
+        // categories and brands out of the sitemap and out of the index.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/seo/class-zooboxi-empty-archive-seo.php';
+        Zooboxi_Empty_Archive_SEO::hooks();
+
+        // English has 4 translated products against Arabic's 4,339, so its
+        // storefront sells nothing. Hide it until it has stock behind it.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/seo/class-zooboxi-language-visibility.php';
+        Zooboxi_Language_Visibility::hooks();
+
         // Loyalty — «عائلة زوبوكسي». Purely additive; kill switch: set option
         // `zooboxi_loyalty_enabled` to anything but 'yes' and the store behaves
         // exactly as it did before the module existed (no hooks, no filters, no
