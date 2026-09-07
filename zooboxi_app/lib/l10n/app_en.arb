@@ -317,6 +317,75 @@
   "badgeNew": "New",
   "badgeLowStock": "Low stock",
   "badgeBackInStock": "Back in stock",
+  "cartSwitchTitle": "Switch to the {store} basket?",
+  "@cartSwitchTitle": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSwitchBody": "Your basket is from the {leaving} store, and one order comes from one store. We'll keep the {leaving} items for you, and any claimed gift returns to your rewards.",
+  "@cartSwitchBody": {
+    "placeholders": {
+      "leaving": {
+        "type": "String"
+      },
+      "entering": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSwitchBodyWaiting": "Your basket is from the {leaving} store, and one order comes from one store. We'll keep the {leaving} items, and {count, plural, =1{1 item is} other{{count} items are}} waiting in your {entering} basket.",
+  "@cartSwitchBodyWaiting": {
+    "placeholders": {
+      "leaving": {
+        "type": "String"
+      },
+      "entering": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartSwitchBodyEmpty": "This product is from the {store} store, and one order comes from one store.",
+  "@cartSwitchBodyEmpty": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSwitchConfirm": "Open the {store} basket",
+  "@cartSwitchConfirm": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartBasketOf": "{store} basket",
+  "@cartBasketOf": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartOtherBasket": "Your {store} basket holds {count, plural, =1{1 item} other{{count} items}}",
+  "@cartOtherBasket": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartSwitchAction": "Open it",
   "cartTitle": "Cart",
   "cartEmpty": "Your cart is empty",
   "cartEmptyHint": "Add what your pet needs and we'll bring it over.",

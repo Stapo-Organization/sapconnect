@@ -326,6 +326,75 @@
   "badgeNew": "جديد",
   "badgeLowStock": "الكمية محدودة",
   "badgeBackInStock": "عاد للتوفّر",
+  "cartSwitchTitle": "تنتقل إلى سلة {store}؟",
+  "@cartSwitchTitle": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSwitchBody": "سلتك الحالية من متجر {leaving}، والطلب الواحد يكون من متجر واحد. نحفظ لك منتجات سلة {leaving} وتقدر ترجع لها في أي وقت، وأي هدية مضافة ترجع لمكافآتك.",
+  "@cartSwitchBody": {
+    "placeholders": {
+      "leaving": {
+        "type": "String"
+      },
+      "entering": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSwitchBodyWaiting": "سلتك الحالية من متجر {leaving}، والطلب الواحد يكون من متجر واحد. نحفظ لك منتجات سلة {leaving}، وفي سلة {entering} {count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}} بانتظارك.",
+  "@cartSwitchBodyWaiting": {
+    "placeholders": {
+      "leaving": {
+        "type": "String"
+      },
+      "entering": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartSwitchBodyEmpty": "هذا المنتج من متجر {store}، والطلب الواحد يكون من متجر واحد.",
+  "@cartSwitchBodyEmpty": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSwitchConfirm": "افتح سلة {store}",
+  "@cartSwitchConfirm": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartBasketOf": "سلة {store}",
+  "@cartBasketOf": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "cartOtherBasket": "سلة {store} فيها {count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}",
+  "@cartOtherBasket": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartSwitchAction": "افتحها",
   "cartTitle": "السلة",
   "cartEmpty": "سلتك فارغة",
   "cartEmptyHint": "أضف ما يحتاجه صديقك الأليف وسنوصله إليك.",

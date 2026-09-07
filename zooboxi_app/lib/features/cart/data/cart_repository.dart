@@ -29,6 +29,14 @@ class CartRepository {
     return CartData.fromJson(asMap(data));
   }
 
+  /// Moves to the other storefront's basket. The one being left is stashed
+  /// server-side and comes back whole on the next switch, so this is a swap,
+  /// not a discard.
+  Future<CartData> switchBasket(String shelf) async {
+    final data = await _api.post('/cart/basket', body: {'shelf': shelf});
+    return CartData.fromJson(asMap(data));
+  }
+
   Future<CartData> setQuantity(String key, int quantity) async {
     final data = await _api.patch('/cart/items/$key', body: {'quantity': quantity});
     return CartData.fromJson(asMap(data));

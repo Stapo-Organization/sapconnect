@@ -668,6 +668,62 @@ class LAr extends L {
   String get badgeBackInStock => 'عاد للتوفّر';
 
   @override
+  String cartSwitchTitle(String store) {
+    return 'تنتقل إلى سلة $store؟';
+  }
+
+  @override
+  String cartSwitchBody(String leaving, String entering) {
+    return 'سلتك الحالية من متجر $leaving، والطلب الواحد يكون من متجر واحد. نحفظ لك منتجات سلة $leaving وتقدر ترجع لها في أي وقت، وأي هدية مضافة ترجع لمكافآتك.';
+  }
+
+  @override
+  String cartSwitchBodyWaiting(String leaving, String entering, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      many: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return 'سلتك الحالية من متجر $leaving، والطلب الواحد يكون من متجر واحد. نحفظ لك منتجات سلة $leaving، وفي سلة $entering $_temp0 بانتظارك.';
+  }
+
+  @override
+  String cartSwitchBodyEmpty(String store) {
+    return 'هذا المنتج من متجر $store، والطلب الواحد يكون من متجر واحد.';
+  }
+
+  @override
+  String cartSwitchConfirm(String store) {
+    return 'افتح سلة $store';
+  }
+
+  @override
+  String cartBasketOf(String store) {
+    return 'سلة $store';
+  }
+
+  @override
+  String cartOtherBasket(String store, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      many: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return 'سلة $store فيها $_temp0';
+  }
+
+  @override
+  String get cartSwitchAction => 'افتحها';
+
+  @override
   String get cartTitle => 'السلة';
 
   @override

@@ -1165,6 +1165,54 @@ abstract class L {
   /// **'عاد للتوفّر'**
   String get badgeBackInStock;
 
+  /// No description provided for @cartSwitchTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنتقل إلى سلة {store}؟'**
+  String cartSwitchTitle(String store);
+
+  /// No description provided for @cartSwitchBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلتك الحالية من متجر {leaving}، والطلب الواحد يكون من متجر واحد. نحفظ لك منتجات سلة {leaving} وتقدر ترجع لها في أي وقت، وأي هدية مضافة ترجع لمكافآتك.'**
+  String cartSwitchBody(String leaving, String entering);
+
+  /// No description provided for @cartSwitchBodyWaiting.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلتك الحالية من متجر {leaving}، والطلب الواحد يكون من متجر واحد. نحفظ لك منتجات سلة {leaving}، وفي سلة {entering} {count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}} بانتظارك.'**
+  String cartSwitchBodyWaiting(String leaving, String entering, int count);
+
+  /// No description provided for @cartSwitchBodyEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا المنتج من متجر {store}، والطلب الواحد يكون من متجر واحد.'**
+  String cartSwitchBodyEmpty(String store);
+
+  /// No description provided for @cartSwitchConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتح سلة {store}'**
+  String cartSwitchConfirm(String store);
+
+  /// No description provided for @cartBasketOf.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلة {store}'**
+  String cartBasketOf(String store);
+
+  /// No description provided for @cartOtherBasket.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلة {store} فيها {count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}'**
+  String cartOtherBasket(String store, int count);
+
+  /// No description provided for @cartSwitchAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتحها'**
+  String get cartSwitchAction;
+
   /// No description provided for @cartTitle.
   ///
   /// In ar, this message translates to:

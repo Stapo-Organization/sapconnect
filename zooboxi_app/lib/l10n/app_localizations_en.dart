@@ -656,6 +656,56 @@ class LEn extends L {
   String get badgeBackInStock => 'Back in stock';
 
   @override
+  String cartSwitchTitle(String store) {
+    return 'Switch to the $store basket?';
+  }
+
+  @override
+  String cartSwitchBody(String leaving, String entering) {
+    return 'Your basket is from the $leaving store, and one order comes from one store. We\'ll keep the $leaving items for you, and any claimed gift returns to your rewards.';
+  }
+
+  @override
+  String cartSwitchBodyWaiting(String leaving, String entering, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items are',
+      one: '1 item is',
+    );
+    return 'Your basket is from the $leaving store, and one order comes from one store. We\'ll keep the $leaving items, and $_temp0 waiting in your $entering basket.';
+  }
+
+  @override
+  String cartSwitchBodyEmpty(String store) {
+    return 'This product is from the $store store, and one order comes from one store.';
+  }
+
+  @override
+  String cartSwitchConfirm(String store) {
+    return 'Open the $store basket';
+  }
+
+  @override
+  String cartBasketOf(String store) {
+    return '$store basket';
+  }
+
+  @override
+  String cartOtherBasket(String store, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return 'Your $store basket holds $_temp0';
+  }
+
+  @override
+  String get cartSwitchAction => 'Open it';
+
+  @override
   String get cartTitle => 'Cart';
 
   @override

@@ -132,6 +132,19 @@ class CartController extends AsyncNotifier<CartData> {
   /// fulfilment guard trimmed it for this location) returns `added: false`
   /// with the server's notice — so no caller can celebrate an add that never
   /// happened.
+  /// Swaps the basket for the other storefront's, then adopts the server's
+  /// answer. The basket left behind waits on the server.
+  Future<void> switchBasket(String shelf) async {
+    final result = await _serial(
+      () => ref.read(cartRepositoryProvider).switchBasket(shelf),
+    );
+    _targetQty.clear();
+    // Notices ARE collected here: a line that went out of stock while the
+    // basket waited comes back as one, and a basket that quietly returns
+    // shorter than it left is the one thing this feature must not do.
+    _adopt(result);
+  }
+
   Future<AddResult> add({
     required int productId,
     int? variationId,

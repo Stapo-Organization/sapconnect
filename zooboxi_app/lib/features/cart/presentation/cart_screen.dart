@@ -6,6 +6,7 @@ import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/error_text.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -86,6 +87,76 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 }
 
+/// Which storefront this basket belongs to — and the way back to the other.
+///
+/// A customer cannot order إكسبريس and زوبكسي in one go, so the basket says
+/// out loud which shop it is from. When the other basket has something in it,
+/// this is also how they get to it: nothing was thrown away, it is waiting.
+class _BasketBanner extends ConsumerWidget {
+  const _BasketBanner({required this.basket});
+
+  final CartBasket basket;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final express = basket.shelf == 'express';
+    final hue = context.zb.tier(express ? 'express' : 'same_day').fg;
+    final name = express ? l.shelfExpressTab : l.shelfAllTab;
+    final otherName = basket.otherShelf == 'express' ? l.shelfExpressTab : l.shelfAllTab;
+
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: hue.withValues(alpha: context.isDark ? 0.16 : 0.08),
+        borderRadius: BorderRadius.circular(ZbTokens.rMd),
+        border: Border.all(color: hue.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        children: [
+          Icon(express ? Icons.bolt_rounded : Icons.storefront_rounded, size: 18, color: hue),
+          Gap.w8,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l.cartBasketOf(name),
+                  style: context.tt.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: hue,
+                  ),
+                ),
+                if (basket.otherHasItems)
+                  Text(
+                    l.cartOtherBasket(otherName, basket.otherCount),
+                    style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  ),
+              ],
+            ),
+          ),
+          if (basket.otherHasItems)
+            TextButton(
+              onPressed: () async {
+                Haptics.selection();
+                try {
+                  await ref
+                      .read(cartControllerProvider.notifier)
+                      .switchBasket(basket.otherShelf);
+                } catch (e) {
+                  if (context.mounted) AppToast.error(context, errorMessage(context, e));
+                }
+              },
+              child: Text(l.cartSwitchAction),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Loaded extends ConsumerWidget {
   const _Loaded({required this.cart});
 
@@ -96,6 +167,29 @@ class _Loaded extends ConsumerWidget {
     final l = L.of(context);
 
     if (cart.isEmpty) {
+      // An order empties the cart, but the other storefront's basket is still
+      // waiting — sending the customer off to "start shopping" would lose it.
+      if (cart.basket.otherHasItems) {
+        final otherName =
+            cart.basket.otherShelf == 'express' ? l.shelfExpressTab : l.shelfAllTab;
+        return EmptyState(
+          icon: Icons.shopping_bag_rounded,
+          title: l.cartEmpty,
+          message: l.cartOtherBasket(otherName, cart.basket.otherCount),
+          actionLabel: l.cartSwitchConfirm(otherName),
+          onAction: () async {
+            Haptics.selection();
+            try {
+              await ref
+                  .read(cartControllerProvider.notifier)
+                  .switchBasket(cart.basket.otherShelf);
+            } catch (e) {
+              if (context.mounted) AppToast.error(context, errorMessage(context, e));
+            }
+          },
+          mascot: true,
+        );
+      }
       return EmptyState(
         icon: Icons.shopping_bag_rounded,
         title: l.cartEmpty,
@@ -115,6 +209,10 @@ class _Loaded extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
+                if (cart.basket.isSet) ...[
+                  _BasketBanner(basket: cart.basket),
+                  Gap.h12,
+                ],
                 if (cart.freeShipping.isActive || cart.loyalty.hasDeliveryPerk || cart.loyalty.hasClaims) ...[
                   FreeShippingBar(
                     freeShipping: cart.freeShipping,

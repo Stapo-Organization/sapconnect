@@ -248,6 +248,46 @@ class CartNotice {
 /// The whole cart, server-authoritative. Every mutation returns a fresh copy
 /// of this — the app never computes totals, shipping or caps itself.
 @immutable
+/// Which storefront this basket belongs to, and what is waiting in the other.
+///
+/// إكسبريس and زوبكسي are two shops: an order is one or the other, never a
+/// mixture. The basket the customer is not using is not thrown away — it waits
+/// on the server and comes back whole when they switch to it.
+@immutable
+class CartBasket {
+  const CartBasket({
+    this.shelf = '',
+    this.otherShelf = '',
+    this.otherCount = 0,
+    this.started = true,
+  });
+
+  /// `express` | `all`, or empty while the basket is empty and belongs to
+  /// neither.
+  final String shelf;
+  final String otherShelf;
+
+  /// Lines waiting in the other storefront's basket.
+  final int otherCount;
+
+  /// False when there is no basket yet and the product being added simply
+  /// belongs to the other storefront — a different sentence from "your basket
+  /// is from the other store".
+  final bool started;
+
+  bool get isSet => shelf.isNotEmpty;
+  bool get otherHasItems => otherShelf.isNotEmpty && otherCount > 0;
+
+  static const CartBasket none = CartBasket();
+
+  factory CartBasket.fromJson(Map<String, dynamic> json) => CartBasket(
+        shelf: asString(json['shelf']),
+        otherShelf: asString(json['other_shelf']),
+        otherCount: asInt(json['other_count']),
+        started: json.containsKey('started') ? asBool(json['started']) : true,
+      );
+}
+
 class CartData {
   const CartData({
     this.items = const [],
@@ -258,6 +298,7 @@ class CartData {
     this.notices = const [],
     this.count = 0,
     this.loyalty = CartLoyalty.none,
+    this.basket = CartBasket.none,
   });
 
   final List<CartItem> items;
@@ -269,6 +310,9 @@ class CartData {
 
   /// Total units — what the tab badge shows.
   final int count;
+
+  /// The storefront this basket belongs to, and the one waiting beside it.
+  final CartBasket basket;
 
   /// What this basket earns, what it already carries, and why delivery costs
   /// what it costs. Absent for a store that has the program switched off, in
@@ -292,6 +336,7 @@ class CartData {
         notices: asMapList(json['notices']).map(CartNotice.fromJson).toList(),
         count: asInt(json['count']),
         loyalty: CartLoyalty.fromJson(asMap(json['loyalty'])),
+        basket: CartBasket.fromJson(asMap(json['basket'])),
       );
 
   /// Local echo of a quantity change, used between the tap and the server's
@@ -320,6 +365,7 @@ class CartData {
       notices: const [],
       count: count + (qty - old.qty),
       loyalty: loyalty,
+      basket: basket,
     );
   }
 
@@ -343,6 +389,7 @@ class CartData {
       notices: const [],
       count: (count - removed.qty).clamp(0, 1 << 30),
       loyalty: loyalty,
+      basket: basket,
     );
   }
 }
