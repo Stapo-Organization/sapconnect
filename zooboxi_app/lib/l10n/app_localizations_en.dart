@@ -353,6 +353,40 @@ class LEn extends L {
   String get shelfAllSubShipping => 'Ships to your city';
 
   @override
+  String heroExpressArrives(String time) {
+    return 'At your door by $time';
+  }
+
+  @override
+  String get heroExpressWindow => 'Within two hours';
+
+  @override
+  String heroExpressArrivesTomorrow(String time) {
+    return 'Tomorrow at $time';
+  }
+
+  @override
+  String get heroCutoffToday => 'Order now, arrives today';
+
+  @override
+  String get heroCutoffTomorrow => 'Order now, arrives tomorrow';
+
+  @override
+  String heroCutoffOn(String day) {
+    return 'Order now, arrives $day';
+  }
+
+  @override
+  String heroBranchClosesIn(String time) {
+    return 'Closes in $time';
+  }
+
+  @override
+  String heroCutoffIn(String time) {
+    return '$time left for today\'s delivery';
+  }
+
+  @override
   String shelfExpressHours(String open, String close) {
     return '$open – $close';
   }

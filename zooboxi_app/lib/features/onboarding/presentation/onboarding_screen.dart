@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/settings/app_settings.dart';
@@ -1172,17 +1171,16 @@ class _MockNotification extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: context.zb.brandGradient,
-              borderRadius: BorderRadius.circular(ZbTokens.rSm),
-            ),
-            child: SvgPicture.asset(
-              'assets/brand/submark.svg',
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          // The mock notification wears the app's ACTUAL icon — this screen is
+          // showing someone what will appear on their lock screen, so a
+          // different mark here is a small lie they will notice tomorrow.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(ZbTokens.rSm),
+            child: Image.asset(
+              'assets/brand/app_icon_1024.png',
+              width: 38,
+              height: 38,
+              fit: BoxFit.cover,
             ),
           ),
           Gap.w12,

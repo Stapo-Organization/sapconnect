@@ -142,6 +142,34 @@
   "shelfAllSub": "يصلك غدًا",
   "shelfExpressOffSub": "غير متاح هنا",
   "shelfAllSubShipping": "توصيل لمدينتك",
+  "heroExpressArrives": "يوصلك الساعة {time}",
+  "@heroExpressArrives": {
+    "description": "The إكسبريس hero slide: the clock time the order lands, computed on the device so a cached payload never states a time that has passed.",
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "heroExpressWindow": "خلال ساعتين",
+  "heroExpressArrivesTomorrow": "يوصلك غدًا {time}",
+  "@heroExpressArrivesTomorrow": {
+    "description": "The إكسبريس hero after the branch has shut: the same sentence the header shows.",
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "heroCutoffToday": "اطلب الآن ويوصلك اليوم",
+  "heroCutoffTomorrow": "اطلب الآن ويوصلك غدًا",
+  "heroCutoffOn": "اطلب الآن ويوصلك {day}",
+  "@heroCutoffOn": {
+    "description": "The زوبكسي cutoff slide when Friday pushes the order to a named weekday.",
+    "placeholders": { "day": { "type": "String" } }
+  },
+  "heroBranchClosesIn": "يغلق بعد {time}",
+  "@heroBranchClosesIn": {
+    "description": "Ticking pill on the branch-hours slide, HH:MM remaining.",
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "heroCutoffIn": "باقي {time} على توصيل اليوم",
+  "@heroCutoffIn": {
+    "description": "Ticking pill on the زوبكسي cutoff slide, HH:MM remaining.",
+    "placeholders": { "time": { "type": "String" } }
+  },
   "shelfExpressHours": "{open} – {close}",
   "@shelfExpressHours": {
     "placeholders": {

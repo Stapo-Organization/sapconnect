@@ -133,6 +133,14 @@
   "shelfAllSub": "Arrives tomorrow",
   "shelfExpressOffSub": "Not here yet",
   "shelfAllSubShipping": "Ships to your city",
+  "heroExpressArrives": "At your door by {time}",
+  "heroExpressWindow": "Within two hours",
+  "heroExpressArrivesTomorrow": "Tomorrow at {time}",
+  "heroCutoffToday": "Order now, arrives today",
+  "heroCutoffTomorrow": "Order now, arrives tomorrow",
+  "heroCutoffOn": "Order now, arrives {day}",
+  "heroBranchClosesIn": "Closes in {time}",
+  "heroCutoffIn": "{time} left for today's delivery",
   "shelfExpressHours": "{open} – {close}",
   "@shelfExpressHours": {
     "placeholders": {

@@ -351,6 +351,40 @@ class LAr extends L {
   String get shelfAllSubShipping => 'توصيل لمدينتك';
 
   @override
+  String heroExpressArrives(String time) {
+    return 'يوصلك الساعة $time';
+  }
+
+  @override
+  String get heroExpressWindow => 'خلال ساعتين';
+
+  @override
+  String heroExpressArrivesTomorrow(String time) {
+    return 'يوصلك غدًا $time';
+  }
+
+  @override
+  String get heroCutoffToday => 'اطلب الآن ويوصلك اليوم';
+
+  @override
+  String get heroCutoffTomorrow => 'اطلب الآن ويوصلك غدًا';
+
+  @override
+  String heroCutoffOn(String day) {
+    return 'اطلب الآن ويوصلك $day';
+  }
+
+  @override
+  String heroBranchClosesIn(String time) {
+    return 'يغلق بعد $time';
+  }
+
+  @override
+  String heroCutoffIn(String time) {
+    return 'باقي $time على توصيل اليوم';
+  }
+
+  @override
   String shelfExpressHours(String open, String close) {
     return '$open – $close';
   }

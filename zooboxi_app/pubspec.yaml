@@ -80,13 +80,17 @@ flutter:
       fonts:
         - asset: assets/fonts/SaudiRiyal.otf
 
-# Launcher icon: the brand submark (smiling delivery box + coral paw) rendered
-# full-bleed from docs/zooboxi-brand-kit/app-icon.svg. Regenerate after changing
-# the source: dart run flutter_launcher_icons
+# Launcher icon: the REAL logo's mark — the dog and the cat in the smiling box,
+# on the brand teal. The wordmark is left out on purpose: it is illegible at
+# 60px, and the mark alone is what people recognise on a home screen.
+# Built by tools/build_icons.py from assets/brand/logo_full.png; regenerate the
+# platform sizes with: dart run flutter_launcher_icons
 flutter_launcher_icons:
   image_path: assets/brand/app_icon_1024.png
   ios: true
   remove_alpha_ios: true
   android: true
-  adaptive_icon_background: "#3B8F8E"
-  adaptive_icon_foreground: assets/brand/app_icon_1024.png
+  adaptive_icon_background: "#429D9C"
+  # The mark on transparency — Android insets the foreground into its safe
+  # circle, so a full-bleed image would lose the box's corners.
+  adaptive_icon_foreground: assets/brand/app_mark.png

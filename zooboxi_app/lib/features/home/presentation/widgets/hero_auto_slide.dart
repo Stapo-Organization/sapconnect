@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/widgets/zb_image.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import 'campaign_chips.dart';
+import 'hero_live_copy.dart';
 
 // The hero slides the server composes when there is no bought banner to show.
 // It ships copy plus a handful of product photos and lets the app draw them,
@@ -42,43 +44,41 @@ class AutoSlideSkin {
     final dark = context.isDark;
     final onDark = dark ? ZbTokens.inkDark : Colors.white;
 
+    /// Deep field → the same field, one step deeper. Every canvas in this
+    /// carousel is dark by construction: the header (white location, white
+    /// search, white tabs) floats on top of whichever slide is showing.
+    AutoSlideSkin skin(Color from, Color to, Color accent) => AutoSlideSkin(
+          gradient: LinearGradient(
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
+            colors: dark ? [ZbTokens.graphiteHigh, from] : [from, to],
+          ),
+          fg: onDark,
+          muted: onDark.withValues(alpha: 0.82),
+          accent: accent,
+        );
+
     return switch (theme) {
-      'express' => AutoSlideSkin(
-          gradient: dark
-              ? const LinearGradient(
-                  begin: AlignmentDirectional.topStart,
-                  end: AlignmentDirectional.bottomEnd,
-                  colors: [ZbTokens.tealContainerDark, ZbTokens.graphiteHigh],
-                )
-              : const LinearGradient(
-                  begin: AlignmentDirectional.topStart,
-                  end: AlignmentDirectional.bottomEnd,
-                  colors: [ZbTokens.tealDeep, ZbTokens.tealDark],
-                ),
-          fg: onDark,
-          muted: onDark.withValues(alpha: 0.82),
-          accent: ZbTokens.tealDeep,
-        ),
-      'clearance' => AutoSlideSkin(
-          gradient: dark
-              ? const LinearGradient(
-                  begin: AlignmentDirectional.topStart,
-                  end: AlignmentDirectional.bottomEnd,
-                  colors: [ZbTokens.coralContainerDark, ZbTokens.graphiteHigh],
-                )
-              : const LinearGradient(
-                  begin: AlignmentDirectional.topStart,
-                  end: AlignmentDirectional.bottomEnd,
-                  colors: [ZbTokens.coralDark, ZbTokens.coral],
-                ),
-          fg: onDark,
-          muted: onDark.withValues(alpha: 0.82),
-          accent: ZbTokens.coralDark,
-        ),
+      // ── إكسبريس: the branch, in teal. Bright, electric, close by. ──
+      // The clock slide is the storefront's own promise, so it wears the
+      // deepest teal — the colour the promise chip has always used.
+      'express' || 'express_clock' => skin(ZbTokens.tealDeep, ZbTokens.tealDark, ZbTokens.tealDeep),
+      'express_top' => skin(ZbTokens.tealDark, ZbTokens.teal, ZbTokens.tealDeep),
+      'express_new' => skin(ZbTokens.teal, ZbTokens.tealDark, ZbTokens.tealDeep),
+      // Closing time is an evening: the teal cools into the night.
+      'express_hours' => skin(ZbTokens.tealDeep, ZbTokens.graphiteHighest, ZbTokens.tealDeep),
+
+      // ── زوبكسي: the main store, in the warm half of the palette. Nothing
+      //    here is teal, so the two sliders never read as the same shop. ──
+      // The cutoff is a deadline, not a discount: deep green-ink, amber pill.
+      'cutoff' => skin(ZbTokens.ink, ZbTokens.graphiteHighest, ZbTokens.orange),
+      'bundles' => skin(ZbTokens.coral, ZbTokens.orange, ZbTokens.coralDark),
+      'clearance' => skin(ZbTokens.coralDark, ZbTokens.coral, ZbTokens.coralDark),
+      'newin' => skin(ZbTokens.graphite, ZbTokens.orange, ZbTokens.orange),
+
       // A brand slide belongs to the brand: a deep neutral stage, the logo on
       // its own white tile carrying the identity — the same reason the brand
-      // strip refuses to tint itself. Deep, because this gradient doubles as
-      // the hero canvas and the header on top of it is always light.
+      // strip refuses to tint itself.
       'brand' => AutoSlideSkin(
           gradient: const LinearGradient(
             begin: AlignmentDirectional.topStart,
@@ -100,9 +100,23 @@ class AutoSlideSkin {
 }
 
 class HeroAutoCard extends StatelessWidget {
-  const HeroAutoCard({super.key, required this.slide, this.flush = false});
+  const HeroAutoCard({
+    super.key,
+    required this.slide,
+    this.flush = false,
+    this.scope,
+    this.now,
+  });
 
   final HeroSlide slide;
+
+  /// The shelf's own promise data — opening hours, the cut-off — which is what
+  /// turns «توصيل خلال ساعتين» into «يوصلك الساعة 10:30 م».
+  final CatalogScope? scope;
+
+  /// Pins the clock. Only the design golden passes it: a sheet whose slides
+  /// print the wall clock is a golden that fails by lunchtime.
+  final DateTime? now;
 
   /// True when the slide sits on the hero canvas, which already painted this
   /// skin's gradient from the status bar down — paint everything but it.
@@ -113,19 +127,46 @@ class HeroAutoCard extends StatelessWidget {
     final skin = AutoSlideSkin.of(context, slide.theme);
     final images = slide.productImages.take(3).toList();
     final logo = slide.theme == 'brand' ? slide.brand?.logo : null;
-    final ranked = slide.theme == 'bestsellers';
+    final ranked = slide.theme == 'bestsellers' || slide.theme == 'express_top';
+    final live = HeroLive.of(
+      slide.theme,
+      scope,
+      L.of(context),
+      Localizations.localeOf(context).languageCode,
+      now: now,
+    );
+    final title = live.title ?? slide.title;
+    final badge = live.badge ?? slide.badge;
+    final express = (slide.theme ?? '').startsWith('express');
+    final pill = live.hint != null || live.deadlineAt != null;
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
       final h = constraints.maxHeight;
+
+      // The slide band is 1/3.2 of the screen — about 123pt on a phone, 183
+      // at the text-scale cap. That is a real ceiling, and the fix for it is
+      // to *compose down*, never to squeeze: squeezing is what cut the «م»
+      // off «10:45 م» and truncated a branch name with no ellipsis.
+      //
+      // What is never dropped: the badge (a slide earns its place with the
+      // number on it — «خصم حتى 45%») and the headline's two full lines. What
+      // gives way, in order: the subtitle's second line, then the CTA — and
+      // the CTA only on a slide that already carries a live pill, because the
+      // pill and the button are the same slot and the whole slide is a button
+      // anyway.
+      final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+      final compact = h < 210 * textScale;
 
       final Widget? art;
       if (logo != null) {
         art = _BrandTile(logo: logo);
       } else if (images.isNotEmpty) {
         art = _ProductCascade(images: images, ranked: ranked, slideHeight: h);
-      } else if (slide.theme == 'express') {
-        art = _ExpressMotif(skin: skin);
+      } else if (slide.theme == 'express' ||
+          slide.theme == 'express_clock' ||
+          slide.theme == 'express_hours') {
+        art = _ExpressMotif(skin: skin, clock: slide.theme == 'express_hours');
       } else {
         art = null;
       }
@@ -135,7 +176,13 @@ class HeroAutoCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (!flush) DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
-          _DecorLayer(fg: skin.fg, slideHeight: h),
+          // The two storefronts are not the same shop, so they are not the
+          // same picture either: زوبكسي sits in a calm ring, إكسبريس in the
+          // streaks of something moving.
+          if (express)
+            _SpeedLayer(fg: skin.fg, slideHeight: h)
+          else
+            _DecorLayer(fg: skin.fg, slideHeight: h),
 
           // Artwork owns the END-bottom corner and is cropped by the slide
           // edge on purpose — the outer canvas clip finishes the crop.
@@ -156,21 +203,28 @@ class HeroAutoCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if ((slide.badge ?? '').isNotEmpty) ...[
-                  _SlideBadge(label: slide.badge!, accent: skin.accent),
+                if ((badge ?? '').isNotEmpty) ...[
+                  _SlideBadge(label: badge!, accent: skin.accent),
                   Gap.h8,
                 ],
-                if ((slide.title ?? '').isNotEmpty)
-                  Flexible(
-                    child: Text(
-                      slide.title!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.tt.headlineSmall?.copyWith(
-                        color: skin.fg,
-                        fontWeight: FontWeight.w900,
-                        height: 1.25,
-                      ),
+                // The headline is rigid and the subtitle is what gives way.
+                // The slide band is 1/3.2 of the screen — barely 123pt on a
+                // phone — and when both were equal-flex the *title* lost half
+                // its height: the arrival clock printed «الساعة 10:45» with
+                // the «م» squeezed to nothing, which is a promise missing its
+                // morning or evening.
+                if ((title ?? '').isNotEmpty)
+                  Text(
+                    title!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: (slide.theme == 'express_clock' && !compact
+                            ? context.tt.headlineMedium
+                            : context.tt.headlineSmall)
+                        ?.copyWith(
+                      color: skin.fg,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
                     ),
                   ),
                 if ((slide.subtitle ?? '').isNotEmpty) ...[
@@ -178,7 +232,11 @@ class HeroAutoCard extends StatelessWidget {
                   Flexible(
                     child: Text(
                       slide.subtitle!,
-                      maxLines: 2,
+                      // A short band gets one line of subtitle rather than a
+                      // second line cut in half — vertical clipping never
+                      // draws an ellipsis, so a truncated «فرع السليمانية -
+                      // الري» would just look broken.
+                      maxLines: compact ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: context.tt.bodyMedium?.copyWith(
                         color: skin.muted,
@@ -187,8 +245,15 @@ class HeroAutoCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if ((slide.ctaLabel ?? '').isNotEmpty) ...[
-                  Gap.h16,
+                if (pill) ...[
+                  Gap.h8,
+                  HeroLivePill(live: live, fg: skin.fg, accent: skin.accent, now: now),
+                ],
+                if ((!pill || !compact) && (slide.ctaLabel ?? '').isNotEmpty) ...[
+                  // The button sits closer on a short band. Those eight points
+                  // are the difference between a subtitle with descenders and
+                  // a subtitle sliced along its baseline.
+                  compact ? Gap.h8 : Gap.h16,
                   CampaignCta(label: slide.ctaLabel!),
                 ],
               ],
@@ -279,12 +344,66 @@ class _DecorLayer extends StatelessWidget {
   }
 }
 
+/// إكسبريس's ground: three long diagonals leaning the way the reading runs,
+/// as if the panel itself were moving. Quiet enough to sit under copy, and
+/// nothing like the زوبكسي ring — which is the whole point.
+class _SpeedLayer extends StatelessWidget {
+  const _SpeedLayer({required this.fg, required this.slideHeight});
+
+  final Color fg;
+  final double slideHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: CustomPaint(
+        painter: _SpeedPainter(
+          fg,
+          rtl: Directionality.of(context) == TextDirection.rtl,
+        ),
+        size: Size.infinite,
+      ),
+    );
+  }
+}
+
+class _SpeedPainter extends CustomPainter {
+  const _SpeedPainter(this.fg, {required this.rtl});
+
+  final Color fg;
+  final bool rtl;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Three streaks, thinning as they trail off — the same gesture as the
+    // bolt, drawn at panel scale.
+    const bands = [(0.16, 0.40, 4.0), (0.46, 0.30, 2.6), (0.76, 0.34, 1.8)];
+    for (final (top, length, width) in bands) {
+      final paint = Paint()
+        ..color = fg.withValues(alpha: 0.18)
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round;
+      final y = size.height * top;
+      final dx = size.width * length;
+      final start = Offset(rtl ? size.width : 0, y);
+      final end = Offset(rtl ? size.width - dx : dx, y + size.height * 0.16);
+      canvas.drawLine(start, end, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SpeedPainter old) => old.fg != fg || old.rtl != rtl;
+}
+
 /// The express promise as a mark: pulse rings around a bright disc with the
 /// same bolt the promise chip wears — the visual it already trained.
 class _ExpressMotif extends StatelessWidget {
-  const _ExpressMotif({required this.skin});
+  const _ExpressMotif({required this.skin, this.clock = false});
 
   final AutoSlideSkin skin;
+
+  /// The closing-time slide is about the hour, not the speed.
+  final bool clock;
 
   @override
   Widget build(BuildContext context) {
@@ -318,7 +437,11 @@ class _ExpressMotif extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(Icons.bolt_rounded, size: 52, color: skin.accent),
+            child: Icon(
+              clock ? Icons.schedule_rounded : Icons.bolt_rounded,
+              size: 52,
+              color: skin.accent,
+            ),
           ),
         ],
       ),

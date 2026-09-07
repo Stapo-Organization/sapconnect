@@ -727,6 +727,54 @@ abstract class L {
   /// **'توصيل لمدينتك'**
   String get shelfAllSubShipping;
 
+  /// The إكسبريس hero slide: the clock time the order lands, computed on the device so a cached payload never states a time that has passed.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوصلك الساعة {time}'**
+  String heroExpressArrives(String time);
+
+  /// No description provided for @heroExpressWindow.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلال ساعتين'**
+  String get heroExpressWindow;
+
+  /// The إكسبريس hero after the branch has shut: the same sentence the header shows.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوصلك غدًا {time}'**
+  String heroExpressArrivesTomorrow(String time);
+
+  /// No description provided for @heroCutoffToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب الآن ويوصلك اليوم'**
+  String get heroCutoffToday;
+
+  /// No description provided for @heroCutoffTomorrow.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب الآن ويوصلك غدًا'**
+  String get heroCutoffTomorrow;
+
+  /// The زوبكسي cutoff slide when Friday pushes the order to a named weekday.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب الآن ويوصلك {day}'**
+  String heroCutoffOn(String day);
+
+  /// Ticking pill on the branch-hours slide, HH:MM remaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'يغلق بعد {time}'**
+  String heroBranchClosesIn(String time);
+
+  /// Ticking pill on the زوبكسي cutoff slide, HH:MM remaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'باقي {time} على توصيل اليوم'**
+  String heroCutoffIn(String time);
+
   /// No description provided for @shelfExpressHours.
   ///
   /// In ar, this message translates to:

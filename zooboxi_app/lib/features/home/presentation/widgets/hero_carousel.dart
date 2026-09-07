@@ -14,6 +14,7 @@ import 'campaign_chips.dart';
 import 'campaign_composition.dart';
 import 'campaign_impression.dart';
 import 'hero_auto_slide.dart';
+import 'hero_live_copy.dart';
 import 'home_header.dart';
 import 'link_navigation.dart';
 
@@ -50,10 +51,12 @@ String? autoSlideRoute(HeroSlide slide) {
 
   return switch (slide.theme) {
     'clearance' => listing(const {'rail': 'clearance'}),
-    'bestsellers' => listing(const {'rail': 'bestsellers'}),
+    'bestsellers' || 'express_top' => listing(const {'rail': 'bestsellers'}),
+    'newin' || 'express_new' => listing(const {'rail': 'new'}),
+    'bundles' => '/bundles',
     // No rail key: the listing's own recommended sort already floats what is
     // in a nearby warehouse to the top, which *is* the express promise.
-    'express' => listing(),
+    'express' || 'express_clock' || 'express_hours' || 'cutoff' => listing(),
     'brand' => switch (ZbLink.fromUrl(slide.linkUrl)) {
         ZbLink(type: 'brand', :final value) => brandLocation(value, title: title),
         // A brand slide whose link the server didn't spell as a brand archive
@@ -135,8 +138,12 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
         for (final slide in widget.slides)
           if (!slide.isAuto) _ManualItem(slide),
         for (final campaign in heroCampaignsOf(widget.campaigns)) _CampaignItem(campaign),
+        // A composed slide is only true for a while: the payload is held for
+        // the life of this screen and read again off disk at launch, so the
+        // ones whose moment has passed leave rather than repeat themselves
+        // until the refresh lands.
         for (final slide in widget.slides)
-          if (slide.isAuto) _AutoItem(slide),
+          if (slide.isAuto && !heroSlideIsStale(slide, widget.scope)) _AutoItem(slide),
       ];
 
   @override
@@ -262,7 +269,8 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
                               _ManualItem(:final slide) => _ManualSlide(slide: slide),
                               _CampaignItem(:final campaign) =>
                                 _CampaignSlide(campaign: campaign),
-                              _AutoItem(:final slide) => HeroAutoCard(slide: slide, flush: true),
+                              _AutoItem(:final slide) =>
+                                HeroAutoCard(slide: slide, flush: true, scope: widget.scope),
                             },
                           ),
                         ),
