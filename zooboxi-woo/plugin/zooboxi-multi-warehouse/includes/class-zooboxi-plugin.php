@@ -96,6 +96,9 @@ class Zooboxi_Plugin
 
         // Pack-size awareness (كرتون × حبة): pieces-per-unit factors from SAP.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-units.php';
+        // One basket per storefront: إكسبريس and زوبكسي never mix in one order.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-cart-shelf.php';
+        Zooboxi_Cart_Shelf::hooks();
 
         // Loyalty — «عائلة زوبوكسي». Purely additive; kill switch: set option
         // `zooboxi_loyalty_enabled` to anything but 'yes' and the store behaves

@@ -33,8 +33,14 @@ class Zooboxi_Fulfillment
      *   is_split:bool, fastest:string, slowest:string
      * }
      */
-    public static function resolve(int $product_id, int $qty, float $lat, float $lng, ?string $city = null): array
-    {
+    public static function resolve(
+        int $product_id,
+        int $qty,
+        float $lat,
+        float $lng,
+        ?string $city = null,
+        string $shelf = ''
+    ): array {
         $qty = max(1, $qty);
 
         // Per-warehouse SAP stock (the only stock source).
@@ -116,6 +122,34 @@ class Zooboxi_Fulfillment
                     ];
                     $used[$code] = true;
                 }
+            }
+        }
+
+        // A basket belongs to one storefront, and so does its plan: an
+        // إكسبريس order is the branch's alone, and a زوبكسي order may not be
+        // quietly handed to the branch because it happens to hold the item.
+        // Without this the separation would live only in what the customer is
+        // shown, and the warehouse would still see one mixed order.
+        if ($shelf !== '') {
+            // By WAREHOUSE, not by tier: زوبكسي is the city's central alone,
+            // the same single anchor the catalogue's زوبكسي shelf is built
+            // from. Filtering by tier would leave the national hub in, and a
+            // line bigger than the central's stock would split into «يصلك
+            // غدًا» plus «4-5 أيام» — one order with two promises, which is
+            // the thing this rule exists to prevent.
+            $codes = class_exists('Zooboxi_Cart_Shelf')
+                ? Zooboxi_Cart_Shelf::codes_for($shelf)
+                : [];
+            if (!empty($codes)) {
+                $tiers = array_values(array_filter(
+                    $tiers,
+                    static fn(array $tier) => in_array((string) ($tier['warehouse_code'] ?? ''), $codes, true)
+                ));
+            } else {
+                $tiers = array_values(array_filter($tiers, static function (array $tier) use ($shelf) {
+                    $is_express = ($tier['tier'] ?? '') === Zooboxi_Delivery_Engine::TYPE_EXPRESS;
+                    return $shelf === Zooboxi_Cart_Shelf::EXPRESS ? $is_express : !$is_express;
+                }));
             }
         }
 
@@ -406,7 +440,7 @@ class Zooboxi_Fulfillment
         return ($wh['display_name_en'] ?? '') ?: ($wh['display_name_ar'] ?? '');
     }
 
-    private static function detect_city(float $lat, float $lng): ?string
+    public static function detect_city(float $lat, float $lng): ?string
     {
         // The city the customer actually set beats a guess from the nearest
         // branch. A shopper in Tabuk is not "in Madinah" because Madinah holds

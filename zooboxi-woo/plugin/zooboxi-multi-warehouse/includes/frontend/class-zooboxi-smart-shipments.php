@@ -226,7 +226,11 @@ class Zooboxi_Smart_Shipments
             // packs — a carton cannot ship half from one warehouse.
             $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_cart_item($item) : 1;
 
-            $plan  = Zooboxi_Fulfillment::resolve($pid, $qty * $units, $lat, $lng);
+            // Cart contents are the only input this takes, so the basket's
+            // own storefront is the right constraint: an إكسبريس basket
+            // splits into express packages, a زوبكسي one never does.
+            $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::current() : '';
+            $plan  = Zooboxi_Fulfillment::resolve($pid, $qty * $units, $lat, $lng, null, $shelf);
             $alloc = $plan['allocation'];
 
             if ($units > 1) {
@@ -252,10 +256,25 @@ class Zooboxi_Smart_Shipments
                 $allocated += (int) $a['qty'];
             }
             if ($allocated < $qty) {
+                // A basket that belongs to one storefront keeps its remainder
+                // there: spilling it into a national shipment would build the
+                // mixed order — and one with no warehouse on it — that the
+                // separation exists to prevent. Checkout refuses such a cart
+                // outright; this keeps the package honest until it does.
+                $fallback_tier = $shelf === Zooboxi_Cart_Shelf::EXPRESS
+                    ? Zooboxi_Delivery_Engine::TYPE_EXPRESS
+                    : ($shelf === Zooboxi_Cart_Shelf::ALL
+                        ? Zooboxi_Delivery_Engine::TYPE_STANDARD
+                        : Zooboxi_Delivery_Engine::TYPE_SHIPPING);
+                $fallback_code = '';
+                if ($shelf !== '' && class_exists('Zooboxi_Cart_Shelf')) {
+                    $codes = Zooboxi_Cart_Shelf::codes_for($shelf);
+                    $fallback_code = $codes[0] ?? '';
+                }
                 $alloc[] = [
-                    'tier'           => Zooboxi_Delivery_Engine::TYPE_SHIPPING,
+                    'tier'           => $fallback_tier,
                     'qty'            => $qty - $allocated,
-                    'warehouse_code' => '',
+                    'warehouse_code' => $fallback_code,
                 ];
             }
 

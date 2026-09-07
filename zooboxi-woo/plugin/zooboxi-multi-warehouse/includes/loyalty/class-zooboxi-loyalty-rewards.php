@@ -624,7 +624,12 @@ class Zooboxi_Loyalty_Rewards
         }
         try {
             $pid  = $product instanceof \WC_Product_Variation ? (int) $product->get_parent_id() : (int) $product->get_id();
-            $plan = Zooboxi_Fulfillment::resolve($pid, 1, (float) $lat, (float) $lng);
+            // From the basket's own storefront: a gift the central holds is
+            // not reachable inside an إكسبريس basket, and claiming it would
+            // put a line on the branch's pick list that the branch does not
+            // have on its shelves.
+            $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::current() : '';
+            $plan = Zooboxi_Fulfillment::resolve($pid, 1, (float) $lat, (float) $lng, null, $shelf);
             return (int) ($plan['reachable_total'] ?? 0) >= 1;
         } catch (\Throwable $e) {
             return true;
@@ -684,6 +689,11 @@ class Zooboxi_Loyalty_Rewards
         $variation    = $variation_id ? (array) $product->get_variation_attributes() : [];
 
         try {
+            // A gift is claimed into whichever basket is open — it is a reward,
+            // not a purchase, so the storefront rule does not judge it.
+            if (class_exists('Zooboxi_Cart_Shelf')) {
+                Zooboxi_Cart_Shelf::$claiming_gift = true;
+            }
             $key = WC()->cart->add_to_cart(
                 $product_id,
                 1,
@@ -692,7 +702,14 @@ class Zooboxi_Loyalty_Rewards
                 [Zooboxi_Loyalty::CART_GRANT_KEY => $grant_id]
             );
         } catch (\Throwable $e) {
+            if (class_exists('Zooboxi_Cart_Shelf')) {
+                Zooboxi_Cart_Shelf::$claiming_gift = false;
+            }
             return false;
+        }
+
+        if (class_exists('Zooboxi_Cart_Shelf')) {
+            Zooboxi_Cart_Shelf::$claiming_gift = false;
         }
 
         return (bool) $key;

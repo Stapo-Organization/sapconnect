@@ -36,6 +36,7 @@ class Zooboxi_V2_Cart_Controller
         Zooboxi_V2_Bootstrap::route('/cart/items', 'POST', [$this, 'add_item']);
         Zooboxi_V2_Bootstrap::route('/cart/items/(?P<key>[A-Za-z0-9_\-]+)', 'PATCH,PUT,POST', [$this, 'update_item']);
         Zooboxi_V2_Bootstrap::route('/cart/items/(?P<key>[A-Za-z0-9_\-]+)', 'DELETE', [$this, 'remove_item']);
+        Zooboxi_V2_Bootstrap::route('/cart/basket', 'POST', [$this, 'switch_basket']);
         Zooboxi_V2_Bootstrap::route('/cart/coupon', 'POST', [$this, 'apply_coupon']);
         Zooboxi_V2_Bootstrap::route('/cart/coupon/(?P<code>[^/]+)', 'DELETE', [$this, 'remove_coupon']);
     }
@@ -202,6 +203,17 @@ class Zooboxi_V2_Cart_Controller
             return 0;
         }
 
+        // Signing in is not a customer mixing two storefronts: the guest's
+        // basket and the customer's saved one are both already theirs. Judging
+        // the merge would silently delete whichever side does not match the
+        // shelf the account happens to carry — so the rule stands down and the
+        // basket is re-read from its lines afterwards.
+        $was_restoring = false;
+        if (class_exists('Zooboxi_Cart_Shelf')) {
+            $was_restoring = Zooboxi_Cart_Shelf::$restoring;
+            Zooboxi_Cart_Shelf::$restoring = true;
+        }
+
         $merged = 0;
         foreach ($items as $i) {
             try {
@@ -219,6 +231,16 @@ class Zooboxi_V2_Cart_Controller
             }
         }
 
+        if (class_exists('Zooboxi_Cart_Shelf')) {
+            Zooboxi_Cart_Shelf::$restoring = $was_restoring;
+            // The basket the guest left waiting is theirs too — it moves into
+            // the account before the guest session is deleted.
+            Zooboxi_Cart_Shelf::adopt_stash(self::read_guest_stash($guest_id));
+            // Whatever the merged basket turns out to be, it is read from the
+            // lines rather than inherited from either side.
+            Zooboxi_Cart_Shelf::relabel();
+        }
+
         if ($merged > 0) {
             WC()->cart->calculate_totals();
         }
@@ -227,6 +249,26 @@ class Zooboxi_V2_Cart_Controller
         }
 
         return $merged;
+    }
+
+    /** The waiting basket held in a guest's own session, if any. */
+    public static function read_guest_stash(string $guest_id): array
+    {
+        if ($guest_id === '' || !class_exists('WC_Session_Handler') || !class_exists('Zooboxi_Cart_Shelf')) {
+            return [];
+        }
+        try {
+            $handler = new \WC_Session_Handler();
+            $data    = $handler->get_session(self::guest_session_key($guest_id), []);
+        } catch (\Throwable $e) {
+            return [];
+        }
+        $key = Zooboxi_Cart_Shelf::stash_key();
+        if (!is_array($data) || empty($data[$key])) {
+            return [];
+        }
+        $stash = maybe_unserialize($data[$key]);
+        return is_array($stash) ? $stash : [];
     }
 
     public static function delete_guest_session(string $guest_id): void
@@ -288,6 +330,80 @@ class Zooboxi_V2_Cart_Controller
         if (!$product_id) {
             return Zooboxi_V2_Bootstrap::fail('product_required', __('منتج غير معروف', 'zooboxi'), 'Unknown product.', 422);
         }
+
+        // One basket, one storefront. The app names the shelf it is browsing;
+        // the web sends none and is untouched.
+        $shelf = Zooboxi_V2_Bootstrap::shelf();
+        if (class_exists('Zooboxi_Cart_Shelf') && Zooboxi_Cart_Shelf::valid($shelf)) {
+            $basket = Zooboxi_Cart_Shelf::current();
+
+            // An empty basket about to be started on the wrong shelf: the
+            // customer is on the إكسبريس tab looking at something only the
+            // main warehouse holds (a wishlist tap, a barcode, a shared
+            // link). Starting an express basket with it would strand them at
+            // checkout, so the same question is asked now.
+            if ($basket === '' && !Zooboxi_Cart_Shelf::fits($product_id, $shelf)) {
+                $other = Zooboxi_Cart_Shelf::other($shelf);
+                // Only when the other storefront can actually fill it —
+                // otherwise this walks the customer across baskets for a
+                // product nobody near them holds, and WooCommerce's own
+                // out-of-stock answer is the honest one.
+                if (Zooboxi_Cart_Shelf::fits($product_id, $other)) {
+                    return Zooboxi_V2_Bootstrap::fail(
+                        'shelf_conflict',
+                        __('هذا المنتج من المتجر الآخر', 'zooboxi'),
+                        'This product belongs to the other storefront.',
+                        409,
+                        ['shelf' => $shelf, 'other_shelf' => $other, 'other_count' => 0, 'started' => false]
+                    );
+                }
+            }
+
+            // A line that the basket's own storefront cannot hold, whatever
+            // tab it was tapped from — the honest answer is the question, not
+            // «تعذّر إضافة المنتج للسلة».
+            if ($basket !== ''
+                && !Zooboxi_Cart_Shelf::fits($product_id, $basket)
+                // Only when the other storefront can actually fill it. A
+                // product nobody near the customer holds must not send them
+                // across baskets — WooCommerce's own out-of-stock answer is
+                // the true one, and their basket stays where it is.
+                && Zooboxi_Cart_Shelf::fits($product_id, Zooboxi_Cart_Shelf::other($basket))) {
+                return Zooboxi_V2_Bootstrap::fail(
+                    'shelf_conflict',
+                    __('سلتك من متجر آخر', 'zooboxi'),
+                    'Your basket belongs to the other storefront.',
+                    409,
+                    Zooboxi_Cart_Shelf::payload()
+                );
+            }
+
+            // A product both storefronts hold, tapped from the other tab, is
+            // a real choice — which basket is this order? — so it is still
+            // asked. The basket only takes over when the tab's own shelf
+            // cannot fill the product anyway: a stale header, an older app
+            // build, or the instant after a switch when the tab has not
+            // caught up. That is what keeps the question from becoming a
+            // dead end without letting it disappear.
+            if ($basket !== ''
+                && $basket !== $shelf
+                && Zooboxi_Cart_Shelf::fits($product_id, $basket)
+                && !Zooboxi_Cart_Shelf::fits($product_id, $shelf)) {
+                $shelf = $basket;
+            }
+
+            if ($basket !== '' && $basket !== $shelf) {
+                // Not an error the customer made — a question only they can
+                // answer, so the app is handed everything it needs to ask it.
+                return Zooboxi_V2_Bootstrap::fail(
+                    'shelf_conflict',
+                    __('سلتك من متجر آخر', 'zooboxi'),
+                    'Your basket belongs to the other storefront.',
+                    409,
+                    Zooboxi_Cart_Shelf::payload()
+                );
+            }
+        }
         if (!wc_get_product($variation_id ?: $product_id)) {
             return Zooboxi_V2_Bootstrap::fail('product_not_found', __('منتج غير معروف', 'zooboxi'), 'Unknown product.', 404);
         }
@@ -296,6 +412,14 @@ class Zooboxi_V2_Cart_Controller
             $key = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation);
         } catch (\Throwable $e) {
             $key = false;
+        }
+
+        if ($key
+            && class_exists('Zooboxi_Cart_Shelf')
+            && Zooboxi_Cart_Shelf::valid($shelf)
+            // Never start a basket on a shelf that cannot fill its first line.
+            && Zooboxi_Cart_Shelf::fits($product_id, $shelf)) {
+            Zooboxi_Cart_Shelf::remember($shelf);
         }
 
         if (!$key) {
@@ -351,6 +475,41 @@ class Zooboxi_V2_Cart_Controller
         WC()->cart->remove_cart_item($key);
         WC()->cart->calculate_totals();
         return Zooboxi_V2_Bootstrap::ok(self::cart_dto());
+    }
+
+    /**
+     * Moves the customer to the other storefront's basket.
+     *
+     * Nothing is destroyed: the basket being left is stashed under its own
+     * shelf and comes back whole the next time they switch to it.
+     */
+    public function switch_basket(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $boot = self::boot($request, true);
+        if ($boot !== null) {
+            return $boot;
+        }
+
+        $shelf = (string) $request->get_param('shelf');
+        if (!class_exists('Zooboxi_Cart_Shelf') || !Zooboxi_Cart_Shelf::valid($shelf)) {
+            return Zooboxi_V2_Bootstrap::fail(
+                'shelf_required',
+                __('متجر غير معروف', 'zooboxi'),
+                'Unknown storefront.',
+                422
+            );
+        }
+
+        $moved = Zooboxi_Cart_Shelf::switch_to($shelf);
+        WC()->cart->calculate_totals();
+
+        return Zooboxi_V2_Bootstrap::ok(self::cart_dto([
+            'switched' => [
+                'to'       => $shelf,
+                'restored' => $moved['restored'],
+                'stashed'  => $moved['stashed'],
+            ],
+        ]));
     }
 
     public function apply_coupon(\WP_REST_Request $request): \WP_REST_Response
@@ -449,6 +608,7 @@ class Zooboxi_V2_Cart_Controller
         }
 
         [$lat, $lng] = Zooboxi_V2_Bootstrap::latlng();
+        $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::current() : '';
 
         $items = [];
         foreach ($cart->get_cart() as $key => $item) {
@@ -464,7 +624,7 @@ class Zooboxi_V2_Cart_Controller
             $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_cart_item($item) : 1;
 
             $plan = ($lat && $lng)
-                ? Zooboxi_Fulfillment::resolve($pid, max(1, $qty) * $units, $lat, $lng)
+                ? Zooboxi_Fulfillment::resolve($pid, max(1, $qty) * $units, $lat, $lng, null, $shelf)
                 : null;
 
             // Cap like every other stock figure (an exact warehouse count is commercial
@@ -522,6 +682,11 @@ class Zooboxi_V2_Cart_Controller
         $dto = [
             'items'         => $items,
             'count'         => (int) $cart->get_cart_contents_count(),
+            // Which storefront this basket belongs to, and what waits in the
+            // other one — the app names the basket and offers the switch.
+            'basket'        => class_exists('Zooboxi_Cart_Shelf')
+                ? Zooboxi_Cart_Shelf::payload()
+                : ['shelf' => '', 'other_shelf' => '', 'other_count' => 0],
             'shipments'     => self::shipments($lat, $lng, $qualified),
             'totals'        => [
                 'subtotal' => $subtotal,

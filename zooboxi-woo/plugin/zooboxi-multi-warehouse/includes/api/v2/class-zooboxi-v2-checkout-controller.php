@@ -244,6 +244,49 @@ class Zooboxi_V2_Checkout_Controller
         return $out;
     }
 
+    /**
+     * Cart lines the basket's own storefront cannot fill from here.
+     *
+     * @return array<int, array{name:string, product_id:int}>
+     */
+    private static function off_shelf_lines(): array
+    {
+        if (!class_exists('Zooboxi_Cart_Shelf')) {
+            return [];
+        }
+        $shelf = Zooboxi_Cart_Shelf::current();
+        if ($shelf === '') {
+            return [];
+        }
+        $codes = Zooboxi_Cart_Shelf::codes_for($shelf);
+        if (empty($codes)) {
+            return [];
+        }
+
+        $out = [];
+        foreach (WC()->cart->get_cart() as $item) {
+            $pid = (int) ($item['product_id'] ?? 0);
+            if (!$pid) {
+                continue;
+            }
+            // A gift rides along with whatever basket claimed it.
+            if (class_exists('Zooboxi_Loyalty_Rewards')
+                && Zooboxi_Loyalty_Rewards::line_grant_id($item) > 0) {
+                continue;
+            }
+            if (!Zooboxi_Cart_Shelf::held_by($pid, $codes)) {
+                $product = $item['data'] ?? null;
+                $out[] = [
+                    'product_id' => $pid,
+                    'name'       => $product instanceof \WC_Product
+                        ? wp_strip_all_tags($product->get_name())
+                        : '',
+                ];
+            }
+        }
+        return $out;
+    }
+
     private function promise_recap(array $shipments): array
     {
         $lines = [];
@@ -307,6 +350,22 @@ class Zooboxi_V2_Checkout_Controller
             );
         }
 
+        // The basket's storefront must still be able to fill it at THIS
+        // address. Changing the delivery point at checkout can move a customer
+        // out of the branch's zone, and an express basket with nowhere to be
+        // picked from would otherwise become a national shipment with no
+        // warehouse on it — an order nobody can fill, taken and paid for.
+        $unfillable = self::off_shelf_lines();
+        if (!empty($unfillable)) {
+            return Zooboxi_V2_Bootstrap::fail(
+                'cart_off_shelf',
+                __('بعض منتجات سلتك غير متاحة من متجرها عند هذا العنوان — راجع سلتك', 'zooboxi'),
+                'Some items cannot be fulfilled from their storefront at this address. Please review your cart.',
+                409,
+                ['cart' => Zooboxi_V2_Cart_Controller::cart_dto(), 'lines' => $unfillable]
+            );
+        }
+
         $gateways = WC()->payment_gateways() ? WC()->payment_gateways()->get_available_payment_gateways() : [];
         if (!isset($gateways[$gateway_id])) {
             return Zooboxi_V2_Bootstrap::fail('gateway_unavailable', __('طريقة الدفع غير متاحة', 'zooboxi'), 'That payment method is unavailable.', 409);
@@ -314,6 +373,22 @@ class Zooboxi_V2_Checkout_Controller
 
         $this->apply_address_to_customer($address);
         $chosen = $this->auto_choose_shipping();
+
+        // Every package must have a way to actually travel. A basket built at
+        // half past eight and paid for at half past eleven has no express rate
+        // left — the branch is shut — and WooCommerce will happily create the
+        // order anyway: promised in two hours, nothing charged for delivery,
+        // pushed to a closed branch. Refuse instead, and say what changed.
+        $packages = WC()->shipping() ? WC()->shipping()->get_packages() : [];
+        if (count($chosen) < count($packages)) {
+            return Zooboxi_V2_Bootstrap::fail(
+                'delivery_unavailable',
+                __('تعذّر تحديد طريقة توصيل لسلتك الآن — راجع سلتك أو جرّب لاحقًا', 'zooboxi'),
+                'No delivery method is available for your basket right now. Please review your cart.',
+                409,
+                ['cart' => Zooboxi_V2_Cart_Controller::cart_dto()]
+            );
+        }
 
         $notes = sanitize_textarea_field((string) $request->get_param('notes'));
 
@@ -467,6 +542,22 @@ class Zooboxi_V2_Checkout_Controller
         // WC()->cart, which a bare REST request never booted — that null is the
         // "Call to a member function get() on null" its logs showed. Boot them.
         Zooboxi_V2_Cart_Controller::ensure_cart($request);
+
+        // The basket's storefront must still be able to fill it at THIS
+        // address. Changing the delivery point at checkout can move a customer
+        // out of the branch's zone, and an express basket with nowhere to be
+        // picked from would otherwise become a national shipment with no
+        // warehouse on it — an order nobody can fill, taken and paid for.
+        $unfillable = self::off_shelf_lines();
+        if (!empty($unfillable)) {
+            return Zooboxi_V2_Bootstrap::fail(
+                'cart_off_shelf',
+                __('بعض منتجات سلتك غير متاحة من متجرها عند هذا العنوان — راجع سلتك', 'zooboxi'),
+                'Some items cannot be fulfilled from their storefront at this address. Please review your cart.',
+                409,
+                ['cart' => Zooboxi_V2_Cart_Controller::cart_dto(), 'lines' => $unfillable]
+            );
+        }
 
         $gateways = WC()->payment_gateways() ? WC()->payment_gateways()->get_available_payment_gateways() : [];
         $gateway  = $gateways[self::GATEWAY_MYFATOORAH] ?? null;
@@ -645,10 +736,30 @@ class Zooboxi_V2_Checkout_Controller
                 [],
                 $address['city'] !== '' ? $address['city'] : null
             );
-            $best = $options['express'] ?? $options['standard'] ?? $options['shipping'] ?? null;
+            // Fastest-first is the right answer for a store with one basket.
+            // With two, the basket's own storefront decides — otherwise a
+            // زوبكسي order would be written as express and pushed to the
+            // branch, which never saw it and cannot fill it.
+            $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::current() : '';
+            $best = $shelf === Zooboxi_Cart_Shelf::EXPRESS
+                ? ($options['express'] ?? null)
+                : ($shelf === Zooboxi_Cart_Shelf::ALL
+                    ? ($options['standard'] ?? $options['shipping'] ?? null)
+                    : ($options['express'] ?? $options['standard'] ?? $options['shipping'] ?? null));
             if ($best) {
                 WC()->session->set('zooboxi_warehouse_code', (string) ($best['warehouse_code'] ?? ''));
                 WC()->session->set('zooboxi_delivery_type', (string) ($best['delivery_type'] ?? ''));
+            } elseif ($shelf !== '' && class_exists('Zooboxi_Cart_Shelf')) {
+                // The basket's storefront has no option at this address right
+                // now (a branch that closed, a point outside its zone). The
+                // order must not inherit whatever the session last held — it
+                // is written from the basket itself, and `place()` refuses it
+                // a moment later for having no shipping method.
+                $codes = Zooboxi_Cart_Shelf::codes_for($shelf);
+                WC()->session->set('zooboxi_warehouse_code', (string) ($codes[0] ?? ''));
+                WC()->session->set('zooboxi_delivery_type', $shelf === Zooboxi_Cart_Shelf::EXPRESS
+                    ? Zooboxi_Delivery_Engine::TYPE_EXPRESS
+                    : Zooboxi_Delivery_Engine::TYPE_STANDARD);
             }
         }
 
