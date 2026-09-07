@@ -58,7 +58,9 @@ class Zooboxi_Delivery_Engine
                     'delivery_type'  => self::TYPE_STANDARD,
                     'warehouse_code' => $central['warehouse_code'],
                     'warehouse_name' => is_rtl() ? ($central['display_name_ar'] ?: $central['display_name_en']) : ($central['display_name_en'] ?: $central['display_name_ar']),
-                    'estimated_time' => __('خلال 24 ساعة', 'zooboxi'),
+                    // The owner's cut-off rule lives in one place; this is a
+                    // quote of it, never a second opinion.
+                    'estimated_time' => Zooboxi_Fulfillment::standard_day_label(),
                     'fee'            => (float) get_option('zooboxi_standard_fee', 10),
                 ];
             }
@@ -261,7 +263,7 @@ class Zooboxi_Delivery_Engine
         // Set overall label
         $result['overall_label'] = match ($result['overall_type']) {
             self::TYPE_EXPRESS  => __('خلال ساعتين', 'zooboxi'),
-            self::TYPE_STANDARD => __('خلال 24 ساعة', 'zooboxi'),
+            self::TYPE_STANDARD => Zooboxi_Fulfillment::standard_day_label(),
             self::TYPE_SHIPPING => __('4-5 أيام عمل', 'zooboxi'),
             default             => __('4-5 أيام عمل', 'zooboxi'),
         };
@@ -333,7 +335,7 @@ class Zooboxi_Delivery_Engine
         return match ($type) {
             self::TYPE_STANDARD => [
                 'type'             => self::TYPE_STANDARD,
-                'label'            => __('خلال 24 ساعة', 'zooboxi'),
+                'label'            => Zooboxi_Fulfillment::standard_day_label(),
                 'warehouse_code'   => $central['warehouse_code'] ?? '',
                 'warehouse_name'   => $central ? (is_rtl() ? ($central['display_name_ar'] ?: $central['display_name_en']) : ($central['display_name_en'] ?: $central['display_name_ar'])) : '',
                 'stock_qty'        => 0,

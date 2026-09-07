@@ -82,7 +82,10 @@ class Zooboxi_Fulfillment
                     if ($have > 0) {
                         $tiers[] = [
                             'tier'           => Zooboxi_Delivery_Engine::TYPE_STANDARD,
-                            'eta'            => __('خلال 24 ساعة', 'zooboxi'),
+                            'eta'            => sprintf(
+                                __('يصلك %s', 'zooboxi'),
+                                self::standard_day_label()
+                            ),
                             'icon'           => '🚚',
                             'warehouse_code' => $code,
                             'warehouse_name' => self::wh_name($central),
@@ -229,12 +232,18 @@ class Zooboxi_Fulfillment
                 ];
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
                 return [
-                    'name'     => __('توصيل اليوم التالي', 'zooboxi'),
+                    'name'     => __('توصيل من المستودع الرئيسي', 'zooboxi'),
                     'icon'     => '🚚',
                     'color'    => '#0d9488',
                     'bg'       => '#f0fdfa',
-                    'date'     => self::day_label(1),
-                    'relative' => __('خلال 24 ساعة', 'zooboxi'),
+                    // The card shows `relative` on its title and `date` on the
+                    // detail line — printing one day in both places reads as a
+                    // stutter, so the date only appears when it adds something
+                    // the word does not (a day later this week).
+                    'date'     => self::standard_eta_kind() === 'later'
+                        ? self::format_ar_date(self::standard_eta_ts())
+                        : '',
+                    'relative' => self::standard_day_label(),
                 ];
             default:
                 return [
@@ -245,6 +254,98 @@ class Zooboxi_Fulfillment
                     'date'     => self::business_day_label(4),
                     'relative' => __('خلال 4-5 أيام عمل', 'zooboxi'),
                 ];
+        }
+    }
+
+    /**
+     * The option holding the same-day cut-off, "HH:MM" in Riyadh time.
+     * Owner's rule as of 2026-09-07: 13:00.
+     */
+    public const STANDARD_CUTOFF_OPTION = 'zooboxi_standard_cutoff';
+
+    /** The weekday the warehouse does not deliver on. 5 = Friday. */
+    private const STANDARD_CLOSED_DAY = 5;
+
+    /** The cut-off as [hour, minute]. */
+    public static function standard_cutoff(): array
+    {
+        $raw = function_exists('get_option')
+            ? (string) get_option(self::STANDARD_CUTOFF_OPTION, '13:00')
+            : '13:00';
+        $parts = explode(':', trim($raw));
+        $hour   = $parts[0] ?? '';
+        $minute = $parts[1] ?? '0';
+        // A mistyped option must fall back to the owner's rule, not to
+        // midnight — `(int) 'abc'` is 0, which would make every order
+        // "tomorrow" and nobody would know why.
+        if (!ctype_digit($hour) || !ctype_digit($minute)) {
+            return [13, 0];
+        }
+        $h = (int) $hour;
+        $m = (int) $minute;
+        if ($h < 0 || $h > 23 || $m < 0 || $m > 59) {
+            return [13, 0];
+        }
+        return [$h, $m];
+    }
+
+    /**
+     * When an order from the MAIN warehouse actually lands.
+     *
+     * The owner's rule, and the only place it is written down: order before
+     * the cut-off and it goes out today; after it, tomorrow. Friday is not a
+     * delivery day, so Thursday afternoon and the whole of Friday land on
+     * Saturday.
+     *
+     * Everything that quotes this tier — the product chip, the cart, the
+     * checkout, the app's header — reads it from here, so the store can never
+     * promise two different days for one order.
+     */
+    public static function standard_eta_ts(?int $now = null): int
+    {
+        $now = $now ?? (function_exists('current_time') ? current_time('timestamp') : time());
+        [$hour, $minute] = self::standard_cutoff();
+
+        $cutoff = mktime(
+            $hour,
+            $minute,
+            0,
+            (int) date('n', $now),
+            (int) date('j', $now),
+            (int) date('Y', $now)
+        );
+
+        $ts = $now < $cutoff ? $now : $now + 86400;
+        while ((int) date('w', $ts) === self::STANDARD_CLOSED_DAY) {
+            $ts += 86400;
+        }
+        return $ts;
+    }
+
+    /** 'today' | 'tomorrow' | 'later' for the standard tier. */
+    public static function standard_eta_kind(?int $now = null): string
+    {
+        $now = $now ?? (function_exists('current_time') ? current_time('timestamp') : time());
+        $eta = self::standard_eta_ts($now);
+        $days = (int) round((strtotime(date('Y-m-d', $eta)) - strtotime(date('Y-m-d', $now))) / 86400);
+        if ($days <= 0) return 'today';
+        if ($days === 1) return 'tomorrow';
+        return 'later';
+    }
+
+    /** «اليوم» / «غدًا» / «السبت» — the day an order placed now arrives. */
+    public static function standard_day_label(?int $now = null): string
+    {
+        $en = class_exists('Zooboxi_V2_Bootstrap') && Zooboxi_V2_Bootstrap::lang() === 'en';
+        switch (self::standard_eta_kind($now)) {
+            case 'today':
+                return $en ? 'today' : __('اليوم', 'zooboxi');
+            case 'tomorrow':
+                return $en ? 'tomorrow' : __('غدًا', 'zooboxi');
+            default:
+                // «السبت» — the weekday, which is the only word a customer
+                // needs for a day inside this week.
+                return date_i18n('l', self::standard_eta_ts($now));
         }
     }
 

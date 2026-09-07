@@ -233,7 +233,10 @@ class Zooboxi_V2_Catalog_Controller
         } elseif ($tomorrow_hero) {
             $out[] = $this->auto_slide(
                 'express',
-                Zooboxi_V2_Bootstrap::pick('اطلب الآن ويوصلك غدًا', 'Order now, arrives tomorrow'),
+                sprintf(
+                    Zooboxi_V2_Bootstrap::pick('اطلب الآن ويوصلك %s', 'Order now, arrives %s'),
+                    Zooboxi_Fulfillment::standard_day_label()
+                ),
                 Zooboxi_V2_Bootstrap::pick('من مستودعنا الرئيسي مباشرة إلى بابك', 'From our main warehouse straight to your door'),
                 Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
                 $shop

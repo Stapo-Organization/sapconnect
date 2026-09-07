@@ -434,6 +434,10 @@ class Zooboxi_V2_Scope
             // "HH:MM" pair — the app writes the sign («9 ص – 11 م») and, out
             // of hours, the reopening time, in its own locale.
             'express_hours'     => $scope['express_hours'],
+            // The main warehouse's cut-off, so the app can say «اليوم» before
+            // it and «غدًا» after it without waiting for a fresh payload —
+            // a cached header must never keep promising today at 13:05.
+            'standard_cutoff'   => sprintf('%02d:%02d', ...Zooboxi_Fulfillment::standard_cutoff()),
             'note'              => self::note($scope),
         ];
     }
@@ -449,9 +453,12 @@ class Zooboxi_V2_Scope
                     ? sprintf('Everything here in 2 hours — %s', $scope['warehouse_name'])
                     : sprintf('كل ما هنا يصلك خلال ساعتين — %s', $scope['warehouse_name']);
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
+                // Deliberately dayless: this sentence is cached for five
+                // minutes, and a note still saying «اليوم» at 13:03 would
+                // contradict the sign beside it, which is recomputed live.
                 return $en
-                    ? 'Everything here reaches you tomorrow'
-                    : 'كل ما هنا يصلك غدًا';
+                    ? 'Everything here ships from our main warehouse'
+                    : 'كل ما هنا من مستودعنا الرئيسي';
             default:
                 return $en
                     ? sprintf('Ships to you, arriving by %s', $scope['date'])

@@ -432,7 +432,13 @@ class Zooboxi_Product_DTO
                 return Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered within 2 hours');
 
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
-                return Zooboxi_V2_Bootstrap::pick('يوصلك غدًا', 'Arrives tomorrow');
+                // Not always tomorrow any more: an order placed before the
+                // cut-off goes out today, and Friday pushes to Saturday. One
+                // rule, in Zooboxi_Fulfillment, quoted everywhere.
+                $day = Zooboxi_Fulfillment::standard_day_label();
+                return Zooboxi_V2_Bootstrap::lang() === 'en'
+                    ? sprintf('Arrives %s', $day)
+                    : sprintf('يوصلك %s', $day);
 
             default:
                 $ts = Zooboxi_Fulfillment::business_day_ts(self::SHIPPING_DAYS);
@@ -565,9 +571,12 @@ class Zooboxi_Product_DTO
     {
         if ($shelf === 'express') {
             // It exists on زوبكسي.
-            return Zooboxi_V2_Bootstrap::pick(
-                'غير متوفر في إكسبريس — تجده في متجر زوبكسي، يوصلك غدًا',
-                'Not on Express — find it in the Zooboxi store, arriving tomorrow'
+            return sprintf(
+                Zooboxi_V2_Bootstrap::pick(
+                    'غير متوفر في إكسبريس — تجده في متجر زوبكسي، يوصلك %s',
+                    'Not on Express — find it in the Zooboxi store, arriving %s'
+                ),
+                Zooboxi_Fulfillment::standard_day_label()
             );
         }
         // It exists only at the express branch.
