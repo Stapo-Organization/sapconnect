@@ -13,6 +13,7 @@ import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
+import '../../../search/presentation/search_transition.dart';
 import 'shelf_tabs.dart';
 
 /// The home header: who we're delivering to, and the two things a customer
@@ -50,6 +51,7 @@ class HomeHeader extends ConsumerWidget {
               onCanvas: onCanvas,
               hours: scope?.expressHours,
               expressAvailable: scope?.expressAvailable,
+              standardCutoffMinutes: scope?.standardCutoffMinutes,
             ),
           ),
           Row(
@@ -60,6 +62,14 @@ class HomeHeader extends ConsumerWidget {
               // only thing it gives up. It now carries the arrival time on
               // its own second line, so no promise badge rides beside it.
               Expanded(child: LocationChip(onCanvas: onCanvas, scope: scope)),
+              // Search is a button, not a field: the strip under the address
+              // is worth more as store than as an empty input, and the button
+              // opens by *becoming* that input.
+              //
+              // The flight belongs to whoever is on screen: `branch` keeps
+              // home's hero out of a search opened from another tab.
+              SearchHeroButton(onCanvas: onCanvas, branch: 0),
+              Gap.w4,
               IconButton(
                 onPressed: () {
                   Haptics.light();
@@ -73,15 +83,6 @@ class HomeHeader extends ConsumerWidget {
                 tooltip: l.wishlistTitle,
               ),
             ],
-          ),
-          Gap.h8,
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
-            child: _SearchBar(
-              onCanvas: onCanvas,
-              onTap: () => context.push('/search'),
-              onScan: () => context.push('/scan'),
-            ),
           ),
         ],
       ),
@@ -206,64 +207,3 @@ class _StickerFace extends StatelessWidget {
 /// because every canvas color is deep by design.
 Color _canvasFg(BuildContext context) =>
     context.isDark ? ZbTokens.inkDark : Colors.white;
-
-/// A tap target that *looks* like a field but pushes the search screen — so
-/// the keyboard and the suggestion list belong to one screen instead of
-/// half-opening over the home feed.
-class _SearchBar extends StatelessWidget {
-  const _SearchBar({required this.onTap, required this.onScan, this.onCanvas = false});
-
-  final VoidCallback onTap;
-  final VoidCallback onScan;
-  final bool onCanvas;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final cs = context.cs;
-    // On the canvas the field is the one bright object — a white well in
-    // light theme, the raised surface in dark. Off-canvas it stays subtle.
-    final fill = onCanvas
-        ? (context.isDark ? cs.surfaceContainerHigh : Colors.white)
-        : cs.surfaceContainerHigh;
-
-    return Material(
-      color: fill,
-      borderRadius: BorderRadius.circular(ZbTokens.rMd),
-      clipBehavior: Clip.antiAlias,
-      elevation: onCanvas ? 1.5 : 0,
-      shadowColor: Colors.black.withValues(alpha: 0.35),
-      child: InkWell(
-        onTap: () {
-          Haptics.light();
-          onTap();
-        },
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 14, end: 6, top: 2, bottom: 2),
-          child: Row(
-            children: [
-              ZbIcon(ZbIconKind.search, size: 20, ink: cs.onSurfaceVariant),
-              Gap.w12,
-              Expanded(
-                child: Text(
-                  l.searchHint,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  Haptics.light();
-                  onScan();
-                },
-                icon: ZbIcon(ZbIconKind.scan, size: 20, ink: cs.primary),
-                tooltip: l.searchScan,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

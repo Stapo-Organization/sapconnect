@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
+import '../../../core/navigation/active_branch.dart';
 import '../../../core/providers.dart';
 import '../../../core/utils/debouncer.dart';
 import '../../../core/utils/formatters.dart';
@@ -16,8 +17,10 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/zb_image.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/icons/zb_icons.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
+import 'search_transition.dart';
 
 /// Search: a debounced suggest list, recent queries, and a route to the
 /// scanner.
@@ -34,7 +37,15 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _controller = TextEditingController();
+  final _focus = FocusNode();
   final _debouncer = Debouncer(duration: const Duration(milliseconds: 280));
+
+  /// The route's own transition, watched so the keyboard is asked for once —
+  /// and only after the field has finished flying in from the home button.
+  /// Focusing during the flight opens the keyboard against a widget the Hero
+  /// is about to swap for its placeholder, and it bounces.
+  Animation<double>? _entrance;
+  bool _asked = false;
 
   CancelToken? _inFlight;
   List<SearchSuggestion> _suggestions = const [];
@@ -42,9 +53,35 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _query = '';
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_asked || _entrance != null) return;
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) {
+      _askForKeyboard();
+      return;
+    }
+    _entrance = animation..addStatusListener(_onEntrance);
+  }
+
+  void _onEntrance(AnimationStatus status) {
+    if (status == AnimationStatus.completed) _askForKeyboard();
+  }
+
+  void _askForKeyboard() {
+    if (_asked) return;
+    _asked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focus.requestFocus();
+    });
+  }
+
+  @override
   void dispose() {
+    _entrance?.removeStatusListener(_onEntrance);
     _debouncer.dispose();
     _inFlight?.cancel();
+    _focus.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -107,29 +144,64 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        title: TextField(
-          controller: _controller,
-          autofocus: true,
-          textInputAction: TextInputAction.search,
-          onChanged: _onChanged,
-          onSubmitted: _submit,
-          decoration: InputDecoration(
-            hintText: l.searchHint,
-            filled: false,
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
-            suffixIcon: _query.isEmpty
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    onPressed: () {
-                      _controller.clear();
-                      _onChanged('');
-                    },
+        titleSpacing: 8,
+        // The far end of the home button's flight: the same pill, landed and
+        // typed into. Hero owns the shape while it travels, so what is written
+        // here is only what the field looks like once it has arrived.
+        title: Hero(
+          // The far end of whichever button opened this screen.
+          tag: searchHeroTagFor(ref.watch(activeBranchProvider)),
+          createRectTween: (begin, end) =>
+              MaterialRectArcTween(begin: begin, end: end),
+          flightShuttleBuilder: searchFlightShuttle,
+          child: Material(
+            color: context.cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(ZbTokens.rMd),
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              height: 44,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 44,
+                    child: Center(
+                      child: ZbIcon(
+                        ZbIconKind.search,
+                        size: 20,
+                        ink: context.cs.onSurfaceVariant,
+                      ),
+                    ),
                   ),
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focus,
+                      textInputAction: TextInputAction.search,
+                      onChanged: _onChanged,
+                      onSubmitted: _submit,
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        suffixIcon: _query.isEmpty
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 20),
+                                onPressed: () {
+                                  _controller.clear();
+                                  _onChanged('');
+                                },
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         actions: [
@@ -227,6 +299,46 @@ class _SuggestionTile extends StatelessWidget {
   }
 }
 
+/// «امسح الباركود» as a row, not an icon: the customer holding the bag is
+/// looking for words, and the search screen is where they land.
+class _ScanRow extends StatelessWidget {
+  const _ScanRow({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+
+    return Material(
+      color: cs.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(ZbTokens.rMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(ZbTokens.rMd),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              ZbIcon(ZbIconKind.scan, size: 20, ink: cs.primary),
+              Gap.w10,
+              Expanded(
+                child: Text(l.searchScan, style: context.tt.titleSmall),
+              ),
+              Icon(
+                context.isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                size: 20,
+                color: cs.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RecentSearches extends StatelessWidget {
   const _RecentSearches({
     required this.queries,
@@ -249,12 +361,24 @@ class _RecentSearches extends StatelessWidget {
         title: l.searchTitle,
         message: l.searchStartHint,
         compact: true,
+        // The header no longer carries a camera, so the scanner has to be
+        // offered where a customer with a bag in their hand looks for it.
+        actionLabel: l.searchScan,
+        onAction: () {
+          Haptics.light();
+          context.push('/scan');
+        },
       );
     }
 
     return ListView(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + MediaQuery.paddingOf(context).bottom),
       children: [
+        _ScanRow(onTap: () {
+          Haptics.light();
+          context.push('/scan');
+        }),
+        Gap.h12,
         Row(
           children: [
             Expanded(child: Text(l.searchRecent, style: context.tt.titleSmall)),

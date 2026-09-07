@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/navigation/active_branch.dart';
 import '../../core/utils/haptics.dart';
 import 'glass_nav_bar.dart';
 
@@ -11,20 +12,6 @@ import 'glass_nav_bar.dart';
 /// jump straight to a tab, so there is exactly one place that knows which
 /// route each icon leads to.
 const List<String> navBranchPaths = ['/home', '/categories', '/cart', '/account'];
-
-/// The tab the customer would return to. A pushed page — a product, a brand,
-/// their orders — covers the shell entirely, so the floating bar it draws for
-/// itself has to be told which icon is still "where I came from".
-class ActiveBranch extends Notifier<int> {
-  @override
-  int build() => 0;
-
-  void set(int index) {
-    if (state != index) state = index;
-  }
-}
-
-final activeBranchProvider = NotifierProvider<ActiveBranch, int>(ActiveBranch.new);
 
 /// The four-tab shell. Each branch keeps its own navigation stack, so backing
 /// out of a product returns to the list you found it in rather than to Home.

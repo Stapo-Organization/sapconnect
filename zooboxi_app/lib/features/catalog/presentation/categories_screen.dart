@@ -4,13 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
-import '../../../core/icons/zb_icons.dart';
 import '../../../core/motion/motion.dart';
-import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../search/presentation/search_transition.dart';
 import '../data/catalog_models.dart';
 import '../data/catalog_repository.dart';
 import 'pet_palette.dart';
@@ -155,20 +154,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l.categoriesTitle),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Haptics.light();
-              context.push('/search');
-            },
-            icon: ZbIcon(
-              ZbIconKind.search,
-              size: 22,
-              ink: context.cs.onSurface,
-            ),
-            tooltip: l.searchHint,
-          ),
-          Gap.w4,
+        actions: const [
+          // The same button home carries, so search opens the same way from
+          // either place instead of appearing out of nowhere here.
+          SearchHeroButton(branch: 1),
+          Gap.w8,
         ],
       ),
       body: RefreshIndicator.adaptive(

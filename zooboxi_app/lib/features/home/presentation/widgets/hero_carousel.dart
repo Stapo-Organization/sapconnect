@@ -345,9 +345,15 @@ class _HeaderGhost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // HeroMode off: this twin carries the header's search button too, and two
+    // heroes with one tag in the same route is an assertion, not a race. The
+    // ghost is here for its height alone.
     return const IgnorePointer(
       child: ExcludeSemantics(
-        child: Opacity(opacity: 0, child: HomeHeader(onCanvas: true)),
+        child: HeroMode(
+          enabled: false,
+          child: Opacity(opacity: 0, child: HomeHeader(onCanvas: true)),
+        ),
       ),
     );
   }
