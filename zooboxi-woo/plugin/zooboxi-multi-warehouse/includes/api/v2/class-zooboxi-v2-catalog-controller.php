@@ -260,11 +260,7 @@ class Zooboxi_V2_Catalog_Controller
                 ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s — أقرب فرع إليك', 'From %s, the branch nearest you'), $branch)
                 : Zooboxi_V2_Bootstrap::pick('من أقرب فرع إليك', 'From the branch nearest you'),
             Zooboxi_V2_Bootstrap::pick('اطلب الآن', 'Order now'),
-            $shop,
-            null,
-            // The clock slide's artwork is scenery; the RANKED slide below owns
-            // the top of the list, so this one takes what comes after it.
-            self::thumbs(array_slice($best, 4), 3)
+            $shop
         );
 
         // 2) What that branch actually has on its shelves, most wanted first —
@@ -295,25 +291,6 @@ class Zooboxi_V2_Catalog_Controller
                 $shop,
                 null,
                 self::thumbs($fresh, 4)
-            );
-        }
-
-        // 4) The shutter — but only once it is urgent. Earlier in the day the
-        //    shelf tab already prints «9 ص – 11 م» a hundred pixels above the
-        //    hero, and repeating it there is filler. Inside the last four
-        //    hours it stops being information and becomes a deadline, which
-        //    the app draws ticking.
-        $hours = $scope['express_hours'] ?? null;
-        if (is_array($hours) && empty($hours['closed']) && !empty($hours['close']) && self::closing_soon((string) $hours['close'])) {
-            $out[] = $this->auto_slide(
-                'express_hours',
-                sprintf(
-                    Zooboxi_V2_Bootstrap::pick('الفرع مفتوح حتى %s', 'The branch is open until %s'),
-                    self::clock_label((string) $hours['close'])
-                ),
-                Zooboxi_V2_Bootstrap::pick('اطلب قبل الإغلاق ويوصلك الليلة', 'Order before closing and it arrives tonight'),
-                Zooboxi_V2_Bootstrap::pick('اطلب الآن', 'Order now'),
-                $shop
             );
         }
 
@@ -490,7 +467,8 @@ class Zooboxi_V2_Catalog_Controller
             self::thumbs($clearance, 4),
             $max_off >= 10
                 ? sprintf(Zooboxi_V2_Bootstrap::pick('خصم حتى %d%%', 'Up to %d%% off'), $max_off)
-                : null
+                : null,
+            $max_off >= 10 ? $max_off : null
         );
     }
 
@@ -533,22 +511,9 @@ class Zooboxi_V2_Catalog_Controller
             self::thumbs($ids, 4),
             $save >= 5
                 ? sprintf(Zooboxi_V2_Bootstrap::pick('وفّر حتى %d%%', 'Save up to %d%%'), $save)
-                : null
+                : null,
+            $save >= 5 ? $save : null
         );
-    }
-
-    /** Is the branch inside the last four hours before it shuts? */
-    private static function closing_soon(string $close, int $window = 4 * 3600): bool
-    {
-        try {
-            $now = new DateTime('now', new DateTimeZone('Asia/Riyadh'));
-        } catch (Exception $e) {
-            return false;
-        }
-        $parts = explode(':', $close);
-        $shut = (clone $now)->setTime((int) ($parts[0] ?? 0), (int) ($parts[1] ?? 0));
-        $left = $shut->getTimestamp() - $now->getTimestamp();
-        return $left > 0 && $left <= $window;
     }
 
     /** "13:00" (or "13:0") → "1 م" / "1 PM", in the request's language. */
@@ -580,7 +545,8 @@ class Zooboxi_V2_Catalog_Controller
         ?string $link,
         ?array $brand = null,
         array $images = [],
-        ?string $badge = null
+        ?string $badge = null,
+        ?int $value = null
     ): array {
         return [
             'kind'           => 'auto',
@@ -592,6 +558,11 @@ class Zooboxi_V2_Catalog_Controller
             'brand'          => $brand,
             'product_images' => array_values($images),
             'badge'          => $badge,
+            // The bare number behind the badge, when the slide has one. The
+            // app sets «45%» in type the size of a fist; a sentence cannot be
+            // scaled like that, and re-parsing digits out of Arabic copy to
+            // find it would be a trick waiting to break.
+            'value'          => $value,
         ];
     }
 
