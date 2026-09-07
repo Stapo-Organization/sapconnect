@@ -149,12 +149,20 @@ class Zooboxi_Product_DTO
             $extended = Zooboxi_V2_Bundles_Controller::extend(['id' => $id]);
             $raw = get_post_meta($id, '_zb_bundle_components', true);
             $components = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
-            $extended['bundle']['components'] = array_map(static fn($c) => [
-                'name' => (string) ($c['name'] ?? ''),
-                'qty'  => max(1, (int) ($c['qty'] ?? 1)),
-                'role' => (string) ($c['role'] ?? 'member'),
-                'product_id' => (int) ($c['product_id'] ?? 0),
-            ], is_array($components) ? $components : []);
+            $extended['bundle']['components'] = array_map(static function ($c) {
+                $kg = isset($c['weight_kg']) && is_numeric($c['weight_kg']) ? (float) $c['weight_kg'] : null;
+                return [
+                    'name' => (string) ($c['name'] ?? ''),
+                    'qty'  => max(1, (int) ($c['qty'] ?? 1)),
+                    'role' => (string) ($c['role'] ?? 'member'),
+                    'product_id' => (int) ($c['product_id'] ?? 0),
+                    'weight_kg' => $kg,
+                    // Pre-formatted so every surface says the size the same way.
+                    'weight_label' => $kg !== null && class_exists('Zooboxi_Bundles')
+                        ? Zooboxi_Bundles::format_weight($kg)
+                        : null,
+                ];
+            }, is_array($components) ? $components : []);
             $bundle = $extended['bundle'];
         }
 

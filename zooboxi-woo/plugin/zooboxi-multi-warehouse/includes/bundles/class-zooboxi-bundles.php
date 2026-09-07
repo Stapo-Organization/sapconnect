@@ -125,7 +125,7 @@ class Zooboxi_Bundles
                 return $this->report($bundleId, null, 'failed', 'no piece price: ' . ($item['item_code'] ?? '?'));
             }
             $storeSum += $qty * $unitPrice;
-            $components[] = [
+            $component = [
                 'item_code'    => (string) $item['item_code'],
                 'barcode'      => (string) ($item['barcode'] ?? $product->get_sku()),
                 'name'         => (string) ($item['name'] ?? $product->get_name()),
@@ -135,6 +135,8 @@ class Zooboxi_Bundles
                 'variation_id' => $variationId,
                 'unit_retail'  => $unitPrice,
             ];
+            $component['weight_kg'] = $this->piece_kg($component);
+            $components[] = $component;
         }
 
         // The approved thing is the SAVINGS PERCENTAGE, not the absolute
@@ -378,7 +380,10 @@ class Zooboxi_Bundles
             ];
         }
 
-        Zooboxi_Stock_Manager::update_stock($productId, $stocks);
+        // 'all': a bundle owns none of its stock — every warehouse figure here is
+        // DERIVED from the components (whoever wrote those, SAP or ShipGo), so this
+        // writer legitimately rebuilds the whole array.
+        Zooboxi_Stock_Manager::update_stock($productId, $stocks, 'all');
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -610,14 +615,135 @@ class Zooboxi_Bundles
     private function description_html(array $components): string
     {
         $rows = '';
+        $pieces = 0;
+        $totalKg = 0.0;
+        $weighed = true;
+
         foreach ($components as $c) {
+            $qty = max(1, (int) ($c['qty'] ?? 1));
+            $pieces += $qty;
+
+            $kg = isset($c['weight_kg']) && is_numeric($c['weight_kg']) ? (float) $c['weight_kg'] : null;
+            if ($kg === null) {
+                $weighed = false;
+            } else {
+                $totalKg += $kg * $qty;
+            }
+
+            // The weight is the detail a bundle buyer actually weighs up: the
+            // piece size, and — when there is more than one — what the line
+            // adds up to. Silence beats a guess when the size is unknown.
+            $detail = '';
+            if ($kg !== null) {
+                $detail = ' — ' . self::format_weight($kg);
+                if ($qty > 1) {
+                    $detail .= ' للحبة · ' . self::format_weight($kg * $qty) . ' إجمالاً';
+                }
+            }
+
             $rows .= sprintf(
-                '<li>%d × %s%s</li>',
-                max(1, (int) ($c['qty'] ?? 1)),
+                '<li>%d × %s%s%s</li>',
+                $qty,
                 esc_html((string) ($c['name'] ?? '')),
+                esc_html($detail),
                 ($c['role'] ?? '') === 'gift' ? ' <strong>(هدية)</strong>' : ''
             );
         }
-        return '<p><strong>محتويات البكج:</strong></p><ul>' . $rows . '</ul>';
+
+        $summary = 'إجمالي البكج: ' . self::pieces_phrase($pieces);
+        if ($weighed && $totalKg > 0) {
+            $summary .= ' · ' . self::format_weight($totalKg);
+        }
+
+        return '<p><strong>محتويات البكج</strong></p><ul>' . $rows . '</ul>'
+            . '<p><strong>' . esc_html($summary) . '</strong></p>';
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       WEIGHTS
+       ══════════════════════════════════════════════════════════════ */
+
+    /** A pet-food piece weighs somewhere between 5 grams and 30 kilos. */
+    private static function plausible_kg($kg): bool
+    {
+        return is_numeric($kg) && $kg >= 0.005 && $kg <= 30;
+    }
+
+    /**
+     * One piece's weight in kg, or null when nothing trustworthy says.
+     *
+     * The store's own `_weight` column cannot be believed on its own: an 85 g
+     * can is recorded as "85.000" in a kilogram field and a 1.75 kg bag as
+     * "0.00175". So the name and the pack parser — which read the size the
+     * brand actually prints — are asked first, and `_weight` is accepted only
+     * when it lands in a plausible range (or is plainly grams above it).
+     */
+    private function piece_kg(array $component): ?float
+    {
+        $variationId = (int) ($component['variation_id'] ?? 0);
+        $parent = wc_get_product((int) ($component['product_id'] ?? 0));
+        $variation = $variationId ? wc_get_product($variationId) : null;
+
+        if (class_exists('Zooboxi_Loyalty_Supply')) {
+            $target = $variation instanceof \WC_Product ? $variation : $parent;
+            if ($target instanceof \WC_Product) {
+                $kg = Zooboxi_Loyalty_Supply::pack_kg($target, $parent instanceof \WC_Product ? $parent : null);
+                if (self::plausible_kg($kg)) {
+                    return (float) $kg;
+                }
+            }
+            $kg = Zooboxi_Loyalty_Supply::parse_kg((string) ($component['name'] ?? ''));
+            if (self::plausible_kg($kg)) {
+                return (float) $kg;
+            }
+        }
+
+        $raw = $variation instanceof \WC_Product
+            ? $variation->get_weight()
+            : ($parent instanceof \WC_Product ? $parent->get_weight() : '');
+        if ($raw !== '' && is_numeric($raw)) {
+            $kg = (float) $raw;
+            if (self::plausible_kg($kg)) {
+                return $kg;
+            }
+            // Above 30 kg in a kilogram field, the number is grams.
+            if ($kg > 30 && self::plausible_kg($kg / 1000)) {
+                return $kg / 1000;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The counted noun, in Arabic rather than in English wearing Arabic
+     * words: one is قطعة, two is قطعتان, three-to-ten take the broken plural
+     * قطع, and everything above ten goes back to the singular.
+     */
+    public static function pieces_phrase(int $n): string
+    {
+        if ($n === 1) {
+            return 'قطعة واحدة';
+        }
+        if ($n === 2) {
+            return 'قطعتان';
+        }
+        if ($n >= 3 && $n <= 10) {
+            return $n . ' قطع';
+        }
+        return $n . ' قطعة';
+    }
+
+    /** "85 غ" under a kilo, "7.5 كجم" above it. */
+    public static function format_weight(float $kg): string
+    {
+        if ($kg < 1) {
+            return round($kg * 1000) . ' غ';
+        }
+        $value = number_format($kg, 2, '.', '');
+        if (str_contains($value, '.')) {
+            $value = rtrim(rtrim($value, '0'), '.');
+        }
+        return $value . ' كجم';
     }
 }
