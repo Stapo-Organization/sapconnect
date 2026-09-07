@@ -99,7 +99,7 @@ class BundlesScreen extends ConsumerWidget {
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      mainAxisExtent: width + scale.scale(128),
+      mainAxisExtent: width + scale.scale(BundleRailView.bodyHeight),
     );
   }
 }

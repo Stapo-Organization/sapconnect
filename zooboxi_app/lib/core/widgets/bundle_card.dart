@@ -19,11 +19,12 @@ import 'zb_image.dart';
 
 /// The «بكج» card — deliberately NOT the standard product card.
 ///
-/// The composed collage artwork (teal ground, starburst seal, deal math) is
-/// the hero and runs full-bleed; the body underneath carries the essentials a
-/// deal needs — savings pill, gift line, price against the struck sum, and a
-/// wide add button — on a teal-washed base so the card reads as an offer the
-/// moment it scrolls into view.
+/// The composed collage artwork is the hero and is shown WHOLE, with nothing
+/// laid over it: it already carries its own coral «مجاناً» seal, and a badge
+/// in that corner would only cover it — which is exactly why the card used to
+/// look worse in the app than on the website. Everything else — the express
+/// chip, the gift line, the savings chip, the price against the struck sum,
+/// and the add button — lives in the body below, drawn in crisp native type.
 class BundleCardView extends ConsumerWidget {
   const BundleCardView({
     super.key,
@@ -51,12 +52,12 @@ class BundleCardView extends ConsumerWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(ZbTokens.rXl),
-        border: Border.all(color: cs.primary.withValues(alpha: .28), width: 1.2),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: cs.primary.withValues(alpha: .10),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: .07),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -64,44 +65,22 @@ class BundleCardView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── the collage artwork, full-bleed ──
+          // The composed artwork, shown WHOLE and unobstructed — exactly the
+          // picture the website shows. Nothing is laid over it: the seal it
+          // already carries says «مجاناً» far better than a second pill, and
+          // an overlay in that corner would simply cover the seal. Its own
+          // light ground is repeated behind it, so `contain` never letterboxes
+          // visibly whatever height the row hands us.
           Expanded(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ZbImage(url: product.image, fit: BoxFit.cover),
-                if (discount > 0)
-                  PositionedDirectional(
-                    top: 10,
-                    start: 10,
-                    child: _pill(
-                      context,
-                      l.bundleSavePercent(discount),
-                      bg: cs.error,
-                      fg: Colors.white,
-                    ),
-                  ),
-                if (express)
-                  PositionedDirectional(
-                    bottom: 10,
-                    start: 10,
-                    child: _pill(
-                      context,
-                      '⚡ ${product.deliveryChip?.label ?? l.bundleExpressChip}',
-                      bg: Colors.black.withValues(alpha: .55),
-                      fg: Colors.white,
-                    ),
-                  ),
-              ],
+            child: ColoredBox(
+              color: _artworkGround,
+              child: ZbImage(url: product.image, fit: BoxFit.contain),
             ),
           ),
 
           // ── the deal body ──
-          Container(
+          Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-            decoration: BoxDecoration(
-              color: cs.primaryContainer.withValues(alpha: .35),
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -114,37 +93,64 @@ class BundleCardView extends ConsumerWidget {
                     height: 1.35,
                   ),
                 ),
-                const SizedBox(height: 4),
-                if (tag?.giftLine != null)
-                  Text(
-                    '🎁 ${tag!.giftLine}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.tt.bodySmall?.copyWith(
-                      color: cs.error,
-                      fontWeight: FontWeight.w700,
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    if (express)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 6),
+                        child: _chip(
+                          context,
+                          '⚡ ${product.deliveryChip?.label ?? l.bundleExpressChip}',
+                          fg: cs.primary,
+                          bg: cs.primaryContainer.withValues(alpha: .6),
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        tag?.giftLine != null
+                            ? '🎁 ${tag!.giftLine}'
+                            : (tag != null && tag.pieces > 1
+                                ? l.bundlePiecesLine(tag.pieces)
+                                : ''),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.tt.bodySmall?.copyWith(
+                          color: tag?.giftLine != null
+                              ? cs.error
+                              : cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                  )
-                else if (tag != null && tag.pieces > 1)
-                  Text(
-                    l.bundlePiecesLine(tag.pieces),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.tt.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
-                      child: PriceText(
-                        price: product.price,
-                        regularPrice: product.regularPrice,
-                        onSale: product.onSale,
-                        style: context.tt.titleMedium,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (discount > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: _chip(
+                                context,
+                                l.bundleSavePercent(discount),
+                                fg: Colors.white,
+                                bg: cs.error,
+                              ),
+                            ),
+                          PriceText(
+                            price: product.price,
+                            regularPrice: product.regularPrice,
+                            onSale: product.onSale,
+                            style: context.tt.titleMedium,
+                          ),
+                        ],
                       ),
                     ),
                     _AddBundleButton(product: product, onAdd: onAdd),
@@ -176,13 +182,21 @@ class BundleCardView extends ConsumerWidget {
     );
   }
 
-  Widget _pill(BuildContext context, String text, {required Color bg, required Color fg}) {
+  /// The composed artwork's own ground, repeated behind it so a `contain`
+  /// fit shows the whole picture without a visible letterbox.
+  static const Color _artworkGround = Color(0xFFF4F7F6);
+
+  Widget _chip(BuildContext context, String text, {required Color bg, required Color fg}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
       child: Text(
         text,
-        style: context.tt.labelSmall?.copyWith(color: fg, fontWeight: FontWeight.w800),
+        style: context.tt.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w800,
+          height: 1.2,
+        ),
       ),
     );
   }
@@ -287,7 +301,9 @@ class BundleRailView extends ConsumerWidget {
   final String? zone;
 
   static const double _cardWidth = 236;
-  static const double _bodyHeight = 128;
+  /// Name (2 lines) + chip row + savings chip + price + compare line. Shared
+  /// with the «عرض الكل» grid so a rail card and a grid card are the same card.
+  static const double bodyHeight = 156;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -301,7 +317,7 @@ class BundleRailView extends ConsumerWidget {
         SectionHeader(title: title, onSeeAll: onSeeAll),
         const SizedBox(height: 12),
         SizedBox(
-          height: _cardWidth + scale.scale(_bodyHeight),
+          height: _cardWidth + scale.scale(bodyHeight),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsetsDirectional.only(start: 16, end: 16),

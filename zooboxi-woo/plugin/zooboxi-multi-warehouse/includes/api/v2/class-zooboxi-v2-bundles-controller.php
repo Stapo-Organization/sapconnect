@@ -54,6 +54,17 @@ class Zooboxi_V2_Bundles_Controller
             }
         }
 
+        // The composed artwork IS the pitch, and the card shows it big — the
+        // 600px `woocommerce_single` rendition goes soft on a 3× screen, so a
+        // bundle card gets the full-size original.
+        $product = wc_get_product($id);
+        if ($product instanceof \WC_Product) {
+            $full = Zooboxi_Product_DTO::image_url($product, 'full');
+            if ($full) {
+                $card['image'] = $full;
+            }
+        }
+
         $card['bundle'] = [
             'free_label'  => (string) get_post_meta($id, '_zb_bundle_free_label', true),
             'template'    => (string) get_post_meta($id, '_zb_bundle_template', true),
