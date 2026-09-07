@@ -46,6 +46,9 @@ class Zooboxi_Bundles
         // Manual "sync now" (admin).
         add_action('wp_ajax_zooboxi_sync_bundles', [$this, 'ajax_sync']);
 
+        // The component strip's styles, on a bundle's own page only.
+        add_action('wp_head', [$this, 'print_card_styles']);
+
         // Readable «محتويات البكج» on order lines (admin, e-mails, receipts).
         add_action('woocommerce_new_order', [$this, 'annotate_order'], 20, 1);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotate_order'], 20, 1);
@@ -655,8 +658,89 @@ class Zooboxi_Bundles
             $summary .= ' · ' . self::format_weight($totalKg);
         }
 
-        return '<p><strong>محتويات البكج</strong></p><ul>' . $rows . '</ul>'
+        // Two renderings of one list. The cards are what a browser shows —
+        // photo, name, count, size, each linking to the product itself. The
+        // <ul> under them is the same list in plain text, which is what a
+        // reader, a search engine, and the app's tag-stripping description
+        // fall back to; the app draws its own cards from the DTO instead.
+        return $this->cards_html($components)
+            . '<ul class="zb-bundle-list">' . $rows . '</ul>'
             . '<p><strong>' . esc_html($summary) . '</strong></p>';
+    }
+
+    /** The horizontal, tappable component strip shown on the store. */
+    private function cards_html(array $components): string
+    {
+        $cards = '';
+        foreach ($components as $c) {
+            $pid = (int) ($c['product_id'] ?? 0);
+            $product = $pid ? wc_get_product($pid) : null;
+            if (! $product instanceof \WC_Product) {
+                continue;
+            }
+
+            $qty = max(1, (int) ($c['qty'] ?? 1));
+            $kg = isset($c['weight_kg']) && is_numeric($c['weight_kg']) ? (float) $c['weight_kg'] : null;
+            $image = $product->get_image('woocommerce_thumbnail', ['class' => 'zb-bc__img', 'loading' => 'lazy']);
+            $isGift = ($c['role'] ?? '') === 'gift';
+
+            $meta = 'الكمية في البكج: ' . $qty;
+            if ($kg !== null) {
+                $meta .= ' · ' . self::format_weight($kg);
+            }
+
+            $cards .= '<a class="zb-bc" href="' . esc_url(get_permalink($pid)) . '">'
+                . '<span class="zb-bc__media">' . $image
+                . ($isGift ? '<span class="zb-bc__gift">هدية</span>' : '')
+                . '<span class="zb-bc__qty">×' . $qty . '</span>'
+                . '</span>'
+                . '<span class="zb-bc__name">' . esc_html((string) ($c['name'] ?? '')) . '</span>'
+                . '<span class="zb-bc__meta">' . esc_html($meta) . '</span>'
+                . '</a>';
+        }
+
+        if ($cards === '') {
+            return '<p><strong>محتويات البكج</strong></p>';
+        }
+
+        return '<p><strong>محتويات البكج</strong></p>'
+            . '<div class="zb-bundle-cards">' . $cards . '</div>';
+    }
+
+    /**
+     * The component strip's styles, printed in the head of a bundle's own
+     * page. They cannot ride inside the description: post content is saved
+     * through wp_kses_post, which drops a <style> tag on the floor.
+     */
+    public function print_card_styles(): void
+    {
+        if (!is_singular('product') || !get_post_meta(get_the_ID(), '_zb_bundle_id', true)) {
+            return;
+        }
+        echo '<style>
+.zb-bundle-cards{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.zb-bundle-cards::-webkit-scrollbar{height:6px}
+.zb-bundle-cards::-webkit-scrollbar-thumb{background:#d9d5cb;border-radius:999px}
+.zb-bc{flex:0 0 150px;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;padding:10px;
+  border:1px solid #e7e2d6;border-radius:16px;background:#fff;text-decoration:none;color:inherit;
+  transition:box-shadow .18s ease,transform .18s ease}
+.zb-bc:hover{box-shadow:0 8px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+.zb-bc__media{position:relative;display:block;background:#f6f4ef;border-radius:12px;overflow:hidden}
+.zb-bc__media .zb-bc__img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:contain}
+.zb-bc__qty{position:absolute;inset-inline-start:6px;bottom:6px;background:#275f5e;color:#fff;
+  font-size:12px;font-weight:800;border-radius:999px;padding:2px 8px}
+.zb-bc__gift{position:absolute;inset-inline-end:6px;top:6px;background:#d46856;color:#fff;
+  font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px}
+.zb-bc__name{font-size:13px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden}
+.zb-bc__meta{font-size:11.5px;color:#6b7472}
+.zb-bundle-list{margin-top:4px}
+@media (prefers-color-scheme:dark){
+  .zb-bc{background:#1f2626;border-color:#2e3838}
+  .zb-bc__media{background:#161b1b}
+  .zb-bc__meta{color:#9fada9}
+}
+</style>';
     }
 
     /* ══════════════════════════════════════════════════════════════

@@ -468,6 +468,25 @@ class LAr extends L {
   }
 
   @override
+  String get bundleContentsTitle => 'محتويات البكج';
+
+  @override
+  String bundleContentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bundleGiftTag => 'هدية';
+
+  @override
   String get bundlesTitle => 'البكجات';
 
   @override
@@ -1598,6 +1617,9 @@ class LAr extends L {
   String get missionSuggested => 'يناسب صديقك';
 
   @override
+  String get missionsAllDone => 'خلّصت مهمات الشهر كلها 🎉';
+
+  @override
   String get missionsEmpty => 'لا مهمات هذا الشهر';
 
   @override
@@ -1994,11 +2016,6 @@ class LAr extends L {
 
   @override
   String get scratchKeepGoing => 'أكمل الخدش…';
-
-  @override
-  String missionOfTarget(String target) {
-    return 'من $target';
-  }
 
   @override
   String get supplyTitle => 'مخزون البيت';

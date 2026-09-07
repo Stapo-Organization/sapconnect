@@ -226,6 +226,10 @@
   "bundleExpressChip": "Within 2 hours",
   "bundlePiecesLine": "{count} pieces in the bundle",
   "@bundlePiecesLine": {"placeholders": {"count": {"type": "int"}}},
+  "bundleContentsTitle": "What is inside",
+  "bundleContentsCount": "{count, plural, =1{1 product} other{{count} products}}",
+  "@bundleContentsCount": {"placeholders": {"count": {"type": "int"}}},
+  "bundleGiftTag": "Gift",
   "bundlesTitle": "Bundles",
   "bundlesEmpty": "No bundles live right now",
   "bundlesEmptyHint": "We are always building new bundles — check back soon.",
@@ -658,6 +662,7 @@
   "missionDone": "Done",
   "missionRewardGift": "A gift",
   "missionSuggested": "Good picks for your friend",
+  "missionsAllDone": "Every mission this month is done 🎉",
   "missionsEmpty": "No missions this month",
   "missionsEmptyHint": "New ones arrive at the start of next month",
   "rewardsTitle": "Rewards",
@@ -815,14 +820,6 @@
   },
   "successMissionNote": "and this month's missions count automatically after delivery",
   "scratchKeepGoing": "Keep scratching…",
-  "missionOfTarget": "of {target}",
-  "@missionOfTarget": {
-    "placeholders": {
-      "target": {
-        "type": "String"
-      }
-    }
-  },
   "supplyTitle": "Pantry",
   "supplySubtitle": "We learn from your orders — every \"ran out\" or \"still enough\" makes the estimate sharper",
   "supplyHubSubtitle": "When your family's food runs out",

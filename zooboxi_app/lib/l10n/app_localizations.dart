@@ -877,6 +877,24 @@ abstract class L {
   /// **'{count} قطعة في البكج'**
   String bundlePiecesLine(int count);
 
+  /// No description provided for @bundleContentsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'محتويات البكج'**
+  String get bundleContentsTitle;
+
+  /// No description provided for @bundleContentsCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} other{{count} منتج}}'**
+  String bundleContentsCount(int count);
+
+  /// No description provided for @bundleGiftTag.
+  ///
+  /// In ar, this message translates to:
+  /// **'هدية'**
+  String get bundleGiftTag;
+
   /// No description provided for @bundlesTitle.
   ///
   /// In ar, this message translates to:
@@ -2695,6 +2713,12 @@ abstract class L {
   /// **'يناسب صديقك'**
   String get missionSuggested;
 
+  /// No description provided for @missionsAllDone.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلّصت مهمات الشهر كلها 🎉'**
+  String get missionsAllDone;
+
   /// No description provided for @missionsEmpty.
   ///
   /// In ar, this message translates to:
@@ -3366,12 +3390,6 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'أكمل الخدش…'**
   String get scratchKeepGoing;
-
-  /// No description provided for @missionOfTarget.
-  ///
-  /// In ar, this message translates to:
-  /// **'من {target}'**
-  String missionOfTarget(String target);
 
   /// No description provided for @supplyTitle.
   ///

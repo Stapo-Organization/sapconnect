@@ -464,6 +464,23 @@ class LEn extends L {
   }
 
   @override
+  String get bundleContentsTitle => 'What is inside';
+
+  @override
+  String bundleContentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bundleGiftTag => 'Gift';
+
+  @override
   String get bundlesTitle => 'Bundles';
 
   @override
@@ -1578,6 +1595,9 @@ class LEn extends L {
   String get missionSuggested => 'Good picks for your friend';
 
   @override
+  String get missionsAllDone => 'Every mission this month is done 🎉';
+
+  @override
   String get missionsEmpty => 'No missions this month';
 
   @override
@@ -1972,11 +1992,6 @@ class LEn extends L {
 
   @override
   String get scratchKeepGoing => 'Keep scratching…';
-
-  @override
-  String missionOfTarget(String target) {
-    return 'of $target';
-  }
 
   @override
   String get supplyTitle => 'Pantry';

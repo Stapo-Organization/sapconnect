@@ -235,6 +235,10 @@
   "bundleExpressChip": "خلال ساعتين",
   "bundlePiecesLine": "{count} قطعة في البكج",
   "@bundlePiecesLine": {"placeholders": {"count": {"type": "int"}}},
+  "bundleContentsTitle": "محتويات البكج",
+  "bundleContentsCount": "{count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} other{{count} منتج}}",
+  "@bundleContentsCount": {"placeholders": {"count": {"type": "int"}}},
+  "bundleGiftTag": "هدية",
   "bundlesTitle": "البكجات",
   "bundlesEmpty": "لا توجد بكجات معروضة الآن",
   "bundlesEmptyHint": "نجهّز حزماً جديدة باستمرار — عُد قريباً.",
@@ -808,6 +812,7 @@
   "missionDone": "اكتملت",
   "missionRewardGift": "هدية",
   "missionSuggested": "يناسب صديقك",
+  "missionsAllDone": "خلّصت مهمات الشهر كلها 🎉",
   "missionsEmpty": "لا مهمات هذا الشهر",
   "missionsEmptyHint": "مهمات جديدة تصلك أول الشهر القادم",
   "rewardsTitle": "المكافآت",
@@ -1052,14 +1057,6 @@
   },
   "successMissionNote": "ومهمات الشهر تُحتسب تلقائيًا بعد التسليم",
   "scratchKeepGoing": "أكمل الخدش…",
-  "missionOfTarget": "من {target}",
-  "@missionOfTarget": {
-    "placeholders": {
-      "target": {
-        "type": "String"
-      }
-    }
-  },
   "supplyTitle": "مخزون البيت",
   "supplySubtitle": "نتعلّم من طلباتك — كل «خلص» أو «عندي كفاية» يجعل التقدير أدق",
   "supplyHubSubtitle": "متى ينفد أكل عائلتك",

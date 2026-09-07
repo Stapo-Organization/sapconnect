@@ -116,6 +116,48 @@ class BundleTag {
   }
 }
 
+/// One product inside a «بكج», as the bundle's page lists it.
+@immutable
+class BundleComponent {
+  const BundleComponent({
+    required this.id,
+    required this.name,
+    required this.qty,
+    this.role = 'member',
+    this.image,
+    this.weightLabel,
+  });
+
+  final int id;
+  final String name;
+
+  /// How many of this product the bundle carries.
+  final int qty;
+
+  /// `anchor` | `member` | `gift`.
+  final String role;
+  final String? image;
+
+  /// Pre-formatted piece size ("85 غ", "7.5 كجم"); null when unknown.
+  final String? weightLabel;
+
+  bool get isGift => role == 'gift';
+
+  factory BundleComponent.fromJson(Map<String, dynamic> json) => BundleComponent(
+        id: asInt(json['id']),
+        name: asString(json['name']),
+        qty: asInt(json['qty']) < 1 ? 1 : asInt(json['qty']),
+        role: asString(json['role'], fallback: 'member'),
+        image: asStringOrNull(json['image']),
+        weightLabel: asStringOrNull(json['weight_label']),
+      );
+
+  static List<BundleComponent> listFrom(dynamic value) => asMapList(value)
+      .map(BundleComponent.fromJson)
+      .where((c) => c.id > 0 && c.name.isNotEmpty)
+      .toList();
+}
+
 /// The card DTO — the single product shape used by rails, grids, search
 /// results, wishlist, buy-again and the "frequently bought" strips.
 @immutable
@@ -430,6 +472,7 @@ class ProductDetail {
     this.badges = const [],
     this.fbt = const [],
     this.substitutes = const [],
+    this.bundleComponents = const [],
     this.langFallback = false,
   });
 
@@ -460,6 +503,7 @@ class ProductDetail {
         badges: badges,
         fbt: fbt,
         substitutes: substitutes,
+        bundleComponents: bundleComponents,
         langFallback: langFallback,
       );
   final List<ProductBadge> badges;
@@ -467,6 +511,9 @@ class ProductDetail {
   /// "Frequently bought together" — from the Laravel recommendations engine.
   final List<ProductCard> fbt;
   final List<ProductCard> substitutes;
+
+  /// The products inside this «بكج» — empty for an ordinary product.
+  final List<BundleComponent> bundleComponents;
 
   /// True when English was requested but only the Arabic content exists.
   final bool langFallback;
@@ -502,6 +549,7 @@ class ProductDetail {
       badges: asMapList(json['badges']).map(ProductBadge.fromJson).toList(),
       fbt: ProductCard.listFrom(json['fbt']),
       substitutes: ProductCard.listFrom(json['substitutes']),
+      bundleComponents: BundleComponent.listFrom(asMap(json['bundle'])['components']),
       langFallback: asBool(json['lang_fallback']),
     );
   }

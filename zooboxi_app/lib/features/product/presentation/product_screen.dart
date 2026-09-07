@@ -18,6 +18,7 @@ import '../../catalog/data/product_models.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/add_to_cart_bar.dart';
 import 'widgets/delivery_card.dart';
+import 'widgets/bundle_contents.dart';
 import 'widgets/product_description.dart';
 import 'widgets/product_gallery.dart';
 import 'widgets/product_loading.dart';
@@ -330,7 +331,14 @@ class _Loaded extends ConsumerWidget {
               ],
             ),
           ),
-          if ((detail.descriptionHtml ?? detail.shortDescription ?? '').isNotEmpty) ...[
+          // A bundle's description IS its component list, and the strip below
+          // draws that list far better than stripped HTML can — so the two
+          // never appear one under the other saying the same thing twice.
+          if (detail.bundleComponents.isNotEmpty) ...[
+            Gap.h24,
+            BundleContents(components: detail.bundleComponents),
+          ] else if ((detail.descriptionHtml ?? detail.shortDescription ?? '')
+              .isNotEmpty) ...[
             Gap.h24,
             ProductDescription(detail: detail),
           ],

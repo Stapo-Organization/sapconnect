@@ -149,20 +149,32 @@ class Zooboxi_Product_DTO
             $extended = Zooboxi_V2_Bundles_Controller::extend(['id' => $id]);
             $raw = get_post_meta($id, '_zb_bundle_components', true);
             $components = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
-            $extended['bundle']['components'] = array_map(static function ($c) {
-                $kg = isset($c['weight_kg']) && is_numeric($c['weight_kg']) ? (float) $c['weight_kg'] : null;
-                return [
-                    'name' => (string) ($c['name'] ?? ''),
-                    'qty'  => max(1, (int) ($c['qty'] ?? 1)),
-                    'role' => (string) ($c['role'] ?? 'member'),
-                    'product_id' => (int) ($c['product_id'] ?? 0),
-                    'weight_kg' => $kg,
-                    // Pre-formatted so every surface says the size the same way.
-                    'weight_label' => $kg !== null && class_exists('Zooboxi_Bundles')
-                        ? Zooboxi_Bundles::format_weight($kg)
-                        : null,
-                ];
-            }, is_array($components) ? $components : []);
+            $extended['bundle']['components'] = array_values(array_filter(array_map(
+                static function ($c) {
+                    $pid = (int) ($c['product_id'] ?? 0);
+                    $product = $pid ? wc_get_product($pid) : null;
+                    if (! $product instanceof \WC_Product || $product->get_status() !== 'publish') {
+                        // A component that no longer sells is not a card the
+                        // customer should be able to tap into a dead end.
+                        return null;
+                    }
+                    $kg = isset($c['weight_kg']) && is_numeric($c['weight_kg']) ? (float) $c['weight_kg'] : null;
+
+                    return [
+                        'id'    => $pid,
+                        'name'  => (string) ($c['name'] ?? $product->get_name()),
+                        'qty'   => max(1, (int) ($c['qty'] ?? 1)),
+                        'role'  => (string) ($c['role'] ?? 'member'),
+                        'image' => self::image_url($product, 'woocommerce_thumbnail'),
+                        'weight_kg' => $kg,
+                        // Pre-formatted so every surface says the size the same way.
+                        'weight_label' => $kg !== null && class_exists('Zooboxi_Bundles')
+                            ? Zooboxi_Bundles::format_weight($kg)
+                            : null,
+                    ];
+                },
+                is_array($components) ? $components : []
+            )));
             $bundle = $extended['bundle'];
         }
 
