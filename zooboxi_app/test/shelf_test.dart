@@ -152,7 +152,15 @@ void main() {
 
       expect(find.text('9 ص – 11 م'), findsOneWidget);
       expect(find.text('خلال ساعتين'), findsNothing);
-      expect(find.text('يصلك غدًا'), findsOneWidget);
+      // The زوبكسي line names the day the main warehouse can make — «اليوم»
+      // before one o'clock, «غدًا» after it. Which one it is today is the
+      // cut-off rule's own business, and tested in delivery_eta_test.
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Text && (w.data ?? '').startsWith('يصلك '),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the server, not the saved address, decides the sign is shut',

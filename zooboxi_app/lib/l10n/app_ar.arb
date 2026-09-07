@@ -187,6 +187,16 @@
       }
     }
   },
+  "etaToday": "اليوم",
+  "shelfAllSubToday": "يصلك اليوم",
+  "shelfAllSubOn": "يصلك {day}",
+  "@shelfAllSubOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "etaTomorrow": "غدًا",
   "etaOn": "بحلول {date}",
   "@etaOn": {

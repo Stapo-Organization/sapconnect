@@ -37,6 +37,7 @@ class ShelfTabs extends ConsumerStatefulWidget {
     this.onCanvas = false,
     this.hours,
     this.expressAvailable,
+    this.standardCutoffMinutes,
   });
 
   /// True when the tabs sit on the hero's deep-coloured canvas.
@@ -49,6 +50,10 @@ class ShelfTabs extends ConsumerStatefulWidget {
   /// The saved delivery type was decided when the address was chosen and does
   /// not know the branch has since closed, so this wins when it is present.
   final bool? expressAvailable;
+
+  /// The main warehouse's cut-off, so the زوبكسي sign says «اليوم» while it
+  /// still can.
+  final int? standardCutoffMinutes;
 
   @override
   ConsumerState<ShelfTabs> createState() => _ShelfTabsState();
@@ -100,6 +105,22 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
     return l.shelfExpressOpensAt(
       Fmt.clockShort(timeOfDayToday(hours.openMinutes), locale),
     );
+  }
+
+  /// What the زوبكسي sign promises today: the main warehouse ships an order
+  /// placed before one o'clock the same day, and Friday pushes to Saturday.
+  String _allLine(BuildContext context, L l) {
+    final eta = resolveStandardEta(
+      now: DateTime.now(),
+      cutoffMinutes: widget.standardCutoffMinutes ?? standardCutoffMinutes,
+    );
+    return switch (eta.kind) {
+      StandardEtaKind.today => l.shelfAllSubToday,
+      StandardEtaKind.tomorrow => l.shelfAllSub,
+      StandardEtaKind.later => l.shelfAllSubOn(
+          Fmt.weekday(eta.day, Localizations.localeOf(context).languageCode),
+        ),
+    };
   }
 
   @override
@@ -191,7 +212,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                   child: _Sign(
                     identity: ShelfIdentity.of(context, Shelf.all),
                     name: l.shelfAllTab,
-                    promise: shipping ? l.shelfAllSubShipping : l.shelfAllSub,
+                    promise: shipping ? l.shelfAllSubShipping : _allLine(context, l),
                     selected: !expressSelected,
                     enabled: true,
                     onCanvas: widget.onCanvas,

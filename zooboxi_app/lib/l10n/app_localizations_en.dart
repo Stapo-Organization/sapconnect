@@ -384,6 +384,17 @@ class LEn extends L {
   }
 
   @override
+  String get etaToday => 'Today';
+
+  @override
+  String get shelfAllSubToday => 'Arrives today';
+
+  @override
+  String shelfAllSubOn(String day) {
+    return 'Arrives $day';
+  }
+
+  @override
   String get etaTomorrow => 'Tomorrow';
 
   @override

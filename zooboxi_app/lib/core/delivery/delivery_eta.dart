@@ -86,3 +86,53 @@ DateTime timeOfDayToday(int minutes, {DateTime? now}) {
   final base = now ?? DateTime.now();
   return DateTime(base.year, base.month, base.day).add(Duration(minutes: minutes));
 }
+
+
+/// When an order from the MAIN warehouse lands — the زوبكسي storefront's
+/// promise.
+///
+/// The owner's rule: order before the cut-off (13:00) and it goes out today;
+/// after it, tomorrow. Friday is not a delivery day, so Thursday afternoon and
+/// the whole of Friday land on Saturday.
+///
+/// The server owns the same rule and quotes it on every product chip; the app
+/// recomputes it live so a payload cached at 12:55 cannot still be promising
+/// "today" at 13:05.
+const int standardCutoffMinutes = 13 * 60;
+
+/// Friday, in Dart's 1=Monday…7=Sunday numbering.
+const int _closedWeekday = DateTime.friday;
+
+enum StandardEtaKind { today, tomorrow, later }
+
+@immutable
+class StandardEta {
+  const StandardEta({required this.day, required this.kind});
+
+  /// Midnight on the day the order arrives.
+  final DateTime day;
+  final StandardEtaKind kind;
+}
+
+StandardEta resolveStandardEta({
+  required DateTime now,
+  int cutoffMinutes = standardCutoffMinutes,
+}) {
+  final today = DateTime(now.year, now.month, now.day);
+  final cutoff = today.add(Duration(minutes: cutoffMinutes));
+
+  var day = now.isBefore(cutoff) ? today : today.add(const Duration(days: 1));
+  while (day.weekday == _closedWeekday) {
+    day = day.add(const Duration(days: 1));
+  }
+
+  final days = day.difference(today).inDays;
+  return StandardEta(
+    day: day,
+    kind: switch (days) {
+      <= 0 => StandardEtaKind.today,
+      1 => StandardEtaKind.tomorrow,
+      _ => StandardEtaKind.later,
+    },
+  );
+}

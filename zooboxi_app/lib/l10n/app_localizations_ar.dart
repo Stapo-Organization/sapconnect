@@ -382,6 +382,17 @@ class LAr extends L {
   }
 
   @override
+  String get etaToday => 'اليوم';
+
+  @override
+  String get shelfAllSubToday => 'يصلك اليوم';
+
+  @override
+  String shelfAllSubOn(String day) {
+    return 'يصلك $day';
+  }
+
+  @override
   String get etaTomorrow => 'غدًا';
 
   @override

@@ -769,6 +769,24 @@ abstract class L {
   /// **'غدًا {time}'**
   String etaTomorrowAt(String time);
 
+  /// No description provided for @etaToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'اليوم'**
+  String get etaToday;
+
+  /// No description provided for @shelfAllSubToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'يصلك اليوم'**
+  String get shelfAllSubToday;
+
+  /// No description provided for @shelfAllSubOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'يصلك {day}'**
+  String shelfAllSubOn(String day);
+
   /// No description provided for @etaTomorrow.
   ///
   /// In ar, this message translates to:

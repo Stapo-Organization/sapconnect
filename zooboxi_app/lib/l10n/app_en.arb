@@ -178,6 +178,16 @@
       }
     }
   },
+  "etaToday": "Today",
+  "shelfAllSubToday": "Arrives today",
+  "shelfAllSubOn": "Arrives {day}",
+  "@shelfAllSubOn": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "etaTomorrow": "Tomorrow",
   "etaOn": "by {date}",
   "@etaOn": {

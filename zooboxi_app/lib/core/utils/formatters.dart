@@ -124,6 +124,10 @@ abstract final class Fmt {
     return _space(_latin(DateFormat.j(locale).format(local)));
   }
 
+  /// "السبت" / "Saturday" — a day inside this week needs no date beside it.
+  static String weekday(DateTime date, String locale) =>
+      _latin(DateFormat.EEEE(locale).format(date.toLocal()));
+
   /// The weekday index the calendar week starts on. Saudi weeks start Sunday
   /// in both languages of this app.
   static const int firstDayOfWeek = DateTime.sunday;

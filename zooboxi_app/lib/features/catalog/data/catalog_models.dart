@@ -323,6 +323,7 @@ class CatalogScope {
     this.expressHours,
     this.expressAvailable,
     this.expressBranch = '',
+    this.standardCutoffMinutes,
   });
 
   /// `express` | `same_day` | `shipping`.
@@ -351,6 +352,12 @@ class CatalogScope {
   /// The branch that serves this address, named for the customer.
   final String expressBranch;
 
+  /// The main warehouse's cut-off, in minutes past midnight: before it an
+  /// order goes out today, after it tomorrow. The app recomputes the promise
+  /// from this rather than trusting a label that may have been cached on the
+  /// other side of one o'clock.
+  final int? standardCutoffMinutes;
+
   /// Null means the catalogue is not narrowed — nothing to explain.
   static CatalogScope? maybe(dynamic value) {
     final map = asMap(value);
@@ -368,6 +375,7 @@ class CatalogScope {
           ? asBool(map['express_available'])
           : null,
       expressBranch: asString(map['express_branch']),
+      standardCutoffMinutes: ExpressHours.minutesOf(asStringOrNull(map['standard_cutoff'])),
     );
   }
 }
@@ -406,6 +414,10 @@ class ExpressHours {
       closedToday: asBool(map['closed']),
     );
   }
+
+  /// "13:00" → 780. Shared with the standard cut-off, which is written the
+  /// same way by the same server.
+  static int? minutesOf(String? hhmm) => _minutes(hhmm);
 
   static int? _minutes(String? hhmm) {
     if (hhmm == null) return null;

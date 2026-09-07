@@ -38,7 +38,17 @@ String deliveryWhenLabel(
       final clock = Fmt.clockShort(eta.at, locale);
       return eta.tomorrow ? l.etaTomorrowAt(clock) : l.etaAt(clock);
     case 'same_day':
-      return l.etaTomorrow;
+      // «اليوم» before one o'clock, «غدًا» after it, «السبت» when Friday is
+      // in the way — the same rule the server quotes on every product chip.
+      final eta = resolveStandardEta(
+        now: now ?? DateTime.now(),
+        cutoffMinutes: scope?.standardCutoffMinutes ?? standardCutoffMinutes,
+      );
+      return switch (eta.kind) {
+        StandardEtaKind.today => l.etaToday,
+        StandardEtaKind.tomorrow => l.etaTomorrow,
+        StandardEtaKind.later => Fmt.weekday(eta.day, locale),
+      };
     default:
       final date = scope?.date ?? '';
       return date.isEmpty ? '' : l.etaOn(date);
