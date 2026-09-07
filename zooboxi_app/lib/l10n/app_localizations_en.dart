@@ -491,6 +491,16 @@ class LEn extends L {
       'We are always building new bundles — check back soon.';
 
   @override
+  String get bundlesEmptyExpress => 'No bundles in Express right now';
+
+  @override
+  String get bundlesEmptyExpressHint =>
+      'Zooboxi\'s bundles are ready, arriving today or tomorrow.';
+
+  @override
+  String get bundlesEmptyExpressAction => 'Browse Zooboxi bundles';
+
+  @override
   String get listingEmpty => 'No matching products';
 
   @override

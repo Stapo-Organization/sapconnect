@@ -496,6 +496,16 @@ class LAr extends L {
   String get bundlesEmptyHint => 'نجهّز حزماً جديدة باستمرار — عُد قريباً.';
 
   @override
+  String get bundlesEmptyExpress => 'لا توجد بكجات في إكسبريس الآن';
+
+  @override
+  String get bundlesEmptyExpressHint =>
+      'بكجات متجر زوبكسي جاهزة، وتصلك اليوم أو غداً.';
+
+  @override
+  String get bundlesEmptyExpressAction => 'تصفّح بكجات زوبكسي';
+
+  @override
   String get listingEmpty => 'لا توجد منتجات مطابقة';
 
   @override

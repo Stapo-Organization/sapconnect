@@ -913,6 +913,24 @@ abstract class L {
   /// **'نجهّز حزماً جديدة باستمرار — عُد قريباً.'**
   String get bundlesEmptyHint;
 
+  /// No description provided for @bundlesEmptyExpress.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد بكجات في إكسبريس الآن'**
+  String get bundlesEmptyExpress;
+
+  /// No description provided for @bundlesEmptyExpressHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'بكجات متجر زوبكسي جاهزة، وتصلك اليوم أو غداً.'**
+  String get bundlesEmptyExpressHint;
+
+  /// No description provided for @bundlesEmptyExpressAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصفّح بكجات زوبكسي'**
+  String get bundlesEmptyExpressAction;
+
   /// No description provided for @listingEmpty.
   ///
   /// In ar, this message translates to:

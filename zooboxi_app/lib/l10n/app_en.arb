@@ -233,6 +233,12 @@
   "bundlesTitle": "Bundles",
   "bundlesEmpty": "No bundles live right now",
   "bundlesEmptyHint": "We are always building new bundles — check back soon.",
+  "bundlesEmptyExpress": "No bundles in Express right now",
+  "@bundlesEmptyExpress": {
+    "description": "The البكجات screen on the إكسبريس tab, where the branch can build none of the live bundles."
+  },
+  "bundlesEmptyExpressHint": "Zooboxi's bundles are ready, arriving today or tomorrow.",
+  "bundlesEmptyExpressAction": "Browse Zooboxi bundles",
   "listingEmpty": "No matching products",
   "listingEmptyHint": "Try relaxing your filters or changing the city.",
   "listingClearFilters": "Clear filters",

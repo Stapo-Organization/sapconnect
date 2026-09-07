@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/motion/motion.dart';
+import '../../../core/providers.dart';
+import '../../../core/shelf/shelf_controller.dart';
 import '../../../core/widgets/bundle_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
@@ -17,9 +19,13 @@ import '../data/product_models.dart';
 /// about to run out, then what their nearest branch can hand them in two
 /// hours. A single curated page by construction — no paging, no filters,
 /// just the deals in their big cards.
-final bundlesProvider = FutureProvider.autoDispose<List<ProductCard>>(
-  (ref) => ref.watch(catalogRepositoryProvider).bundles(),
-);
+final bundlesProvider = FutureProvider.autoDispose<List<ProductCard>>((ref) {
+  // The storefront travels in the request header and the two shelves hold
+  // different bundles, so a change of tab is a different page. `select()`
+  // bumps the catalog revision — that is what refetches this one.
+  ref.watch(catalogRevisionProvider);
+  return ref.watch(catalogRepositoryProvider).bundles();
+});
 
 class BundlesScreen extends ConsumerWidget {
   const BundlesScreen({super.key});
@@ -44,10 +50,19 @@ class BundlesScreen extends ConsumerWidget {
         ),
         data: (products) {
           if (products.isEmpty) {
+            // On إكسبريس the page is empty for a different reason: the
+            // bundles exist, the branch simply cannot build any of them from
+            // its own shelf. Saying «نجهّز حزماً جديدة» there would be untrue,
+            // and the customer is one tap away from the ones that are ready.
+            final express = ref.watch(shelfProvider) == Shelf.express;
             return EmptyState(
               icon: Icons.inventory_2_outlined,
-              title: l.bundlesEmpty,
-              message: l.bundlesEmptyHint,
+              title: express ? l.bundlesEmptyExpress : l.bundlesEmpty,
+              message: express ? l.bundlesEmptyExpressHint : l.bundlesEmptyHint,
+              actionLabel: express ? l.bundlesEmptyExpressAction : null,
+              onAction: express
+                  ? () => ref.read(shelfProvider.notifier).select(Shelf.all)
+                  : null,
               mascot: true,
             );
           }
