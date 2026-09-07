@@ -124,6 +124,10 @@ abstract final class Fmt {
     return _space(_latin(DateFormat.j(locale).format(local)));
   }
 
+  /// "سبتمبر" / "September" — the month a board belongs to.
+  static String month(DateTime date, String locale) =>
+      _latin(DateFormat.MMMM(locale).format(date.toLocal()));
+
   /// "السبت" / "Saturday" — a day inside this week needs no date beside it.
   static String weekday(DateTime date, String locale) =>
       _latin(DateFormat.EEEE(locale).format(date.toLocal()));

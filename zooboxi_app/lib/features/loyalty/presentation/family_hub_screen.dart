@@ -260,17 +260,11 @@ class _Hub extends ConsumerWidget {
 
         if (summary.playsGames && missions.isNotEmpty) ...[
           Gap.h20,
-          enter(
-            _Header(
-              title: l.missionsTitle,
-              subtitle: l.missionsSubtitle,
-              trailing: _DoneCounter(
-                done: missions.where((m) => m.isDone).length,
-                total: missions.length,
-                accent: tierEnd,
-              ),
-            ),
-          ),
+          enter(_MissionBoard(
+            missions: missions,
+            accent: tierEnd,
+            period: summary.missions.period,
+          )),
           Gap.h12,
           for (final mission in missions) ...[
             enter(
@@ -463,12 +457,11 @@ class _HowRow extends StatelessWidget {
 
 /// A section title with an optional count on the end.
 class _Header extends StatelessWidget {
-  const _Header({required this.title, this.subtitle, this.onSeeAll, this.trailing});
+  const _Header({required this.title, this.subtitle, this.onSeeAll});
 
   final String title;
   final String? subtitle;
   final VoidCallback? onSeeAll;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -488,7 +481,6 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        ?trailing,
         if (onSeeAll != null)
           TextButton(
             onPressed: onSeeAll,
@@ -506,35 +498,198 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _DoneCounter extends StatelessWidget {
-  const _DoneCounter({required this.done, required this.total, required this.accent});
+/// The month's board: the title, the month it belongs to, and one segment per
+/// mission — filled for the finished, part-filled for the ones in progress.
+///
+/// A counter says «1 من 4». A board *shows* it, and shows which of the four is
+/// nearly there, which is the thing that makes someone open the fourth card.
+class _MissionBoard extends StatelessWidget {
+  const _MissionBoard({
+    required this.missions,
+    required this.accent,
+    required this.period,
+  });
 
-  final int done;
-  final int total;
+  final List<Mission> missions;
   final Color accent;
+
+  /// The server's own month for this board, "YYYY-MM". It mints the missions
+  /// in Riyadh time, so a device clock past midnight — or in another country —
+  /// must not rename the month underneath them.
+  final String period;
+
+  /// The month the board belongs to. The server's word first; the device's
+  /// own clock only when an older payload carries no period at all.
+  DateTime get _month {
+    final parts = period.split('-');
+    if (parts.length >= 2) {
+      final year = int.tryParse(parts[0]);
+      final month = int.tryParse(parts[1]);
+      if (year != null && month != null && month >= 1 && month <= 12) {
+        return DateTime(year, month);
+      }
+    }
+    return DateTime.now();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    return Row(
+    final cs = context.cs;
+    final locale = Localizations.localeOf(context).languageCode;
+    final done = missions.where((m) => m.isDone).length;
+    final all = missions.isNotEmpty && done == missions.length;
+    final month = _month;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [
+            accent.withValues(alpha: context.isDark ? 0.16 : 0.10),
+            accent.withValues(alpha: context.isDark ? 0.06 : 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(ZbTokens.rXl),
+        border: Border.all(color: accent.withValues(alpha: 0.22)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.missionsTitle,
+                      style: context.tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      all ? l.missionsAllDone : l.missionsSubtitle,
+                      style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Gap.w8,
+              // The month this board belongs to — the reason it resets.
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: cs.surface.withValues(alpha: context.isDark ? 0.28 : 0.75),
+                  borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                ),
+                child: Text(
+                  Fmt.month(month, locale),
+                  style: context.tt.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Gap.h12,
+          Row(
+            children: [
+              for (var i = 0; i < missions.length; i++) ...[
+                if (i > 0) Gap.w6,
+                Expanded(
+                  child: _BoardSegment(
+                    mission: missions[i],
+                    hue: missions[i].isDone
+                        ? context.zb.success
+                        : missionKindHue(context, missions[i].kind),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          Gap.h8,
+          Text(
+            l.missionsDoneOf(done, missions.length),
+            style: context.tt.labelMedium?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One mission's share of the month: its own sticker over a bar that fills.
+///
+/// The sticker is what makes the colour legible — a bare coral bar on a
+/// progress board reads as a warning, the same bar under the calendar sticker
+/// reads as "the orders mission, part way".
+class _BoardSegment extends StatelessWidget {
+  const _BoardSegment({required this.mission, required this.hue});
+
+  final Mission mission;
+  final Color hue;
+
+  @override
+  Widget build(BuildContext context) {
+    final done = mission.isDone;
+    final ratio = done ? 1.0 : mission.ratio;
+
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ProgressRing(
-          value: total == 0 ? 0 : done / total,
-          color: accent,
-          size: 26,
-          stroke: 3.5,
+        Opacity(
+          opacity: ratio == 0 ? 0.45 : 1,
+          child: MissionSticker(kind: mission.kind, size: 18),
         ),
-        Gap.w8,
-        Text(
-          l.missionsDoneOf(done, total),
-          style: context.tt.labelMedium?.copyWith(
-            color: context.cs.onSurfaceVariant,
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
+        Gap.h4,
+        _SegmentBar(ratio: ratio, hue: hue),
       ],
+    );
+  }
+}
+
+class _SegmentBar extends StatelessWidget {
+  const _SegmentBar({required this.ratio, required this.hue});
+
+  final double ratio;
+  final Color hue;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(ZbTokens.rPill),
+      child: SizedBox(
+        height: 8,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ColoredBox(
+                color: context.cs.onSurface.withValues(alpha: context.isDark ? 0.16 : 0.09),
+              ),
+            ),
+            Positioned.fill(
+              child: FractionallySizedBox(
+                alignment: AlignmentDirectional.centerStart,
+                widthFactor: ratio.clamp(0.0, 1.0),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: context.motion(const Duration(milliseconds: 720)),
+                  curve: Motion.emphasized,
+                  builder: (context, v, child) => Opacity(opacity: v, child: child),
+                  child: ColoredBox(color: hue),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

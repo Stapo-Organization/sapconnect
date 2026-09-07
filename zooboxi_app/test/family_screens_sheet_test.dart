@@ -131,7 +131,9 @@ LoyaltySummary _summary({bool pending = true}) => LoyaltySummary(
           TierPerk(key: 'whatsapp', text: 'خط واتساب مباشر', fromTier: 'amb'),
         ],
       ),
-      missions: const MissionsBlock(items: _missions),
+      // A fixed month keeps the golden from expiring on the first of
+      // the next one.
+      missions: const MissionsBlock(items: _missions, period: '2026-09'),
       rewards: const SummaryRewards(activeCount: 1, sealedScratch: [SealedScratch(id: 88, orderNumber: '32579')]),
       pets: _pets,
       pendingOrders: pending ? const [PendingOrder(id: 4102, number: '32601', paws: 118, isApp: true)] : const [],
@@ -298,6 +300,10 @@ void main() {
             Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: FamilyCard(summary: noPending)),
             const SizedBox(height: 20),
             const MissionsStrip(missions: _missions, awaitingDelivery: true),
+            const SizedBox(height: 16),
+            // The ordinary state: nothing in flight, so every card carries its
+            // prize beside its title — which is where a truncated title hides.
+            const MissionsStrip(missions: _missions),
             const SizedBox(height: 20),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),

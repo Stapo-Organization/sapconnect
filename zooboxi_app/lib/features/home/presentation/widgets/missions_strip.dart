@@ -105,34 +105,46 @@ class MissionsStrip extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 124,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
-            physics: const BouncingScrollPhysics(),
-            clipBehavior: Clip.none,
-            itemCount: ordered.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final mission = ordered[index];
-              return MissionCard(
-                mission: mission,
-                compact: true,
-                width: 268,
-                awaitingDelivery: awaitingDelivery &&
-                    (mission.kind == 'welcome' || mission.kind == 'frequency'),
-                onTap: () {
-                  ref.read(eventsBufferProvider).track(
-                        ZbEvent(
-                          type: ZbEvents.loyaltyMission,
-                          zone: 'home',
-                          payload: {'mission_id': mission.id, 'state': mission.state},
-                        ),
-                      );
-                  context.push('/family');
-                },
-              );
-            },
+          // The medal folded the ring into the sticker, so the compact card
+          // is one object and a line of text rather than two circles with a
+          // column squeezed between them.
+          height: 88,
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.2,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
+              physics: const BouncingScrollPhysics(),
+              clipBehavior: Clip.none,
+              itemCount: ordered.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final mission = ordered[index];
+                return MissionCard(
+                  mission: mission,
+                  compact: true,
+                  // Wide enough that «أول طلب من التطبيق» finishes its
+                  // sentence beside the medal and the coin; the card's height
+                  // is what the owner asked to shrink, not its width.
+                  width: 268,
+                  awaitingDelivery:
+                      awaitingDelivery &&
+                      (mission.kind == 'welcome' || mission.kind == 'frequency'),
+                  onTap: () {
+                    ref
+                        .read(eventsBufferProvider)
+                        .track(
+                          ZbEvent(
+                            type: ZbEvents.loyaltyMission,
+                            zone: 'home',
+                            payload: {'mission_id': mission.id, 'state': mission.state},
+                          ),
+                        );
+                    context.push('/family');
+                  },
+                );
+              },
+            ),
           ),
         ),
       ],
