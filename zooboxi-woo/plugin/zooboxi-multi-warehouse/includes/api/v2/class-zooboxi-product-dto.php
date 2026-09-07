@@ -146,7 +146,14 @@ class Zooboxi_Product_DTO
         // so the app can render «محتويات البكج» natively.
         $bundle = null;
         if (class_exists('Zooboxi_V2_Bundles_Controller') && get_post_meta($id, '_zb_bundle_id', true)) {
-            $extended = Zooboxi_V2_Bundles_Controller::extend(['id' => $id]);
+            // Extend the REAL card, so the page's hero picks up the same
+            // full-size, version-stamped artwork the rails show — a bundle's
+            // artwork is re-rendered in place, and an unchanged URL is how a
+            // stale picture survives on a device.
+            $extended = Zooboxi_V2_Bundles_Controller::extend($card);
+            if (! empty($extended['image'])) {
+                $card['image'] = $extended['image'];
+            }
             $raw = get_post_meta($id, '_zb_bundle_components', true);
             $components = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
             $extended['bundle']['components'] = array_values(array_filter(array_map(

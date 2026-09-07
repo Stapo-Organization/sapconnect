@@ -35,6 +35,28 @@ class Zooboxi_V2_Bundles_Controller
         return Zooboxi_V2_Bootstrap::ok(['bundles' => $cards], null);
     }
 
+    /**
+     * Stamp an artwork URL with the version of the file behind it.
+     *
+     * A re-rendered bundle card is sideloaded over a freed filename, so the
+     * new picture arrives at the URL the OLD one had — and every client that
+     * caches by URL keeps showing the old one. The attachment's own modified
+     * stamp makes a changed picture a changed URL, which is the only thing a
+     * cache anywhere down the line will believe.
+     */
+    private static function versioned(string $url, int $attachmentId): string
+    {
+        if ($attachmentId <= 0) {
+            return $url;
+        }
+        $stamp = (int) get_post_modified_time('U', true, $attachmentId);
+        if ($stamp <= 0) {
+            return $url;
+        }
+
+        return $url . (str_contains($url, '?') ? '&' : '?') . 'v=' . $stamp;
+    }
+
     /** Bolt the bundle-specific keys onto a standard product card. */
     public static function extend(array $card): array
     {
@@ -56,12 +78,13 @@ class Zooboxi_V2_Bundles_Controller
 
         // The composed artwork IS the pitch, and the card shows it big — the
         // 600px `woocommerce_single` rendition goes soft on a 3× screen, so a
-        // bundle card gets the full-size original.
+        // bundle card gets the full-size original, stamped with the version
+        // the file is actually on.
         $product = wc_get_product($id);
         if ($product instanceof \WC_Product) {
             $full = Zooboxi_Product_DTO::image_url($product, 'full');
             if ($full) {
-                $card['image'] = $full;
+                $card['image'] = self::versioned($full, (int) $product->get_image_id());
             }
         }
 
