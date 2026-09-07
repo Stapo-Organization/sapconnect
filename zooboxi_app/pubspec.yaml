@@ -80,9 +80,9 @@ flutter:
       fonts:
         - asset: assets/fonts/SaudiRiyal.otf
 
-# Launcher icon: the REAL logo's mark — the dog and the cat in the smiling box,
-# on the brand teal. The wordmark is left out on purpose: it is illegible at
-# 60px, and the mark alone is what people recognise on a home screen.
+# Launcher icon: the REAL logo, whole — pets, box and wordmark — on the brand's
+# own cream paper. Owner's call (2026-09-07): the logo is the logo, wordmark
+# included, everywhere it appears.
 # Built by tools/build_icons.py from assets/brand/logo_full.png; regenerate the
 # platform sizes with: dart run flutter_launcher_icons
 flutter_launcher_icons:
@@ -90,7 +90,7 @@ flutter_launcher_icons:
   ios: true
   remove_alpha_ios: true
   android: true
-  adaptive_icon_background: "#429D9C"
+  adaptive_icon_background: "#FFF7EF"
   # The mark on transparency — Android insets the foreground into its safe
   # circle, so a full-bleed image would lose the box's corners.
   adaptive_icon_foreground: assets/brand/app_mark.png
