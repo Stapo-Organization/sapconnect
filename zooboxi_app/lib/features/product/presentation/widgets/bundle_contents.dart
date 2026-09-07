@@ -22,13 +22,18 @@ class BundleContents extends StatelessWidget {
 
   final List<BundleComponent> components;
 
-  static const double _cardWidth = 132;
+  /// Wide enough that a long Arabic product name gets real room, narrow
+  /// enough that the next card peeks in and says «there is more».
+  static const double _maxCardWidth = 300;
+  static const double _cardHeight = 104;
 
   @override
   Widget build(BuildContext context) {
     if (components.isEmpty) return const SizedBox.shrink();
     final l = L.of(context);
     final scale = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+    final cardWidth =
+        ((MediaQuery.sizeOf(context).width - 32) * 0.82).clamp(240.0, _maxCardWidth);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,8 +52,7 @@ class BundleContents extends StatelessWidget {
         ),
         Gap.h8,
         SizedBox(
-          // Image square + name (2 lines) + the meta line, all text-scaled.
-          height: _cardWidth + scale.scale(84),
+          height: scale.scale(_cardHeight),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
@@ -57,7 +61,7 @@ class BundleContents extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) => _ComponentCard(
               component: components[index],
-              width: _cardWidth,
+              width: cardWidth,
             ),
           ),
         ),
@@ -93,63 +97,80 @@ class _ComponentCard extends StatelessWidget {
               border: Border.all(color: cs.outlineVariant),
             ),
             clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(8),
+            child: Row(
               children: [
-                // Photo with the two facts that belong ON it: how many the
-                // bundle holds, and whether this one rides along free.
+                // The photo takes the card's full height and no more, so
+                // every pixel the tile gains in width goes to the name.
                 AspectRatio(
                   aspectRatio: 1,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ZbImage(
-                        url: component.image,
-                        padding: const EdgeInsets.all(8),
-                      ),
-                      PositionedDirectional(
-                        start: 6,
-                        bottom: 6,
-                        child: _tag(
-                          context,
-                          '×${component.qty}',
-                          bg: cs.primary,
-                        ),
-                      ),
-                      if (component.isGift)
-                        PositionedDirectional(
-                          end: 6,
-                          top: 6,
-                          child: _tag(context, l.bundleGiftTag, bg: cs.error),
-                        ),
-                    ],
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest.withValues(alpha: .5),
+                      borderRadius: BorderRadius.circular(ZbTokens.rMd),
+                    ),
+                    child: ZbImage(
+                      url: component.image,
+                      radius: BorderRadius.circular(ZbTokens.rMd),
+                      padding: const EdgeInsets.all(6),
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         component.name,
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: context.tt.bodySmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           height: 1.35,
                         ),
                       ),
-                      if (component.weightLabel != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          component.weightLabel!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.tt.labelSmall?.copyWith(
-                            color: cs.onSurfaceVariant,
+                      const SizedBox(height: 6),
+                      // The count is the whole point of a component row —
+                      // it gets the weight of a headline, not of a footnote.
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: cs.primary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '×${component.qty}',
+                              style: context.tt.titleSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                height: 1.25,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          if (component.isGift) ...[
+                            const SizedBox(width: 6),
+                            _tag(context, l.bundleGiftTag, bg: cs.error),
+                          ],
+                          if (component.weightLabel != null) ...[
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                component.weightLabel!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.tt.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                 ),

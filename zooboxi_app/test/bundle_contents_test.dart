@@ -83,6 +83,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the longest real product name fits without overflowing', (tester) async {
+    // The worst case the store actually holds today.
+    await tester.pumpWidget(_host(BundleContents(components: [
+      _c(31, 'سوليد جولد إنديغو مون طعام رطب للقطط بالتونا والروبيان بالمرق 85غ',
+          qty: 8, weight: '85 غ'),
+      _c(32, 'ويلنس كور اوريجنال طعام جاف بالديك الرومي والدجاج للقطط الصغيرة',
+          qty: 12, role: 'gift', weight: '1.75 كجم'),
+    ])));
+    await tester.pumpAndSettle();
+
+    expect(find.text('×8'), findsOneWidget);
+    expect(find.text('×12'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('it survives a reader who scales text up', (tester) async {
+    await tester.pumpWidget(MediaQuery(
+      data: const MediaQueryData(textScaler: TextScaler.linear(1.6)),
+      child: _host(BundleContents(components: [
+        _c(41, 'سوليد جولد إنديغو مون طعام رطب للقطط بالسردين والتونا بالمرق 85غ',
+            qty: 8, weight: '85 غ'),
+      ])),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('an empty list draws nothing at all', (tester) async {
     await tester.pumpWidget(_host(const BundleContents(components: [])));
     await tester.pumpAndSettle();
