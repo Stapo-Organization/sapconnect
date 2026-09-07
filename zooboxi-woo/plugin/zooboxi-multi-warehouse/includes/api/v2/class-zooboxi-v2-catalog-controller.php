@@ -197,86 +197,175 @@ class Zooboxi_V2_Catalog_Controller
     }
 
     /**
-     * Data-driven hero panels: the express promise, live clearance, a featured brand and
-     * the bestsellers pool. Composition ported from Zooboxi_Hero_Slider::auto_slides();
-     * the app draws them, so we ship copy + artwork instead of a baked banner.
+     * The storefront's own slider.
+     *
+     * إكسبريس and زوبكسي do not sell the same thing, so they must not run the
+     * same slides. The branch sells THE NEXT TWO HOURS — a clock, its own
+     * shelves, its closing time. The main store sells BREADTH AND VALUE — the
+     * cutoff for arriving today, the bundles, a brand, the clearance, what
+     * landed this week. No slide appears on both.
+     *
+     * The app draws them, so we ship copy plus real product artwork instead of
+     * a baked banner, and every live number (the arrival clock, the countdown
+     * to the cutoff, the time left before the branch shuts) is rendered on the
+     * device — a cached payload must never state a time that has passed.
      */
     private function auto_hero_slides(): array
     {
-        $shop = function_exists('wc_get_page_permalink') ? (wc_get_page_permalink('shop') ?: null) : null;
+        $scope = Zooboxi_V2_Scope::current();
+        $shelf = (string) ($scope['shelf'] ?? '');
+
+        if ($shelf === 'express') {
+            return $this->express_hero_slides($scope);
+        }
+        if ($shelf === 'all') {
+            return $this->store_hero_slides($scope);
+        }
+        return $this->legacy_hero_slides($scope);
+    }
+
+    /** The shop archive, or null when the store has no shop page. */
+    private function shop_link(): ?string
+    {
+        return function_exists('wc_get_page_permalink') ? (wc_get_page_permalink('shop') ?: null) : null;
+    }
+
+    /**
+     * إكسبريس — four slides, all about NOW.
+     *
+     * @param array $scope Zooboxi_V2_Scope::current(), always non-null here.
+     */
+    private function express_hero_slides(array $scope): array
+    {
+        $shop   = $this->shop_link();
+        $branch = (string) ($scope['express_branch'] ?? '');
+        $out    = [];
+
+        $best = $this->pool_ids('bestsellers', [
+            Zooboxi_Product_Rail::q_bestsellers(16),
+            Zooboxi_Product_Rail::q_top_ranked(16),
+        ]);
+        $fresh = $this->pool_ids('new', [
+            Zooboxi_Product_Rail::q_new(16),
+            Zooboxi_Product_Rail::q_newest(16),
+        ]);
+
+        // 1) The clock. The app writes the arrival time itself — «يوصلك الساعة
+        //    10:30 م» — because this payload is cached for five minutes and a
+        //    printed time would be a promise going stale in the customer's hand.
+        $out[] = $this->auto_slide(
+            'express_clock',
+            Zooboxi_V2_Bootstrap::pick('يوصلك خلال ساعتين', 'At your door within two hours'),
+            $branch !== ''
+                ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s — أقرب فرع إليك', 'From %s, the branch nearest you'), $branch)
+                : Zooboxi_V2_Bootstrap::pick('من أقرب فرع إليك', 'From the branch nearest you'),
+            Zooboxi_V2_Bootstrap::pick('اطلب الآن', 'Order now'),
+            $shop,
+            null,
+            // The clock slide's artwork is scenery; the RANKED slide below owns
+            // the top of the list, so this one takes what comes after it.
+            self::thumbs(array_slice($best, 4), 3)
+        );
+
+        // 2) What that branch actually has on its shelves, most wanted first —
+        //    the express catalogue is small on purpose, so naming it is a
+        //    merchandising act, not a filler slide. These four are drawn with
+        //    rank badges, so they must be the real first four.
+        if (!empty($best)) {
+            $out[] = $this->auto_slide(
+                'express_top',
+                Zooboxi_V2_Bootstrap::pick('الأكثر طلباً في فرعك', 'Most wanted at your branch'),
+                $branch !== ''
+                    ? sprintf(Zooboxi_V2_Bootstrap::pick('موجود الآن على رفوف %s', 'On the shelves at %s right now'), $branch)
+                    : Zooboxi_V2_Bootstrap::pick('موجود الآن على رفوف فرعك', 'On your branch shelves right now'),
+                Zooboxi_V2_Bootstrap::pick('تصفّح القائمة', 'Browse the list'),
+                $shop,
+                null,
+                self::thumbs($best, 4)
+            );
+        }
+
+        // 3) New at the branch.
+        if (!empty($fresh)) {
+            $out[] = $this->auto_slide(
+                'express_new',
+                Zooboxi_V2_Bootstrap::pick('وصل حديثاً إلى فرعك', 'Just in at your branch'),
+                Zooboxi_V2_Bootstrap::pick('جديد على الرف، ويوصلك خلال ساعتين', 'New on the shelf, at your door in two hours'),
+                Zooboxi_V2_Bootstrap::pick('شاهد الجديد', 'See what is new'),
+                $shop,
+                null,
+                self::thumbs($fresh, 4)
+            );
+        }
+
+        // 4) The shutter — but only once it is urgent. Earlier in the day the
+        //    shelf tab already prints «9 ص – 11 م» a hundred pixels above the
+        //    hero, and repeating it there is filler. Inside the last four
+        //    hours it stops being information and becomes a deadline, which
+        //    the app draws ticking.
+        $hours = $scope['express_hours'] ?? null;
+        if (is_array($hours) && empty($hours['closed']) && !empty($hours['close']) && self::closing_soon((string) $hours['close'])) {
+            $out[] = $this->auto_slide(
+                'express_hours',
+                sprintf(
+                    Zooboxi_V2_Bootstrap::pick('الفرع مفتوح حتى %s', 'The branch is open until %s'),
+                    self::clock_label((string) $hours['close'])
+                ),
+                Zooboxi_V2_Bootstrap::pick('اطلب قبل الإغلاق ويوصلك الليلة', 'Order before closing and it arrives tonight'),
+                Zooboxi_V2_Bootstrap::pick('اطلب الآن', 'Order now'),
+                $shop
+            );
+        }
+
+        return $out;
+    }
+
+    /**
+     * زوبكسي — the main store: the cutoff, the bundles, a brand, the
+     * clearance, and what arrived this week.
+     */
+    private function store_hero_slides(array $scope): array
+    {
+        $shop = $this->shop_link();
         $out  = [];
 
-        // 1) The speed promise — the STOREFRONT's promise, not the address's.
-        // إكسبريس sells the two hours; زوبكسي sells tomorrow and, by the
-        // owner's rule, never utters the fast tier even where it exists. An
-        // older build (no tab header) keeps the address-based behaviour, and
-        // a shipping-only shelf gets no speed hero at all — clearance, the
-        // brand and the bestsellers carry the top instead.
-        $scope = Zooboxi_V2_Scope::current();
-        $shelf = $scope['shelf'] ?? '';
-        $express_hero = $scope === null
-            || $shelf === 'express'
-            || ($shelf === 'auto' && !empty($scope['express_available']));
-        $tomorrow_hero = !$express_hero
-            && ($scope['tier'] ?? '') === Zooboxi_Delivery_Engine::TYPE_STANDARD;
-
-        if ($express_hero) {
-            $out[] = $this->auto_slide(
-                'express',
-                Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered in two hours'),
-                $scope !== null && $scope['express_branch'] !== ''
-                    ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s مباشرة إلى بابك', 'Straight to your door from %s'), $scope['express_branch'])
-                    : Zooboxi_V2_Bootstrap::pick('من أقرب مستودع إليك داخل مدينتك', 'From the nearest warehouse in your city'),
-                Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
-                $shop
-            );
-        } elseif ($tomorrow_hero) {
-            $out[] = $this->auto_slide(
-                'express',
-                sprintf(
-                    Zooboxi_V2_Bootstrap::pick('اطلب الآن ويوصلك %s', 'Order now, arrives %s'),
-                    Zooboxi_Fulfillment::standard_day_label()
-                ),
-                Zooboxi_V2_Bootstrap::pick('من مستودعنا الرئيسي مباشرة إلى بابك', 'From our main warehouse straight to your door'),
-                Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
-                $shop
-            );
+        // 1) The cutoff. Ordering before one o'clock is the single most
+        //    valuable thing this storefront can say — but only where the
+        //    warehouse actually delivers next-day. A city we SHIP to has a
+        //    date, not a cut-off, and the header already names it; two
+        //    different promises on one screen is the one thing this slider
+        //    must never do.
+        //
+        //    The headline carries no day: this payload is cached for five
+        //    minutes and read again off disk at the next launch, so «اليوم»
+        //    printed here would still say «اليوم» tomorrow morning. The app
+        //    writes that word from its own clock.
+        if (($scope['tier'] ?? '') === Zooboxi_Delivery_Engine::TYPE_STANDARD) {
+        $out[] = $this->auto_slide(
+            'cutoff',
+            Zooboxi_V2_Bootstrap::pick('اطلب من مستودعنا الرئيسي', 'Order from our main warehouse'),
+            sprintf(
+                Zooboxi_V2_Bootstrap::pick('آخر موعد للطلب اليوم الساعة %s', 'Today\'s cutoff is %s'),
+                self::clock_label(implode(':', Zooboxi_Fulfillment::standard_cutoff()))
+            ),
+            Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
+            $shop,
+            null,
+            self::thumbs($this->pool_ids('bestsellers', [
+                Zooboxi_Product_Rail::q_bestsellers(16),
+                Zooboxi_Product_Rail::q_top_ranked(16),
+            ]), 3)
+        );
         }
 
-        // 2) Clearance — only when the collection actually has stock. The badge
-        // carries the real number ("up to 45% off") because "offers" without a
-        // figure is wallpaper, not merchandising.
-        $clearance = $this->pool_ids('clearance', [Zooboxi_Product_Rail::q_clearance(4)]);
-        if (!empty($clearance)) {
-            $max_off = 0;
-            foreach (array_slice($clearance, 0, 8) as $cid) {
-                $p = function_exists('wc_get_product') ? wc_get_product((int) $cid) : null;
-                if (!$p) {
-                    continue;
-                }
-                $regular = (float) $p->get_regular_price();
-                $now     = (float) $p->get_price();
-                if ($regular > 0 && $now > 0 && $now < $regular) {
-                    $max_off = max($max_off, (int) round((1 - $now / $regular) * 100));
-                }
-            }
-            // No clearance archive exists on the website, so the app routes this slide
-            // by `theme` (its own /clearance surface) rather than by URL.
-            $out[] = $this->auto_slide(
-                'clearance',
-                Zooboxi_V2_Bootstrap::pick('عروض التصفية', 'Clearance offers'),
-                Zooboxi_V2_Bootstrap::pick('أسعار مخفّضة على منتجات مختارة بكميات محدودة', 'Reduced prices on selected products, limited quantities'),
-                Zooboxi_V2_Bootstrap::pick('اكتشف العروض', 'View the offers'),
-                null,
-                null,
-                self::thumbs($clearance, 4),
-                $max_off >= 10
-                    ? sprintf(Zooboxi_V2_Bootstrap::pick('خصم حتى %d%%', 'Up to %d%% off'), $max_off)
-                    : null
-            );
+        // 2) البكجات — a real, owner-approved saving, with the artwork the
+        //    generator composed for each one.
+        $bundles = $this->bundle_slide();
+        if ($bundles !== null) {
+            $out[] = $bundles;
         }
 
-        // 3) Featured brand (shares the website's 6h `zbhero_featured_brand` transient).
+        // 3) Featured brand.
         $brand = $this->featured_brand();
         if ($brand !== null) {
             $out[] = $this->auto_slide(
@@ -289,7 +378,65 @@ class Zooboxi_V2_Catalog_Controller
             );
         }
 
-        // 4) Bestsellers.
+        // 4) Clearance, with the real number on it.
+        $clearance = $this->clearance_slide();
+        if ($clearance !== null) {
+            $out[] = $clearance;
+        }
+
+        return $out;
+    }
+
+    /**
+     * The slides an app from before the tabs gets: what this endpoint has
+     * always returned for it — the address's fastest promise, clearance, a
+     * brand and the bestsellers.
+     */
+    private function legacy_hero_slides(?array $scope): array
+    {
+        $shop = $this->shop_link();
+        $out  = [];
+
+        // A shipping-only address gets no speed slide at all — clearance, the
+        // brand and the bestsellers carry the top instead. Older builds print
+        // this headline as it arrives, so it must not promise a day they
+        // cannot verify against their own clock.
+        $express  = $scope === null || !empty($scope['express_available']);
+        $standard = $scope !== null && ($scope['tier'] ?? '') === Zooboxi_Delivery_Engine::TYPE_STANDARD;
+        if ($express || $standard) {
+            $out[] = $this->auto_slide(
+                'express',
+                $express
+                    ? Zooboxi_V2_Bootstrap::pick('توصيل خلال ساعتين', 'Delivered in two hours')
+                    : sprintf(
+                        Zooboxi_V2_Bootstrap::pick('اطلب الآن ويوصلك %s', 'Order now, arrives %s'),
+                        Zooboxi_Fulfillment::standard_day_label()
+                    ),
+                $express && $scope !== null && ($scope['express_branch'] ?? '') !== ''
+                    ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s مباشرة إلى بابك', 'Straight to your door from %s'), $scope['express_branch'])
+                    : Zooboxi_V2_Bootstrap::pick('من مستودعنا الرئيسي مباشرة إلى بابك', 'From our main warehouse straight to your door'),
+                Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
+                $shop
+            );
+        }
+
+        $clearance = $this->clearance_slide();
+        if ($clearance !== null) {
+            $out[] = $clearance;
+        }
+
+        $brand = $this->featured_brand();
+        if ($brand !== null) {
+            $out[] = $this->auto_slide(
+                'brand',
+                sprintf(Zooboxi_V2_Bootstrap::pick('ماركة %s', '%s'), $brand['name']),
+                Zooboxi_V2_Bootstrap::pick('منتجات أصلية مستوردة مباشرة', 'Original products, imported directly'),
+                Zooboxi_V2_Bootstrap::pick('تسوّق الماركة', 'Shop the brand'),
+                $brand['link'],
+                ['name' => $brand['name'], 'logo' => $brand['logo']]
+            );
+        }
+
         $out[] = $this->auto_slide(
             'bestsellers',
             Zooboxi_V2_Bootstrap::pick('الأكثر مبيعاً', 'Best sellers'),
@@ -297,10 +444,132 @@ class Zooboxi_V2_Catalog_Controller
             Zooboxi_V2_Bootstrap::pick('تصفّح القائمة', 'Browse the list'),
             $shop,
             null,
-            self::thumbs($this->pool_ids('bestsellers', []), 4)
+            self::thumbs($this->pool_ids('bestsellers', [
+                Zooboxi_Product_Rail::q_bestsellers(16),
+                Zooboxi_Product_Rail::q_top_ranked(16),
+            ]), 4)
         );
 
         return $out;
+    }
+
+    /**
+     * The clearance slide, or null when the collection is empty. The badge
+     * carries the real number ("خصم حتى 45%") because "offers" without a
+     * figure is wallpaper, not merchandising.
+     */
+    private function clearance_slide(): ?array
+    {
+        $clearance = $this->pool_ids('clearance', [Zooboxi_Product_Rail::q_clearance(8)]);
+        if (empty($clearance)) {
+            return null;
+        }
+
+        $max_off = 0;
+        foreach (array_slice($clearance, 0, 8) as $cid) {
+            $p = function_exists('wc_get_product') ? wc_get_product((int) $cid) : null;
+            if (!$p) {
+                continue;
+            }
+            $regular = (float) $p->get_regular_price();
+            $now     = (float) $p->get_price();
+            if ($regular > 0 && $now > 0 && $now < $regular) {
+                $max_off = max($max_off, (int) round((1 - $now / $regular) * 100));
+            }
+        }
+
+        // No clearance archive exists on the website, so the app routes this slide
+        // by `theme` (its own /clearance surface) rather than by URL.
+        return $this->auto_slide(
+            'clearance',
+            Zooboxi_V2_Bootstrap::pick('عروض التصفية', 'Clearance offers'),
+            Zooboxi_V2_Bootstrap::pick('أسعار مخفّضة على منتجات مختارة بكميات محدودة', 'Reduced prices on selected products, limited quantities'),
+            Zooboxi_V2_Bootstrap::pick('اكتشف العروض', 'View the offers'),
+            null,
+            null,
+            self::thumbs($clearance, 4),
+            $max_off >= 10
+                ? sprintf(Zooboxi_V2_Bootstrap::pick('خصم حتى %d%%', 'Up to %d%% off'), $max_off)
+                : null
+        );
+    }
+
+    /**
+     * «البكجات» as a slide: the bundles this shelf can actually build, their
+     * own composed artwork, and the deepest saving among them.
+     */
+    private function bundle_slide(): ?array
+    {
+        if (!class_exists('Zooboxi_Bundles')) {
+            return null;
+        }
+        [$lat, $lng] = Zooboxi_V2_Bootstrap::latlng();
+        $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::requested() : '';
+        $ids   = Zooboxi_Bundles::ranked_ids(get_current_user_id(), (float) $lat, (float) $lng, 4, $shelf);
+        if (empty($ids)) {
+            return null;
+        }
+
+        $save = 0;
+        foreach ($ids as $pid) {
+            $p = function_exists('wc_get_product') ? wc_get_product((int) $pid) : null;
+            if (!$p) {
+                continue;
+            }
+            $regular = (float) $p->get_regular_price();
+            $now     = (float) $p->get_price();
+            if ($regular > 0 && $now > 0 && $now < $regular) {
+                $save = max($save, (int) round((1 - $now / $regular) * 100));
+            }
+        }
+
+        return $this->auto_slide(
+            'bundles',
+            Zooboxi_V2_Bootstrap::pick('بكجات زوبكسي', 'Zooboxi bundles'),
+            Zooboxi_V2_Bootstrap::pick('باقات جاهزة بسعر أقل من شراء القطع منفردة', 'Ready-made packs, cheaper than the pieces on their own'),
+            Zooboxi_V2_Bootstrap::pick('شاهد البكجات', 'See the bundles'),
+            null,
+            null,
+            self::thumbs($ids, 4),
+            $save >= 5
+                ? sprintf(Zooboxi_V2_Bootstrap::pick('وفّر حتى %d%%', 'Save up to %d%%'), $save)
+                : null
+        );
+    }
+
+    /** Is the branch inside the last four hours before it shuts? */
+    private static function closing_soon(string $close, int $window = 4 * 3600): bool
+    {
+        try {
+            $now = new DateTime('now', new DateTimeZone('Asia/Riyadh'));
+        } catch (Exception $e) {
+            return false;
+        }
+        $parts = explode(':', $close);
+        $shut = (clone $now)->setTime((int) ($parts[0] ?? 0), (int) ($parts[1] ?? 0));
+        $left = $shut->getTimestamp() - $now->getTimestamp();
+        return $left > 0 && $left <= $window;
+    }
+
+    /** "13:00" (or "13:0") → "1 م" / "1 PM", in the request's language. */
+    private static function clock_label(string $hhmm): string
+    {
+        $parts = explode(':', $hhmm);
+        $h = (int) ($parts[0] ?? 0);
+        $m = (int) ($parts[1] ?? 0);
+        $suffix = Zooboxi_V2_Bootstrap::lang() === 'en'
+            ? ($h < 12 ? 'AM' : 'PM')
+            : ($h < 12 ? 'ص' : 'م');
+        $h12 = $h % 12;
+        if ($h12 === 0) {
+            $h12 = 12;
+        }
+        // A no-break space: at a large text size «11 م» would otherwise wrap
+        // with the meridiem alone on the next line, and an hour with no ص/م
+        // is not a time.
+        return $m === 0
+            ? sprintf("%d\u{00A0}%s", $h12, $suffix)
+            : sprintf("%d:%02d\u{00A0}%s", $h12, $m, $suffix);
     }
 
     private function auto_slide(
@@ -334,13 +603,22 @@ class Zooboxi_V2_Catalog_Controller
      */
     private function pool_ids(string $key, array $fallback): array
     {
-        $ids = get_transient('zbhome_ids_' . $key . '_' . get_locale());
-        if (is_array($ids)) {
+        // The SHELF's pool — the same key rail() writes, suffix included. Without
+        // the suffix an app request read a key the rails never wrote and every
+        // slide came back with no artwork at all.
+        $scope_clause = Zooboxi_V2_Scope::meta_clause();
+        $ids = get_transient('zbhome_ids_' . $key . '_' . get_locale() . Zooboxi_V2_Scope::cache_suffix());
+        if (is_array($ids) && !empty($ids)) {
             return array_map('intval', $ids);
         }
         foreach ($fallback as $args) {
             $args['fields']        = 'ids';
             $args['no_found_rows'] = true;
+            if ($scope_clause) {
+                $args['meta_query'] = empty($args['meta_query'])
+                    ? [$scope_clause]
+                    : ['relation' => 'AND', $args['meta_query'], $scope_clause];
+            }
             $q   = new WP_Query($args);
             $ids = is_array($q->posts) ? array_map('intval', $q->posts) : [];
             wp_reset_postdata();
