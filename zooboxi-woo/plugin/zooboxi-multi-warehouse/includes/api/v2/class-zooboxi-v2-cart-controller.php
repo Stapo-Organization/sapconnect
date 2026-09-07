@@ -332,8 +332,9 @@ class Zooboxi_V2_Cart_Controller
         }
 
         // One basket, one storefront. The app names the shelf it is browsing;
-        // the web sends none and is untouched.
-        $shelf = Zooboxi_V2_Bootstrap::shelf();
+        // the web sends none and is untouched. After closing time an express
+        // tab is answered as زوبكسي — see Zooboxi_Cart_Shelf::requested().
+        $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::requested() : '';
         if (class_exists('Zooboxi_Cart_Shelf') && Zooboxi_Cart_Shelf::valid($shelf)) {
             $basket = Zooboxi_Cart_Shelf::current();
 
@@ -348,7 +349,9 @@ class Zooboxi_V2_Cart_Controller
                 // otherwise this walks the customer across baskets for a
                 // product nobody near them holds, and WooCommerce's own
                 // out-of-stock answer is the honest one.
-                if (Zooboxi_Cart_Shelf::fits($product_id, $other)) {
+                // …and only while that storefront can actually deliver: after
+                // closing time the branch's basket has no way out of the shop.
+                if (Zooboxi_Cart_Shelf::fits($product_id, $other) && Zooboxi_Cart_Shelf::serves($other)) {
                     return Zooboxi_V2_Bootstrap::fail(
                         'shelf_conflict',
                         __('هذا المنتج من المتجر الآخر', 'zooboxi'),
@@ -368,7 +371,8 @@ class Zooboxi_V2_Cart_Controller
                 // product nobody near the customer holds must not send them
                 // across baskets — WooCommerce's own out-of-stock answer is
                 // the true one, and their basket stays where it is.
-                && Zooboxi_Cart_Shelf::fits($product_id, Zooboxi_Cart_Shelf::other($basket))) {
+                && Zooboxi_Cart_Shelf::fits($product_id, Zooboxi_Cart_Shelf::other($basket))
+                && Zooboxi_Cart_Shelf::serves(Zooboxi_Cart_Shelf::other($basket))) {
                 return Zooboxi_V2_Bootstrap::fail(
                     'shelf_conflict',
                     __('سلتك من متجر آخر', 'zooboxi'),

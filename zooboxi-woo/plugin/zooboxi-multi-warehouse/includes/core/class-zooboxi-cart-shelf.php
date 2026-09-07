@@ -118,6 +118,64 @@ class Zooboxi_Cart_Shelf
         return $shelf === self::EXPRESS ? self::ALL : self::EXPRESS;
     }
 
+    /**
+     * The shelf a REQUEST is really browsing.
+     *
+     * إكسبريس is a place AND a time. Once the branch shuts, nothing serves
+     * this address in two hours, and the catalogue already answers the
+     * إكسبريس tab with the main store's shelf (Zooboxi_V2_Scope::current()).
+     * If the basket kept judging by the shut branch it would refuse every
+     * line the page had just shown — a tab that browses all night and adds
+     * nothing. So outside opening hours an express request IS a زوبكسي
+     * request: same catalogue, same basket, same promise.
+     *
+     * '' when no tab was named (the website, an app build from before the
+     * tabs) — where the rule stands down entirely.
+     */
+    public static function requested(): string
+    {
+        if (!class_exists('Zooboxi_V2_Bootstrap')) {
+            return '';
+        }
+        $shelf = Zooboxi_V2_Bootstrap::shelf();
+        if (!self::valid($shelf)) {
+            return '';
+        }
+        if ($shelf === self::EXPRESS && !self::express_serving()) {
+            return self::ALL;
+        }
+        return $shelf;
+    }
+
+    /**
+     * Can a basket on [$shelf] actually be delivered right now?
+     *
+     * زوبكسي always can. إكسبريس only while a branch is open: inviting a
+     * customer across to the branch's basket at midnight would hand them a
+     * basket that checkout must then refuse.
+     */
+    public static function serves(string $shelf): bool
+    {
+        if (!self::valid($shelf)) {
+            return false;
+        }
+        return $shelf === self::EXPRESS ? self::express_serving() : true;
+    }
+
+    /** Is an express branch actually taking orders for this address right now? */
+    private static function express_serving(): bool
+    {
+        if (!class_exists('Zooboxi_Warehouse_Manager')) {
+            return true; // Cannot be evaluated → leave the request as it came.
+        }
+        [$lat, $lng] = self::point();
+        if (!$lat && !$lng) {
+            return true; // Unknown location: codes_for() is empty and nothing is judged.
+        }
+        $found = Zooboxi_Warehouse_Manager::find_express_warehouses($lat, $lng);
+        return !empty($found[0]['warehouse']['warehouse_code']);
+    }
+
     public static function remember(string $shelf): void
     {
         if (self::valid($shelf)) {
@@ -560,7 +618,11 @@ class Zooboxi_Cart_Shelf
         if (!$started || self::valid($recorded)) {
             return;
         }
-        $requested = class_exists('Zooboxi_V2_Bootstrap') ? Zooboxi_V2_Bootstrap::shelf() : '';
+        // requested(), not the raw header: after closing time an express tab
+        // IS زوبكسي, and a basket started here by a door that does not go
+        // through add_item — «اطلب مجددًا», a claimed gift — would otherwise
+        // be labelled express and refuse everything added to it next.
+        $requested = self::requested();
         if (self::valid($requested) && self::fits((int) $product_id, $requested)) {
             self::remember($requested);
             return;

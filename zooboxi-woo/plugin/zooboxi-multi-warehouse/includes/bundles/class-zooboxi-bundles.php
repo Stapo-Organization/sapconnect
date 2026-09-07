@@ -485,9 +485,16 @@ class Zooboxi_Bundles
      * food gauge (a bundle of a due staple jumps to the top), express
      * reachability for the caller's location, then savings depth.
      *
+     * @param string $shelf The storefront being browsed ('express' | 'all'),
+     *                      '' for the website, which is not split into tabs.
+     *                      A bundle the shelf's own warehouse cannot build is
+     *                      DROPPED, not merely ranked lower: the إكسبريس tab
+     *                      showing a bundle only the main warehouse holds is a
+     *                      product the basket then has to refuse.
+     *
      * @return int[]
      */
-    public static function ranked_ids(int $userId, float $lat = 0.0, float $lng = 0.0, int $limit = 24): array
+    public static function ranked_ids(int $userId, float $lat = 0.0, float $lng = 0.0, int $limit = 24, string $shelf = ''): array
     {
         $ids = self::instance_live_ids();
         if ($ids === []) {
@@ -503,10 +510,19 @@ class Zooboxi_Bundles
             $dueIds = Zooboxi_Loyalty_Supply::on_time_ids($userId);
         }
 
+        // The same predicate the add-to-cart guard uses, so the shelf can
+        // never show what the basket would turn away.
+        $scoped = $shelf !== ''
+            && class_exists('Zooboxi_Cart_Shelf')
+            && Zooboxi_Cart_Shelf::valid($shelf);
+
         $scored = [];
         foreach ($ids as $pid) {
             $product = wc_get_product($pid);
             if (!$product || !$product->is_in_stock()) {
+                continue;
+            }
+            if ($scoped && !Zooboxi_Cart_Shelf::fits($pid, $shelf)) {
                 continue;
             }
 

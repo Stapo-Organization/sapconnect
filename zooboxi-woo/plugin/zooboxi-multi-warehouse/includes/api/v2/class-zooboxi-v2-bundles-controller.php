@@ -25,7 +25,7 @@ class Zooboxi_V2_Bundles_Controller
         $lat = (float) ($request->get_param('lat') ?: $lat);
         $lng = (float) ($request->get_param('lng') ?: $lng);
 
-        $ids = Zooboxi_Bundles::ranked_ids($uid, $lat, $lng, 40);
+        $ids = Zooboxi_Bundles::ranked_ids($uid, $lat, $lng, 40, self::shelf());
         $cards = [];
         foreach (Zooboxi_Product_DTO::cards($ids) as $card) {
             $cards[] = self::extend($card);
@@ -103,4 +103,22 @@ class Zooboxi_V2_Bundles_Controller
 
         return $card;
     }
+
+    /**
+     * The storefront this request is browsing, as the cart rule spells it:
+     * 'express' | 'all', and '' for anything unscoped (no location, an app
+     * build from before the tabs, the kill-switch off) — where nothing is
+     * filtered, because a rule that cannot be evaluated must not hide stock.
+     */
+    private static function shelf(): string
+    {
+        if (!class_exists('Zooboxi_Cart_Shelf') || !class_exists('Zooboxi_V2_Scope')
+            || !Zooboxi_V2_Scope::is_enabled()) {
+            return '';
+        }
+        // The TAB, as the add-to-cart guard reads it — the same call, so the
+        // rail can never offer what the basket is about to refuse.
+        return Zooboxi_Cart_Shelf::requested();
+    }
+
 }

@@ -66,6 +66,24 @@ call_auth() {
   curl "${args[@]}" "${BASE}${path}" 2>/dev/null || echo "000"
 }
 
+# call_shelf <METHOD> <PATH> <SHELF> [json-body] — a call from one storefront tab,
+# under its own guest so the shelf it records cannot disturb the cart flow above.
+call_shelf() {
+  local method="$1" path="$2" shelf="$3" body="${4:-}"
+  local args=(-sS -o "$BODY_FILE" -w '%{http_code}' -X "$method"
+    -H 'Accept: application/json'
+    -H "X-ZB-Guest: ${GUEST}-${shelf}"
+    -H "X-ZB-Shelf: ${shelf}"
+    -H "X-ZB-Lat: ${LAT}"
+    -H "X-ZB-Lng: ${LNG}"
+    -H "X-ZB-City: ${CITY}"
+    -H 'X-ZB-App: smoke/1.0')
+  if [ -n "$body" ]; then
+    args+=(-H 'Content-Type: application/json' -d "$body")
+  fi
+  curl "${args[@]}" "${BASE}${path}" 2>/dev/null || echo "000"
+}
+
 # headers <PATH> — the response headers of a guest GET, lowercased.
 headers() {
   curl -sS -o /dev/null -D - -X GET \
@@ -136,7 +154,9 @@ expect_jq '(.data.rails | length) == 0 or (.data.rails[0].products | type == "ar
 expect_jq '.data.layout | type == "array" and length >= 10' "layout is an array of 10+ sections"
 expect_jq '[.data.layout[] | has("type")] | all' "every layout entry names a type"
 expect_jq '[.data.layout[].type] | index("family") != null and index("missions") != null' "layout carries the family + missions slots"
-expect_jq '[.data.layout[].type] | index("family") == 1' "family sits directly after the hero"
+# «البكجات» took the slot right under the hero when bundles shipped; the family
+# card is the first thing after it.
+expect_jq '[.data.layout[].type] | index("family") <= 2' "family sits in the top of the page"
 expect_jq '[.data.layout[].type] | index("missions") == (index("personal") + 1)' "missions sits directly after personal"
 
 # Never show the same product twice across the home rails.
@@ -353,6 +373,76 @@ else
 fi
 
 # ─────────────────────────────────────── auth guards (no token)
+# ─────────────────────────── a shelf shows only what its own basket accepts
+# «البكجات» are fetched by id, so they miss the catalogue's warehouse filter
+# unless the rail applies it itself. A bundle on the إكسبريس tab that only the
+# main warehouse can build would be offered and then refused.
+c_head "Bundles belong to the shelf that shows them"
+code=$(call_shelf GET "/bundles" "express")
+if [ "$code" = "200" ]; then
+  c_ok "bundles respond on the إكسبريس shelf (HTTP 200)"
+  BUNDLE_ID=$(jq -r '.data.bundles[0].id // empty' "$BODY_FILE" 2>/dev/null)
+  if [ -n "${BUNDLE_ID:-}" ]; then
+    code=$(call_shelf POST "/cart/items" "express" "{\"product_id\":${BUNDLE_ID},\"quantity\":1}")
+    expect_status "$code" 200 "a bundle shown on إكسبريس is one the إكسبريس basket takes"
+    BKEY=$(jq -r '[.data.items[]? | select(.product_id == '"${BUNDLE_ID}"') | .key] | first // empty' "$BODY_FILE" 2>/dev/null)
+    if [ -n "${BKEY:-}" ]; then
+      code=$(call_shelf DELETE "/cart/items/${BKEY}" "express")
+      expect_status "$code" 200 "smoke bundle line removed again"
+    fi
+  else
+    c_ok "no bundle reaches this branch right now — add check skipped"
+  fi
+else
+  c_bad "bundles do not respond on the إكسبريس shelf — HTTP $code"
+fi
+
+# ────────────────── a basket that steps aside comes back whole
+# Switching baskets re-adds the stashed lines through WooCommerce, which
+# stock-checks them against the customer's area. Anything that narrows that
+# check to the CURRENT tab silently drops the other shelf's lines — the app
+# switches the basket before it moves the tab, so the header is the old one.
+c_head "The basket left behind returns whole"
+SWG="${GUEST}-switch"
+sw() { # <METHOD> <PATH> <SHELF> [body]
+  local method="$1" path="$2" shelf="$3" body="${4:-}"
+  local args=(-sS -o "$BODY_FILE" -w '%{http_code}' -X "$method"
+    -H 'Accept: application/json'
+    -H "X-ZB-Guest: ${SWG}"
+    -H "X-ZB-Shelf: ${shelf}"
+    -H "X-ZB-Lat: ${LAT}" -H "X-ZB-Lng: ${LNG}" -H "X-ZB-City: ${CITY}"
+    -H 'X-ZB-App: smoke/1.0')
+  if [ -n "$body" ]; then args+=(-H 'Content-Type: application/json' -d "$body"); fi
+  curl "${args[@]}" "${BASE}${path}" 2>/dev/null || echo "000"
+}
+
+# A bundle only the main warehouse can build, and one the branch can — the
+# pair that makes the two baskets genuinely different.
+code=$(call_shelf GET "/bundles" "express")
+EXP_IDS=$(jq -r '[.data.bundles[].id] | join(" ")' "$BODY_FILE" 2>/dev/null)
+EXP_ONE=$(echo "$EXP_IDS" | awk '{print $1}')
+code=$(call_shelf GET "/bundles" "all")
+ALL_ONLY=$(jq -r --arg e "$EXP_IDS" '[.data.bundles[].id] - ($e | split(" ") | map(tonumber)) | first // empty' "$BODY_FILE" 2>/dev/null)
+
+if [ -n "${EXP_ONE:-}" ] && [ -n "${ALL_ONLY:-}" ]; then
+  code=$(sw POST "/cart/items" "all" "{\"product_id\":${ALL_ONLY},\"quantity\":2}")
+  expect_status "$code" 200 "a زوبكسي basket is started"
+  code=$(sw POST "/cart/basket" "express" '{"shelf":"express"}')
+  expect_status "$code" 200 "it steps aside for the إكسبريس basket"
+  code=$(sw POST "/cart/items" "express" "{\"product_id\":${EXP_ONE},\"quantity\":1}")
+  expect_status "$code" 200 "the branch's own bundle is added"
+  # The app switches the basket first and moves the tab after, so the header
+  # here is deliberately the OLD one.
+  code=$(sw POST "/cart/basket" "express" '{"shelf":"all"}')
+  expect_status "$code" 200 "the زوبكسي basket is opened again"
+  expect_jq '.data.count == 2' "it came back whole — both units, nothing dropped"
+  expect_jq '[.data.items[].product_id] | index('"${ALL_ONLY}"') != null' "the central-only line survived the switch"
+  ITEM=$(jq -r '.data.items[0].key // empty' "$BODY_FILE" 2>/dev/null)
+  [ -n "${ITEM:-}" ] && sw DELETE "/cart/items/${ITEM}" "all" >/dev/null
+else
+  c_ok "the two shelves hold the same bundles right now — switch check skipped"
+fi
+
 c_head "Bearer-only routes reject a guest"
 code=$(call GET "/orders")
 expect_status "$code" 401 "/orders is 401 for a guest"

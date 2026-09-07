@@ -266,7 +266,40 @@ class Zooboxi_Product_DTO
         if ($qty === null) {
             return null;
         }
-        return min(self::STOCK_DISPLAY_CAP, max(0, (int) $qty));
+        $qty = max(0, (int) $qty);
+
+        // The number on a card belongs to the shelf the card is on. WooCommerce
+        // filters stock to the customer's whole AREA — branch plus the city's
+        // warehouse — so «بقي 22» would appear above a branch holding two, and
+        // إكسبريس would be advertising stock it cannot hand over.
+        //
+        // Display only. What may actually be ordered is `reachable_total`,
+        // which already speaks per shelf, and the cart is still validated by
+        // WooCommerce against the whole area — a basket that moves between
+        // storefronts must not lose lines to this.
+        $codes = class_exists('Zooboxi_V2_Scope') ? Zooboxi_V2_Scope::codes() : [];
+        if (!empty($codes)
+            && class_exists('Zooboxi_Stock_Manager')
+            // Variations count in their own pack unit (حبة/كرتون) while
+            // warehouse stock is kept in pieces on the parent; comparing the
+            // two would be comparing cartons to bottles.
+            && !($product instanceof \WC_Product_Variation)) {
+            $shelf_qty = 0;
+            foreach (Zooboxi_Stock_Manager::get_warehouse_stock($product->get_id()) as $row) {
+                if (in_array((string) ($row['warehouse_code'] ?? ''), $codes, true)) {
+                    $shelf_qty += max(0, (int) ($row['in_stock'] ?? 0));
+                }
+            }
+            // Zero means this shelf does not carry it at all — a wishlist
+            // entry, a scanned barcode, a shared link from the other
+            // storefront. The area's number stays: the add offers the other
+            // basket, and «نفد» would be a lie.
+            if ($shelf_qty > 0) {
+                $qty = min($qty, $shelf_qty);
+            }
+        }
+
+        return min(self::STOCK_DISPLAY_CAP, $qty);
     }
 
     /** Primary brand term ({name,slug}) or null. */

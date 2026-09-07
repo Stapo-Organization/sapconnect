@@ -92,7 +92,7 @@ class Zooboxi_V2_Feed_Controller
             return null;
         }
 
-        $ids = Zooboxi_Bundles::ranked_ids($uid, $lat, $lng, 8);
+        $ids = Zooboxi_Bundles::ranked_ids($uid, $lat, $lng, 8, self::shelf());
         if (empty($ids)) {
             return null;
         }
@@ -578,4 +578,22 @@ class Zooboxi_V2_Feed_Controller
         }
         return $ids;
     }
+
+    /**
+     * The storefront this request is browsing, as the cart rule spells it:
+     * 'express' | 'all', and '' for anything unscoped (no location, an app
+     * build from before the tabs, the kill-switch off) — where nothing is
+     * filtered, because a rule that cannot be evaluated must not hide stock.
+     */
+    private static function shelf(): string
+    {
+        if (!class_exists('Zooboxi_Cart_Shelf') || !class_exists('Zooboxi_V2_Scope')
+            || !Zooboxi_V2_Scope::is_enabled()) {
+            return '';
+        }
+        // The TAB, as the add-to-cart guard reads it — the same call, so the
+        // rail can never offer what the basket is about to refuse.
+        return Zooboxi_Cart_Shelf::requested();
+    }
+
 }
