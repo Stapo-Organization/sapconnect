@@ -53,101 +53,116 @@ class MissionsStrip extends ConsumerWidget {
     ];
     final done = missions.where((m) => m.isDone).length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-          child: Row(
-            children: [
-              ProgressRing(
-                value: missions.isEmpty ? 0 : done / missions.length,
-                color: cs.primary,
-                size: 34,
-                stroke: 4,
-                child: const MissionSticker(kind: 'welcome', size: 18),
-              ),
-              Gap.w10,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l.missionsTitle,
-                      style: context.tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    Text(
-                      l.missionsDoneOf(done, missions.length),
-                      style: context.tt.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+    // The play layer gets a surface of its own on the storefront: every other
+    // rail runs edge to edge, and this one is a board — the same board the
+    // family screen crowns its missions with.
+    // A band, not a box: the storefront is a column of rails keyed to 16pt,
+    // and a floating panel in the middle of it breaks that column. The
+    // horizontal padding belongs to the header and the list, not to the
+    // surface, so a card can still scroll to the true edge of the screen.
+    return BoardSurface(
+      accent: cs.primary,
+      band: true,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+            child: Row(
+              children: [
+                ProgressRing(
+                  value: missions.isEmpty ? 0 : done / missions.length,
+                  color: cs.primary,
+                  size: 34,
+                  stroke: 4,
+                  child: const MissionSticker(kind: 'welcome', size: 18),
+                ),
+                Gap.w10,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.missionsTitle,
+                        style: context.tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                       ),
-                    ),
-                  ],
+                      Text(
+                        l.missionsDoneOf(done, missions.length),
+                        style: context.tt.labelSmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              TextButton(
-                onPressed: () => context.push('/family'),
-                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(l.actionSeeAll),
-                    Icon(
-                      context.isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
-                      size: 18,
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () => context.push('/family'),
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(l.actionSeeAll),
+                      Icon(
+                        context.isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                        size: 18,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          // The medal folded the ring into the sticker, so the compact card
-          // is one object and a line of text rather than two circles with a
-          // column squeezed between them.
-          height: 88,
-          child: MediaQuery.withClampedTextScaling(
-            maxScaleFactor: 1.2,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
-              physics: const BouncingScrollPhysics(),
-              clipBehavior: Clip.none,
-              itemCount: ordered.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final mission = ordered[index];
-                return MissionCard(
-                  mission: mission,
-                  compact: true,
-                  // Wide enough that «أول طلب من التطبيق» finishes its
-                  // sentence beside the medal and the coin; the card's height
-                  // is what the owner asked to shrink, not its width.
-                  width: 268,
-                  awaitingDelivery:
-                      awaitingDelivery &&
-                      (mission.kind == 'welcome' || mission.kind == 'frequency'),
-                  onTap: () {
-                    ref
-                        .read(eventsBufferProvider)
-                        .track(
-                          ZbEvent(
-                            type: ZbEvents.loyaltyMission,
-                            zone: 'home',
-                            payload: {'mission_id': mission.id, 'state': mission.state},
-                          ),
-                        );
-                    context.push('/family');
-                  },
-                );
-              },
+              ],
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 10),
+          SizedBox(
+            // The medal folded the ring into the sticker, so the compact card
+            // is one object and a line of text rather than two circles with a
+            // column squeezed between them.
+            height: 88,
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.2,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                physics: const BouncingScrollPhysics(),
+                // Not pointless inside the band's clip: it is what lets a
+                // card's own shadow paint into the band's bottom padding
+                // instead of being cut flat at the list's box.
+                clipBehavior: Clip.none,
+                itemCount: ordered.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final mission = ordered[index];
+                  return MissionCard(
+                    mission: mission,
+                    compact: true,
+                    // Wide enough that «أول طلب من التطبيق» finishes its
+                    // sentence beside the medal and the coin; the card's height
+                    // is what the owner asked to shrink, not its width.
+                    width: 268,
+                    awaitingDelivery:
+                        awaitingDelivery &&
+                        (mission.kind == 'welcome' || mission.kind == 'frequency'),
+                    onTap: () {
+                      ref
+                          .read(eventsBufferProvider)
+                          .track(
+                            ZbEvent(
+                              type: ZbEvents.loyaltyMission,
+                              zone: 'home',
+                              payload: {'mission_id': mission.id, 'state': mission.state},
+                            ),
+                          );
+                      context.push('/family');
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

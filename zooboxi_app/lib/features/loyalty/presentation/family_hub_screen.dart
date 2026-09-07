@@ -541,20 +541,8 @@ class _MissionBoard extends StatelessWidget {
     final all = missions.isNotEmpty && done == missions.length;
     final month = _month;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-          colors: [
-            accent.withValues(alpha: context.isDark ? 0.16 : 0.10),
-            accent.withValues(alpha: context.isDark ? 0.06 : 0.03),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(ZbTokens.rXl),
-        border: Border.all(color: accent.withValues(alpha: 0.22)),
-      ),
+    return BoardSurface(
+      accent: accent,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

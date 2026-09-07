@@ -1325,6 +1325,127 @@ class _PawPatternPainter extends CustomPainter {
   bool shouldRepaint(covariant _PawPatternPainter old) => old.color != color || old.scale != scale;
 }
 
+/// The play layer's own surface: the panel a board or a strip of missions
+/// sits on.
+///
+/// Four things make it read as a made object rather than a tinted rectangle,
+/// and all four are quiet: a diagonal wash of the tier's colour, the
+/// membership card's paw print at a whisper, a light falling from the top
+/// corner, and a shadow tinted with the same colour it is lit by. Nothing
+/// here is allowed to compete with the stickers on top of it.
+class BoardSurface extends StatelessWidget {
+  const BoardSurface({
+    super.key,
+    required this.accent,
+    required this.child,
+    this.padding = const EdgeInsets.fromLTRB(14, 12, 14, 14),
+    this.band = false,
+  });
+
+  final Color accent;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  /// A full-width band rather than a card: square sides, hairlines top and
+  /// bottom, no shadow. The storefront is a column of rails, and a floating
+  /// box in the middle of it breaks the page's rhythm — a band keeps the
+  /// section's own surface without pulling it out of the column.
+  final bool band;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    final dark = context.isDark;
+    final radius = band ? BorderRadius.zero : BorderRadius.circular(ZbTokens.rXl);
+    // A band sits inside the page; a card floats over it and carries more
+    // colour to earn the lift.
+    //
+    // The band's wash stays nearly flat on purpose: a rule is a divider only
+    // when it bounds a surface, and a wash that fades to nothing leaves its
+    // bottom hairline drawn on bare page.
+    final top = band ? (dark ? 0.14 : 0.08) : (dark ? 0.22 : 0.15);
+    final bottom = band ? (dark ? 0.10 : 0.05) : (dark ? 0.08 : 0.04);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        // Opaque, or the shadow this box casts is visible *through* its own
+        // translucent layers and the panel darkens toward its foot — the
+        // opposite of the light it is supposed to be lit by.
+        color: cs.surface,
+        borderRadius: radius,
+        border: band
+            ? Border(
+                top: BorderSide(color: accent.withValues(alpha: dark ? 0.24 : 0.16)),
+                bottom: BorderSide(color: accent.withValues(alpha: dark ? 0.24 : 0.16)),
+              )
+            : Border.all(color: accent.withValues(alpha: dark ? 0.30 : 0.20)),
+        boxShadow: band || dark
+            // Dark surfaces in this app never cast: the elevation is carried
+            // by the colour, and a tinted glow would spill onto the card below.
+            ? null
+            : [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.13),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
+                    colors: [
+                      accent.withValues(alpha: top),
+                      accent.withValues(alpha: bottom),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // The membership card's texture — grain, not wallpaper. Copy sits
+            // on this surface, so the prints stay under the threshold where
+            // they would read as shapes behind a sentence.
+            //
+            // The band goes without: on the storefront it is already the
+            // busiest object on the page, and texture there is one layer more
+            // than the page can carry.
+            if (!band)
+              Positioned.fill(
+                child: PawPattern(
+                  color: dark ? Colors.white : accent,
+                  opacity: 0.06,
+                ),
+              ),
+            // One light source, from the corner the reading starts at.
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: AlignmentDirectional.topStart,
+                    radius: 1.1,
+                    colors: [
+                      Colors.white.withValues(alpha: dark ? 0.07 : 0.42),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(padding: padding, child: child),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// A ring that draws itself to [value], with whatever sits in the middle.
 ///
 /// Used for a mission's progress and for the family card's "how far to the
