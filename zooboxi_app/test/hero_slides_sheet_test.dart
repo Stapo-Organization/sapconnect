@@ -80,7 +80,10 @@ HeroSlide _slide(
   required String subtitle,
   String cta = 'تسوّق الآن',
   String? badge,
+  int? value,
   BrandRef? brand,
+  String? logo,
+  int photos = 3,
 }) =>
     HeroSlide(
       kind: 'auto',
@@ -89,7 +92,14 @@ HeroSlide _slide(
       subtitle: subtitle,
       ctaLabel: cta,
       badge: badge,
-      brand: brand,
+      value: value,
+      brand: logo == null || brand == null
+          ? brand
+          : BrandRef(name: brand.name, slug: brand.slug, logo: logo),
+      // Empty URLs on purpose: ZbImage draws its paw placeholder without
+      // touching the network or its cache, which makes the tile GEOMETRY
+      // judgeable here even though the photography is not.
+      productImages: List.filled(photos, ''),
     );
 
 /// The إكسبريس slider, in the order the server composes it.
@@ -98,18 +108,16 @@ final _express = <HeroSlide>[
       title: 'يوصلك خلال ساعتين',
       subtitle: 'من فرع الملك فهد — أقرب فرع إليك',
       cta: 'اطلب الآن'),
+  // Four photos, because that is what the server sends this slide.
   _slide('express_top',
       title: 'الأكثر طلباً في فرعك',
       subtitle: 'موجود الآن على رفوف فرع الملك فهد',
-      cta: 'تصفّح القائمة'),
+      cta: 'تصفّح القائمة',
+      photos: 4),
   _slide('express_new',
       title: 'وصل حديثاً إلى فرعك',
       subtitle: 'جديد على الرف، ويوصلك خلال ساعتين',
       cta: 'شاهد الجديد'),
-  _slide('express_hours',
-      title: 'الفرع مفتوح حتى 11\u00A0م',
-      subtitle: 'اطلب قبل الإغلاق ويوصلك الليلة',
-      cta: 'اطلب الآن'),
 ];
 
 /// The زوبكسي slider. Nothing here is teal, and nothing here is a branch.
@@ -121,17 +129,21 @@ final _store = <HeroSlide>[
       title: 'بكجات زوبكسي',
       subtitle: 'باقات جاهزة بسعر أقل من شراء القطع منفردة',
       cta: 'شاهد البكجات',
-      badge: 'وفّر حتى 24%'),
+      badge: 'وفّر حتى 24%',
+      value: 24),
   _slide('brand',
       title: 'ماركة Applaws',
       subtitle: 'منتجات أصلية مستوردة مباشرة',
       cta: 'تسوّق الماركة',
+      photos: 0,
+      logo: '',
       brand: const BrandRef(name: 'Applaws', slug: 'applaws')),
   _slide('clearance',
       title: 'عروض التصفية',
       subtitle: 'أسعار مخفّضة على منتجات مختارة بكميات محدودة',
       cta: 'اكتشف العروض',
-      badge: 'خصم حتى 45%'),
+      badge: 'خصم حتى 45%',
+      value: 45),
 ];
 
 Widget _column(String caption, List<HeroSlide> slides, CatalogScope scope, DateTime now) =>
@@ -214,7 +226,7 @@ void main() {
   });
 
   testWidgets('hero slides sheet', (tester) async {
-    tester.view.physicalSize = const Size(880, 3300);
+    tester.view.physicalSize = const Size(880, 4300);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
@@ -251,14 +263,16 @@ void main() {
                   // Every shape that ships, at the size that ships: a slide
                   // with a live pill, one with a badge and a CTA, and one with
                   // neither — at both ends of the text-scale range.
-                  for (final scale in const [1.0, 1.3]) ...[
-                    _production(_express.first, _longBranchScope, _expressAt, scale),
-                    _production(_express.last, _longBranchScope, _expressAt, scale),
-                    _production(_express[1], _longBranchScope, _expressAt, scale),
-                    _production(_store.first, _storeScope, _storeAt, scale),
-                    _production(_store[1], _storeScope, _storeAt, scale),
-                    _production(_store.last, _storeScope, _storeAt, scale),
-                  ],
+                  for (final scale in const [1.0, 1.3])
+                    for (final slide in [..._express, ..._store])
+                      _production(
+                        slide,
+                        (slide.theme ?? '').startsWith('express')
+                            ? _longBranchScope
+                            : _storeScope,
+                        (slide.theme ?? '').startsWith('express') ? _expressAt : _storeAt,
+                        scale,
+                      ),
                 ],
               ),
             ),

@@ -65,11 +65,29 @@ class HeroLive {
       // are written bare («الساعة 11 م»), exactly as the header writes them,
       // because the two sit one above the other on the same screen.
       case 'express_clock':
-        final eta = resolveExpressEta(now: n, hours: scope?.expressHours);
+        final hours = scope?.expressHours;
+        final eta = resolveExpressEta(now: n, hours: hours);
         // The meridiem is part of the time, not a word after it: bound with a
         // no-break space so «10:45 م» can never wrap and leave the headline
         // saying half past ten with no idea which half of the day.
         final clock = Fmt.clockShort(eta.at, locale).replaceAll(' ', '\u00A0');
+
+        // The shutter, on the slide that already owns the clock. Inside the
+        // last four hours the branch's closing time changes what a customer
+        // does, so it ticks here — «يغلق بعد 02:48» — in the line that
+        // otherwise just repeats «خلال ساعتين». A slide of its own for this
+        // was the same poster twice with a different number on it.
+        DateTime? closing;
+        if (hours != null && !hours.overnight && isExpressOpen(n, hours)) {
+          // A 21:30 order lands at midnight — tomorrow — and the shutter still
+          // matters then, so the question is whether the shop is OPEN, not
+          // where the arrival falls. An overnight branch has no evening
+          // shutter to count down to.
+          final closes = timeOfDayToday(hours.closeMinutes, now: n);
+          final left = closes.difference(n);
+          if (!left.isNegative && left <= const Duration(hours: 4)) closing = closes;
+        }
+
         return HeroLive(
           // A branch that has already shut says so, in the header's own words,
           // rather than falling back to a promise of two hours it cannot keep.
@@ -77,23 +95,8 @@ class HeroLive {
               ? l.heroExpressArrivesTomorrow(clock)
               : l.heroExpressArrives(clock),
           badge: eta.tomorrow ? null : l.heroExpressWindow,
-        );
-
-      // The shutter. Inside the last four hours it ticks, because that is when
-      // it changes what someone does; before that it is simply the hours.
-      case 'express_hours':
-        final hours = scope?.expressHours;
-        if (hours == null || hours.closedToday) return const HeroLive();
-        final closes = timeOfDayToday(hours.closeMinutes, now: n);
-        final left = closes.difference(n);
-        if (!left.isNegative && left <= const Duration(hours: 4)) {
-          return HeroLive(deadline: HeroDeadline.branchCloses, deadlineAt: closes);
-        }
-        return HeroLive(
-          hint: l.shelfExpressHours(
-            Fmt.clockShort(timeOfDayToday(hours.openMinutes, now: n), locale),
-            Fmt.clockShort(closes, locale),
-          ),
+          deadline: closing == null ? null : HeroDeadline.branchCloses,
+          deadlineAt: closing,
         );
 
       // زوبكسي's one deadline: order before one o'clock and it goes out today.
@@ -135,14 +138,14 @@ class HeroLive {
 /// drops these instead of showing them until the refresh lands.
 bool heroSlideIsStale(HeroSlide slide, CatalogScope? scope, {DateTime? now}) {
   final n = now ?? DateTime.now();
-  switch (slide.theme) {
-    case 'express_hours':
-      final hours = scope?.expressHours;
-      if (hours == null || hours.closedToday) return true;
-      return timeOfDayToday(hours.closeMinutes, now: n).isBefore(n);
-    default:
-      return false;
+  // Express slides are only composed while a branch is serving — every one of
+  // them, not just the clock: the polaroid's «ويوصلك خلال ساعتين» is the same
+  // promise in smaller type. A payload built at ten and reopened at half past
+  // eleven would still be making it, so they leave instead.
+  if ((slide.theme ?? '').startsWith('express')) {
+    return !isExpressOpen(n, scope?.expressHours);
   }
+  return false;
 }
 
 /// The pill under a slide's subtitle: a ticking deadline, or a plain fact.

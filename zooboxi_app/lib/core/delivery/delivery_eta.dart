@@ -51,19 +51,20 @@ ExpressEta resolveExpressEta({
   final midnight = DateTime(now.year, now.month, now.day);
   final open = midnight.add(Duration(minutes: hours.openMinutes));
 
-  // Today's closing moment. On an overnight schedule this is the tail of
-  // *last* night's shift, which is why it decides whether the branch is open
-  // in the small hours rather than when a late order lands.
-  final tail = midnight.add(Duration(minutes: hours.closeMinutes));
+  // While the branch is open the lead time runs from the order and nothing
+  // shortens it — the store sells express right up to closing and still owes
+  // two hours, so a 22:50 order honestly lands after midnight. Trimming that
+  // back to closing would promise an hour the branch cannot keep.
+  if (isExpressOpen(now, hours)) {
+    return _eta(now, now.add(lead));
+  }
 
-  // Before the shutter goes up: the clock starts when the branch does.
-  //
-  // After it, the lead time runs from the order and nothing shortens it — the
-  // store sells express right up to closing and still owes two hours, so a
-  // 22:50 order honestly lands after midnight. Trimming that back to closing
-  // time would have the header promise an hour the branch cannot keep.
-  final openNow = !now.isBefore(open) || (hours.overnight && !now.isAfter(tail));
-  return _eta(now, openNow ? now.add(lead) : open.add(lead));
+  // Shut: the clock starts when the branch does. Before opening that is today;
+  // after closing it is tomorrow morning — a shut shop at half past eleven
+  // cannot hand anything over at two, which is what treating "past opening
+  // time" as "open" used to promise, in the largest type on the home screen.
+  final nextOpen = now.isBefore(open) ? open : open.add(const Duration(days: 1));
+  return _eta(now, nextOpen.add(lead));
 }
 
 ExpressEta _eta(DateTime now, DateTime at) {
@@ -79,6 +80,25 @@ DateTime _roundUp(DateTime t) {
   final remainder = t.minute % _roundToMinutes;
   final bump = remainder == 0 ? 0 : _roundToMinutes - remainder;
   return DateTime(t.year, t.month, t.day, t.hour, t.minute + bump);
+}
+
+/// Is the branch serving right now?
+///
+/// The one answer in the app to that question. It was computed in three places
+/// — here, on the hero's closing countdown and in its staleness check — and the
+/// three disagreed about a branch that works past midnight, which is how a
+/// shop closing at 2 AM could have its own flagship slide dropped all day.
+bool isExpressOpen(DateTime now, ExpressHours? hours) {
+  if (hours == null) return true; // no schedule kept: always open
+  if (hours.closedToday) return false;
+  final midnight = DateTime(now.year, now.month, now.day);
+  final open = midnight.add(Duration(minutes: hours.openMinutes));
+  final tail = midnight.add(Duration(minutes: hours.closeMinutes));
+  // An overnight shift is open at both ends of the day; an ordinary one only
+  // between its own hours.
+  return hours.overnight
+      ? (!now.isBefore(open) || !now.isAfter(tail))
+      : (!now.isBefore(open) && now.isBefore(tail));
 }
 
 /// A wall-clock time of day on today's date — for rendering opening hours.

@@ -58,6 +58,7 @@ class HeroSlide {
     this.brand,
     this.productImages = const [],
     this.badge,
+    this.value,
   });
 
   /// `manual` — an uploaded banner image. `auto` — a slide the server composed
@@ -90,6 +91,10 @@ class HeroSlide {
   /// ("خصم حتى 45%"). Null when the data can't honestly back one.
   final String? badge;
 
+  /// The bare number behind that badge — 45, 24 — which some compositions set
+  /// in type the size of a fist. Null when the slide has no number to shout.
+  final int? value;
+
   bool get isAuto => kind == 'auto';
 
   String? get bestImage => imageMobile ?? image;
@@ -108,6 +113,7 @@ class HeroSlide {
         brand: BrandRef.maybe(json['brand']),
         productImages: asStringList(json['product_images']),
         badge: asStringOrNull(json['badge']),
+        value: asIntOrNull(json['value']),
       );
 }
 

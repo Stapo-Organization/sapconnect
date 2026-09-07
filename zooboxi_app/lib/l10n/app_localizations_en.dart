@@ -361,6 +361,12 @@ class LEn extends L {
   String get heroExpressWindow => 'Within two hours';
 
   @override
+  String get heroTagNew => 'New';
+
+  @override
+  String get heroUpTo => 'Up to';
+
+  @override
   String heroExpressArrivesTomorrow(String time) {
     return 'Tomorrow at $time';
   }

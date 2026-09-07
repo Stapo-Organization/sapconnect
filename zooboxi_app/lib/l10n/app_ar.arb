@@ -148,6 +148,8 @@
     "placeholders": { "time": { "type": "String" } }
   },
   "heroExpressWindow": "خلال ساعتين",
+  "heroTagNew": "جديد",
+  "heroUpTo": "خصم حتى",
   "heroExpressArrivesTomorrow": "يوصلك غدًا {time}",
   "@heroExpressArrivesTomorrow": {
     "description": "The إكسبريس hero after the branch has shut: the same sentence the header shows.",

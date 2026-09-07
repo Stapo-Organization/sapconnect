@@ -359,6 +359,12 @@ class LAr extends L {
   String get heroExpressWindow => 'خلال ساعتين';
 
   @override
+  String get heroTagNew => 'جديد';
+
+  @override
+  String get heroUpTo => 'خصم حتى';
+
+  @override
   String heroExpressArrivesTomorrow(String time) {
     return 'يوصلك غدًا $time';
   }

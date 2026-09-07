@@ -135,6 +135,8 @@
   "shelfAllSubShipping": "Ships to your city",
   "heroExpressArrives": "At your door by {time}",
   "heroExpressWindow": "Within two hours",
+  "heroTagNew": "New",
+  "heroUpTo": "Up to",
   "heroExpressArrivesTomorrow": "Tomorrow at {time}",
   "heroCutoffToday": "Order now, arrives today",
   "heroCutoffTomorrow": "Order now, arrives tomorrow",

@@ -739,6 +739,18 @@ abstract class L {
   /// **'خلال ساعتين'**
   String get heroExpressWindow;
 
+  /// No description provided for @heroTagNew.
+  ///
+  /// In ar, this message translates to:
+  /// **'جديد'**
+  String get heroTagNew;
+
+  /// No description provided for @heroUpTo.
+  ///
+  /// In ar, this message translates to:
+  /// **'خصم حتى'**
+  String get heroUpTo;
+
   /// The إكسبريس hero after the branch has shut: the same sentence the header shows.
   ///
   /// In ar, this message translates to:

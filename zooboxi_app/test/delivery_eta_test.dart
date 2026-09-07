@@ -49,6 +49,15 @@ void main() {
       expect(eta.tomorrow, isFalse);
     });
 
+    test('once the shutter is down the clock starts at tomorrow\'s opening', () {
+      // 23:30, a branch that works 9–23. Reading "past opening time" as "open"
+      // used to answer «غدًا 2 ص» — a handover from a shut shop, printed in
+      // the biggest type on the home screen.
+      final eta = resolveExpressEta(now: DateTime(2026, 9, 6, 23, 30), hours: _hours);
+      expect(eta.at, DateTime(2026, 9, 7, 11, 30));
+      expect(eta.tomorrow, isTrue);
+    });
+
     test('a branch that keeps no schedule is bound only by the lead time', () {
       final eta = resolveExpressEta(now: DateTime(2026, 9, 6, 23, 40));
       expect(eta.at, DateTime(2026, 9, 7, 2, 10));

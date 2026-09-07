@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import 'campaign_chips.dart';
 import 'hero_live_copy.dart';
+import 'hero_slide_layouts.dart';
 
 // The hero slides the server composes when there is no bought banner to show.
 // It ships copy plus a handful of product photos and lets the app draw them,
@@ -125,9 +126,6 @@ class HeroAutoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final skin = AutoSlideSkin.of(context, slide.theme);
-    final images = slide.productImages.take(3).toList();
-    final logo = slide.theme == 'brand' ? slide.brand?.logo : null;
-    final ranked = slide.theme == 'bestsellers' || slide.theme == 'express_top';
     final live = HeroLive.of(
       slide.theme,
       scope,
@@ -138,38 +136,16 @@ class HeroAutoCard extends StatelessWidget {
     final title = live.title ?? slide.title;
     final badge = live.badge ?? slide.badge;
     final express = (slide.theme ?? '').startsWith('express');
-    final pill = live.hint != null || live.deadlineAt != null;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final w = constraints.maxWidth;
       final h = constraints.maxHeight;
 
       // The slide band is 1/3.2 of the screen — about 123pt on a phone, 183
-      // at the text-scale cap. That is a real ceiling, and the fix for it is
-      // to *compose down*, never to squeeze: squeezing is what cut the «م»
-      // off «10:45 م» and truncated a branch name with no ellipsis.
-      //
-      // What is never dropped: the badge (a slide earns its place with the
-      // number on it — «خصم حتى 45%») and the headline's two full lines. What
-      // gives way, in order: the subtitle's second line, then the CTA — and
-      // the CTA only on a slide that already carries a live pill, because the
-      // pill and the button are the same slot and the whole slide is a button
-      // anyway.
+      // at the text-scale cap — so a composition either fits that or it is
+      // cut. `compact` is what the classic layout composes itself down by;
+      // the per-theme layouts are drawn for the short band from the start.
       final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
       final compact = h < 210 * textScale;
-
-      final Widget? art;
-      if (logo != null) {
-        art = _BrandTile(logo: logo);
-      } else if (images.isNotEmpty) {
-        art = _ProductCascade(images: images, ranked: ranked, slideHeight: h);
-      } else if (slide.theme == 'express' ||
-          slide.theme == 'express_clock' ||
-          slide.theme == 'express_hours') {
-        art = _ExpressMotif(skin: skin, clock: slide.theme == 'express_hours');
-      } else {
-        art = null;
-      }
 
       return Stack(
         clipBehavior: Clip.none,
@@ -177,23 +153,87 @@ class HeroAutoCard extends StatelessWidget {
         children: [
           if (!flush) DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
           // The two storefronts are not the same shop, so they are not the
-          // same picture either: زوبكسي sits in a calm ring, إكسبريس in the
+          // same ground either: زوبكسي sits in a calm ring, إكسبريس in the
           // streaks of something moving.
           if (express)
             _SpeedLayer(fg: skin.fg, slideHeight: h)
           else
             _DecorLayer(fg: skin.fg, slideHeight: h),
 
-          // Artwork owns the END-bottom corner and is cropped by the slide
-          // edge on purpose — the outer canvas clip finishes the crop.
+          // …and on that ground, the composition this subject deserves.
+          HeroSlideBody(
+            slide: slide,
+            skin: skin,
+            live: live,
+            title: title,
+            badge: badge,
+            height: h,
+            compact: compact,
+            now: now,
+          ),
+        ],
+      );
+    });
+  }
+}
+
+/// The anatomy every slide used to have: a badge, a headline, a line under it
+/// and a chip, with the artwork cropped into the far corner. Kept for the
+/// themes that have no composition of their own — an older server's `express`
+/// and `bestsellers`, and anything a newer one invents.
+class ClassicSlideBody extends StatelessWidget {
+  const ClassicSlideBody({
+    super.key,
+    required this.slide,
+    required this.skin,
+    required this.live,
+    required this.title,
+    required this.badge,
+    required this.height,
+    required this.compact,
+    this.now,
+  });
+
+  final HeroSlide slide;
+  final AutoSlideSkin skin;
+  final HeroLive live;
+  final String? title;
+  final String? badge;
+  final double height;
+  final bool compact;
+  final DateTime? now;
+
+  @override
+  Widget build(BuildContext context) {
+    final h = height;
+    final images = slide.productImages.take(3).toList();
+    final logo = slide.theme == 'brand' ? slide.brand?.logo : null;
+    final ranked = slide.theme == 'bestsellers';
+    final pill = live.hint != null || live.deadlineAt != null;
+
+    final Widget? art;
+    if (logo != null) {
+      art = _BrandTile(logo: logo);
+    } else if (images.isNotEmpty) {
+      art = _ProductCascade(images: images, ranked: ranked, slideHeight: h);
+    } else if ((slide.theme ?? '').startsWith('express')) {
+      art = _ExpressMotif(skin: skin, clock: slide.theme == 'express_hours');
+    } else {
+      art = null;
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      return Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.expand,
+        children: [
           if (art != null)
             PositionedDirectional(
               end: logo != null ? 16 : -10,
               bottom: logo != null ? (h - 116) / 2 : -12,
               child: art,
             ),
-
-          // Copy: vertically centered on the reading side.
           PositionedDirectional(
             start: 20,
             top: 0,
@@ -207,21 +247,12 @@ class HeroAutoCard extends StatelessWidget {
                   _SlideBadge(label: badge!, accent: skin.accent),
                   Gap.h8,
                 ],
-                // The headline is rigid and the subtitle is what gives way.
-                // The slide band is 1/3.2 of the screen — barely 123pt on a
-                // phone — and when both were equal-flex the *title* lost half
-                // its height: the arrival clock printed «الساعة 10:45» with
-                // the «م» squeezed to nothing, which is a promise missing its
-                // morning or evening.
                 if ((title ?? '').isNotEmpty)
                   Text(
                     title!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: (slide.theme == 'express_clock' && !compact
-                            ? context.tt.headlineMedium
-                            : context.tt.headlineSmall)
-                        ?.copyWith(
+                    style: context.tt.headlineSmall?.copyWith(
                       color: skin.fg,
                       fontWeight: FontWeight.w900,
                       height: 1.2,
@@ -232,10 +263,6 @@ class HeroAutoCard extends StatelessWidget {
                   Flexible(
                     child: Text(
                       slide.subtitle!,
-                      // A short band gets one line of subtitle rather than a
-                      // second line cut in half — vertical clipping never
-                      // draws an ellipsis, so a truncated «فرع السليمانية -
-                      // الري» would just look broken.
                       maxLines: compact ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: context.tt.bodyMedium?.copyWith(
@@ -250,9 +277,6 @@ class HeroAutoCard extends StatelessWidget {
                   HeroLivePill(live: live, fg: skin.fg, accent: skin.accent, now: now),
                 ],
                 if ((!pill || !compact) && (slide.ctaLabel ?? '').isNotEmpty) ...[
-                  // The button sits closer on a short band. Those eight points
-                  // are the difference between a subtitle with descenders and
-                  // a subtitle sliced along its baseline.
                   compact ? Gap.h8 : Gap.h16,
                   CampaignCta(label: slide.ctaLabel!),
                 ],

@@ -64,13 +64,13 @@ void main() {
       _scope,
       l,
       'ar',
-      now: DateTime(2026, 9, 7, 20, 0),
+      now: DateTime(2026, 9, 7, 14, 0),
     );
 
-    // 20:00 + 2h30 → 10:30 م, and the badge still carries the promise itself.
-    expect(live.title, contains('10:30'));
+    // 14:00 + 2h30 → 4:30 م, and the badge still carries the promise itself.
+    expect(live.title, contains('4:30'));
     expect(live.badge, 'خلال ساعتين');
-    expect(live.deadlineAt, isNull);
+    expect(live.deadlineAt, isNull, reason: 'closing is still nine hours away');
   });
 
   testWidgets('after closing the slide says tomorrow, in the header\'s words',
@@ -93,19 +93,17 @@ void main() {
     expect(live.badge, isNull);
   });
 
-  testWidgets('closing time ticks only inside the last four hours',
+  testWidgets('inside the last four hours the clock slide counts the shutter down',
       (tester) async {
     final l = await _l(tester);
 
-    final early = HeroLive.of('express_hours', _scope, l, 'ar',
-        now: DateTime(2026, 9, 7, 14, 0));
-    expect(early.deadlineAt, isNull, reason: 'nine hours out is not urgency');
-    expect(early.hint, isNotNull, reason: 'it is simply the hours');
-
-    final late = HeroLive.of('express_hours', _scope, l, 'ar',
+    // The branch shuts at 11; at half past nine that is what a customer needs
+    // to know, so the line that usually reads «خلال ساعتين» starts ticking.
+    final late = HeroLive.of('express_clock', _scope, l, 'ar',
         now: DateTime(2026, 9, 7, 21, 30));
     expect(late.deadline, HeroDeadline.branchCloses);
     expect(late.deadlineAt, DateTime(2026, 9, 7, 23, 0));
+    expect(late.title, contains('12'), reason: '21:30 + 2h30 → 12 ص');
   });
 
   testWidgets('the زوبكسي cutoff counts down before one, and stops after',
@@ -139,7 +137,7 @@ void main() {
   });
 
   testWidgets('the closing slide leaves once the branch has shut', (tester) async {
-    const slide = HeroSlide(kind: 'auto', theme: 'express_hours');
+    const slide = HeroSlide(kind: 'auto', theme: 'express_clock');
     expect(
       heroSlideIsStale(slide, _scope, now: DateTime(2026, 9, 7, 21, 0)),
       isFalse,
@@ -150,6 +148,36 @@ void main() {
       heroSlideIsStale(slide, _scope, now: DateTime(2026, 9, 7, 23, 30)),
       isTrue,
     );
+  });
+
+  testWidgets('a branch that works past midnight keeps its slides', (tester) async {
+    // 02:00 close. Asking «has today's closing time passed?» drops the express
+    // slides from two in the morning until nine at night — the flagship gone
+    // for most of the day on a shop that is actually open.
+    const overnight = CatalogScope(
+      tier: 'express',
+      note: '',
+      expressHours: ExpressHours(openMinutes: 9 * 60, closeMinutes: 2 * 60),
+    );
+    const slide = HeroSlide(kind: 'auto', theme: 'express_clock');
+
+    expect(heroSlideIsStale(slide, overnight, now: DateTime(2026, 9, 7, 1, 0)), isFalse,
+        reason: 'one in the morning is inside last night\'s shift');
+    expect(heroSlideIsStale(slide, overnight, now: DateTime(2026, 9, 7, 15, 0)), isFalse);
+    expect(heroSlideIsStale(slide, overnight, now: DateTime(2026, 9, 7, 6, 0)), isTrue,
+        reason: 'shut between two and nine');
+  });
+
+  testWidgets('every express slide leaves when the branch shuts', (tester) async {
+    const shut = CatalogScope(tier: 'express', note: '', expressHours: _hours);
+    for (final theme in ['express_clock', 'express_top', 'express_new']) {
+      expect(
+        heroSlideIsStale(HeroSlide(kind: 'auto', theme: theme), shut,
+            now: DateTime(2026, 9, 7, 23, 30)),
+        isTrue,
+        reason: '$theme still promises two hours from a shut shop',
+      );
+    }
   });
 
   testWidgets('a slide with nothing live keeps the server copy', (tester) async {
