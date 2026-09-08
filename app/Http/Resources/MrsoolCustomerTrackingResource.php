@@ -25,7 +25,7 @@ class MrsoolCustomerTrackingResource extends JsonResource
      * the operations wording and stay as they are.
      */
     private const CUSTOMER_LABELS = [
-        MrsoolDelivery::S_COURIER_PENDING      => 'نبحث عن مندوب لطلبك',
+        MrsoolDelivery::S_COURIER_PENDING      => 'جارٍ تحديد مندوب توصيل لطلبك',
         MrsoolDelivery::S_COURIER_ASSIGNED     => 'مندوبك في طريقه للفرع',
         MrsoolDelivery::S_COURIER_REASSIGNED   => 'تم تغيير المندوب',
         MrsoolDelivery::S_PICKUP_ARRIVED       => 'مندوبك وصل الفرع',
@@ -105,6 +105,15 @@ class MrsoolCustomerTrackingResource extends JsonResource
                 MrsoolDelivery::PHASE_IN_TRANSIT => 'dropoff',
                 default                          => null,
             },
+
+            // When we expect to have found somebody. Only while we are actually
+            // looking — after that the courier's own progress is the answer.
+            'assignment_deadline' => $d->phase === MrsoolDelivery::PHASE_SEARCHING && $d->requested_at
+                ? $d->requested_at
+                    ->copy()
+                    ->addMinutes((int) config('services.mrsool.assignment_minutes', 14))
+                    ->toIso8601String()
+                : null,
 
             'steps'        => $this->steps($d),
             'proof_images' => array_values($d->dropoff_images ?? []),

@@ -190,6 +190,13 @@ return [
         // sync gives. A read of a LIVE delivery re-fetches from Mrsool when the row is
         // older than this many seconds; 0 disables the on-demand refresh entirely.
         'live_refresh_seconds' => env('MRSOOL_LIVE_REFRESH_SECONDS', 25),
+        // How long we tell the customer to expect the search for a rider to
+        // take. Mrsool's merchant portal quotes ~9 minutes but exposes NO such
+        // field in the API (verified against a live COURIER_PENDING order,
+        // 2026-09-08), so this is our own promise: their figure plus five
+        // minutes of headroom, on the principle that a countdown that runs out
+        // is worse than one that finishes early.
+        'assignment_minutes' => env('MRSOOL_ASSIGNMENT_MINUTES', 14),
     ],
 
 ];
