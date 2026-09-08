@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,8 +29,10 @@ class LiveOrderBar extends ConsumerWidget {
   const LiveOrderBar({super.key});
 
   static const double _sideMargin = 14;
-  static const double _radius = 22;
-  static const double barHeight = 58;
+  static const double _radius = 24;
+
+  /// Grabber strip + content row.
+  static const double barHeight = 68;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,23 +40,26 @@ class LiveOrderBar extends ConsumerWidget {
     // summary of what already fills the screen, and subscribing anyway would
     // put a second poller on the same order beside the page's own.
     final path = GoRouterState.of(context).uri.path;
-    final onAnOrderPage = path.startsWith('/orders/');
-
-    if (onAnOrderPage) return const SizedBox(width: double.infinity);
+    if (path.startsWith('/orders/')) return const SizedBox(width: double.infinity);
 
     final active = ref.watch(activeOrderProvider).value;
 
-    // AnimatedSize rather than a plain conditional: the bar arriving under the
-    // customer's thumb mid-scroll should push the menu down, not appear on top
-    // of what they were reading.
+    // AnimatedSize opens the space; the switcher slides the bar up INTO it, so
+    // the whole thing rises from behind the menu rather than blinking into
+    // existence over whatever the customer was reading. The clip during the
+    // grow is what makes it read as "coming from below".
     return AnimatedSize(
-      duration: context.motion(Motion.select),
+      duration: context.motion(Motion.enter),
       curve: Motion.emphasized,
       alignment: Alignment.bottomCenter,
-      // AnimatedSwitcher inside, so the bar fades rather than blinking out
-      // while AnimatedSize collapses the space it leaves behind.
       child: AnimatedSwitcher(
-        duration: context.motion(Motion.select),
+        duration: context.motion(Motion.enter),
+        switchInCurve: Motion.emphasized,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, anim) => SlideTransition(
+          position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(anim),
+          child: FadeTransition(opacity: anim, child: child),
+        ),
         child: active == null
             ? const SizedBox(key: ValueKey('none'), width: double.infinity)
             : _Bar(key: ValueKey(active.order.id), active: active),
@@ -80,69 +83,72 @@ class _Bar extends StatelessWidget {
       button: true,
       label: _headline(context, active),
       child: MediaQuery.withClampedTextScaling(
-        maxScaleFactor: 1.3,
+        maxScaleFactor: 1.2,
         child: Padding(
           padding: const EdgeInsetsDirectional.only(
             start: LiveOrderBar._sideMargin,
             end: LiveOrderBar._sideMargin,
             bottom: 8,
           ),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(LiveOrderBar._radius),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: dark ? 0.30 : 0.12),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: GlassContainer(
-              shape: const LiquidRoundedSuperellipse(borderRadius: LiveOrderBar._radius),
-              quality: GlassQuality.standard,
-              clipBehavior: Clip.antiAlias,
-              settings: LiquidGlassSettings(
-                // The same barely-there tint as the menu below it, so the two
-                // read as one piece of glass rather than two materials stacked.
-                glassColor: dark
-                    ? ZbTokens.graphiteRaised.withValues(alpha: 0.24)
-                    : cs.surface.withValues(alpha: 0.20),
-                blur: 11,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Haptics.light();
+              _openSheet(context, active);
+            },
+            // Dragging it upward is the gesture the grabber promises. A flick
+            // opens the sheet; anything gentler is left alone, so a customer
+            // scrolling the shop cannot open it by accident.
+            onVerticalDragEnd: (details) {
+              if ((details.primaryVelocity ?? 0) < -180) {
+                Haptics.light();
+                _openSheet(context, active);
+              }
+            },
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(LiveOrderBar._radius),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: dark ? 0.34 : 0.13),
+                    blurRadius: 22,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              // No splash: the menu below made the same call, and for the same
-              // reason — a ripple on frosted glass reads as a smudge.
-              child: InkWell(
-                splashFactory: NoSplash.splashFactory,
-                highlightColor: Colors.transparent,
-                onTap: () {
-                  Haptics.light();
-                  _openSheet(context, active);
-                },
+              child: GlassContainer(
+                shape: const LiquidRoundedSuperellipse(borderRadius: LiveOrderBar._radius),
+                quality: GlassQuality.standard,
+                clipBehavior: Clip.antiAlias,
+                settings: LiquidGlassSettings(
+                  // Much denser than the menu's tint, and deliberately so. The
+                  // menu carries four high-contrast glyphs and can afford to be
+                  // nearly clear; this carries two lines of small type that
+                  // land on top of product photography. Legibility wins over
+                  // seeing one more centimetre of the shop.
+                  glassColor: dark
+                      ? ZbTokens.graphiteRaised.withValues(alpha: 0.86)
+                      : cs.surface.withValues(alpha: 0.88),
+                  blur: 18,
+                ),
                 child: SizedBox(
                   height: LiveOrderBar.barHeight,
-                  child: Stack(
+                  child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(start: 12, end: 10),
-                        child: Row(
-                          children: [
-                            _Glyph(active: active, tone: tone),
-                            Gap.w12,
-                            Expanded(child: _Lines(active: active)),
-                            Gap.w8,
-                            _Trailing(active: active, tone: tone),
-                          ],
+                      _Grabber(key: LiveOrderBarPreview.grabberKey, tone: tone),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
+                          child: Row(
+                            children: [
+                              _Leading(key: LiveOrderBarPreview.leadingKey, active: active, tone: tone),
+                              Gap.w12,
+                              Expanded(child: _Lines(active: active)),
+                              Gap.w8,
+                              _Trailing(active: active, tone: tone),
+                            ],
+                          ),
                         ),
-                      ),
-                      // A hairline of progress along the bottom lip. It is the
-                      // cheapest honest answer to "how far along is this" — no
-                      // words, no space, readable at a glance.
-                      PositionedDirectional(
-                        start: 0,
-                        end: 0,
-                        bottom: 0,
-                        child: _ProgressLip(progress: liveOrderProgress(active), tone: tone),
                       ),
                     ],
                   ),
@@ -151,6 +157,85 @@ class _Bar extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The one honest affordance: a short bar you can pull. It is tinted with the
+/// order's own colour so the strip doubles as the first hint of where things
+/// have got to, before a single word is read.
+class _Grabber extends StatelessWidget {
+  const _Grabber({super.key, required this.tone});
+
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 7, bottom: 3),
+      child: Container(
+        width: 34,
+        height: 4,
+        decoration: BoxDecoration(
+          color: tone.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(ZbTokens.rPill),
+        ),
+      ),
+    );
+  }
+}
+
+/// What you bought, wearing how far it has got.
+///
+/// The photograph answers "which order is this" faster than any number, and
+/// the ring around it answers "how far along" without spending a line of text
+/// on either question.
+class _Leading extends StatelessWidget {
+  const _Leading({super.key, required this.active, required this.tone});
+
+  final ActiveOrder active;
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = active.order.itemsPreview.isEmpty
+        ? null
+        : active.order.itemsPreview.first.image;
+
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: liveOrderProgress(active).clamp(0.0, 1.0)),
+              duration: context.motion(Motion.enter),
+              curve: Motion.emphasized,
+              builder: (context, value, _) => CircularProgressIndicator(
+                value: value,
+                strokeWidth: 2.5,
+                strokeCap: StrokeCap.round,
+                backgroundColor: tone.withValues(alpha: 0.18),
+                valueColor: AlwaysStoppedAnimation(tone),
+              ),
+            ),
+          ),
+          ClipOval(
+            child: SizedBox(
+              width: 29,
+              height: 29,
+              child: image == null
+                  ? ColoredBox(
+                      color: tone.withValues(alpha: 0.16),
+                      child: Icon(_phaseIcon(active), size: 15, color: tone),
+                    )
+                  : ZbImage(url: image, fit: BoxFit.cover),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -259,14 +344,7 @@ class _GlyphState extends State<_Glyph> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final icon = switch (widget.active.tracking?.phase) {
-      LivePhase.searching => Icons.radar_rounded,
-      LivePhase.assigned => Icons.storefront_rounded,
-      LivePhase.inTransit => Icons.two_wheeler_rounded,
-      LivePhase.delivered => Icons.check_rounded,
-      LivePhase.failed => Icons.error_outline_rounded,
-      null => Icons.inventory_2_rounded,
-    };
+    final icon = _phaseIcon(widget.active);
 
     final core = Container(
       width: 32,
@@ -303,32 +381,6 @@ class _GlyphState extends State<_Glyph> with SingleTickerProviderStateMixin {
           );
         },
         child: core,
-      ),
-    );
-  }
-}
-
-class _ProgressLip extends StatelessWidget {
-  const _ProgressLip({required this.progress, required this.tone});
-
-  final double progress;
-  final Color tone;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 3,
-      child: Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
-          duration: context.motion(Motion.select),
-          curve: Motion.emphasized,
-          builder: (context, value, _) => FractionallySizedBox(
-            widthFactor: math.max(value, 0.04),
-            child: ColoredBox(color: tone.withValues(alpha: 0.85)),
-          ),
-        ),
       ),
     );
   }
@@ -565,6 +617,15 @@ class _Items extends StatelessWidget {
 
 /* ── Shared wording, colour and progress ────────────────────────── */
 
+IconData _phaseIcon(ActiveOrder active) => switch (active.tracking?.phase) {
+      LivePhase.searching => Icons.radar_rounded,
+      LivePhase.assigned => Icons.storefront_rounded,
+      LivePhase.inTransit => Icons.two_wheeler_rounded,
+      LivePhase.delivered => Icons.check_rounded,
+      LivePhase.failed => Icons.error_outline_rounded,
+      null => Icons.inventory_2_rounded,
+    };
+
 String _headline(BuildContext context, ActiveOrder active) {
   final l = L.of(context);
   final tracking = active.tracking;
@@ -592,3 +653,23 @@ double liveOrderProgress(ActiveOrder active) => switch (active.tracking?.phase) 
   LivePhase.failed => 1,
   null => active.order.status == 'zb-ready' ? 0.3 : 0.15,
 };
+
+
+/// The bar itself, without the router or the polling feed behind it.
+///
+/// The shell's copy decides WHETHER to show a bar; this is the bar. Tests drive
+/// it directly so the layout — which way round it reads in Arabic, what it says
+/// about money, whether the grabber can be pulled — is pinned without standing
+/// up a whole app.
+@visibleForTesting
+class LiveOrderBarPreview extends StatelessWidget {
+  const LiveOrderBarPreview({super.key, required this.active});
+
+  static const Key grabberKey = Key('zb-live-grabber');
+  static const Key leadingKey = Key('zb-live-leading');
+
+  final ActiveOrder active;
+
+  @override
+  Widget build(BuildContext context) => _Bar(active: active);
+}

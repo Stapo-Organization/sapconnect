@@ -1,6 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:zooboxi_app/app/shell/live_order_bar.dart';
+import 'package:zooboxi_app/app/theme/app_theme.dart';
+import 'package:zooboxi_app/l10n/app_localizations.dart';
 import 'package:zooboxi_app/features/orders/data/live_tracking.dart';
 
 /// «طلبك الآن» — the bar above the tab bar.
@@ -28,6 +32,25 @@ ActiveOrder? _active({
       },
       'tracking': tracking,
     });
+
+/// Pumps the bar exactly as the shell does: in the bottom slot, in Arabic.
+Future<void> _pumpBar(WidgetTester tester, ActiveOrder active) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      child: MaterialApp(
+        locale: const Locale('ar'),
+        theme: AppTheme.light(const Locale('ar')),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: Scaffold(
+          body: const SizedBox.expand(),
+          bottomNavigationBar: LiveOrderBarPreview(active: active),
+        ),
+      ),
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 400));
+}
 
 void main() {
   setUpAll(() => initializeDateFormatting());
@@ -66,6 +89,56 @@ void main() {
       final a = _active(tracking: {'phase': 'delivered'})!;
       expect(a.hasCourier, isTrue);
       expect(a.isLive, isFalse);
+    });
+  });
+
+  group('the bar, laid out in Arabic', () {
+    testWidgets('reads right to left: the order, then the words, then the time',
+        (tester) async {
+      await _pumpBar(
+        tester,
+        _active(status: 'zb-out-for-delivery', tracking: {
+          'phase': 'in_transit',
+          'status': 'DELIVERING',
+          'eta_minutes': 8,
+        })!,
+      );
+
+      final leading = tester.getCenter(find.byKey(LiveOrderBarPreview.leadingKey));
+      final lines = tester.getCenter(find.text('مندوبك في الطريق إليك'));
+      final trailing = tester.getCenter(find.text('تقريباً 8 دقيقة'));
+
+      // Arabic reads right to left, so the thing you bought sits on the right
+      // and the arrival time on the left. Getting this backwards is the single
+      // most visible way an RTL layout can be wrong.
+      expect(leading.dx, greaterThan(lines.dx));
+      expect(lines.dx, greaterThan(trailing.dx));
+    });
+
+    testWidgets('the money is written once, with one riyal sign', (tester) async {
+      await _pumpBar(tester, _active()!);
+
+      final subtitle = tester.widget<Text>(
+        find.textContaining('32700').first,
+      );
+      final text = subtitle.data!;
+
+      expect('\u{E900}'.allMatches(text).length, 1, reason: text);
+      expect(text, contains('128٫5'));
+    });
+
+    testWidgets('it offers something to pull, and opens on a flick', (tester) async {
+      await _pumpBar(tester, _active()!);
+
+      expect(find.byKey(LiveOrderBarPreview.grabberKey), findsOneWidget);
+
+      await tester.fling(find.byKey(LiveOrderBarPreview.grabberKey), const Offset(0, -60), 900);
+      // Not pumpAndSettle: the phase glyph pulses forever by design while an
+      // order is live, so there is no still frame to settle on.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text('طلبك الآن'), findsOneWidget);
     });
   });
 
