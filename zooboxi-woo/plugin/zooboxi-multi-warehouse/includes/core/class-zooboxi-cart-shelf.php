@@ -134,18 +134,26 @@ class Zooboxi_Cart_Shelf
      */
     public static function requested(): string
     {
+        // Memoised per request: payload() asks on every cart response and
+        // express_serving() walks the warehouse table to answer.
+        if (self::$requested_memo !== null) {
+            return self::$requested_memo;
+        }
         if (!class_exists('Zooboxi_V2_Bootstrap')) {
-            return '';
+            return self::$requested_memo = '';
         }
         $shelf = Zooboxi_V2_Bootstrap::shelf();
         if (!self::valid($shelf)) {
-            return '';
+            return self::$requested_memo = '';
         }
         if ($shelf === self::EXPRESS && !self::express_serving()) {
-            return self::ALL;
+            return self::$requested_memo = self::ALL;
         }
-        return $shelf;
+        return self::$requested_memo = $shelf;
     }
+
+    /** Per-request answer to requested(). */
+    private static ?string $requested_memo = null;
 
     /**
      * Can a basket on [$shelf] actually be delivered right now?
@@ -402,6 +410,11 @@ class Zooboxi_Cart_Shelf
                 'lines'   => $lines,
                 // «كما هي» has to include the code they typed.
                 'coupons' => array_values($cart->get_applied_coupons()),
+                // When it was put down. Nothing expires on this stamp — a
+                // basket is never deleted behind the customer's back — but a
+                // basket that returns after three days should say so rather
+                // than appear out of nowhere.
+                'stashed_at' => time(),
             ];
         }
 
@@ -409,6 +422,7 @@ class Zooboxi_Cart_Shelf
 
         $restore = self::lines_of($stash[$target] ?? []);
         $coupons = self::coupons_of($stash[$target] ?? []);
+        $target_since = self::since_of($stash[$target] ?? []);
         self::remember($target);
 
         $result = self::restore_lines($restore, $coupons);
@@ -419,7 +433,13 @@ class Zooboxi_Cart_Shelf
         if (empty($result['left'])) {
             unset($stash[$target]);
         } else {
-            $stash[$target] = ['lines' => $result['left'], 'coupons' => []];
+            $stash[$target] = [
+                'lines'      => $result['left'],
+                'coupons'    => [],
+                // The original stamp: these lines have been waiting since the
+                // basket was put down, not since we failed to bring them back.
+                'stashed_at' => $target_since ?? time(),
+            ];
         }
         self::save_stash($stash);
 
@@ -427,6 +447,9 @@ class Zooboxi_Cart_Shelf
             'restored' => $result['restored'],
             'stashed'  => count($lines),
             'lost'     => count($result['left']),
+            // How long the basket being restored had been waiting, so the
+            // caller can name it: «رجّعنا سلتك من قبل ٣ أيام».
+            'since'    => $target_since,
         ];
     }
 
@@ -503,7 +526,11 @@ class Zooboxi_Cart_Shelf
         if (empty($result['left'])) {
             unset($stash[$shelf]);
         } else {
-            $stash[$shelf] = ['lines' => $result['left'], 'coupons' => []];
+            $stash[$shelf] = [
+                'lines'      => $result['left'],
+                'coupons'    => [],
+                'stashed_at' => self::since_of($stash[$shelf] ?? []) ?? time(),
+            ];
         }
         self::save_stash($stash);
         self::remember($shelf);
@@ -524,6 +551,24 @@ class Zooboxi_Cart_Shelf
         return isset($entry['coupons']) && is_array($entry['coupons']) ? $entry['coupons'] : [];
     }
 
+    /**
+     * When this basket was put down, or null for one stashed before the stamp
+     * existed. Null is not an error — it simply means «we don't know», and
+     * every caller must read it as that rather than as «just now».
+     */
+    private static function since_of($entry): ?int
+    {
+        $at = is_array($entry) ? ($entry['stashed_at'] ?? null) : null;
+        return is_numeric($at) && (int) $at > 0 ? (int) $at : null;
+    }
+
+    /** When the basket waiting for [$shelf] was put down, if it is known. */
+    public static function stashed_at(string $shelf): ?int
+    {
+        $stash = self::stash();
+        return self::since_of($stash[$shelf] ?? []);
+    }
+
     /** What the app needs to draw "you are in this basket, the other holds N". */
     public static function payload(): array
     {
@@ -542,6 +587,8 @@ class Zooboxi_Cart_Shelf
             $other = array_key_first($waiting);
         }
 
+        $effective = self::requested();
+
         return [
             'shelf'       => $shelf,
             'other_shelf' => $other,
@@ -549,6 +596,30 @@ class Zooboxi_Cart_Shelf
             // False when there is no basket yet: the app then asks «this
             // product is from the other store» rather than «your basket is».
             'started'     => $shelf !== '',
+
+            // ── What the app could not know before ──────────────────────
+            //
+            // The tab the app *asked* for and the shelf the store actually
+            // SERVED are not always the same: after closing time an إكسبريس
+            // request is answered as زوبكسي, catalogue and basket alike. The
+            // app kept painting ember over a زوبكسي shop, so a line added
+            // there landed in a زوبكسي basket that already held زوبكسي
+            // products — «فجأة السلة تظهر لي منتجات المتجر الثاني».
+            //
+            // Empty means the caller named no tab at all (the website), where
+            // the rule stands down and there is nothing to disagree with.
+            'effective_shelf' => $effective,
+            'requested_shelf' => class_exists('Zooboxi_V2_Bootstrap')
+                ? Zooboxi_V2_Bootstrap::shelf()
+                : '',
+            // Whether the basket waiting in the other storefront could be
+            // delivered right now. A shut branch's basket is still offered —
+            // it is not lost — but the app says «تفتح ٩ ص» instead of
+            // handing over a button that quietly does nothing.
+            'other_serves'    => $other === '' ? true : self::serves($other),
+            // How long that basket has been waiting, so the app can say
+            // «تركتها قبل ٣ أيام» instead of resurrecting it unannounced.
+            'other_since'     => $other === '' ? null : self::stashed_at($other),
         ];
     }
 

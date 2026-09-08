@@ -357,7 +357,16 @@ class Zooboxi_V2_Cart_Controller
                         __('هذا المنتج من المتجر الآخر', 'zooboxi'),
                         'This product belongs to the other storefront.',
                         409,
-                        ['shelf' => $shelf, 'other_shelf' => $other, 'other_count' => 0, 'started' => false]
+                        [
+                            'shelf'           => '',
+                            'other_shelf'     => $other,
+                            'other_count'     => 0,
+                            'started'         => false,
+                            'effective_shelf' => $shelf,
+                            'requested_shelf' => Zooboxi_V2_Bootstrap::shelf(),
+                            'other_serves'    => Zooboxi_Cart_Shelf::serves($other),
+                            'other_since'     => Zooboxi_Cart_Shelf::stashed_at($other),
+                        ]
                     );
                 }
             }
@@ -394,6 +403,20 @@ class Zooboxi_V2_Cart_Controller
                 && Zooboxi_Cart_Shelf::fits($product_id, $basket)
                 && !Zooboxi_Cart_Shelf::fits($product_id, $shelf)) {
                 $shelf = $basket;
+                // Say it out loud. This is the one path where a line joins a
+                // basket belonging to the storefront the customer is NOT
+                // looking at, and doing it in silence is what made the cart
+                // look like it had filled itself from the other shop.
+                if (function_exists('wc_add_notice')) {
+                    wc_add_notice(
+                        sprintf(
+                            /* translators: %s: the storefront the basket belongs to. */
+                            __('أضفناه إلى سلة %s — سلتك الحالية من هناك.', 'zooboxi'),
+                            Zooboxi_Cart_Shelf::label($basket)
+                        ),
+                        'notice'
+                    );
+                }
             }
 
             if ($basket !== '' && $basket !== $shelf) {
@@ -504,7 +527,81 @@ class Zooboxi_V2_Cart_Controller
             );
         }
 
+        // A basket on a shelf that cannot deliver is a basket the checkout
+        // will refuse. Say so plainly instead of quietly moving the customer
+        // somewhere they did not ask for — a button that silently does
+        // something else is worse than one that explains why it can't.
+        if (!Zooboxi_Cart_Shelf::serves($shelf)) {
+            return Zooboxi_V2_Bootstrap::fail(
+                'shelf_closed',
+                __('إكسبريس مغلق الآن، وسلته بانتظارك حين يفتح.', 'zooboxi'),
+                'Express is closed right now; its basket is waiting for you.',
+                409,
+                Zooboxi_Cart_Shelf::payload()
+            );
+        }
+
         $moved = Zooboxi_Cart_Shelf::switch_to($shelf);
+
+        // Never restore in silence. A basket that comes back unannounced is
+        // exactly what «فجأة السلة تظهر لي منتجات» describes, so the response
+        // always names what returned — and how long it had been waiting, when
+        // the store knows.
+        if (function_exists('wc_add_notice')) {
+            $restored = (int) $moved['restored'];
+            $lost     = (int) $moved['lost'];
+
+            if ($restored > 0) {
+                $days = isset($moved['since']) && $moved['since']
+                    ? (int) floor((time() - (int) $moved['since']) / DAY_IN_SECONDS)
+                    : 0;
+
+                $text = Zooboxi_V2_Bootstrap::pick(
+                    sprintf(
+                        'رجّعنا لك %1$s من سلة %2$s.',
+                        self::ar_items($restored),
+                        Zooboxi_Cart_Shelf::label($shelf)
+                    ),
+                    sprintf(
+                        '%1$d item%2$s restored from your %3$s basket.',
+                        $restored,
+                        $restored === 1 ? '' : 's',
+                        $shelf === 'express' ? 'Express' : 'Zooboxi'
+                    )
+                );
+
+                if ($days >= 1) {
+                    $text .= ' ' . Zooboxi_V2_Bootstrap::pick(
+                        sprintf('تركتها قبل %s.', self::ar_days($days)),
+                        sprintf('You left it %d day%s ago.', $days, $days === 1 ? '' : 's')
+                    );
+                }
+                wc_add_notice($text, 'notice');
+            }
+
+            if ($lost > 0) {
+                wc_add_notice(
+                    Zooboxi_V2_Bootstrap::pick(
+                        // Only what is certainly true. These lines did not come
+                        // back because the store no longer has them — promising
+                        // that they are "waiting" would be a promise the stash
+                        // does not actually keep across a later switch.
+                        sprintf(
+                            '%s من تلك السلة لم تعد متوفرة.',
+                            self::ar_items($lost)
+                        ),
+                        sprintf(
+                            '%d item%s from that basket %s no longer in stock.',
+                            $lost,
+                            $lost === 1 ? '' : 's',
+                            $lost === 1 ? 'is' : 'are'
+                        )
+                    ),
+                    'notice'
+                );
+            }
+        }
+
         WC()->cart->calculate_totals();
 
         return Zooboxi_V2_Bootstrap::ok(self::cart_dto([
@@ -512,6 +609,7 @@ class Zooboxi_V2_Cart_Controller
                 'to'       => $shelf,
                 'restored' => $moved['restored'],
                 'stashed'  => $moved['stashed'],
+                'lost'     => $moved['lost'] ?? 0,
             ],
         ]));
     }
@@ -562,6 +660,58 @@ class Zooboxi_V2_Cart_Controller
      * Load the cart and validate that it can persist. Returns an error response, or
      * null when the caller may proceed.
      */
+    /**
+     * Arabic counts the way Arabic counts — «منتج واحد»، «منتجان»، «٣ منتجات»،
+     * «١١ منتجًا».
+     *
+     * `_n()` selects between exactly two forms unless a .mo file declares more,
+     * and these strings are already Arabic, so no .mo is ever going to arrive
+     * and fix them. Written out, it reads right at every count instead of at
+     * two of them.
+     *
+     * @param string[] $forms [one, two, few 3-10, many 11-99, other]; the last
+     *                        three carry a %d.
+     */
+    private static function ar_count(int $n, array $forms): string
+    {
+        $mod = $n % 100;
+        if ($n === 1) {
+            return $forms[0];
+        }
+        if ($n === 2) {
+            return $forms[1];
+        }
+        if ($mod >= 3 && $mod <= 10) {
+            return sprintf($forms[2], $n);
+        }
+        if ($mod >= 11 && $mod <= 99) {
+            return sprintf($forms[3], $n);
+        }
+        return sprintf($forms[4], $n);
+    }
+
+    private static function ar_items(int $n): string
+    {
+        return self::ar_count($n, [
+            'منتجاً واحداً',
+            'منتجين',
+            '%d منتجات',
+            '%d منتجاً',
+            '%d منتج',
+        ]);
+    }
+
+    private static function ar_days(int $n): string
+    {
+        return self::ar_count($n, [
+            'يوم',
+            'يومين',
+            '%d أيام',
+            '%d يوماً',
+            '%d يوم',
+        ]);
+    }
+
     private static function boot(\WP_REST_Request $request, bool $mutating): ?\WP_REST_Response
     {
         if ($mutating && !is_user_logged_in() && Zooboxi_V2_Bootstrap::guest_id($request) === '') {
@@ -690,7 +840,16 @@ class Zooboxi_V2_Cart_Controller
             // other one — the app names the basket and offers the switch.
             'basket'        => class_exists('Zooboxi_Cart_Shelf')
                 ? Zooboxi_Cart_Shelf::payload()
-                : ['shelf' => '', 'other_shelf' => '', 'other_count' => 0],
+                : [
+                    'shelf'           => '',
+                    'other_shelf'     => '',
+                    'other_count'     => 0,
+                    'started'         => false,
+                    'effective_shelf' => '',
+                    'requested_shelf' => '',
+                    'other_serves'    => true,
+                    'other_since'     => null,
+                ],
             'shipments'     => self::shipments($lat, $lng, $qualified),
             'totals'        => [
                 'subtotal' => $subtotal,
