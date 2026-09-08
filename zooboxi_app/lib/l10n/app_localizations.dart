@@ -4800,6 +4800,42 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'تواصل معنا وسنعيد المحاولة.'**
   String get liveTrackFailedHint;
+
+  /// No description provided for @liveBarPreparing.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تجهيز طلبك'**
+  String get liveBarPreparing;
+
+  /// No description provided for @liveBarReady.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك جاهز والمندوب قادم'**
+  String get liveBarReady;
+
+  /// No description provided for @liveBarOrderNo.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب {number}'**
+  String liveBarOrderNo(String number);
+
+  /// No description provided for @liveBarItems.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}'**
+  String liveBarItems(int count);
+
+  /// No description provided for @liveBarOpen.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل الطلب'**
+  String get liveBarOpen;
+
+  /// No description provided for @liveBarTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك الآن'**
+  String get liveBarTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

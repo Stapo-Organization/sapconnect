@@ -1647,5 +1647,17 @@
   "@liveTrackDeliveredAt": {
     "placeholders": { "time": { "type": "String" } }
   },
-  "liveTrackFailedHint": "تواصل معنا وسنعيد المحاولة."
+  "liveTrackFailedHint": "تواصل معنا وسنعيد المحاولة.",
+  "liveBarPreparing": "جارٍ تجهيز طلبك",
+  "liveBarReady": "طلبك جاهز والمندوب قادم",
+  "liveBarOrderNo": "طلب {number}",
+  "@liveBarOrderNo": {
+    "placeholders": { "number": { "type": "String" } }
+  },
+  "liveBarItems": "{count, plural, =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}",
+  "@liveBarItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "liveBarOpen": "تفاصيل الطلب",
+  "liveBarTitle": "طلبك الآن"
 }

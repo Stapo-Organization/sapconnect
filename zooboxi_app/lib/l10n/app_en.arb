@@ -1393,5 +1393,17 @@
   "@liveTrackDeliveredAt": {
     "placeholders": { "time": { "type": "String" } }
   },
-  "liveTrackFailedHint": "Contact us and we will try again."
+  "liveTrackFailedHint": "Contact us and we will try again.",
+  "liveBarPreparing": "We are preparing your order",
+  "liveBarReady": "Your order is ready, a courier is coming",
+  "liveBarOrderNo": "Order {number}",
+  "@liveBarOrderNo": {
+    "placeholders": { "number": { "type": "String" } }
+  },
+  "liveBarItems": "{count, plural, =1{1 item} other{{count} items}}",
+  "@liveBarItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "liveBarOpen": "Order details",
+  "liveBarTitle": "Your order right now"
 }

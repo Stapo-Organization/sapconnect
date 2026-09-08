@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/active_branch.dart';
 import '../../core/utils/haptics.dart';
 import 'glass_nav_bar.dart';
+import 'live_order_bar.dart';
 
 /// The four tab destinations, in bar order. Pushed pages use the same list to
 /// jump straight to a tab, so there is exactly one place that knows which
@@ -44,14 +45,23 @@ class _MainShellState extends ConsumerState<MainShell> {
     return Scaffold(
       extendBody: true,
       body: shell,
-      bottomNavigationBar: GlassNavBar(
-        index: index,
-        onSelect: (target) {
-          Haptics.light();
-          // Tapping the active tab pops that branch to its root — the
-          // expected "take me back to the top" gesture.
-          shell.goBranch(target, initialLocation: target == index);
-        },
+      // The live order rides ON TOP of the menu, inside the same slot, so
+      // Scaffold folds both heights into `padding.bottom` and every page keeps
+      // its last row clear of the pair without knowing either exists.
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const LiveOrderBar(),
+          GlassNavBar(
+            index: index,
+            onSelect: (target) {
+              Haptics.light();
+              // Tapping the active tab pops that branch to its root — the
+              // expected "take me back to the top" gesture.
+              shell.goBranch(target, initialLocation: target == index);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -109,15 +119,21 @@ class NavChrome extends ConsumerWidget {
       ),
       bottomNavigationBar: typing
           ? null
-          : GlassNavBar(
-              index: index,
-              onSelect: (target) {
-                Haptics.light();
-                // `go`, not `push`: the tab is a destination, and leaving a
-                // pushed page behind it would strand the customer one
-                // back-swipe from a page they had already finished with.
-                GoRouter.of(context).go(navBranchPaths[target]);
-              },
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const LiveOrderBar(),
+                GlassNavBar(
+                  index: index,
+                  onSelect: (target) {
+                    Haptics.light();
+                    // `go`, not `push`: the tab is a destination, and leaving a
+                    // pushed page behind it would strand the customer one
+                    // back-swipe from a page they had already finished with.
+                    GoRouter.of(context).go(navBranchPaths[target]);
+                  },
+                ),
+              ],
             ),
     );
   }

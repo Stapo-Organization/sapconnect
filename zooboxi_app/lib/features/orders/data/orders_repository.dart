@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
@@ -34,6 +36,11 @@ class OrdersRepository {
   Future<LiveTracking?> liveTracking(int id) async =>
       LiveTracking.maybe(await _api.get('/orders/$id/live-tracking'));
 
+  /// The order the customer is waiting on right now, or null when there is
+  /// none. Express only — see the store endpoint for why.
+  Future<ActiveOrder?> activeOrder() async =>
+      ActiveOrder.maybe(await _api.get('/orders/active'));
+
   /// Hands back the hosted payment page URL. The order key gates it, so a
   /// guest who placed the order can pay without an account.
   Future<String?> paymentUrl(int orderId, String orderKey) async {
@@ -54,7 +61,7 @@ final ordersRepositoryProvider =
 /// First page of the order history. Guests have none — the provider resolves
 /// empty rather than firing a call that would 401.
 final ordersProvider = FutureProvider.autoDispose<OrdersPage>((ref) {
-  if (!ref.watch(sessionProvider).isAuthenticated) {
+  if (!ref.watch(isAuthenticatedProvider)) {
     return Future.value(const OrdersPage());
   }
   return ref.watch(ordersRepositoryProvider).orders();
@@ -78,7 +85,7 @@ final orderDetailProvider = FutureProvider.autoDispose.family<OrderDetail, int>(
 /// completes, and giving up then would deny the customer the very screen they
 /// waited for.
 final liveTrackingProvider = StreamProvider.autoDispose.family<LiveTracking?, int>((ref, id) async* {
-  if (!ref.watch(sessionProvider).isAuthenticated) {
+  if (!ref.watch(isAuthenticatedProvider)) {
     yield null;
     return;
   }
@@ -95,6 +102,9 @@ final liveTrackingProvider = StreamProvider.autoDispose.family<LiveTracking?, in
   var emptyPolls = 0;
 
   while (alive) {
+    await _awaitForeground(ref);
+    if (!alive) return;
+
     LiveTracking? tracking;
     var failed = false;
 
@@ -136,3 +146,77 @@ final liveTrackingProvider = StreamProvider.autoDispose.family<LiveTracking?, in
     });
   }
 });
+
+/// The live bar's own feed: what the customer is waiting on, re-read for as
+/// long as the app is open.
+///
+/// It is the most frequently polled thing in the app, so the cadence is tuned
+/// hard against it: ten seconds while a courier is riding, twenty while the
+/// branch is preparing, and a lazy two minutes when there is nothing to wait
+/// for at all — which is the common case, and must cost almost nothing.
+final activeOrderProvider = StreamProvider.autoDispose<ActiveOrder?>((ref) async* {
+  if (!ref.watch(isAuthenticatedProvider)) {
+    yield null;
+    return;
+  }
+
+  final repo = ref.watch(ordersRepositoryProvider);
+
+  var alive = true;
+  ref.onDispose(() => alive = false);
+
+  ActiveOrder? last;
+
+  while (alive) {
+    // Never poll a phone in a pocket. iOS suspends the isolate on its own;
+    // Android would happily keep these timers running for an hour.
+    await _awaitForeground(ref);
+    if (!alive) return;
+
+    ActiveOrder? active;
+    var failed = false;
+
+    try {
+      active = await repo.activeOrder();
+      last = active;
+    } on ApiException catch (e) {
+      if (e.type == ApiErrorType.unauthorized || e.type == ApiErrorType.forbidden) {
+        yield null;
+        return;
+      }
+      active = last;
+      failed = true;
+    } catch (_) {
+      active = last;
+      failed = true;
+    }
+
+    if (!alive) return;
+    yield active;
+
+    await Future<void>.delayed(switch ((failed, active?.tracking?.phase)) {
+      (true, _) => const Duration(seconds: 45),
+      (_, LivePhase.inTransit) => const Duration(seconds: 10),
+      (_, LivePhase.assigned) || (_, LivePhase.searching) => const Duration(seconds: 15),
+      _ when active == null => const Duration(minutes: 2),
+      _ => const Duration(seconds: 20),
+    });
+  }
+});
+
+/// Blocks until the app is in the foreground. Returns at once when it already
+/// is, which is the case on every tick a customer is actually looking.
+Future<void> _awaitForeground(Ref ref) async {
+  if (ref.read(appResumedProvider)) return;
+
+  final gate = Completer<void>();
+  final sub = ref.listen<bool>(appResumedProvider, (_, resumed) {
+    if (resumed && !gate.isCompleted) gate.complete();
+  });
+
+  try {
+    await gate.future;
+  } finally {
+    sub.close();
+  }
+}

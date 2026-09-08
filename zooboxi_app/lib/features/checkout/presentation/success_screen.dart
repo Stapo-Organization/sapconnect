@@ -17,6 +17,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../loyalty/data/loyalty_repository.dart';
 import '../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../loyalty/presentation/widgets/scratch_card_view.dart';
+import '../../orders/data/orders_repository.dart';
 import '../data/checkout_models.dart';
 import 'widgets/promise_recap.dart';
 
@@ -53,6 +54,10 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
     // The order just moved the wallet and may have minted a card; whatever the
     // family hub had cached is now stale.
     invalidateLoyalty(ref);
+    // And the live bar above the tab bar exists for exactly this moment. Its
+    // idle cadence is two minutes; without this the customer walks back into
+    // the shop and waits up to that long to see the thing they just bought.
+    ref.invalidate(activeOrderProvider);
   }
 
   @override

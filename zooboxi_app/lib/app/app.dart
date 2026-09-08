@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/session/session_controller.dart';
+
 import '../core/analytics/events_buffer.dart';
 import '../l10n/app_localizations.dart';
 import 'router.dart';
@@ -34,6 +36,9 @@ class _ZooboxiAppState extends ConsumerState<ZooboxiApp> with WidgetsBindingObse
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       ref.read(eventsBufferProvider).flush();
     }
+
+    // The live feeds wait on this rather than polling a phone in a pocket.
+    ref.read(appResumedProvider.notifier).set(state == AppLifecycleState.resumed);
   }
 
   @override

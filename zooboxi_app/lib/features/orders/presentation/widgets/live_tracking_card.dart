@@ -33,7 +33,7 @@ class LiveTrackingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final tone = _phaseTone(context, tracking.phase);
+    final tone = livePhaseColor(context, tracking.phase);
 
     return Container(
       decoration: BoxDecoration(
@@ -126,7 +126,7 @@ class _Headline extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _statusLine(context, tracking),
+                  liveStatusLine(context, tracking),
                   style: context.tt.titleSmall?.copyWith(color: cs.onSurface),
                 ),
                 if (sub != null) ...[
@@ -364,7 +364,7 @@ List<LatLng> mapPoints(LiveTracking t) => [
 /// preview and the full-screen map so they can never drift apart.
 List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
   final l = L.of(context);
-  final tone = _phaseTone(context, t.phase);
+  final tone = livePhaseColor(context, t.phase);
   final dark = Theme.of(context).brightness == Brightness.dark;
 
   final courier = t.courier.hasPosition ? LatLng(t.courier.lat!, t.courier.lng!) : null;
@@ -852,7 +852,7 @@ class LiveTrackingMapPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final tracking = ref.watch(liveTrackingProvider(orderId)).value ?? initial;
-    final tone = _phaseTone(context, tracking.phase);
+    final tone = livePhaseColor(context, tracking.phase);
     final points = mapPoints(tracking);
 
     return Scaffold(
@@ -911,7 +911,7 @@ class _MapFooter extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_statusLine(context, tracking), style: context.tt.titleSmall),
+          Text(liveStatusLine(context, tracking), style: context.tt.titleSmall),
           if (_distanceLine(context, tracking) case final line?) ...[
             Gap.h4,
             Text(line, style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
@@ -941,10 +941,13 @@ class _MapFooter extends StatelessWidget {
 
 /// Mrsool's raw status, said in the reader's language.
 ///
+/// Shared with the live bar above the tab bar: the sentence a customer reads in
+/// two different places must be the same sentence.
+///
 /// The server already ships an Arabic sentence, but an English reader must get
 /// English — so the app owns the wording and keeps the server's string only as
 /// the fallback for a status this build has not heard of yet.
-String _statusLine(BuildContext context, LiveTracking t) {
+String liveStatusLine(BuildContext context, LiveTracking t) {
   final l = L.of(context);
 
   return switch (t.status) {
@@ -1003,7 +1006,7 @@ String? _distanceLine(BuildContext context, LiveTracking t) {
       );
 }
 
-Color _phaseTone(BuildContext context, LivePhase phase) {
+Color livePhaseColor(BuildContext context, LivePhase phase) {
   final zb = context.zb;
 
   return switch (phase) {

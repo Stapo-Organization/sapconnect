@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
+import 'order_models.dart';
 
 /// Where the courier actually is — the payload behind the live map.
 ///
@@ -180,4 +181,38 @@ class LiveTracking {
         deliveredAt: asDate(json['delivered_at']),
         updatedAt: asDate(json['updated_at']),
       );
+}
+
+
+/// The order the customer is currently waiting on, plus its courier — the
+/// payload behind the live bar above the tab bar.
+///
+/// One object rather than two calls: the bar is on screen the whole time
+/// someone is shopping, and making it ask twice would double the cost of the
+/// most frequently polled thing in the app.
+@immutable
+class ActiveOrder {
+  const ActiveOrder({required this.order, this.tracking});
+
+  final OrderSummary order;
+
+  /// Null until the branch calls a courier — the order is being prepared, and
+  /// the bar shows its status instead of a map.
+  final LiveTracking? tracking;
+
+  /// Whether the bar should offer a map at all.
+  bool get hasCourier => tracking != null;
+
+  /// Whether anything about this is still moving.
+  bool get isLive => tracking?.isLive ?? true;
+
+  static ActiveOrder? maybe(dynamic value) {
+    final map = asMap(value);
+    if (map.isEmpty || asMap(map['order']).isEmpty) return null;
+
+    return ActiveOrder(
+      order: OrderSummary.fromJson(asMap(map['order'])),
+      tracking: LiveTracking.maybe(map['tracking']),
+    );
+  }
 }

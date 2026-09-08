@@ -3024,4 +3024,35 @@ class LAr extends L {
 
   @override
   String get liveTrackFailedHint => 'تواصل معنا وسنعيد المحاولة.';
+
+  @override
+  String get liveBarPreparing => 'جارٍ تجهيز طلبك';
+
+  @override
+  String get liveBarReady => 'طلبك جاهز والمندوب قادم';
+
+  @override
+  String liveBarOrderNo(String number) {
+    return 'طلب $number';
+  }
+
+  @override
+  String liveBarItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      many: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get liveBarOpen => 'تفاصيل الطلب';
+
+  @override
+  String get liveBarTitle => 'طلبك الآن';
 }

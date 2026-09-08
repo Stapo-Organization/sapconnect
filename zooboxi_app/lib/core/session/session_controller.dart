@@ -150,3 +150,19 @@ final sessionProvider =
 /// Convenience for the many widgets that only care "is there an account".
 final isAuthenticatedProvider =
     Provider<bool>((ref) => ref.watch(sessionProvider).isAuthenticated);
+
+/// Whether the app is in the foreground.
+///
+/// The polling feeds read it so they stop while the app is backgrounded: iOS
+/// suspends the isolate anyway, but Android keeps timers firing, and a customer
+/// who put their phone in a pocket should not go on polling for an hour.
+class AppResumed extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void set(bool resumed) {
+    if (state != resumed) state = resumed;
+  }
+}
+
+final appResumedProvider = NotifierProvider<AppResumed, bool>(AppResumed.new);

@@ -2969,4 +2969,32 @@ class LEn extends L {
 
   @override
   String get liveTrackFailedHint => 'Contact us and we will try again.';
+
+  @override
+  String get liveBarPreparing => 'We are preparing your order';
+
+  @override
+  String get liveBarReady => 'Your order is ready, a courier is coming';
+
+  @override
+  String liveBarOrderNo(String number) {
+    return 'Order $number';
+  }
+
+  @override
+  String liveBarItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get liveBarOpen => 'Order details';
+
+  @override
+  String get liveBarTitle => 'Your order right now';
 }
