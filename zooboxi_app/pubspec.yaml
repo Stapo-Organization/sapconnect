@@ -1,7 +1,7 @@
 name: zooboxi_app
 description: "Zooboxi — زوبوكسي · متجر مستلزمات الحيوانات الأليفة"
 publish_to: 'none'
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: ^3.11.5
@@ -44,6 +44,9 @@ dependencies:
   # Scanner + external links
   mobile_scanner: ^7.0.1
   url_launcher: ^6.3.2
+  # A countdown must read the wall clock, or it drifts every time the phone
+  # sleeps. `clock` keeps that behaviour while letting tests move time.
+  clock: ^1.1.1
   flutter_custom_tabs: ^2.2.0
 
   # Payments — MyFatoorah's native SDK for the embedded card form (3-D Secure

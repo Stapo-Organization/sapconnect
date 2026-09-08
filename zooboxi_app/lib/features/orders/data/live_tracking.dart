@@ -104,6 +104,7 @@ class LiveTracking {
     this.distanceKm,
     this.etaMinutes,
     this.headingTo,
+    this.assignmentDeadline,
     this.steps = const [],
     this.proofImages = const [],
     this.trackingUrl,
@@ -140,6 +141,12 @@ class LiveTracking {
   /// (heading to you), or null when he is not riding for us yet.
   final String? headingTo;
 
+  /// When we expect to have found a rider. Set only while we are looking, and
+  /// it is a promise we made, not one Mrsool made — their API has no such
+  /// field. So the screen counts down to it and then says so plainly rather
+  /// than pretending the clock still means something.
+  final DateTime? assignmentDeadline;
+
   final List<LiveStep> steps;
   final List<String> proofImages;
   final String? trackingUrl;
@@ -174,6 +181,7 @@ class LiveTracking {
         distanceKm: asDoubleOrNull(json['distance_km']),
         etaMinutes: asIntOrNull(json['eta_minutes']),
         headingTo: asStringOrNull(json['heading_to']),
+        assignmentDeadline: asDate(json['assignment_deadline']),
         steps: asMapList(json['steps']).map(LiveStep.fromJson).toList(),
         proofImages: asStringList(json['proof_images']),
         trackingUrl: asStringOrNull(json['tracking_url']),

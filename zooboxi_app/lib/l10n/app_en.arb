@@ -1395,7 +1395,7 @@
   },
   "liveTrackFailedHint": "Contact us and we will try again.",
   "liveBarPreparing": "We are preparing your order",
-  "liveBarReady": "Your order is ready, a courier is coming",
+  "liveBarReady": "Your order is ready to go",
   "liveBarOrderNo": "Order {number}",
   "@liveBarOrderNo": {
     "placeholders": { "number": { "type": "String" } }
@@ -1405,5 +1405,9 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "liveBarOpen": "Order details",
-  "liveBarTitle": "Your order right now"
+  "liveBarTitle": "Your order right now",
+  "liveTrackAssigning": "Finding a courier for your order",
+  "liveTrackStillSearching": "Still looking for a courier",
+  "liveTrackAssignHint": "We are asking the riders nearby. We will tell you the moment one takes it.",
+  "liveBarSearching": "Finding a courier"
 }

@@ -1604,7 +1604,7 @@
   "careEveryYear": "كل سنة",
   "actionDelete": "حذف",
   "liveTrackTitle": "تتبّع مندوبك",
-  "liveTrackSearching": "نبحث عن مندوب لطلبك",
+  "liveTrackSearching": "جارٍ تحديد مندوب توصيل لطلبك",
   "liveTrackAssigned": "مندوبك في طريقه للفرع",
   "liveTrackReassigned": "تم تغيير المندوب",
   "liveTrackAtBranch": "مندوبك وصل الفرع",
@@ -1649,7 +1649,7 @@
   },
   "liveTrackFailedHint": "تواصل معنا وسنعيد المحاولة.",
   "liveBarPreparing": "جارٍ تجهيز طلبك",
-  "liveBarReady": "طلبك جاهز والمندوب قادم",
+  "liveBarReady": "طلبك جاهز للتوصيل",
   "liveBarOrderNo": "طلب {number}",
   "@liveBarOrderNo": {
     "placeholders": { "number": { "type": "String" } }
@@ -1659,5 +1659,9 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "liveBarOpen": "تفاصيل الطلب",
-  "liveBarTitle": "طلبك الآن"
+  "liveBarTitle": "طلبك الآن",
+  "liveTrackAssigning": "جارٍ تحديد مندوب توصيل لطلبك",
+  "liveTrackStillSearching": "نواصل البحث عن مندوب لك",
+  "liveTrackAssignHint": "نبحث بين المندوبين القريبين. ننبّهك فور تحديد المندوب.",
+  "liveBarSearching": "جارٍ تحديد مندوب"
 }

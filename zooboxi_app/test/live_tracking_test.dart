@@ -1,8 +1,10 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:zooboxi_app/app/theme/app_theme.dart';
 import 'package:zooboxi_app/features/orders/data/live_tracking.dart';
+import 'package:zooboxi_app/features/orders/presentation/widgets/courier_search_glyph.dart';
 import 'package:zooboxi_app/features/orders/presentation/widgets/live_tracking_card.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
@@ -27,6 +29,7 @@ LiveTracking _tracking({
   int? etaMinutes = 6,
   List<String> proof = const [],
   bool active = true,
+  String? assignmentDeadline,
 }) =>
     LiveTracking.fromJson({
       'phase': phase,
@@ -47,6 +50,7 @@ LiveTracking _tracking({
         {'key': 'picked_up', 'label': 'استلم طلبك من الفرع', 'at': '2026-09-08T18:52:00+03:00', 'done': true},
         {'key': 'delivered', 'label': 'وصل إليك', 'at': null, 'done': false},
       ],
+      'assignment_deadline': assignmentDeadline,
       'proof_images': proof,
       'tracking_url': 'https://mrsool.co/t/abc',
       'requested_at': '2026-09-08T18:41:52+03:00',
@@ -60,6 +64,18 @@ LiveTracking _trackingWithStep() => LiveTracking.fromJson({
         {'key': 'teleported', 'label': 'محطة جديدة', 'at': null, 'done': false},
       ],
     });
+
+Widget _clock(Duration left) => _host(
+      Center(
+        child: CourierCountdown(
+          // `clock.now()` rather than DateTime.now(): inside a widget test the
+          // framework's clock is the one `tester.pump(Duration)` moves, and the
+          // countdown reads the same one.
+          deadline: clock.now().add(left),
+          style: const TextStyle(fontSize: 20),
+        ),
+      ),
+    );
 
 void main() {
   setUpAll(() => initializeDateFormatting());
@@ -110,6 +126,52 @@ void main() {
       expect(LiveTracking.fromJson({'phase': 'delivered'}).isLive, isFalse);
       expect(LiveTracking.fromJson({'phase': 'failed'}).isLive, isFalse);
       expect(LiveTracking.fromJson({'phase': 'assigned'}).isLive, isTrue);
+    });
+  });
+
+  group('the courier countdown', () {
+    /// The one clock on screen, as the customer reads it.
+    String clockText(WidgetTester tester) =>
+        tester.widget<Text>(find.byType(Text).first).data!;
+
+    int seconds(String mmss) {
+      final parts = mmss.split(':');
+      return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+    }
+
+    testWidgets('it ticks down by the second', (tester) async {
+      await tester.pumpWidget(_clock(const Duration(minutes: 14)));
+      await tester.pump();
+
+      expect(clockText(tester), '14:00');
+
+      await tester.pump(const Duration(seconds: 1));
+      expect(clockText(tester), '13:59');
+
+      await tester.pump(const Duration(seconds: 59));
+      expect(clockText(tester), '13:00');
+    });
+
+    testWidgets('it never runs negative — it admits we are still looking',
+        (tester) async {
+      // A clock that keeps counting past its own promise is a clock that lies.
+      await tester.pumpWidget(_clock(const Duration(seconds: 2)));
+      await tester.pump();
+
+      expect(clockText(tester), '0:02');
+
+      await tester.pump(const Duration(seconds: 3));
+
+      expect(find.textContaining('-'), findsNothing);
+      expect(find.text('نواصل البحث عن مندوب لك'), findsOneWidget);
+    });
+
+    testWidgets('a deadline already gone shows the honest line at once',
+        (tester) async {
+      await tester.pumpWidget(_clock(const Duration(seconds: -30)));
+      await tester.pump();
+
+      expect(find.text('نواصل البحث عن مندوب لك'), findsOneWidget);
     });
   });
 
@@ -228,7 +290,7 @@ void main() {
       )));
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('نبحث عن مندوب لطلبك'), findsOneWidget);
+      expect(find.text('جارٍ تحديد مندوب توصيل لطلبك'), findsOneWidget);
       expect(find.textContaining('تقريباً'), findsNothing);
       expect(find.text('اتصل بالمندوب'), findsNothing);
     });
@@ -260,6 +322,26 @@ void main() {
       expect(find.text('مندوبك في طريقه للفرع'), findsOneWidget);
       expect(find.textContaining('يبعد عنك'), findsNothing);
       expect(find.textContaining('تقريباً'), findsNothing);
+    });
+
+    testWidgets('while we look, the card counts down instead of promising an arrival',
+        (tester) async {
+      await tester.pumpWidget(_host(LiveTrackingCard(
+        tracking: _tracking(
+          phase: 'searching',
+          status: 'COURIER_PENDING',
+          etaMinutes: null,
+          distanceKm: null,
+          courier: const {},
+          assignmentDeadline: '2999-01-01T00:00:00+03:00',
+        ),
+      )));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('جارٍ تحديد مندوب توصيل لطلبك'), findsOneWidget);
+      expect(find.text('نبحث بين المندوبين القريبين. ننبّهك فور تحديد المندوب.'), findsOneWidget);
+      expect(find.textContaining('تقريباً'), findsNothing);
+      expect(find.textContaining('يبعد عنك'), findsNothing);
     });
 
     testWidgets('the four steps read as a journey with their real times',

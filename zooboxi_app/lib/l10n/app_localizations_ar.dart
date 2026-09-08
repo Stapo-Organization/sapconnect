@@ -2921,7 +2921,7 @@ class LAr extends L {
   String get liveTrackTitle => 'تتبّع مندوبك';
 
   @override
-  String get liveTrackSearching => 'نبحث عن مندوب لطلبك';
+  String get liveTrackSearching => 'جارٍ تحديد مندوب توصيل لطلبك';
 
   @override
   String get liveTrackAssigned => 'مندوبك في طريقه للفرع';
@@ -3029,7 +3029,7 @@ class LAr extends L {
   String get liveBarPreparing => 'جارٍ تجهيز طلبك';
 
   @override
-  String get liveBarReady => 'طلبك جاهز والمندوب قادم';
+  String get liveBarReady => 'طلبك جاهز للتوصيل';
 
   @override
   String liveBarOrderNo(String number) {
@@ -3055,4 +3055,17 @@ class LAr extends L {
 
   @override
   String get liveBarTitle => 'طلبك الآن';
+
+  @override
+  String get liveTrackAssigning => 'جارٍ تحديد مندوب توصيل لطلبك';
+
+  @override
+  String get liveTrackStillSearching => 'نواصل البحث عن مندوب لك';
+
+  @override
+  String get liveTrackAssignHint =>
+      'نبحث بين المندوبين القريبين. ننبّهك فور تحديد المندوب.';
+
+  @override
+  String get liveBarSearching => 'جارٍ تحديد مندوب';
 }

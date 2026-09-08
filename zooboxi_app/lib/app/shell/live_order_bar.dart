@@ -10,6 +10,7 @@ import '../../core/widgets/zb_image.dart';
 import '../../features/orders/data/live_tracking.dart';
 import '../../features/orders/data/order_models.dart';
 import '../../features/orders/data/orders_repository.dart';
+import '../../features/orders/presentation/widgets/courier_search_glyph.dart';
 import '../../features/orders/presentation/widgets/live_tracking_card.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/zb_colors.dart';
@@ -199,6 +200,13 @@ class _Leading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // While we are hunting for a rider there is no progress to draw a ring
+    // with — the ring would sit at a third and simply not move. The radar says
+    // the true thing instead: something is happening, and it is looking outward.
+    if (active.tracking?.phase == LivePhase.searching) {
+      return CourierSearchGlyph(tone: tone, size: 40);
+    }
+
     final image = active.order.itemsPreview.isEmpty
         ? null
         : active.order.itemsPreview.first.image;
@@ -289,7 +297,29 @@ class _Trailing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    final deadline = active.tracking?.assignmentDeadline;
     final eta = active.tracking?.etaMinutes;
+
+    // While we are looking there is no arrival to quote — only the promise we
+    // made about finding somebody, ticking down.
+    if (deadline != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: tone.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(ZbTokens.rPill),
+        ),
+        child: CourierCountdown(
+          deadline: deadline,
+          style: context.tt.labelMedium?.copyWith(
+            color: tone,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+          expired: const SizedBox.shrink(),
+        ),
+      );
+    }
 
     if (eta != null && eta <= 120) {
       return Container(
@@ -630,7 +660,12 @@ String _headline(BuildContext context, ActiveOrder active) {
   final l = L.of(context);
   final tracking = active.tracking;
 
-  if (tracking != null) return liveStatusLine(context, tracking);
+  if (tracking != null) {
+    // The bar has room for a phrase, not a sentence — the card says it in full.
+    return tracking.phase == LivePhase.searching
+        ? l.liveBarSearching
+        : liveStatusLine(context, tracking);
+  }
 
   return active.order.status == 'zb-ready' ? l.liveBarReady : l.liveBarPreparing;
 }

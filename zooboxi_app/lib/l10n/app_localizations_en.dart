@@ -2974,7 +2974,7 @@ class LEn extends L {
   String get liveBarPreparing => 'We are preparing your order';
 
   @override
-  String get liveBarReady => 'Your order is ready, a courier is coming';
+  String get liveBarReady => 'Your order is ready to go';
 
   @override
   String liveBarOrderNo(String number) {
@@ -2997,4 +2997,17 @@ class LEn extends L {
 
   @override
   String get liveBarTitle => 'Your order right now';
+
+  @override
+  String get liveTrackAssigning => 'Finding a courier for your order';
+
+  @override
+  String get liveTrackStillSearching => 'Still looking for a courier';
+
+  @override
+  String get liveTrackAssignHint =>
+      'We are asking the riders nearby. We will tell you the moment one takes it.';
+
+  @override
+  String get liveBarSearching => 'Finding a courier';
 }

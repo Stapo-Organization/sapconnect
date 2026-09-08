@@ -4612,7 +4612,7 @@ abstract class L {
   /// No description provided for @liveTrackSearching.
   ///
   /// In ar, this message translates to:
-  /// **'نبحث عن مندوب لطلبك'**
+  /// **'جارٍ تحديد مندوب توصيل لطلبك'**
   String get liveTrackSearching;
 
   /// No description provided for @liveTrackAssigned.
@@ -4810,7 +4810,7 @@ abstract class L {
   /// No description provided for @liveBarReady.
   ///
   /// In ar, this message translates to:
-  /// **'طلبك جاهز والمندوب قادم'**
+  /// **'طلبك جاهز للتوصيل'**
   String get liveBarReady;
 
   /// No description provided for @liveBarOrderNo.
@@ -4836,6 +4836,30 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'طلبك الآن'**
   String get liveBarTitle;
+
+  /// No description provided for @liveTrackAssigning.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تحديد مندوب توصيل لطلبك'**
+  String get liveTrackAssigning;
+
+  /// No description provided for @liveTrackStillSearching.
+  ///
+  /// In ar, this message translates to:
+  /// **'نواصل البحث عن مندوب لك'**
+  String get liveTrackStillSearching;
+
+  /// No description provided for @liveTrackAssignHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'نبحث بين المندوبين القريبين. ننبّهك فور تحديد المندوب.'**
+  String get liveTrackAssignHint;
+
+  /// No description provided for @liveBarSearching.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تحديد مندوب'**
+  String get liveBarSearching;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

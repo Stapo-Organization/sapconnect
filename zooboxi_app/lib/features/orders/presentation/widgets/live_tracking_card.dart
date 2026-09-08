@@ -13,6 +13,7 @@ import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/live_tracking.dart';
+import 'courier_search_glyph.dart';
 import '../../data/orders_repository.dart';
 
 /// «تتبّع مندوبك» — the live courier panel on the order screen.
@@ -46,6 +47,11 @@ class LiveTrackingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Headline(tracking: tracking, tone: tone),
+          // While we are still looking there is no courier to put on a map, so
+          // the slot the map will occupy carries the search itself rather than
+          // collapsing and leaving the card looking like it has stalled.
+          if (!tracking.hasMap && tracking.phase == LivePhase.searching)
+            _SearchingPanel(tone: tone, deadline: tracking.assignmentDeadline),
           if (tracking.hasMap)
             _CourierMap(
               tracking: tracking,
@@ -103,7 +109,9 @@ class _Headline extends StatelessWidget {
     final eta = tracking.etaMinutes;
 
     final String? sub = switch (tracking.phase) {
-      LivePhase.searching => l.liveTrackSearchingHint,
+      // The searching panel below carries the hint and the clock; saying it
+      // twice on one card is worse than saying it once.
+      LivePhase.searching => null,
       LivePhase.failed => l.liveTrackFailedHint,
       LivePhase.delivered => tracking.deliveredAt == null
           ? null
@@ -223,6 +231,12 @@ class _PhaseGlyphState extends State<_PhaseGlyph> with SingleTickerProviderState
 
   @override
   Widget build(BuildContext context) {
+    // Searching gets its own drawing: it is the phase with nothing to report,
+    // and the one people watch hardest.
+    if (widget.phase == LivePhase.searching) {
+      return CourierSearchGlyph(tone: widget.tone, size: 38);
+    }
+
     final icon = switch (widget.phase) {
       LivePhase.searching => Icons.radar_rounded,
       LivePhase.assigned => Icons.storefront_rounded,
@@ -264,6 +278,59 @@ class _PhaseGlyphState extends State<_PhaseGlyph> with SingleTickerProviderState
         );
       },
       child: core,
+    );
+  }
+}
+
+/// The wait, given the room the map will take once there is a courier to draw.
+///
+/// Deliberately calm: someone reading "we are looking for a courier" does not
+/// need to be alarmed, only reassured that somebody is looking.
+class _SearchingPanel extends StatelessWidget {
+  const _SearchingPanel({required this.tone, this.deadline});
+
+  final Color tone;
+  final DateTime? deadline;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [tone.withValues(alpha: 0.10), tone.withValues(alpha: 0.02)],
+        ),
+      ),
+      child: Column(
+        children: [
+          CourierSearchGlyph(tone: tone, size: 84),
+          Gap.h12,
+          if (deadline != null)
+            CourierCountdown(
+              deadline: deadline!,
+              // The clock is the loudest thing here on purpose: it is the only
+              // number a customer can act on while nothing else is happening.
+              style: context.tt.headlineSmall?.copyWith(
+                color: tone,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+              expiredStyle: context.tt.titleSmall?.copyWith(color: tone),
+            ),
+          Gap.h4,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              L.of(context).liveTrackAssignHint,
+              textAlign: TextAlign.center,
+              style: context.tt.bodySmall?.copyWith(color: context.cs.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
