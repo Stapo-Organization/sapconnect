@@ -16,6 +16,7 @@ import '../../cart/data/cart_controller.dart';
 import '../../checkout/data/checkout_models.dart';
 import '../data/order_models.dart';
 import '../data/orders_repository.dart';
+import 'widgets/live_tracking_card.dart';
 import 'widgets/order_sections.dart';
 import 'widgets/order_status_pill.dart';
 import 'widgets/order_timeline.dart';
@@ -84,6 +85,11 @@ class _DetailState extends ConsumerState<_Detail> {
           _PayNowBanner(summary: summary),
           Gap.h16,
         ],
+
+        // The courier leads everything else. Once someone is carrying the box
+        // toward your door, "where is it" has exactly one answer and it is not
+        // the preparation timeline.
+        _LiveTracking(orderId: summary.id),
 
         if (detail.timeline.isNotEmpty) ...[
           OrderSection(
@@ -208,6 +214,30 @@ class _DetailState extends ConsumerState<_Detail> {
       Haptics.warning();
       AppToast.error(context, errorMessage(context, e));
     }
+  }
+}
+
+/// The live courier panel, or nothing at all.
+///
+/// Deliberately its own consumer: the courier's position refreshes every ten
+/// seconds and the rest of the order does not, so only this subtree rebuilds.
+/// While it is loading — or once the poll has decided this order has no courier
+/// — it occupies no space, which is the right answer for every order that was
+/// not delivered by one.
+class _LiveTracking extends ConsumerWidget {
+  const _LiveTracking({required this.orderId});
+
+  final int orderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tracking = ref.watch(liveTrackingProvider(orderId)).value;
+    if (tracking == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: LiveTrackingCard(tracking: tracking, orderId: orderId),
+    );
   }
 }
 

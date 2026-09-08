@@ -1348,5 +1348,50 @@
   "careEveryQuarter": "Every 3 months",
   "careEveryHalfYear": "Every 6 months",
   "careEveryYear": "Every year",
-  "actionDelete": "Delete"
+  "actionDelete": "Delete",
+  "liveTrackTitle": "Track your courier",
+  "liveTrackSearching": "Finding a courier for your order",
+  "liveTrackAssigned": "Your courier is heading to the branch",
+  "liveTrackReassigned": "The courier was changed",
+  "liveTrackAtBranch": "Your courier reached the branch",
+  "liveTrackCollecting": "Handing your order to the courier",
+  "liveTrackPickedUp": "Your courier picked up your order",
+  "liveTrackOnTheWay": "Your courier is on the way to you",
+  "liveTrackAtDoor": "Your courier has arrived",
+  "liveTrackPartial": "Your order was partly delivered",
+  "liveTrackDelivered": "Your order was delivered",
+  "liveTrackReturned": "The order went back to the branch",
+  "liveTrackCanceled": "The courier task was cancelled",
+  "liveTrackExpired": "No courier was available",
+  "liveTrackStepRequested": "Courier requested",
+  "liveTrackStepAssigned": "Courier assigned",
+  "liveTrackStepPickedUp": "Picked up from the branch",
+  "liveTrackStepDelivered": "Delivered to you",
+  "liveTrackStepFailed": "Delivery failed",
+  "liveTrackEta": "About {minutes} min",
+  "@liveTrackEta": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "liveTrackEtaNow": "At your door now",
+  "liveTrackDistance": "{km} km away",
+  "@liveTrackDistance": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "liveTrackCall": "Call the courier",
+  "liveTrackCourier": "Mrsool courier",
+  "liveTrackSearchingHint": "Usually within minutes. We will notify you the moment a courier is assigned.",
+  "liveTrackOpenMap": "Full map",
+  "liveTrackProof": "Delivery photo",
+  "liveTrackYou": "You",
+  "liveTrackBranch": "Branch",
+  "liveTrackUpdatedAt": "Updated {time}",
+  "@liveTrackUpdatedAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "liveTrackOpenMrsool": "Open Mrsool page",
+  "liveTrackDeliveredAt": "Delivered {time}",
+  "@liveTrackDeliveredAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "liveTrackFailedHint": "Contact us and we will try again."
 }

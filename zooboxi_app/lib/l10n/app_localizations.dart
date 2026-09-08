@@ -4602,6 +4602,204 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'حذف'**
   String get actionDelete;
+
+  /// No description provided for @liveTrackTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتبّع مندوبك'**
+  String get liveTrackTitle;
+
+  /// No description provided for @liveTrackSearching.
+  ///
+  /// In ar, this message translates to:
+  /// **'نبحث عن مندوب لطلبك'**
+  String get liveTrackSearching;
+
+  /// No description provided for @liveTrackAssigned.
+  ///
+  /// In ar, this message translates to:
+  /// **'مندوبك في طريقه للفرع'**
+  String get liveTrackAssigned;
+
+  /// No description provided for @liveTrackReassigned.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تغيير المندوب'**
+  String get liveTrackReassigned;
+
+  /// No description provided for @liveTrackAtBranch.
+  ///
+  /// In ar, this message translates to:
+  /// **'مندوبك وصل الفرع'**
+  String get liveTrackAtBranch;
+
+  /// No description provided for @liveTrackCollecting.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تسليم طلبك للمندوب'**
+  String get liveTrackCollecting;
+
+  /// No description provided for @liveTrackPickedUp.
+  ///
+  /// In ar, this message translates to:
+  /// **'مندوبك استلم طلبك'**
+  String get liveTrackPickedUp;
+
+  /// No description provided for @liveTrackOnTheWay.
+  ///
+  /// In ar, this message translates to:
+  /// **'مندوبك في الطريق إليك'**
+  String get liveTrackOnTheWay;
+
+  /// No description provided for @liveTrackAtDoor.
+  ///
+  /// In ar, this message translates to:
+  /// **'مندوبك وصل عندك'**
+  String get liveTrackAtDoor;
+
+  /// No description provided for @liveTrackPartial.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسليم طلبك جزئياً'**
+  String get liveTrackPartial;
+
+  /// No description provided for @liveTrackDelivered.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسليم طلبك'**
+  String get liveTrackDelivered;
+
+  /// No description provided for @liveTrackReturned.
+  ///
+  /// In ar, this message translates to:
+  /// **'رجع الطلب للفرع'**
+  String get liveTrackReturned;
+
+  /// No description provided for @liveTrackCanceled.
+  ///
+  /// In ar, this message translates to:
+  /// **'أُلغيت مهمة المندوب'**
+  String get liveTrackCanceled;
+
+  /// No description provided for @liveTrackExpired.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم نجد مندوباً متاحاً'**
+  String get liveTrackExpired;
+
+  /// No description provided for @liveTrackStepRequested.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبنا مندوباً'**
+  String get liveTrackStepRequested;
+
+  /// No description provided for @liveTrackStepAssigned.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تعيين المندوب'**
+  String get liveTrackStepAssigned;
+
+  /// No description provided for @liveTrackStepPickedUp.
+  ///
+  /// In ar, this message translates to:
+  /// **'استلم طلبك من الفرع'**
+  String get liveTrackStepPickedUp;
+
+  /// No description provided for @liveTrackStepDelivered.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصل إليك'**
+  String get liveTrackStepDelivered;
+
+  /// No description provided for @liveTrackStepFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر التوصيل'**
+  String get liveTrackStepFailed;
+
+  /// No description provided for @liveTrackEta.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقريباً {minutes} دقيقة'**
+  String liveTrackEta(int minutes);
+
+  /// No description provided for @liveTrackEtaNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'على بابك الآن'**
+  String get liveTrackEtaNow;
+
+  /// No description provided for @liveTrackDistance.
+  ///
+  /// In ar, this message translates to:
+  /// **'يبعد عنك {km} كم'**
+  String liveTrackDistance(String km);
+
+  /// No description provided for @liveTrackCall.
+  ///
+  /// In ar, this message translates to:
+  /// **'اتصل بالمندوب'**
+  String get liveTrackCall;
+
+  /// No description provided for @liveTrackCourier.
+  ///
+  /// In ar, this message translates to:
+  /// **'مندوب مرسول'**
+  String get liveTrackCourier;
+
+  /// No description provided for @liveTrackSearchingHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'عادةً خلال دقائق. سننبّهك فور تعيين المندوب.'**
+  String get liveTrackSearchingHint;
+
+  /// No description provided for @liveTrackOpenMap.
+  ///
+  /// In ar, this message translates to:
+  /// **'الخريطة كاملة'**
+  String get liveTrackOpenMap;
+
+  /// No description provided for @liveTrackProof.
+  ///
+  /// In ar, this message translates to:
+  /// **'صورة التسليم'**
+  String get liveTrackProof;
+
+  /// No description provided for @liveTrackYou.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقعك'**
+  String get liveTrackYou;
+
+  /// No description provided for @liveTrackBranch.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفرع'**
+  String get liveTrackBranch;
+
+  /// No description provided for @liveTrackUpdatedAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر تحديث {time}'**
+  String liveTrackUpdatedAt(String time);
+
+  /// No description provided for @liveTrackOpenMrsool.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتح صفحة مرسول'**
+  String get liveTrackOpenMrsool;
+
+  /// No description provided for @liveTrackDeliveredAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'سُلّم {time}'**
+  String liveTrackDeliveredAt(String time);
+
+  /// No description provided for @liveTrackFailedHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تواصل معنا وسنعيد المحاولة.'**
+  String get liveTrackFailedHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

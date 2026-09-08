@@ -1602,5 +1602,50 @@
   "careEveryQuarter": "كل 3 أشهر",
   "careEveryHalfYear": "كل 6 أشهر",
   "careEveryYear": "كل سنة",
-  "actionDelete": "حذف"
+  "actionDelete": "حذف",
+  "liveTrackTitle": "تتبّع مندوبك",
+  "liveTrackSearching": "نبحث عن مندوب لطلبك",
+  "liveTrackAssigned": "مندوبك في طريقه للفرع",
+  "liveTrackReassigned": "تم تغيير المندوب",
+  "liveTrackAtBranch": "مندوبك وصل الفرع",
+  "liveTrackCollecting": "جارٍ تسليم طلبك للمندوب",
+  "liveTrackPickedUp": "مندوبك استلم طلبك",
+  "liveTrackOnTheWay": "مندوبك في الطريق إليك",
+  "liveTrackAtDoor": "مندوبك وصل عندك",
+  "liveTrackPartial": "تم تسليم طلبك جزئياً",
+  "liveTrackDelivered": "تم تسليم طلبك",
+  "liveTrackReturned": "رجع الطلب للفرع",
+  "liveTrackCanceled": "أُلغيت مهمة المندوب",
+  "liveTrackExpired": "لم نجد مندوباً متاحاً",
+  "liveTrackStepRequested": "طلبنا مندوباً",
+  "liveTrackStepAssigned": "تم تعيين المندوب",
+  "liveTrackStepPickedUp": "استلم طلبك من الفرع",
+  "liveTrackStepDelivered": "وصل إليك",
+  "liveTrackStepFailed": "تعذّر التوصيل",
+  "liveTrackEta": "تقريباً {minutes} دقيقة",
+  "@liveTrackEta": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "liveTrackEtaNow": "على بابك الآن",
+  "liveTrackDistance": "يبعد عنك {km} كم",
+  "@liveTrackDistance": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "liveTrackCall": "اتصل بالمندوب",
+  "liveTrackCourier": "مندوب مرسول",
+  "liveTrackSearchingHint": "عادةً خلال دقائق. سننبّهك فور تعيين المندوب.",
+  "liveTrackOpenMap": "الخريطة كاملة",
+  "liveTrackProof": "صورة التسليم",
+  "liveTrackYou": "موقعك",
+  "liveTrackBranch": "الفرع",
+  "liveTrackUpdatedAt": "آخر تحديث {time}",
+  "@liveTrackUpdatedAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "liveTrackOpenMrsool": "افتح صفحة مرسول",
+  "liveTrackDeliveredAt": "سُلّم {time}",
+  "@liveTrackDeliveredAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "liveTrackFailedHint": "تواصل معنا وسنعيد المحاولة."
 }

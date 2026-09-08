@@ -2861,4 +2861,112 @@ class LEn extends L {
 
   @override
   String get actionDelete => 'Delete';
+
+  @override
+  String get liveTrackTitle => 'Track your courier';
+
+  @override
+  String get liveTrackSearching => 'Finding a courier for your order';
+
+  @override
+  String get liveTrackAssigned => 'Your courier is heading to the branch';
+
+  @override
+  String get liveTrackReassigned => 'The courier was changed';
+
+  @override
+  String get liveTrackAtBranch => 'Your courier reached the branch';
+
+  @override
+  String get liveTrackCollecting => 'Handing your order to the courier';
+
+  @override
+  String get liveTrackPickedUp => 'Your courier picked up your order';
+
+  @override
+  String get liveTrackOnTheWay => 'Your courier is on the way to you';
+
+  @override
+  String get liveTrackAtDoor => 'Your courier has arrived';
+
+  @override
+  String get liveTrackPartial => 'Your order was partly delivered';
+
+  @override
+  String get liveTrackDelivered => 'Your order was delivered';
+
+  @override
+  String get liveTrackReturned => 'The order went back to the branch';
+
+  @override
+  String get liveTrackCanceled => 'The courier task was cancelled';
+
+  @override
+  String get liveTrackExpired => 'No courier was available';
+
+  @override
+  String get liveTrackStepRequested => 'Courier requested';
+
+  @override
+  String get liveTrackStepAssigned => 'Courier assigned';
+
+  @override
+  String get liveTrackStepPickedUp => 'Picked up from the branch';
+
+  @override
+  String get liveTrackStepDelivered => 'Delivered to you';
+
+  @override
+  String get liveTrackStepFailed => 'Delivery failed';
+
+  @override
+  String liveTrackEta(int minutes) {
+    return 'About $minutes min';
+  }
+
+  @override
+  String get liveTrackEtaNow => 'At your door now';
+
+  @override
+  String liveTrackDistance(String km) {
+    return '$km km away';
+  }
+
+  @override
+  String get liveTrackCall => 'Call the courier';
+
+  @override
+  String get liveTrackCourier => 'Mrsool courier';
+
+  @override
+  String get liveTrackSearchingHint =>
+      'Usually within minutes. We will notify you the moment a courier is assigned.';
+
+  @override
+  String get liveTrackOpenMap => 'Full map';
+
+  @override
+  String get liveTrackProof => 'Delivery photo';
+
+  @override
+  String get liveTrackYou => 'You';
+
+  @override
+  String get liveTrackBranch => 'Branch';
+
+  @override
+  String liveTrackUpdatedAt(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String get liveTrackOpenMrsool => 'Open Mrsool page';
+
+  @override
+  String liveTrackDeliveredAt(String time) {
+    return 'Delivered $time';
+  }
+
+  @override
+  String get liveTrackFailedHint => 'Contact us and we will try again.';
 }

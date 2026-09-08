@@ -23,6 +23,9 @@ class OrderStatusPill extends StatelessWidget {
 
     final (fg, bg) = switch (order.status) {
       'completed' => (zb.success, zb.success.withValues(alpha: 0.13)),
+      // Out for delivery is the furthest an order gets before it is over, so
+      // it carries the same colour as "ready" but at full container strength.
+      'zb-out-for-delivery' => (cs.primary, cs.primary.withValues(alpha: 0.20)),
       'zb-ready' => (cs.primary, cs.primary.withValues(alpha: 0.13)),
       'processing' => (cs.primary, cs.primary.withValues(alpha: 0.10)),
       'pending' || 'on-hold' => (zb.warning, zb.warning.withValues(alpha: 0.15)),

@@ -2916,4 +2916,112 @@ class LAr extends L {
 
   @override
   String get actionDelete => 'حذف';
+
+  @override
+  String get liveTrackTitle => 'تتبّع مندوبك';
+
+  @override
+  String get liveTrackSearching => 'نبحث عن مندوب لطلبك';
+
+  @override
+  String get liveTrackAssigned => 'مندوبك في طريقه للفرع';
+
+  @override
+  String get liveTrackReassigned => 'تم تغيير المندوب';
+
+  @override
+  String get liveTrackAtBranch => 'مندوبك وصل الفرع';
+
+  @override
+  String get liveTrackCollecting => 'جارٍ تسليم طلبك للمندوب';
+
+  @override
+  String get liveTrackPickedUp => 'مندوبك استلم طلبك';
+
+  @override
+  String get liveTrackOnTheWay => 'مندوبك في الطريق إليك';
+
+  @override
+  String get liveTrackAtDoor => 'مندوبك وصل عندك';
+
+  @override
+  String get liveTrackPartial => 'تم تسليم طلبك جزئياً';
+
+  @override
+  String get liveTrackDelivered => 'تم تسليم طلبك';
+
+  @override
+  String get liveTrackReturned => 'رجع الطلب للفرع';
+
+  @override
+  String get liveTrackCanceled => 'أُلغيت مهمة المندوب';
+
+  @override
+  String get liveTrackExpired => 'لم نجد مندوباً متاحاً';
+
+  @override
+  String get liveTrackStepRequested => 'طلبنا مندوباً';
+
+  @override
+  String get liveTrackStepAssigned => 'تم تعيين المندوب';
+
+  @override
+  String get liveTrackStepPickedUp => 'استلم طلبك من الفرع';
+
+  @override
+  String get liveTrackStepDelivered => 'وصل إليك';
+
+  @override
+  String get liveTrackStepFailed => 'تعذّر التوصيل';
+
+  @override
+  String liveTrackEta(int minutes) {
+    return 'تقريباً $minutes دقيقة';
+  }
+
+  @override
+  String get liveTrackEtaNow => 'على بابك الآن';
+
+  @override
+  String liveTrackDistance(String km) {
+    return 'يبعد عنك $km كم';
+  }
+
+  @override
+  String get liveTrackCall => 'اتصل بالمندوب';
+
+  @override
+  String get liveTrackCourier => 'مندوب مرسول';
+
+  @override
+  String get liveTrackSearchingHint =>
+      'عادةً خلال دقائق. سننبّهك فور تعيين المندوب.';
+
+  @override
+  String get liveTrackOpenMap => 'الخريطة كاملة';
+
+  @override
+  String get liveTrackProof => 'صورة التسليم';
+
+  @override
+  String get liveTrackYou => 'موقعك';
+
+  @override
+  String get liveTrackBranch => 'الفرع';
+
+  @override
+  String liveTrackUpdatedAt(String time) {
+    return 'آخر تحديث $time';
+  }
+
+  @override
+  String get liveTrackOpenMrsool => 'افتح صفحة مرسول';
+
+  @override
+  String liveTrackDeliveredAt(String time) {
+    return 'سُلّم $time';
+  }
+
+  @override
+  String get liveTrackFailedHint => 'تواصل معنا وسنعيد المحاولة.';
 }
