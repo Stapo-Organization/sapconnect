@@ -268,9 +268,15 @@ class MrsoolDeliveryService
      * Idempotent: re-applying the same payload changes nothing and fires no
      * duplicate push/notification (side effects hang off the PHASE change).
      *
+     * $withSideEffects=false records the new state but fires nothing — no store
+     * push, no branch notification. That is for the customer's live map, which
+     * refreshes the position on demand and must not turn one person watching a
+     * dot into a chain of outbound calls the branch is already making once a
+     * minute. The cron picks the phase change up within the minute.
+     *
      * @return bool whether anything changed
      */
-    public function applyRemote(MrsoolDelivery $delivery, array $remote): bool
+    public function applyRemote(MrsoolDelivery $delivery, array $remote, bool $withSideEffects = true): bool
     {
         $remote = $remote['data'] ?? $remote;
 
@@ -350,7 +356,7 @@ class MrsoolDeliveryService
         $changed = count(array_diff_key($delivery->getDirty(), ['last_synced_at' => 1, 'raw_last' => 1])) > 0;
         $delivery->save();
 
-        if ($phase !== $from) {
+        if ($phase !== $from && $withSideEffects) {
             $this->onPhaseChange($delivery, $phase);
         }
 
@@ -358,7 +364,7 @@ class MrsoolDeliveryService
     }
 
     /** GET the order and fold it in. A 404 retires the row locally. */
-    public function sync(MrsoolDelivery $delivery): bool
+    public function sync(MrsoolDelivery $delivery, bool $withSideEffects = true): bool
     {
         if (!$delivery->mrsool_order_id) {
             return false;
@@ -383,7 +389,53 @@ class MrsoolDeliveryService
             return false;
         }
 
-        return $this->applyRemote($delivery, $remote);
+        return $this->applyRemote($delivery, $remote, $withSideEffects);
+    }
+
+    /**
+     * Refresh the position for a customer watching the map: a short deadline,
+     * and no side effects (see applyRemote). Never throws.
+     *
+     * Returns whether MRSOOL ANSWERED — not whether anything moved. A courier
+     * sitting at a traffic light produces an identical payload, and treating
+     * that as a failure would put every viewer into backoff within a minute.
+     */
+    public function refreshForViewer(MrsoolDelivery $delivery, int $timeout = 5): bool
+    {
+        if (!$delivery->mrsool_order_id) {
+            return false;
+        }
+
+        try {
+            return $this->client->withTimeout($timeout, function () use ($delivery) {
+                $remote = $this->client->getOrder((int) $delivery->mrsool_order_id);
+                $this->applyRemote($delivery, $remote, withSideEffects: false);
+
+                return true;
+            });
+        } catch (\Throwable $e) {
+            Log::info('mrsool: live refresh failed: ' . $e->getMessage(), [
+                'context'     => 'mrsool',
+                'delivery_id' => $delivery->id,
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * The delivery a customer should be shown: the one still running, else the
+     * last one that actually reached Mrsool.
+     *
+     * Not simply the newest row — a delivered courier followed by a retry whose
+     * create call failed would otherwise hide the delivery that happened.
+     */
+    public function viewableDelivery(ZooboxiOrder $order): ?MrsoolDelivery
+    {
+        return $this->activeDelivery($order)
+            ?? MrsoolDelivery::where('zooboxi_order_id', $order->id)
+                ->whereNotNull('mrsool_order_id')
+                ->latest('id')
+                ->first();
     }
 
     /** Pull the request back — only before the courier has collected. */
@@ -509,6 +561,11 @@ class MrsoolDeliveryService
 
         switch ($phase) {
             case MrsoolDelivery::PHASE_ASSIGNED:
+                // Carry the courier over to the store WITHOUT changing the order
+                // status — the box is still on the branch's counter. This is what
+                // lets the customer's app show "مندوبك في طريقه للفرع" instead of
+                // waiting until pickup for the panel to appear at all.
+                $this->pushWoo($order, $this->wooStatusFor($order), $delivery);
                 $this->notify($delivery, $order, 'تم تعيين مندوب مرسول', trim(
                     'الطلب ' . $number . ' — المندوب: ' . ($delivery->courier_name ?: 'قيد التعيين')
                 ));
@@ -542,6 +599,19 @@ class MrsoolDeliveryService
                 $this->notify($delivery, $order, 'تعذّر توصيل الطلب عبر مرسول', 'الطلب ' . $number . ' — ' . $reason);
                 break;
         }
+    }
+
+    /**
+     * The store status the order already has — used when we need to carry meta
+     * across without moving the order along.
+     */
+    protected function wooStatusFor(ZooboxiOrder $order): string
+    {
+        return match ($order->delivery_status) {
+            ZooboxiOrder::STATUS_OUT_FOR_DELIVERY => 'zb-out-for-delivery',
+            ZooboxiOrder::STATUS_DELIVERED        => 'completed',
+            default                               => 'zb-ready',
+        };
     }
 
     /** Push the store status, carrying the Mrsool tracking meta along with it. */

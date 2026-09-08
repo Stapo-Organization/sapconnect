@@ -284,6 +284,9 @@ Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
     // The store trashed or deleted the order — drop the mirror, so it stops
     // showing in the branch app as work that can never be finished.
     Route::delete('/orders/{woo_order_id}', [\App\Http\Controllers\Api\WooSyncController::class, 'deleteOrder']);
+    // Live courier tracking for the customer's own app — the store proxies this
+    // to whoever owns the order, so it returns the customer-safe view only.
+    Route::get('/orders/{woo_order_id}/mrsool', [\App\Http\Controllers\Api\MrsoolTrackingController::class, 'show']);
 
     // حزم زوبوكسي — approved bundle definitions the store materialises
     Route::get('/bundles/active', [\App\Http\Controllers\Api\BundleFeedController::class, 'active']);

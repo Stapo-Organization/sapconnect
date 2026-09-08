@@ -23,6 +23,9 @@ class MrsoolClient
     protected ?string $apiKey;
     protected int $timeout;
 
+    /** Set only for the duration of a withTimeout() call. */
+    protected ?int $liveTimeout = null;
+
     public function __construct()
     {
         $this->baseUrl = rtrim((string) config('services.mrsool.base_url'), '/');
@@ -202,7 +205,27 @@ class MrsoolClient
             ->withHeaders(['locale' => 'ar'])
             ->acceptJson()
             ->asJson()
-            ->timeout($this->timeout);
+            ->timeout($this->liveTimeout ?? $this->timeout);
+    }
+
+    /**
+     * Run one call under a tighter deadline.
+     *
+     * The default 20s is right for requesting a courier — that call must not be
+     * abandoned halfway. It is far too long for a customer refreshing a map,
+     * where the caller sits inside a store request that itself has seconds to
+     * live, and a stale position beats a spinner.
+     */
+    public function withTimeout(int $seconds, callable $fn): mixed
+    {
+        $previous = $this->liveTimeout;
+        $this->liveTimeout = max(1, $seconds);
+
+        try {
+            return $fn($this);
+        } finally {
+            $this->liveTimeout = $previous;
+        }
     }
 
     /**

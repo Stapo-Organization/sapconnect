@@ -186,6 +186,10 @@ return [
         'allow_cod'     => env('MRSOOL_ALLOW_COD', false),
         'store_name'    => env('MRSOOL_STORE_NAME', 'Zooboxi'),
         'store_phone'   => env('MRSOOL_STORE_PHONE'),
+        // A customer watching the map needs a fresher position than the once-a-minute
+        // sync gives. A read of a LIVE delivery re-fetches from Mrsool when the row is
+        // older than this many seconds; 0 disables the on-demand refresh entirely.
+        'live_refresh_seconds' => env('MRSOOL_LIVE_REFRESH_SECONDS', 25),
     ],
 
 ];
