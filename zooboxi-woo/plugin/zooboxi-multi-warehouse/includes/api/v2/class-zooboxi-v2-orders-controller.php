@@ -33,6 +33,7 @@ class Zooboxi_V2_Orders_Controller
         Zooboxi_V2_Bootstrap::route('/orders', 'GET', [$this, 'index']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)', 'GET', [$this, 'show']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/reorder', 'POST', [$this, 'reorder']);
+        Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/live-tracking', 'GET', [$this, 'live_tracking']);
     }
 
     /* ── GET /orders ───────────────────────────────── */
@@ -417,6 +418,97 @@ class Zooboxi_V2_Orders_Controller
             'url'     => apply_filters('zooboxi_v2_tracking_url', null, $number, $carrier, $order),
             'status'  => (string) $order->get_meta(self::SHIPGO_STATUS),
         ];
+    }
+
+    /* ── GET /orders/{id}/live-tracking ────────────── */
+
+    /**
+     * Where the courier is, right now.
+     *
+     * The store holds only the last status sapconnect pushed on a phase change,
+     * which is enough for a badge but not for a dot on a map. So this proxies
+     * sapconnect, which in turn re-fetches Mrsool when its own row has gone
+     * stale — and the answer is cached for a few seconds per order so a customer
+     * staring at the map cannot turn one courier into a stream of API calls.
+     *
+     * Returns `null` data (200) rather than an error when there is no courier:
+     * the app simply hides the panel, which is also the right answer for every
+     * non-express order.
+     */
+    public function live_tracking(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $order = $this->owned_order($request);
+        if ($order === null) {
+            return Zooboxi_V2_Bootstrap::fail('order_not_found', __('الطلب غير موجود', 'zooboxi'), 'Order not found.', 404);
+        }
+
+        // Orders that can never have a courier are answered here, without a
+        // round trip. Everything else has to ask, INCLUDING an express order
+        // with no courier yet: the branch may request one while the customer is
+        // looking at the screen, and gating on the meta would mean the panel
+        // could only ever appear after pickup.
+        if (!$this->could_have_courier($order)) {
+            return Zooboxi_V2_Bootstrap::ok(null);
+        }
+
+        $order_id  = $order->get_id();
+        $cache_key = 'zb_mrsool_live_' . $order_id;
+        $cached    = get_transient($cache_key);
+
+        if (is_array($cached)) {
+            return Zooboxi_V2_Bootstrap::ok($cached['data']);
+        }
+
+        if (!class_exists('Zooboxi_Sync_Engine')) {
+            return Zooboxi_V2_Bootstrap::ok(null);
+        }
+
+        $engine   = new Zooboxi_Sync_Engine();
+        $tracking = $engine->fetch_mrsool_tracking($order_id);
+
+        // We could not ask. Say so instead of answering "no courier" — the app
+        // must keep polling, because the one moment this is most likely to time
+        // out is the moment the delivery completes.
+        if ($tracking === false) {
+            return Zooboxi_V2_Bootstrap::fail(
+                'tracking_unavailable',
+                __('تعذّر تحديث موقع المندوب الآن', 'zooboxi'),
+                'Could not refresh the courier position right now.',
+                503
+            );
+        }
+
+        // A delivered courier never moves again, so its payload can rest much
+        // longer than a live one. "No courier yet" rests briefly: the branch
+        // may be requesting one right now.
+        $ttl = match (true) {
+            $tracking === null => 15,
+            in_array($tracking['phase'] ?? '', ['delivered', 'failed'], true) => 600,
+            default => 10,
+        };
+        set_transient($cache_key, ['data' => $tracking], $ttl);
+
+        return Zooboxi_V2_Bootstrap::ok($tracking);
+    }
+
+    /**
+     * Could this order have a Mrsool courier at all?
+     *
+     * True once one has been requested (the meta is there), and true for any
+     * express order that has not finished — that is the window in which the
+     * branch can still call one.
+     */
+    private function could_have_courier(\WC_Order $order): bool
+    {
+        if ((string) $order->get_meta(self::MRSOOL_ORDER_ID) !== '') {
+            return true;
+        }
+
+        if ((string) $order->get_meta('_zooboxi_delivery_type') !== 'express') {
+            return false;
+        }
+
+        return !in_array($order->get_status(), ['cancelled', 'refunded', 'failed', 'pending'], true);
     }
 
     /* ── Helpers ───────────────────────────────────── */

@@ -293,6 +293,56 @@ class Zooboxi_Sync_Engine
         }
     }
 
+    /**
+     * Live Mrsool courier tracking for one order, straight from sapconnect.
+     *
+     * This one runs inside a CUSTOMER request (the app polling the map), so it
+     * is single-shot with a short timeout: a slow backend must degrade, never
+     * hang someone's order screen.
+     *
+     * The three outcomes are deliberately distinct, because collapsing them is
+     * how a customer loses the map at the exact moment it matters:
+     *   array  — the courier, as sapconnect sees him.
+     *   null   — sapconnect answered, and there is no courier on this order.
+     *   false  — we could not ask. Says nothing about whether a courier exists.
+     *
+     * @return array|null|false
+     */
+    public function fetch_mrsool_tracking(int $orderId)
+    {
+        try {
+            if ($this->api_token === '') {
+                return false;
+            }
+
+            $response = wp_remote_get($this->api_base . '/orders/' . $orderId . '/mrsool', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->api_token,
+                    'Accept'        => 'application/json',
+                ],
+                'timeout' => 6,
+            ]);
+
+            if (is_wp_error($response)) {
+                return false;
+            }
+
+            $code = (int) wp_remote_retrieve_response_code($response);
+            if ($code < 200 || $code >= 300) {
+                return false;
+            }
+
+            $decoded = json_decode(wp_remote_retrieve_body($response), true);
+            if (!is_array($decoded)) {
+                return false;
+            }
+
+            return is_array($decoded['data'] ?? null) ? $decoded['data'] : null;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     /* ── Private Helpers ──────────────────────────── */
 
     /**
