@@ -11,6 +11,7 @@ import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../search/presentation/search_transition.dart';
 import '../data/catalog_models.dart';
+import '../../../core/shelf/shelf_controller.dart';
 import '../data/catalog_repository.dart';
 import 'pet_palette.dart';
 import 'widgets/pet_section.dart';
@@ -149,7 +150,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final categories = ref.watch(categoriesProvider(null));
+    final shelf = ref.watch(resolvedShelfProvider).wire;
+    final categories = ref.watch(shelfCategoriesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -163,12 +165,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       ),
       body: RefreshIndicator.adaptive(
         onRefresh: () async {
-          ref.invalidate(categoriesProvider(null));
-          await ref.read(categoriesProvider(null).future);
+          ref.invalidate(categoriesProvider(shelf));
+          await ref.read(categoriesProvider(shelf).future);
         },
         child: AsyncView<List<CategoryNode>>(
           value: categories,
-          onRetry: () => ref.invalidate(categoriesProvider(null)),
+          onRetry: () => ref.invalidate(categoriesProvider(shelf)),
           skeleton: const _CategoriesSkeleton(),
           builder: (pets) {
             if (pets.isEmpty) {

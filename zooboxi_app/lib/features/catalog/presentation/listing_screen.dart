@@ -115,7 +115,7 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
     final place = _query.category == null
         ? null
         : locateCategory(
-            ref.watch(categoriesProvider(null)).asData?.value ?? const [],
+            ref.watch(shelfCategoriesProvider).asData?.value ?? const [],
             _query.category,
           );
 

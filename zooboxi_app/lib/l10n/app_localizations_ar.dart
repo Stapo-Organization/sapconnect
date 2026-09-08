@@ -757,6 +757,34 @@ class LAr extends L {
   }
 
   @override
+  String cartBasketMismatch(String basket, String browsing) {
+    return 'سلتك من متجر $basket، وأنت تتصفح $browsing الآن.';
+  }
+
+  @override
+  String get cartBasketMismatchHint =>
+      'الطلب الواحد يكون من متجر واحد. تقدر تكمل سلتك أو تنتقل للمتجر الثاني.';
+
+  @override
+  String cartOtherClosed(String store) {
+    return '$store مغلق الآن، وسلته محفوظة لك.';
+  }
+
+  @override
+  String cartOtherWaitingSince(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم',
+      zero: 'اليوم',
+    );
+    return 'تركتها قبل $_temp0.';
+  }
+
+  @override
   String cartOtherBasket(String store, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -2989,6 +3017,13 @@ class LAr extends L {
 
   @override
   String get liveTrackCall => 'اتصل بالمندوب';
+
+  @override
+  String get liveTrackWhatsapp => 'واتساب المندوب';
+
+  @override
+  String get liveTrackWhatsappHello =>
+      'مرحباً، أنا عميل زوبوكسي بخصوص طلب التوصيل.';
 
   @override
   String get liveTrackCourier => 'مندوب مرسول';

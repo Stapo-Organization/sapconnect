@@ -22,6 +22,7 @@ class LocalStore {
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
   static const _kHomeCache = 'catalog.home_cache';
+  static const _kHomeCachePrefix = 'catalog.home_cache.';
   static const _kShelf = 'shelf.selected';
   static const _kHomeFeedCache = 'catalog.home_feed_cache';
   static const _kEvents = 'analytics.pending';
@@ -120,22 +121,37 @@ class LocalStore {
   // 304 and still needs a round trip. This one is what paints the storefront
   // on the frame the app opens, while the refresh happens behind it.
 
-  /// The home snapshot is shelf-specific — an express storefront painted
-  /// under the full-store tab would flash the wrong catalogue — so the shelf
-  /// it was captured under travels with it, like the feed's sign-in state.
-  ({String shelf, Map<String, dynamic> data})? get homeCache {
-    final wrapper = _json(_kHomeCache);
-    if (wrapper == null) return null;
-    final data = wrapper['data'];
-    if (data is! Map) return null;
-    return (
-      shelf: wrapper['shelf'] as String? ?? '',
-      data: Map<String, dynamic>.from(data),
-    );
+  /// Yesterday's storefront for one shelf.
+  ///
+  /// A slot per shelf, not one shared slot: with a single slot, crossing the
+  /// tabs always landed on an empty cache and the other storefront started
+  /// from a shimmer every single time — which is most of what «التبديل بطيء»
+  /// actually was.
+  ///
+  /// The slot name is the shelf the payload DESCRIBES, never the one that was
+  /// asked for. Those differ after closing hours, and filing a زوبكسي body
+  /// under 'express' is how a full-store catalogue ends up painted in ember
+  /// with a two-hour promise over it.
+  Map<String, dynamic>? homeCacheFor(String shelf) {
+    final slot = _json('$_kHomeCachePrefix$shelf');
+    final data = slot?['data'];
+    if (data is Map) return Map<String, dynamic>.from(data);
+
+    // One-time bridge from the single-slot build. Its stamp recorded the
+    // REQUEST, so it cannot be trusted; the payload's own `scope.shelf` is
+    // the only honest answer, and an entry that cannot prove which shelf it
+    // describes is dropped. One shimmer, once, beats one wrong promise.
+    final legacy = _json(_kHomeCache);
+    final legacyData = legacy?['data'];
+    if (legacyData is! Map) return null;
+    final scope = legacyData['scope'];
+    final described = scope is Map ? scope['shelf'] : null;
+    if (described is! String || described != shelf) return null;
+    return Map<String, dynamic>.from(legacyData);
   }
 
   Future<void> setHomeCache(Map<String, dynamic> json, {required String shelf}) =>
-      _prefs.setString(_kHomeCache, jsonEncode({'shelf': shelf, 'data': json}));
+      _prefs.setString('$_kHomeCachePrefix$shelf', jsonEncode({'data': json}));
 
   // ── Storefront tab ───────────────────────────────────────────────────
 
@@ -207,7 +223,10 @@ class LocalStore {
   Future<void> clearHttpCache() async {
     final keys = _prefs
         .getKeys()
-        .where((k) => k.startsWith(_kCachePrefix) || k.startsWith(_kEtagPrefix))
+        .where((k) =>
+            k.startsWith(_kCachePrefix) ||
+            k.startsWith(_kEtagPrefix) ||
+            k.startsWith(_kHomeCachePrefix))
         .toList()
       ..addAll([_kHomeCache, _kHomeFeedCache]);
     for (final k in keys) {

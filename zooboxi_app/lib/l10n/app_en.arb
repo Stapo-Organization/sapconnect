@@ -390,6 +390,19 @@
       }
     }
   },
+  "cartBasketMismatch": "Your basket is from {basket}, but you are browsing {browsing}.",
+  "@cartBasketMismatch": {
+    "placeholders": { "basket": { "type": "String" }, "browsing": { "type": "String" } }
+  },
+  "cartBasketMismatchHint": "One order comes from one store. Finish this basket, or move to the other one.",
+  "cartOtherClosed": "{store} is closed right now; its basket is saved for you.",
+  "@cartOtherClosed": {
+    "placeholders": { "store": { "type": "String" } }
+  },
+  "cartOtherWaitingSince": "Left {days, plural, =0{today} =1{1 day} other{{days} days}} ago.",
+  "@cartOtherWaitingSince": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "cartOtherBasket": "Your {store} basket holds {count, plural, =1{1 item} other{{count} items}}",
   "@cartOtherBasket": {
     "placeholders": {
@@ -1378,6 +1391,8 @@
     "placeholders": { "km": { "type": "String" } }
   },
   "liveTrackCall": "Call the courier",
+  "liveTrackWhatsapp": "WhatsApp the courier",
+  "liveTrackWhatsappHello": "Hi, I am a Zooboxi customer — about the delivery on its way.",
   "liveTrackCourier": "Mrsool courier",
   "liveTrackSearchingHint": "Usually within minutes. We will notify you the moment a courier is assigned.",
   "liveTrackOpenMap": "Full map",

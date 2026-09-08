@@ -742,6 +742,32 @@ class LEn extends L {
   }
 
   @override
+  String cartBasketMismatch(String basket, String browsing) {
+    return 'Your basket is from $basket, but you are browsing $browsing.';
+  }
+
+  @override
+  String get cartBasketMismatchHint =>
+      'One order comes from one store. Finish this basket, or move to the other one.';
+
+  @override
+  String cartOtherClosed(String store) {
+    return '$store is closed right now; its basket is saved for you.';
+  }
+
+  @override
+  String cartOtherWaitingSince(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+      zero: 'today',
+    );
+    return 'Left $_temp0 ago.';
+  }
+
+  @override
   String cartOtherBasket(String store, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -2934,6 +2960,13 @@ class LEn extends L {
 
   @override
   String get liveTrackCall => 'Call the courier';
+
+  @override
+  String get liveTrackWhatsapp => 'WhatsApp the courier';
+
+  @override
+  String get liveTrackWhatsappHello =>
+      'Hi, I am a Zooboxi customer — about the delivery on its way.';
 
   @override
   String get liveTrackCourier => 'Mrsool courier';

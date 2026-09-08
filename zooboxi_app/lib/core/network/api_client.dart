@@ -28,6 +28,7 @@ class ApiClient {
     required this.readLocationHeaders,
     required this.readLanguageCode,
     required this.readShelf,
+    required this.readEffectiveShelf,
     this.onAuthRequired,
   }) : _store = store {
     dio = Dio(
@@ -80,6 +81,12 @@ class ApiClient {
   /// read is scoped to it server-side.
   final ValueReader<String> readShelf;
 
+  /// Which storefront the server said it actually served. Part of the cache
+  /// key only: after closing time an إكسبريس request comes back as the زوبكسي
+  /// shelf, and without this both answers would share one entry — so the
+  /// full-store body could later be replayed under the إكسبريس tab.
+  final ValueReader<String> readEffectiveShelf;
+
   /// Fired when the server rejects a *bearer* call. It does **not** log a
   /// guest out — guests are expected to hit account routes and be refused;
   /// that is a prompt to sign in, not a session teardown.
@@ -96,6 +103,20 @@ class ApiClient {
     return prefixes.any(path.startsWith);
   }
 
+  /// The same question, for a request that may have opted out. The idle
+  /// prefetch of the other shelf reads a body this device is not currently
+  /// browsing; storing its ETag would let a later request for the shelf we
+  /// *are* on be answered 304 with the wrong storefront.
+  static bool _cacheableRequest(RequestOptions options) =>
+      options.method == 'GET' &&
+      options.extra[_noCache] != true &&
+      _isCacheable(options.path);
+
+  /// Request-scoped flags a caller can set through `get(extra: …)`.
+  static const String _noCache = 'zb_no_cache';
+  static const String _shelfOverride = 'zb_shelf';
+  static const String _cacheKeyStash = 'zb_cache_key';
+
   // ── Interceptors ─────────────────────────────────────────────────────
 
   void _onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -110,7 +131,11 @@ class ApiClient {
     }
 
     options.headers.addAll(readLocationHeaders());
-    options.headers['X-ZB-Shelf'] = readShelf();
+    // A caller may ask for a specific shelf — the idle prefetch of the other
+    // storefront does. Without this the interceptor would stamp the current
+    // shelf over it and the prefetch would fetch what we already have.
+    options.headers['X-ZB-Shelf'] =
+        (options.extra[_shelfOverride] as String?) ?? readShelf();
     options.headers['X-ZB-App'] = '${_platformName()}/${Env.appVersion}';
 
     // The server maps ids through Polylang from this parameter.
@@ -119,8 +144,15 @@ class ApiClient {
       'lang': readLanguageCode(),
     };
 
-    if (options.method == 'GET' && _isCacheable(options.path)) {
-      final entry = _cacheEntry(_cacheKey(options));
+    if (_cacheableRequest(options)) {
+      // Computed once, here, and carried on the request. It used to be
+      // recomputed when the response landed — and the readers it is built
+      // from move while a request is in flight, so a body fetched on one
+      // shelf could be filed under the key of whichever shelf the customer
+      // had tapped by the time it arrived, then replayed as that storefront.
+      final key = _cacheKey(options);
+      options.extra[_cacheKeyStash] = key;
+      final entry = _cacheEntry(key);
       if (entry != null) options.headers['If-None-Match'] = entry.$1;
     }
 
@@ -129,11 +161,11 @@ class ApiClient {
 
   void _onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
     final options = response.requestOptions;
-    if (options.method != 'GET' || !_isCacheable(options.path)) {
+    final key = options.extra[_cacheKeyStash] as String?;
+    if (key == null) {
       handler.next(response);
       return;
     }
-    final key = _cacheKey(options);
 
     if (response.statusCode == 304) {
       final entry = _cacheEntry(key);
@@ -207,8 +239,11 @@ class ApiClient {
     // The branch matters, not just the city: two express branches serve
     // different shelves inside one city, and their payloads must not share a
     // cache entry.
+    // Both shelves: the one asked for and the one served. They differ after
+    // closing time, and two different bodies must never share one entry.
+    final asked = (options.extra[_shelfOverride] as String?) ?? readShelf();
     final scope = '${loc['X-ZB-City'] ?? ''}|${loc['X-ZB-Delivery-Type'] ?? ''}'
-        '|${loc['X-ZB-Branch'] ?? ''}|${readShelf()}';
+        '|${loc['X-ZB-Branch'] ?? ''}|$asked|${readEffectiveShelf()}';
     return '${options.path}?${query.join('&')}#$scope';
   }
 
@@ -221,8 +256,26 @@ class ApiClient {
 
   // ── Verbs (envelope-unwrapped) ───────────────────────────────────────
 
-  Future<dynamic> get(String path, {Map<String, dynamic>? query, CancelToken? cancelToken}) =>
-      _run(() => dio.get<dynamic>(path, queryParameters: query, cancelToken: cancelToken));
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? query,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? extra,
+  }) =>
+      _run(() => dio.get<dynamic>(
+            path,
+            queryParameters: query,
+            cancelToken: cancelToken,
+            options: extra == null ? null : Options(extra: extra),
+          ));
+
+  /// Reads a path as if the app were browsing [shelf], without letting the
+  /// answer into the ETag store. Used to warm the other storefront so the tab
+  /// paints from memory instead of a shimmer.
+  Future<dynamic> getAsShelf(String path, String shelf) => get(
+        path,
+        extra: {_shelfOverride: shelf, _noCache: true},
+      );
 
   Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? query}) =>
       _run(() => dio.post<dynamic>(path, data: body, queryParameters: query));

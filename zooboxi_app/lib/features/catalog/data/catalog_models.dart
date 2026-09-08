@@ -322,6 +322,7 @@ class CatalogScope {
   const CatalogScope({
     required this.tier,
     required this.note,
+    this.shelf = '',
     this.warehouseName = '',
     this.label = '',
     this.icon,
@@ -331,6 +332,16 @@ class CatalogScope {
     this.expressBranch = '',
     this.standardCutoffMinutes,
   });
+
+  /// Which storefront the server actually SERVED this request as —
+  /// `express` | `all`, or `auto` for a caller that named no tab.
+  ///
+  /// Not the same thing as the tab the app asked for. Outside the branch's
+  /// hours an إكسبريس request is answered with the زوبكسي shelf, and until
+  /// the app read this field it kept painting ember over a زوبكسي shop: the
+  /// promise, the colours and the basket all disagreed with what had actually
+  /// been served.
+  final String shelf;
 
   /// `express` | `same_day` | `shipping`.
   final String tier;
@@ -372,6 +383,7 @@ class CatalogScope {
     return CatalogScope(
       tier: asString(map['tier']),
       note: note,
+      shelf: asString(map['shelf']),
       warehouseName: asString(map['warehouse_name']),
       label: asString(map['label']),
       icon: asStringOrNull(map['icon']),

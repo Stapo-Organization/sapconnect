@@ -1279,6 +1279,30 @@ abstract class L {
   /// **'سلة {store}'**
   String cartBasketOf(String store);
 
+  /// No description provided for @cartBasketMismatch.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلتك من متجر {basket}، وأنت تتصفح {browsing} الآن.'**
+  String cartBasketMismatch(String basket, String browsing);
+
+  /// No description provided for @cartBasketMismatchHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'الطلب الواحد يكون من متجر واحد. تقدر تكمل سلتك أو تنتقل للمتجر الثاني.'**
+  String get cartBasketMismatchHint;
+
+  /// No description provided for @cartOtherClosed.
+  ///
+  /// In ar, this message translates to:
+  /// **'{store} مغلق الآن، وسلته محفوظة لك.'**
+  String cartOtherClosed(String store);
+
+  /// No description provided for @cartOtherWaitingSince.
+  ///
+  /// In ar, this message translates to:
+  /// **'تركتها قبل {days, plural, =0{اليوم} =1{يوم} =2{يومين} few{{days} أيام} other{{days} يومًا}}.'**
+  String cartOtherWaitingSince(int days);
+
   /// No description provided for @cartOtherBasket.
   ///
   /// In ar, this message translates to:
@@ -4740,6 +4764,18 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'اتصل بالمندوب'**
   String get liveTrackCall;
+
+  /// No description provided for @liveTrackWhatsapp.
+  ///
+  /// In ar, this message translates to:
+  /// **'واتساب المندوب'**
+  String get liveTrackWhatsapp;
+
+  /// No description provided for @liveTrackWhatsappHello.
+  ///
+  /// In ar, this message translates to:
+  /// **'مرحباً، أنا عميل زوبوكسي بخصوص طلب التوصيل.'**
+  String get liveTrackWhatsappHello;
 
   /// No description provided for @liveTrackCourier.
   ///

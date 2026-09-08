@@ -222,4 +222,58 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
     await tester.pumpAndSettle();
   });
+
+  group('the basket names the shop it belongs to', () {
+    test('a basket and a shop that agree is not a mismatch', () {
+      const basket = CartBasket(shelf: 'express', effectiveShelf: 'express');
+      expect(basket.mismatched, isFalse);
+    });
+
+    test('a زوبكسي basket while the store serves إكسبريس is', () {
+      const basket = CartBasket(shelf: 'all', effectiveShelf: 'express');
+      expect(basket.mismatched, isTrue);
+    });
+
+    test('an empty basket disagrees with nothing', () {
+      // No basket yet: the honest sentence is «this product is from the other
+      // store», not «your basket is».
+      const basket = CartBasket(shelf: '', effectiveShelf: 'express');
+      expect(basket.mismatched, isFalse);
+    });
+
+    test('a store that never spoke is never contradicted', () {
+      // An older store build sends no effective_shelf. Reading its silence as
+      // a disagreement would put a warning on every cart in the field.
+      const basket = CartBasket(shelf: 'express');
+      expect(basket.mismatched, isFalse);
+    });
+
+    test('a store that never spoke is assumed able to serve', () {
+      final basket = CartBasket.fromJson(const {
+        'shelf': 'express',
+        'other_shelf': 'all',
+        'other_count': 2,
+      });
+      expect(basket.otherServes, isTrue);
+      expect(basket.effectiveShelf, '');
+      expect(basket.otherSince, isNull);
+    });
+
+    test('the wait is read as a moment, not a number', () {
+      final basket = CartBasket.fromJson({
+        'shelf': 'express',
+        'other_shelf': 'all',
+        'other_count': 2,
+        'other_serves': false,
+        'other_since': 1757000000,
+      });
+      expect(basket.otherServes, isFalse);
+      expect(basket.otherSince, DateTime.fromMillisecondsSinceEpoch(1757000000 * 1000));
+    });
+
+    test('a nonsense stamp is no stamp at all', () {
+      final basket = CartBasket.fromJson(const {'shelf': 'all', 'other_since': 0});
+      expect(basket.otherSince, isNull);
+    });
+  });
 }

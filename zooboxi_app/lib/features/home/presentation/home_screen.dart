@@ -40,6 +40,23 @@ import 'widgets/home_header.dart';
 import 'widgets/missions_strip.dart';
 import 'widgets/trust_strip.dart';
 
+/// A `/home` emission that is genuinely a new answer, or null.
+///
+/// Riverpod re-emits the PREVIOUS payload with the loading flag raised while a
+/// dependency-driven refetch is in flight. That value is not an answer — it is
+/// the last answer, still on screen. Reading it as one is how the app came to
+/// re-adopt the shelf a customer had just tapped away from, and hold it there
+/// for the whole round trip: the sign stayed lit on the shop they had left and
+/// only crossed when the response landed.
+///
+/// `isLoading` is the one flag that separates the two; the value itself, and
+/// even its runtime type, look identical.
+@visibleForTesting
+HomePayload? settledPayload(AsyncValue<HomePayload> emission) {
+  if (emission.isLoading || emission.hasError) return null;
+  return emission.value;
+}
+
 /// The storefront.
 ///
 /// The page is **server-merchandised**: `/home` ships an ordered list of slots
@@ -76,8 +93,68 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   void dispose() {
+    _shutterClock?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Adopts the store's own answer to «which shop am I standing in».
+  ///
+  /// The tab is a request; this is the reply. Outside the branch's hours an
+  /// إكسبريس request is served as زوبكسي — catalogue, basket and promise
+  /// alike — and until the app listened to this it kept the ember chrome and
+  /// the two-hour clock over a shop that had quietly become the full store.
+  void _adoptServedShelf(HomePayload payload) {
+    final served = Shelf.fromWire(payload.scope?.shelf);
+    ref.read(effectiveShelfProvider.notifier).report(served);
+    _armShutterClock(payload);
+    _warmOtherShelf(served, payload);
+  }
+
+  /// Re-reads the storefront the moment the branch opens or shuts.
+  ///
+  /// إكسبريس is a place *and* a time. Without this, someone shopping at 22:55
+  /// keeps a two-hour promise for the rest of the evening: the answer only
+  /// ever refreshed when a new payload happened to be fetched.
+  void _armShutterClock(HomePayload payload) {
+    _shutterClock?.cancel();
+    final hours = payload.scope?.expressHours;
+    if (hours == null || hours.closedToday) return;
+
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day);
+    DateTime? next;
+    for (final minutes in [hours.openMinutes, hours.closeMinutes]) {
+      final mark = midnight.add(Duration(minutes: minutes));
+      if (!mark.isAfter(now)) continue;
+      if (next == null || mark.isBefore(next)) next = mark;
+    }
+    if (next == null) return;
+
+    // A few seconds past the mark, so the server has certainly crossed it.
+    final wait = next.difference(now) + const Duration(seconds: 10);
+    // Nothing further out than one evening: a timer held for half a day is a
+    // wake-up the customer never asked for.
+    if (wait > const Duration(hours: 8)) return;
+    _shutterClock = Timer(wait, () {
+      if (mounted) ref.invalidate(homeProvider);
+    });
+  }
+
+  /// Warms the other storefront so crossing the tabs paints instead of
+  /// shimmering — the whole of «لمن أغيّر من عادي لإكسبريس المحتوى يتأخر».
+  ///
+  /// Once per run, two seconds after this storefront has landed, and only for
+  /// a shelf the customer can actually reach.
+  void _warmOtherShelf(Shelf? served, HomePayload payload) {
+    if (_warmedOtherShelf || served == null) return;
+    _warmedOtherShelf = true;
+    final other = served == Shelf.express ? Shelf.all : Shelf.express;
+    if (other == Shelf.express && payload.scope?.expressAvailable != true) return;
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      unawaited(ref.read(catalogRepositoryProvider).prefetchHome(other));
+    });
   }
 
   @override
@@ -100,6 +177,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _driftSheetOpen = false;
     }
   }
+
+  /// The other storefront is warmed once per run, a beat after this one has
+  /// settled — never on the frame the customer is waiting for.
+  bool _warmedOtherShelf = false;
+
+  /// Fires when the express branch's shutter next moves.
+  Timer? _shutterClock;
 
   /// True once the canvas' own address row has scrolled out of reach — the
   /// compact address bar slides in and the status-bar clock flips back dark.
@@ -124,6 +208,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     ref.listen<AsyncValue<LoyaltySummary?>>(loyaltySummaryProvider, (_, next) {
       final summary = next.value;
       if (summary != null) unawaited(LocalNotify.sync(summary.nudges));
+    });
+
+    // The store's own word on which shelf it served. Taken from the LIVE
+    // payload only — a snapshot read off disk is yesterday's answer, and
+    // re-reporting it would pin the app to a shop that has since closed.
+    //
+    // `isLoading` is the whole guard. A dependency-driven refetch re-emits the
+    // PREVIOUS payload with the loading flag raised, so without this the tab
+    // tap would immediately re-adopt the shelf being left and hold it there
+    // for the entire round trip: the sign would stay lit on the old shop,
+    // sparkles flying over the one just tapped, and snap across only when the
+    // response landed. Which is precisely the stall this phase exists to end.
+    ref.listen<AsyncValue<HomePayload>>(homeProvider, (_, next) {
+      final payload = settledPayload(next);
+      if (payload != null) _adoptServedShelf(payload);
     });
     final l = L.of(context);
     final home = ref.watch(homeProvider);

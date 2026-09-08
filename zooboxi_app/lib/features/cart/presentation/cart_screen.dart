@@ -92,19 +92,50 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 /// A customer cannot order إكسبريس and زوبكسي in one go, so the basket says
 /// out loud which shop it is from. When the other basket has something in it,
 /// this is also how they get to it: nothing was thrown away, it is waiting.
+///
+/// It has a louder second job. The shop the store is SERVING and the shop the
+/// basket belongs to can come apart — most often after the express branch
+/// shuts, when an إكسبريس request is answered with the full store. That used
+/// to be silent, and the customer met it as «فجأة السلة تظهر لي منتجات المتجر
+/// الثاني». So when the two disagree the banner says so plainly, in the
+/// warning tone, before the lines rather than after them.
 class _BasketBanner extends ConsumerWidget {
   const _BasketBanner({required this.basket});
 
   final CartBasket basket;
 
+  static String _name(L l, String shelf) =>
+      shelf == 'express' ? l.shelfExpressTab : l.shelfAllTab;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final cs = context.cs;
+    final zb = context.zb;
+
     final express = basket.shelf == 'express';
-    final hue = context.zb.tier(express ? 'express' : 'same_day').fg;
-    final name = express ? l.shelfExpressTab : l.shelfAllTab;
-    final otherName = basket.otherShelf == 'express' ? l.shelfExpressTab : l.shelfAllTab;
+    final mismatched = basket.mismatched;
+    // A disagreement is not a category of shop, so it does not borrow a
+    // storefront's colour: it takes the warning tone the app already uses for
+    // "read this before you carry on".
+    final hue = mismatched ? zb.warning : zb.tier(express ? 'express' : 'same_day').fg;
+
+    final name = _name(l, basket.shelf);
+    final otherName = _name(l, basket.otherShelf);
+
+    // «تركتها قبل يومين» — only when the store actually knows, and only once
+    // it has been long enough to be worth saying.
+    final since = basket.otherSince;
+    final waitedDays =
+        since == null ? null : DateTime.now().difference(since).inDays;
+
+    final lines = <String>[
+      if (mismatched) l.cartBasketMismatchHint,
+      if (basket.otherHasItems) l.cartOtherBasket(otherName, basket.otherCount),
+      if (basket.otherHasItems && !basket.otherServes) l.cartOtherClosed(otherName),
+      if (basket.otherHasItems && waitedDays != null && waitedDays >= 1)
+        l.cartOtherWaitingSince(waitedDays),
+    ];
 
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 10),
@@ -115,7 +146,13 @@ class _BasketBanner extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(express ? Icons.bolt_rounded : Icons.storefront_rounded, size: 18, color: hue),
+          Icon(
+            mismatched
+                ? Icons.info_outline_rounded
+                : (express ? Icons.bolt_rounded : Icons.storefront_rounded),
+            size: 18,
+            color: hue,
+          ),
           Gap.w8,
           Expanded(
             child: Column(
@@ -123,21 +160,28 @@ class _BasketBanner extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l.cartBasketOf(name),
+                  mismatched
+                      ? l.cartBasketMismatch(
+                          name,
+                          _name(l, basket.effectiveShelf),
+                        )
+                      : l.cartBasketOf(name),
                   style: context.tt.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: hue,
                   ),
                 ),
-                if (basket.otherHasItems)
+                for (final line in lines)
                   Text(
-                    l.cartOtherBasket(otherName, basket.otherCount),
+                    line,
                     style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
               ],
             ),
           ),
-          if (basket.otherHasItems)
+          // Offered only while that basket could actually be delivered. A
+          // button that silently does nothing is worse than no button.
+          if (basket.otherHasItems && basket.otherServes)
             TextButton(
               onPressed: () async {
                 Haptics.selection();
@@ -209,7 +253,7 @@ class _Loaded extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                if (cart.basket.isSet) ...[
+                if (cart.basket.isSet || cart.basket.mismatched) ...[
                   _BasketBanner(basket: cart.basket),
                   Gap.h12,
                 ],

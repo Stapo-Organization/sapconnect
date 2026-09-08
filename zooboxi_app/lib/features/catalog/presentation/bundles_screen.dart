@@ -21,9 +21,12 @@ import '../data/product_models.dart';
 /// just the deals in their big cards.
 final bundlesProvider = FutureProvider.autoDispose<List<ProductCard>>((ref) {
   // The storefront travels in the request header and the two shelves hold
-  // different bundles, so a change of tab is a different page. `select()`
-  // bumps the catalog revision — that is what refetches this one.
+  // different bundles, so a change of tab is a different page. A tab tap now
+  // bumps the SHELF revision rather than the catalogue-wide one, so this
+  // watches both: the narrow signal for a tab, the broad one for a move or a
+  // language change.
   ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
   return ref.watch(catalogRepositoryProvider).bundles();
 });
 

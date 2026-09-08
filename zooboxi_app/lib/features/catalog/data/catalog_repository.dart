@@ -19,13 +19,52 @@ class CatalogRepository {
   final ApiClient _api;
   final LocalStore _store;
 
+  /// The last storefront seen for each shelf, decoded and ready to paint.
+  ///
+  /// At most two entries. The disk slot survives a cold start; this survives
+  /// a tab tap, which is the one the customer feels — crossing the tabs used
+  /// to re-decode from prefs at best and re-fetch at worst.
+  final Map<String, HomePayload> _memHome = {};
+
+  /// Drops the decoded storefronts. Called when the delivery location moves:
+  /// these sit IN FRONT of the disk cache, so wiping prefs alone would leave
+  /// the previous city's rails painting over the new address.
+  void clearMemoryHome() => _memHome.clear();
+
   /// The storefront. The raw body is kept on disk so the *next* cold start
   /// paints a real page instead of a shimmer — see [cachedHome].
   Future<HomePayload> home({required String shelf}) async {
     final data = asMap(await _api.get('/home'));
+    final payload = HomePayload.fromJson(data);
+    // Filed under the shelf the payload DESCRIBES, not the one that was asked
+    // for. After closing time an إكسبريس request is answered with the زوبكسي
+    // storefront, and storing that under 'express' is how the full catalogue
+    // ends up painted in ember with a two-hour promise over it.
+    final slot = Shelf.fromWire(payload.scope?.shelf)?.wire ?? shelf;
+    _memHome[slot] = payload;
     // Fire-and-forget: a disk write must never delay the first frame.
-    unawaited(_store.setHomeCache(data, shelf: shelf));
-    return HomePayload.fromJson(data);
+    unawaited(_store.setHomeCache(data, shelf: slot));
+    return payload;
+  }
+
+  /// Warms the other storefront so crossing the tabs paints instead of
+  /// shimmering. Its body never enters the ETag store — it describes a shelf
+  /// this device is not browsing, and a 304 later would replay it as the one
+  /// it is.
+  Future<void> prefetchHome(Shelf other) async {
+    if (_memHome.containsKey(other.wire)) return;
+    try {
+      final data = asMap(await _api.getAsShelf('/home', other.wire));
+      final payload = HomePayload.fromJson(data);
+      // Only file it if the server agrees it is the shelf we asked for.
+      // Anything else is the answer to a question we did not ask.
+      if (Shelf.fromWire(payload.scope?.shelf) != other) return;
+      if (payload.isEmpty) return;
+      _memHome[other.wire] = payload;
+      unawaited(_store.setHomeCache(data, shelf: other.wire));
+    } catch (_) {
+      // A warm-up that fails costs nothing: the tab falls back to fetching.
+    }
   }
 
   /// Last good `/home` body, decoded — but only when it was captured under
@@ -33,11 +72,15 @@ class CatalogRepository {
   /// under the full-store tab. Null on a first run or after a location
   /// change (which drops it — it described another city).
   HomePayload? cachedHome({required String shelf}) {
-    final cached = _store.homeCache;
-    if (cached == null || cached.shelf != shelf) return null;
+    final warm = _memHome[shelf];
+    if (warm != null) return warm.isEmpty ? null : warm;
+    final cached = _store.homeCacheFor(shelf);
+    if (cached == null) return null;
     try {
-      final payload = HomePayload.fromJson(cached.data);
-      return payload.isEmpty ? null : payload;
+      final payload = HomePayload.fromJson(cached);
+      if (payload.isEmpty) return null;
+      _memHome[shelf] = payload;
+      return payload;
     } catch (_) {
       return null;
     }
@@ -152,7 +195,10 @@ final homeProvider = FutureProvider<HomePayload>((ref) {
 /// customer keeps a browsable store instead of an error page.
 final homeCacheProvider = Provider<HomePayload?>((ref) {
   ref.watch(catalogRevisionProvider);
-  final shelf = ref.watch(shelfProvider);
+  // The RESOLVED shelf: what the store is actually serving us. The request
+  // above may still say إكسبريس while the answer is زوبكسي, and the snapshot
+  // we paint has to match the answer.
+  final shelf = ref.watch(resolvedShelfProvider);
   return ref.watch(catalogRepositoryProvider).cachedHome(shelf: shelf.wire);
 });
 
@@ -161,6 +207,7 @@ final homeCacheProvider = Provider<HomePayload?>((ref) {
 /// you were looking at" into "what you actually buy".
 final homeFeedProvider = FutureProvider.autoDispose<HomeFeed>((ref) {
   ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
   final session = ref.watch(sessionProvider.select((s) => (s.status, s.user?.id)));
   return ref.watch(catalogRepositoryProvider).homeFeed(
         ref.watch(localStoreProvider).recentlyViewed,
@@ -176,16 +223,27 @@ final homeFeedCacheProvider = Provider.autoDispose<HomeFeed?>((ref) {
   return ref.watch(catalogRepositoryProvider).cachedHomeFeed(authed: authed);
 });
 
-/// `null` argument = top-level categories.
+/// The category tree for one shelf.
+///
+/// Keyed by shelf rather than refetched on a tab tap: the server drops terms
+/// that hold nothing on the shelf being browsed and counts the rest per
+/// shelf, so the two trees genuinely differ — but each is stable, and coming
+/// back to a shelf should cost nothing.
 final categoriesProvider =
-    FutureProvider.family<List<CategoryNode>, String?>((ref, parent) {
+    FutureProvider.family<List<CategoryNode>, String>((ref, shelf) {
   ref.watch(catalogRevisionProvider);
-  return ref.watch(catalogRepositoryProvider).categories(parent: parent);
+  return ref.watch(catalogRepositoryProvider).categories();
 });
+
+/// The tree for the shelf currently being served.
+final shelfCategoriesProvider = Provider<AsyncValue<List<CategoryNode>>>(
+  (ref) => ref.watch(categoriesProvider(ref.watch(resolvedShelfProvider).wire)),
+);
 
 final productProvider =
     FutureProvider.autoDispose.family<ProductDetail, int>((ref, id) {
   ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
   return ref.watch(catalogRepositoryProvider).product(id);
 });
 
@@ -195,6 +253,7 @@ final productProvider =
 final variationDeliveryProvider = FutureProvider.autoDispose
     .family<ProductDetail, ({int id, int variationId})>((ref, key) {
   ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
   return ref
       .watch(catalogRepositoryProvider)
       .product(key.id, variationId: key.variationId);
@@ -205,6 +264,7 @@ final variationDeliveryProvider = FutureProvider.autoDispose
 final listingFirstPageProvider =
     FutureProvider.autoDispose.family<ListingResult, ListingQuery>((ref, query) {
   ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
   return ref.watch(catalogRepositoryProvider).products(query, 1);
 });
 
@@ -218,5 +278,6 @@ final brandsProvider = FutureProvider<List<BrandSummary>>((ref) {
 final brandPageProvider =
     FutureProvider.autoDispose.family<BrandPage, String>((ref, slug) {
   ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
   return ref.watch(catalogRepositoryProvider).brand(slug);
 });

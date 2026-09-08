@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../features/catalog/data/catalog_repository.dart';
 import '../../features/location/data/location_models.dart';
 import '../../features/location/data/location_repository.dart';
+import '../shelf/shelf_controller.dart';
 import '../network/envelope.dart';
 import '../providers.dart';
 
@@ -400,6 +402,13 @@ class LocationController extends Notifier<LocationState> {
 
     // Everything cached describes the *previous* location's availability.
     await ref.read(apiClientProvider).clearCache();
+    // …including the decoded storefronts held in memory, which sit IN FRONT
+    // of the disk cache: wiping prefs alone would leave the old city's rails
+    // painting over the new address until a fetch happened to land.
+    ref.read(catalogRepositoryProvider).clearMemoryHome();
+    // And the server's answer about which shelf it was serving, which was an
+    // answer about somewhere else.
+    ref.read(effectiveShelfProvider.notifier).report(null);
     ref.read(catalogRevisionProvider.notifier).bump();
   }
 }

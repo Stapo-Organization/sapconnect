@@ -260,6 +260,10 @@ class CartBasket {
     this.otherShelf = '',
     this.otherCount = 0,
     this.started = true,
+    this.effectiveShelf = '',
+    this.requestedShelf = '',
+    this.otherServes = true,
+    this.otherSince,
   });
 
   /// `express` | `all`, or empty while the basket is empty and belongs to
@@ -275,8 +279,34 @@ class CartBasket {
   /// is from the other store".
   final bool started;
 
+  /// The storefront the server actually SERVED this request as. Empty when
+  /// the caller named no tab (the website) — nothing to disagree with.
+  final String effectiveShelf;
+
+  /// The tab the app asked for. Kept for the rare case where the two differ
+  /// and the difference itself is the thing worth saying.
+  final String requestedShelf;
+
+  /// Whether the waiting basket could actually be delivered right now. False
+  /// while its branch is shut, when the honest answer is «تفتح ٩ ص» rather
+  /// than a button that quietly fails.
+  final bool otherServes;
+
+  /// When the waiting basket was put down, if the store knows.
+  final DateTime? otherSince;
+
   bool get isSet => shelf.isNotEmpty;
   bool get otherHasItems => otherShelf.isNotEmpty && otherCount > 0;
+
+  /// The basket belongs to one storefront while the shop being served is the
+  /// other one.
+  ///
+  /// This is the state the customer used to be left to discover for
+  /// themselves: browsing what looked like إكسبريس, adding a line, and finding
+  /// a cart full of زوبكسي products. Both halves come from the SAME response,
+  /// so it can never be an artifact of one of them being stale.
+  bool get mismatched =>
+      shelf.isNotEmpty && effectiveShelf.isNotEmpty && shelf != effectiveShelf;
 
   static const CartBasket none = CartBasket();
 
@@ -285,7 +315,21 @@ class CartBasket {
         otherShelf: asString(json['other_shelf']),
         otherCount: asInt(json['other_count']),
         started: json.containsKey('started') ? asBool(json['started']) : true,
+        effectiveShelf: asString(json['effective_shelf']),
+        requestedShelf: asString(json['requested_shelf']),
+        // Absent on a store that predates the field: assume it can be served,
+        // which is what every build before this one already assumed.
+        otherServes:
+            json.containsKey('other_serves') ? asBool(json['other_serves']) : true,
+        otherSince: _sinceOf(json['other_since']),
       );
+
+  /// A unix stamp from the store, or null when it never knew.
+  static DateTime? _sinceOf(dynamic value) {
+    final seconds = asIntOrNull(value);
+    if (seconds == null || seconds <= 0) return null;
+    return DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+  }
 }
 
 class CartData {

@@ -126,7 +126,10 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final shelf = ref.watch(shelfProvider);
+    // What the store is actually serving, not merely what was asked for. The
+    // two part after closing time, and the sign has to name the shop the
+    // customer is really standing in.
+    final shelf = ref.watch(resolvedShelfProvider);
     final bool expressOpen =
         widget.expressAvailable ?? ref.watch(expressAvailableProvider);
     // زوبكسي promises tomorrow inside a served city; out of town it ships.
@@ -147,6 +150,10 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
     // shelf, so the زوبكسي sign is the one that is lit — without rewriting
     // the customer's remembered preference, which is still express for
     // tomorrow morning.
+    //
+    // `shelf` is now the SERVED shelf, so the two agree by construction; the
+    // `expressOpen` half stays as a belt for the instant before the first
+    // payload lands.
     final expressSelected = shelf == Shelf.express && expressOpen;
     // In RTL the first child sits on the right — إكسبريس leads the reading.
     final align = expressSelected
