@@ -31,6 +31,7 @@ class Zooboxi_V2_Orders_Controller
     public function register_routes(): void
     {
         Zooboxi_V2_Bootstrap::route('/orders', 'GET', [$this, 'index']);
+        Zooboxi_V2_Bootstrap::route('/orders/active', 'GET', [$this, 'active']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)', 'GET', [$this, 'show']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/reorder', 'POST', [$this, 'reorder']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/live-tracking', 'GET', [$this, 'live_tracking']);
@@ -451,20 +452,7 @@ class Zooboxi_V2_Orders_Controller
             return Zooboxi_V2_Bootstrap::ok(null);
         }
 
-        $order_id  = $order->get_id();
-        $cache_key = 'zb_mrsool_live_' . $order_id;
-        $cached    = get_transient($cache_key);
-
-        if (is_array($cached)) {
-            return Zooboxi_V2_Bootstrap::ok($cached['data']);
-        }
-
-        if (!class_exists('Zooboxi_Sync_Engine')) {
-            return Zooboxi_V2_Bootstrap::ok(null);
-        }
-
-        $engine   = new Zooboxi_Sync_Engine();
-        $tracking = $engine->fetch_mrsool_tracking($order_id);
+        $tracking = $this->courier_for($order);
 
         // We could not ask. Say so instead of answering "no courier" — the app
         // must keep polling, because the one moment this is most likely to time
@@ -478,6 +466,35 @@ class Zooboxi_V2_Orders_Controller
             );
         }
 
+        return Zooboxi_V2_Bootstrap::ok($tracking);
+    }
+
+    /**
+     * The courier for one order, through a short per-order cache.
+     *
+     * @return array|null|false — the payload, "no courier", or "could not ask".
+     */
+    private function courier_for(\WC_Order $order)
+    {
+        $order_id  = $order->get_id();
+        $cache_key = 'zb_mrsool_live_' . $order_id;
+        $cached    = get_transient($cache_key);
+
+        if (is_array($cached)) {
+            return $cached['data'];
+        }
+
+        if (!class_exists('Zooboxi_Sync_Engine')) {
+            return null;
+        }
+
+        $engine   = new Zooboxi_Sync_Engine();
+        $tracking = $engine->fetch_mrsool_tracking($order_id);
+
+        if ($tracking === false) {
+            return false;
+        }
+
         // A delivered courier never moves again, so its payload can rest much
         // longer than a live one. "No courier yet" rests briefly: the branch
         // may be requesting one right now.
@@ -488,7 +505,92 @@ class Zooboxi_V2_Orders_Controller
         };
         set_transient($cache_key, ['data' => $tracking], $ttl);
 
-        return Zooboxi_V2_Bootstrap::ok($tracking);
+        return $tracking;
+    }
+
+    /* ── GET /orders/active ────────────────────────── */
+
+    /**
+     * The one order the customer is currently waiting on, if there is one.
+     *
+     * This is what the live bar above the tab bar is built from, so it answers
+     * in a single round trip: the order AND its courier. A customer browsing
+     * the shop should never have to go looking for the thing they just bought.
+     *
+     * Express only, and deliberately so. A shipment arriving in four days is
+     * not something to hover over the shop for; an order arriving within the
+     * hour is the only one worth the screen space.
+     */
+    public function active(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            return Zooboxi_V2_Bootstrap::unauthorized();
+        }
+
+        $orders = wc_get_orders([
+            'customer_id' => $user_id,
+            'limit'       => 10,
+            'orderby'     => 'date',
+            'order'       => 'DESC',
+            'status'      => ['processing', 'zb-ready', 'zb-out-for-delivery'],
+            // Filter in the query, not in PHP: five newer non-express orders
+            // would otherwise push the express one out of the window.
+            'meta_query'  => [[
+                'key'   => '_zooboxi_delivery_type',
+                'value' => 'express',
+            ]],
+            // An express order promises two hours. One that is still sitting in
+            // `processing` a week later was abandoned somewhere, and pinning the
+            // bar to a customer's screen forever is worse than showing nothing.
+            'date_created' => '>' . (time() - DAY_IN_SECONDS),
+        ]);
+
+        $best = null;
+        foreach ((array) $orders as $order) {
+            if (!$order instanceof \WC_Order) {
+                continue;
+            }
+            // Newest is the wrong question. A courier five minutes from the door
+            // matters more than a box someone started packing a moment ago, so a
+            // moving order outranks a waiting one and date only breaks ties.
+            if ($best === null || self::urgency($order) > self::urgency($best)) {
+                $best = $order;
+            }
+        }
+
+        if ($best === null) {
+            return Zooboxi_V2_Bootstrap::ok(null);
+        }
+
+        $courier = $this->courier_for($best);
+        $dto     = $this->list_dto($best);
+
+        // The order key is the pay/receipt capability token. The bar never uses
+        // it, and this is the most frequently polled payload in the app.
+        unset($dto['order_key']);
+
+        return Zooboxi_V2_Bootstrap::ok([
+            'order' => $dto,
+            // A courier we could not reach is reported as absent here: the bar
+            // still has a real order status to show, and losing the whole bar
+            // over a slow proxy would be the worse trade.
+            'tracking' => $courier === false ? null : $courier,
+        ]);
+    }
+
+    /** How much this order deserves the bar. Higher wins; date breaks ties. */
+    private static function urgency(\WC_Order $order): int
+    {
+        $rank = match ($order->get_status()) {
+            'zb-out-for-delivery' => 3,
+            'zb-ready'            => 2,
+            default               => 1,
+        };
+
+        $created = $order->get_date_created();
+
+        return $rank * 10000000000 + ($created ? $created->getTimestamp() : 0);
     }
 
     /**
