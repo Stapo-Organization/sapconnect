@@ -39,14 +39,15 @@ enum Shelf {
 class ShelfController extends Notifier<Shelf> {
   @override
   Shelf build() {
-    if (!expressAvailable) return Shelf.all;
+    if (!_savedAddressOffersExpress) return Shelf.all;
     return ref.read(localStoreProvider).shelf == Shelf.all.wire ? Shelf.all : Shelf.express;
   }
 
-  /// Whether the express tab is open where the customer stands. The server's
-  /// location resolver decided this when the address was set — the same
-  /// authority the cart's promises come from.
-  bool get expressAvailable =>
+  /// Whether the saved address was in an open express zone **when it was
+  /// chosen**. That is all there is at startup, before any payload has landed,
+  /// so it decides the shelf the app opens on — but it is a snapshot of a
+  /// moving thing and must never be the last word: see [select].
+  bool get _savedAddressOffersExpress =>
       ref.watch(locationProvider.select((s) => s.location.deliveryType)) == 'express';
 
   /// Switches the storefront. A tap on the dimmed express tab is the caller's
@@ -64,7 +65,13 @@ class ShelfController extends Notifier<Shelf> {
   /// server's own `effective_shelf`.
   void select(Shelf shelf) {
     if (shelf == state) return;
-    if (shelf == Shelf.express && !expressAvailable) return;
+    // Read, not watch, and from [expressAvailableProvider] rather than the
+    // saved address: the delivery type was decided the moment that address was
+    // picked and does not know the branch has opened since. Asking the snapshot
+    // here is what left a lit إكسبريس tab dead to the touch all morning —
+    // resolved at 11pm against a shut branch, refusing every tap until the
+    // customer re-picked the same address.
+    if (shelf == Shelf.express && !ref.read(expressAvailableProvider)) return;
     state = shelf;
     ref.read(localStoreProvider).setShelf(shelf.wire);
     // The server's last answer described the shelf being left. Drop it instead
@@ -115,8 +122,36 @@ final resolvedShelfProvider = Provider<Shelf>(
 
 final shelfProvider = NotifierProvider<ShelfController, Shelf>(ShelfController.new);
 
-/// Whether the express storefront exists at the current address — what the
-/// dimmed tab and its explanation hang off.
+/// Whether the store says إكسبريس serves this address **now**, or null before
+/// it has said anything.
+///
+/// Express is not a property of an address, it is a property of an address at
+/// a moment: the branch keeps hours, and the resolver drops it the minute the
+/// shutter comes down. The saved delivery type therefore ages — and it was the
+/// only thing the app asked. Every `/home` carries the live answer in
+/// `scope.express_available`; this is where it lands.
+///
+/// Like [EffectiveShelf] this notifier watches and reads **nothing**, so it
+/// stays safe to consult from anywhere.
+class ServedExpress extends Notifier<bool?> {
+  @override
+  bool? build() => null;
+
+  void report(bool? available) {
+    if (available != state) state = available;
+  }
+}
+
+final servedExpressProvider =
+    NotifierProvider<ServedExpress, bool?>(ServedExpress.new);
+
+/// Whether the express storefront exists here right now — what the dimmed tab,
+/// its explanation and [ShelfController.select] all hang off.
+///
+/// The store's own answer when it has given one; the saved address until then.
 final expressAvailableProvider = Provider<bool>(
-  (ref) => ref.watch(locationProvider.select((s) => s.location.deliveryType)) == 'express',
+  (ref) =>
+      ref.watch(servedExpressProvider) ??
+      (ref.watch(locationProvider.select((s) => s.location.deliveryType)) ==
+          'express'),
 );

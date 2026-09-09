@@ -136,8 +136,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _adoptServedShelf(HomePayload payload) {
     final served = Shelf.fromWire(payload.scope?.shelf);
     ref.read(effectiveShelfProvider.notifier).report(served);
+    _adoptExpressHours(payload);
     _armShutterClock(payload);
     _warmOtherShelf(served, payload);
+  }
+
+  /// Whether إكسبريس is serving this address, straight from the store.
+  ///
+  /// It is not a property of an address but of an address at a moment — the
+  /// branch keeps hours — and the saved delivery type was decided the moment
+  /// that address was picked. Left to itself it goes on refusing every tap on
+  /// a lit tab, hours after the shutter went back up. So the payload's answer
+  /// wins, and when the two disagree the saved one is sent to be corrected.
+  void _adoptExpressHours(HomePayload payload) {
+    final bool? serving = payload.scope?.expressAvailable;
+    if (serving == null) return;
+    ref.read(servedExpressProvider.notifier).report(serving);
+
+    final saved = ref.read(locationProvider).location.deliveryType == 'express';
+    if (saved != serving) {
+      unawaited(ref.read(locationProvider.notifier).refreshPromise());
+    }
   }
 
   /// Re-reads the storefront the moment the branch opens or shuts.

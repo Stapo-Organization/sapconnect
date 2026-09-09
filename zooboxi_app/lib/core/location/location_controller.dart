@@ -383,6 +383,54 @@ class LocationController extends Notifier<LocationState> {
     }
   }
 
+  /// Re-asks the store about the address already saved, and keeps only the
+  /// answer.
+  ///
+  /// The saved delivery type is a snapshot of something that moves: the
+  /// express branch keeps hours, so an address resolved after the shutter came
+  /// down comes back «اليوم» and stays that way through the next morning. When
+  /// the store's own scope disagrees with it, the snapshot is what is wrong.
+  ///
+  /// Deliberately not [_apply]: that exists for *moving*, and empties every
+  /// cache with it. Nothing about where the customer stands has changed here —
+  /// only what the branch is doing — so the storefront on screen stays put.
+  /// Silent, too: a failure leaves the answer we had, which beats none.
+  Future<void> refreshPromise() async {
+    final ZbLocation here = state.location;
+    if (!here.hasCoordinates) return;
+    try {
+      final result = await ref
+          .read(locationRepositoryProvider)
+          .resolve(lat: here.lat!, lng: here.lng!);
+      final best = result.best;
+      if (best == null) return;
+      if (best.deliveryType == here.deliveryType &&
+          best.warehouseCode == here.warehouseCode) {
+        return;
+      }
+      final fresher = ZbLocation(
+        lat: here.lat,
+        lng: here.lng,
+        city: (result.city?.isNotEmpty ?? false) ? result.city : here.city,
+        cityEn: here.cityEn,
+        district: (result.district?.isNotEmpty ?? false)
+            ? result.district
+            : here.district,
+        deliveryType: best.deliveryType,
+        warehouseCode: best.warehouseCode,
+        warehouseName: best.warehouseName,
+        promiseLabel: best.promiseLabel,
+        addressId: here.addressId,
+        label: here.label,
+        setAt: DateTime.now(),
+      );
+      state = state.copyWith(location: fresher);
+      await ref.read(localStoreProvider).setLocation(fresher.toJson());
+    } catch (_) {
+      // Keep what we had.
+    }
+  }
+
   Future<void> clear() async {
     await _apply(ZbLocation.none);
     state = state.copyWith(phase: LocationPhase.idle);
@@ -406,9 +454,10 @@ class LocationController extends Notifier<LocationState> {
     // of the disk cache: wiping prefs alone would leave the old city's rails
     // painting over the new address until a fetch happened to land.
     ref.read(catalogRepositoryProvider).clearMemoryHome();
-    // And the server's answer about which shelf it was serving, which was an
-    // answer about somewhere else.
+    // And the server's answers about which shelf it was serving and whether
+    // إكسبريس reaches here — both were answers about somewhere else.
     ref.read(effectiveShelfProvider.notifier).report(null);
+    ref.read(servedExpressProvider.notifier).report(null);
     ref.read(catalogRevisionProvider.notifier).bump();
   }
 }

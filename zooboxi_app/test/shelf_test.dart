@@ -417,4 +417,64 @@ void main() {
           same(cached));
     });
   });
+
+  /// Express is not a property of an address but of an address at a moment:
+  /// the branch keeps hours, and the resolver drops it the minute the shutter
+  /// comes down. The saved delivery type is decided once, when the address is
+  /// picked, and then never asked again — so an address resolved at 11pm went
+  /// on refusing every tap on a lit tab the whole next morning.
+  group('whether express is serving, now', () {
+    test('the saved address answers until the store has spoken', () async {
+      final c = await _container(deliveryType: 'same_day');
+      expect(c.read(servedExpressProvider), isNull);
+      expect(c.read(expressAvailableProvider), isFalse);
+
+      final open = await _container(deliveryType: 'express');
+      expect(open.read(expressAvailableProvider), isTrue);
+    });
+
+    test('the store outranks the snapshot in both directions', () async {
+      final shut = await _container(deliveryType: 'express');
+      shut.read(servedExpressProvider.notifier).report(false);
+      expect(shut.read(expressAvailableProvider), isFalse);
+
+      final open = await _container(deliveryType: 'same_day');
+      open.read(servedExpressProvider.notifier).report(true);
+      expect(open.read(expressAvailableProvider), isTrue);
+    });
+
+    test('a branch that has since opened can be entered', () async {
+      // The address was resolved against a shut branch, so the snapshot says
+      // same_day; `/home` has since answered that إكسبريس is serving. Before
+      // this, `select` asked the snapshot and swallowed the tap in silence.
+      final c = await _container(deliveryType: 'same_day');
+      c.read(servedExpressProvider.notifier).report(true);
+      final before = c.read(shelfRevisionProvider);
+
+      c.read(shelfProvider.notifier).select(Shelf.express);
+
+      expect(c.read(shelfProvider), Shelf.express);
+      expect(c.read(shelfRevisionProvider), isNot(before));
+    });
+
+    test('a branch that has since shut cannot', () async {
+      final c = await _container(deliveryType: 'express', savedShelf: 'all');
+      c.read(servedExpressProvider.notifier).report(false);
+      final before = c.read(shelfRevisionProvider);
+
+      c.read(shelfProvider.notifier).select(Shelf.express);
+
+      expect(c.read(shelfProvider), Shelf.all);
+      expect(c.read(shelfRevisionProvider), before);
+    });
+
+    test('the shelf the app opens on still comes from the saved address',
+        () async {
+      // Nothing has been served yet at build time, and re-deriving the shelf
+      // from a later answer would jump the customer between storefronts on
+      // their own screen.
+      final c = await _container(deliveryType: 'same_day', savedShelf: 'express');
+      expect(c.read(shelfProvider), Shelf.all);
+    });
+  });
 }
