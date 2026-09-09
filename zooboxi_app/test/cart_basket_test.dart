@@ -276,4 +276,24 @@ void main() {
       expect(basket.otherSince, isNull);
     });
   });
+
+  /// Home listens for this and nothing else about the basket. Every answer
+  /// from the server decodes a fresh instance, so without value equality the
+  /// whole storefront rebuilt on a quantity tap that never moved the bar.
+  group('the free-delivery bar is a value', () {
+    test('two bars at the same point are the same bar', () {
+      const a = FreeShipping(min: 200, remaining: 40);
+      const b = FreeShipping(min: 200, remaining: 40);
+      expect(FreeShipping.fromJson(const {'min': 200, 'remaining': 40}), a);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('a bar that moved is a different bar', () {
+      expect(const FreeShipping(min: 200, remaining: 40),
+          isNot(const FreeShipping(min: 200, remaining: 25)));
+      expect(const FreeShipping(min: 200, remaining: 0, qualified: true),
+          isNot(const FreeShipping(min: 200, remaining: 0)));
+    });
+  });
 }

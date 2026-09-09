@@ -342,16 +342,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             if (canvas) ...[
+              // The hero animates on its own clock; its own layer keeps
+              // those frames from touching the feed below it.
               SliverToBoxAdapter(
-                child: HeroCarousel(
-                  slides: payload.hero,
-                  campaigns: payload.campaigns,
-                  scope: payload.scope,
+                child: RepaintBoundary(
+                  child: HeroCarousel(
+                    slides: payload.hero,
+                    campaigns: payload.campaigns,
+                    scope: payload.scope,
+                  ),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
             ] else
-              SliverToBoxAdapter(child: HomeHeader(scope: payload?.scope)),
+              SliverToBoxAdapter(
+                child: RepaintBoundary(child: HomeHeader(scope: payload?.scope)),
+              ),
             if (payload != null && !payload.isEmpty)
               ..._slots(context, ref, payload)
             else if (payload != null)
@@ -372,7 +378,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               )
             else
-              const SliverToBoxAdapter(child: _HomeSkeleton()),
+              const SliverToBoxAdapter(
+                child: RepaintBoundary(child: _HomeSkeleton()),
+              ),
             // The tab bar floats over the feed, so the last rail has to clear
             // it. Scaffold folds the bar's height into the bottom padding —
             // reading it here means the gap is right on every device and stays
@@ -447,14 +455,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final feedPending = feedData == null && feed.isLoading;
 
     final wishlist = ref.watch(wishlistProductsProvider).value ?? const <ProductCard>[];
-    final freeShipping = ref.watch(cartFreeShippingNudgeProvider);
-
-    // The loyalty layer is *additive* to the storefront: a guest resolves to
-    // null without a call, and a failed or slow read is indistinguishable from
-    // "no program" — the slot simply doesn't draw. Home must never wait on it.
-    final loyalty = ref.watch(loyaltySummaryProvider).value;
-    final loyaltyPending =
-        ref.watch(isAuthenticatedProvider) && loyalty == null;
 
     Future<bool> add(ProductCard product) =>
         addToCart(context, ref, product: product, zone: 'home', quiet: true);
@@ -486,11 +486,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
 
     final slivers = <Widget>[];
+
+    // Every slot gets its own layer. A `SliverToBoxAdapter` — unlike the
+    // list slivers — hands no repaint boundary to its child, so without this
+    // one scroll frame repaints every rail on screen: the photos, the shadows,
+    // the price chips, all of it, sixty times a second. With it the viewport
+    // moves layers it already has.
     void emit(Widget child, {double top = 0, double bottom = 24}) => slivers.add(
           SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(top: top, bottom: bottom),
-              child: child,
+            child: RepaintBoundary(
+              child: Padding(
+                padding: EdgeInsets.only(top: top, bottom: bottom),
+                child: child,
+              ),
             ),
           ),
         );
@@ -536,30 +544,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // stands. Hidden while a member's summary is still in flight rather
         // than flashing the guest invitation at someone who has an account.
         case 'family':
-          if (loyaltyPending) break;
-          emit(
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
-              child: FamilyCard(summary: loyalty, feed: feedData),
+          slivers.add(
+            SliverToBoxAdapter(
+              child: RepaintBoundary(child: _FamilySlot(feed: feedData)),
             ),
           );
 
         case 'missions':
-          if (!MissionsStrip.hasContent(loyalty)) break;
-          emit(
-            MissionsStrip(
-              missions: loyalty!.missions.items,
-              holdout: loyalty.member.holdout,
-              awaitingDelivery: loyalty.hasPendingAppOrder,
+          slivers.add(
+            const SliverToBoxAdapter(
+              child: RepaintBoundary(child: _MissionsSlot()),
             ),
           );
 
         case 'shipping_nudge':
-          if (freeShipping == null) break;
-          emit(
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
-              child: FreeShippingBar(freeShipping: freeShipping),
+          slivers.add(
+            const SliverToBoxAdapter(
+              child: RepaintBoundary(child: _ShippingNudgeSlot()),
             ),
           );
 
@@ -667,6 +668,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
 
     return slivers;
+  }
+}
+
+/// The three slots that answer to something other than the storefront.
+///
+/// Home is a long page: eight rails, a hundred product cards, a hero that
+/// animates. Watching the basket or the loyalty summary from the page's own
+/// build meant every add-to-cart rebuilt all of it — and adding to the cart is
+/// what people come here to do. Each of these watches from its own leaf
+/// instead, so a basket answer repaints one bar and leaves the feed alone.
+///
+/// Each carries its own bottom padding: the slot before it wrapped it in 24pt,
+/// and a slot that draws nothing must take no room at all.
+class _ShippingNudgeSlot extends ConsumerWidget {
+  const _ShippingNudgeSlot();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final freeShipping = ref.watch(cartFreeShippingNudgeProvider);
+    if (freeShipping == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 24),
+      child: FreeShippingBar(freeShipping: freeShipping),
+    );
+  }
+}
+
+/// «عائلة زوبوكسي» — the pet, what it needs next, and where its owner stands.
+///
+/// The loyalty layer is *additive* to the storefront: a guest resolves to null
+/// without a call, and a failed or slow read is indistinguishable from "no
+/// program" — the card simply doesn't draw. Home must never wait on it. Hidden
+/// while a member's summary is still in flight, rather than flashing the guest
+/// invitation at someone who has an account.
+class _FamilySlot extends ConsumerWidget {
+  const _FamilySlot({required this.feed});
+
+  final HomeFeed? feed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loyalty = ref.watch(loyaltySummaryProvider).value;
+    if (loyalty == null && ref.watch(isAuthenticatedProvider)) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 24),
+      child: FamilyCard(summary: loyalty, feed: feed),
+    );
+  }
+}
+
+class _MissionsSlot extends ConsumerWidget {
+  const _MissionsSlot();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loyalty = ref.watch(loyaltySummaryProvider).value;
+    if (!MissionsStrip.hasContent(loyalty)) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: MissionsStrip(
+        missions: loyalty!.missions.items,
+        holdout: loyalty.member.holdout,
+        awaitingDelivery: loyalty.hasPendingAppOrder,
+      ),
+    );
   }
 }
 

@@ -217,6 +217,20 @@ class FreeShipping {
         remaining: asDouble(json['remaining']),
         qualified: asBool(json['qualified']),
       );
+
+  // Value equality, because Home listens for this and nothing else about the
+  // cart. Every basket answer decodes a fresh instance, so without this the
+  // whole storefront rebuilt on a quantity tap that never moved the bar.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FreeShipping &&
+          other.min == min &&
+          other.remaining == remaining &&
+          other.qualified == qualified;
+
+  @override
+  int get hashCode => Object.hash(min, remaining, qualified);
 }
 
 @immutable

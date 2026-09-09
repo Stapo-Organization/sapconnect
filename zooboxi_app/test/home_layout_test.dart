@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -9,6 +10,8 @@ import 'package:zooboxi_app/core/providers.dart';
 import 'package:zooboxi_app/core/storage/local_store.dart';
 import 'package:zooboxi_app/core/widgets/rail.dart';
 import 'package:zooboxi_app/features/cart/data/cart_controller.dart';
+import 'package:zooboxi_app/features/cart/data/cart_models.dart';
+import 'package:zooboxi_app/features/cart/presentation/widgets/free_shipping_bar.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_repository.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
@@ -42,6 +45,17 @@ class _SilentEvents implements EventsBuffer {
   void dispose() {}
 }
 
+
+/// A nudge the test can move, standing in for the basket the shell owns.
+class _Nudge extends Notifier<FreeShipping?> {
+  @override
+  FreeShipping? build() => null;
+
+  void show(FreeShipping? value) => state = value;
+}
+
+final _nudgeProvider = NotifierProvider<_Nudge, FreeShipping?>(_Nudge.new);
+
 late LocalStore _store;
 
 Widget _host(
@@ -49,13 +63,14 @@ Widget _host(
   HomeFeed feed = HomeFeed.empty,
   Locale locale = const Locale('ar'),
   double textScale = 1,
+  Override? nudge,
 }) =>
     ProviderScope(
       overrides: [
         localStoreProvider.overrideWithValue(_store),
         eventsBufferProvider.overrideWithValue(_SilentEvents()),
         // The cart is the shell's business; Home only reads the nudge.
-        cartFreeShippingNudgeProvider.overrideWithValue(null),
+        nudge ?? cartFreeShippingNudgeProvider.overrideWithValue(null),
         homeProvider.overrideWithValue(AsyncValue.data(payload)),
         homeFeedProvider.overrideWithValue(AsyncValue.data(feed)),
       ],
@@ -355,4 +370,67 @@ void main() {
       );
     }
   }
+
+  /// Home is a long page — eight rails, a hundred cards, a hero on its own
+  /// clock — and adding to the basket is what people come here to do. Reading
+  /// the basket from the page's own build meant every add rebuilt all of it.
+  group('the basket moves the bar, not the feed', () {
+    HomePayload nudgePayload() => HomePayload(
+          rails: [
+            ProductRail(
+                key: 'trending', title: 'رائج الآن', products: [_p(1), _p(2), _p(3)]),
+          ],
+          layout: const [
+            HomeLayoutSlot('shipping_nudge'),
+            HomeLayoutSlot('rail', key: 'trending'),
+          ],
+        );
+
+    testWidgets('a cart answer repaints the bar and leaves the rails alone',
+        (tester) async {
+      await _pumpHome(
+        tester,
+        _host(
+          nudgePayload(),
+          nudge: cartFreeShippingNudgeProvider
+              .overrideWith((ref) => ref.watch(_nudgeProvider)),
+        ),
+      );
+
+      expect(find.byType(FreeShippingBar), findsNothing);
+      final ProductRailView before = tester.widget(find.byType(ProductRailView));
+
+      ProviderScope.containerOf(tester.element(find.byType(HomeScreen)))
+          .read(_nudgeProvider.notifier)
+          .show(const FreeShipping(min: 200, remaining: 40));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FreeShippingBar), findsOneWidget);
+      // The same widget object, not an equal one: if Home had rebuilt, the
+      // rail would have been constructed afresh along with every card in it.
+      expect(
+        identical(tester.widget<ProductRailView>(find.byType(ProductRailView)),
+            before),
+        isTrue,
+      );
+    });
+
+    testWidgets('a nudge with nothing to say takes no room', (tester) async {
+      await _pumpHome(tester, _host(nudgePayload()));
+      final double withSlot = tester.getTopLeft(find.text('رائج الآن')).dy;
+
+      await _pumpHome(
+        tester,
+        _host(HomePayload(
+          rails: [
+            ProductRail(
+                key: 'trending', title: 'رائج الآن', products: [_p(1), _p(2), _p(3)]),
+          ],
+          layout: const [HomeLayoutSlot('rail', key: 'trending')],
+        )),
+      );
+
+      expect(withSlot, tester.getTopLeft(find.text('رائج الآن')).dy);
+    });
+  });
 }
