@@ -40,6 +40,35 @@ import 'widgets/home_header.dart';
 import 'widgets/missions_strip.dart';
 import 'widgets/trust_strip.dart';
 
+/// Which storefront to paint, given the live answer and the warm snapshot.
+///
+/// Pure so it can be tested: it is the one line that decides whether crossing
+/// the tabs feels instant or feels broken.
+///
+/// [live] is the last answer the provider gave, which on a tab tap describes
+/// the shop being LEFT. [cached] is the snapshot for the shop now being
+/// served. Prefer the live payload while the two agree — that keeps object
+/// identity through a refresh, so no rail re-inflates — and take the snapshot
+/// the moment they disagree.
+///
+/// A payload whose scope names no shelf comes from a store older than the
+/// field; it is taken at its word rather than discarded on every refresh.
+@visibleForTesting
+HomePayload? payloadToPaint({
+  required HomePayload? live,
+  required Shelf serving,
+  required HomePayload? cached,
+}) {
+  if (live != null) {
+    final describes = Shelf.fromWire(live.scope?.shelf);
+    if (describes == null || describes == serving) return live;
+  }
+  // If there is no snapshot for this shop, paint nothing: a skeleton for a
+  // moment is honest, where the other storefront's prices under this tab's
+  // promise is not.
+  return cached;
+}
+
 /// A `/home` emission that is genuinely a new answer, or null.
 ///
 /// Riverpod re-emits the PREVIOUS payload with the loading flag raised while a
@@ -140,6 +169,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (mounted) ref.invalidate(homeProvider);
     });
   }
+
+  /// The storefront to paint this frame.
+  ///
+  /// Prefers the live payload while it describes the shelf being served, so a
+  /// refresh keeps object identity and nothing re-inflates. Falls to the warm
+  /// snapshot the moment the two disagree — which is exactly the tab crossing.
+  /// A payload whose scope names no shelf (an older store) is taken at its
+  /// word rather than being thrown away on every refresh.
+  HomePayload? _payloadToPaint(WidgetRef ref, AsyncValue<HomePayload> home) =>
+      payloadToPaint(
+        live: home.value,
+        serving: ref.watch(resolvedShelfProvider),
+        cached: ref.watch(homeCacheProvider),
+      );
 
   /// Tells the hearts what this payload already knew, so they settle on the
   /// first frame instead of popping a beat later.
@@ -260,9 +303,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // last good payload paints on frame one and the refresh lands behind it.
     // A failed refresh therefore leaves a browsable store rather than an error
     // page — the retry only appears when there is genuinely nothing to show.
-    final payload = home.value ?? (home.isLoading || home.hasError
-        ? ref.watch(homeCacheProvider)
-        : null);
+    //
+    // Which stale payload, though, is the whole question. `home.value` carries
+    // the last answer THIS provider gave, and on a tab tap that answer belongs
+    // to the shop being left: keeping it on screen is what made crossing the
+    // tabs feel like nothing happened until the network came back. The warm
+    // snapshot for the shelf now being served is the right one, and after the
+    // prefetch it is already in memory.
+    //
+    // But it is only right when the shelves actually differ. On an ordinary
+    // pull-to-refresh the live payload IS this shelf's, and swapping it for a
+    // freshly decoded copy of the same thing would hand every rail a new list
+    // identity and re-inflate the entire feed for nothing.
+    final payload = _payloadToPaint(ref, home);
 
     // The canvas unit — colored header + hero fused, HungerStation-style —
     // exists whenever there is a hero to show and the server kept the slot.

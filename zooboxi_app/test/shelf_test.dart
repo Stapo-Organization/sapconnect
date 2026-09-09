@@ -367,4 +367,54 @@ void main() {
       expect(settledPayload(const AsyncLoading<HomePayload>()), isNull);
     });
   });
+
+  group('which storefront gets painted', () {
+    HomePayload of(String shelf) => HomePayload.fromJson({
+          'scope': {'shelf': shelf, 'note': 'n'},
+          'slots': const [],
+        });
+
+    test('a refresh of the same shelf keeps the very same object', () {
+      final live = of('express');
+      // Identical, not merely equal: a fresh copy would hand every rail a new
+      // list identity and re-inflate the whole feed for nothing.
+      expect(
+        payloadToPaint(live: live, serving: Shelf.express, cached: of('express')),
+        same(live),
+      );
+    });
+
+    test('crossing the tabs paints the shop being entered, not the one left',
+        () {
+      final leaving = of('express');
+      final entering = of('all');
+      expect(
+        payloadToPaint(live: leaving, serving: Shelf.all, cached: entering),
+        same(entering),
+      );
+    });
+
+    test('with no snapshot for the new shop, it paints nothing rather than the wrong one',
+        () {
+      expect(
+        payloadToPaint(live: of('express'), serving: Shelf.all, cached: null),
+        isNull,
+      );
+    });
+
+    test('a store too old to name the shelf is taken at its word', () {
+      final live = HomePayload.fromJson({
+        'scope': {'note': 'n'},
+        'slots': const [],
+      });
+      expect(payloadToPaint(live: live, serving: Shelf.all, cached: of('all')),
+          same(live));
+    });
+
+    test('nothing live yet falls through to the snapshot', () {
+      final cached = of('express');
+      expect(payloadToPaint(live: null, serving: Shelf.express, cached: cached),
+          same(cached));
+    });
+  });
 }
