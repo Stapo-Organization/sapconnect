@@ -102,12 +102,17 @@ class GlassNavBar extends ConsumerWidget {
             quality: GlassQuality.standard,
             clipBehavior: Clip.antiAlias,
             settings: LiquidGlassSettings(
-              // Owner-tuned: barely-there tint — the store should show through
-              // the glass, the refraction carries the legibility.
+              // Owner's call, revised: the menu reads as a SURFACE now, not as
+              // a pane you can see the shop through. A barely-there tint left
+              // the glyphs sitting on whatever photograph happened to scroll
+              // under them — legible in a screenshot, restless in the hand.
+              // Still glass (the refraction and the rim are the point), just
+              // dense enough that the four labels never have to compete with
+              // the product behind them.
               glassColor: dark
-                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.24)
-                  : cs.surface.withValues(alpha: 0.20),
-              blur: 11,
+                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.74)
+                  : cs.surface.withValues(alpha: 0.72),
+              blur: 18,
             ),
             child: SizedBox(
               height: barHeight,
@@ -128,7 +133,7 @@ class GlassNavBar extends ConsumerWidget {
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   color: cs.primary
-                                      .withValues(alpha: dark ? 0.22 : 0.14),
+                                      .withValues(alpha: dark ? 0.28 : 0.16),
                                   borderRadius: BorderRadius.circular(ZbTokens.rPill),
                                 ),
                               ),
