@@ -223,6 +223,82 @@ void main() {
       ),
     ];
 
+    testWidgets('a lone offer needs no dots to say where you are',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ar'),
+          theme: AppTheme.light(const Locale('ar')),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: Scaffold(
+            body: Center(child: ExpressOfferSlider(slides: [slides.first])),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('يوصلك خلال ساعتين'), findsOneWidget);
+      expect(find.byType(AnimatedContainer), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a kicker is drawn when the slide has one', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ar'),
+          theme: AppTheme.light(const Locale('ar')),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: const Scaffold(
+            body: Center(
+              child: ExpressOfferSlider(
+                slides: [
+                  HeroSlide(
+                    kind: 'auto',
+                    theme: 'clearance',
+                    title: 'عروض التصفية',
+                    badge: 'خصم حتى ٤٥٪',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('خصم حتى ٤٥٪'), findsOneWidget);
+    });
+
+    testWidgets('the card grows with the text instead of clipping it',
+        (tester) async {
+      late double plain;
+      late double large;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              plain = ExpressOfferSlider.cardHeight(context);
+              return MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: const TextScaler.linear(1.3)),
+                child: Builder(
+                  builder: (context) {
+                    large = ExpressOfferSlider.cardHeight(context);
+                    return const SizedBox();
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      expect(large, greaterThan(plain));
+      // …and stops growing where the app clamps every other fixed-extent box.
+      expect(large - plain, closeTo(0.3 * 54, 0.01));
+    });
+
     test('a strip with nothing to put in it is no strip', () {
       expect(ExpressOfferSlider.hasContent(const []), isFalse);
       expect(
