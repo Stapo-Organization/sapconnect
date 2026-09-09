@@ -10,12 +10,17 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.onSeeAll,
+    this.leading,
     this.padding = const EdgeInsetsDirectional.only(start: 16, end: 16),
   });
 
   final String title;
   final String? subtitle;
   final VoidCallback? onSeeAll;
+
+  /// A mark before the title — the section's own glyph, when it has one.
+  final Widget? leading;
+
   final EdgeInsetsGeometry padding;
 
   @override
@@ -28,6 +33,7 @@ class SectionHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 10)],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

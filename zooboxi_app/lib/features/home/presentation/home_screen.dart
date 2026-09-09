@@ -36,6 +36,11 @@ import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
 import 'widgets/express_band.dart';
+import 'widgets/express_cards/arrivals_wall.dart';
+import 'widgets/express_cards/picks_rail.dart';
+import 'widgets/express_cards/ranked_list.dart';
+import 'widgets/express_cards/reorder_strip.dart';
+import 'widgets/express_cards/trending_mosaic.dart';
 import 'widgets/express_offers.dart';
 import 'widgets/clearance_band.dart';
 import 'widgets/family_card.dart';
@@ -524,6 +529,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // catalogue look like a 12-product one. A rail that loses too much to the
     // slots above it drops out entirely rather than limping on with two cards.
     final shown = <int>{};
+    final express = payload.scope?.shelf == 'express';
+
     List<ProductCard>? claim(List<ProductCard> products, {int minimum = 3}) {
       final kept = [
         for (final product in products)
@@ -582,11 +589,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (rail == null) break;
           final products = claim(rail.products, minimum: 4);
           if (products == null) break;
-          final heading = ProductGridSliver.heading(rail.title);
-          if (heading != null) slivers.add(heading);
-          slivers.add(
-            ProductGridSliver(products: products, zone: rail.key, onAdd: add),
-          );
+          void seeAll() => context.push(
+                Uri(
+                  path: '/listing',
+                  queryParameters: {'rail': rail.key, 'title': rail.title},
+                ).toString(),
+              );
+          // On إكسبريس each shelf takes the form of its own reason to buy —
+          // a leaderboard, a chart, a wall — so the page stops reading as one
+          // long section. The store keeps its grids.
+          if (express && slot.key == 'trending') {
+            slivers.addAll(TrendingMosaic.slivers(
+              context,
+              title: rail.title,
+              products: products,
+              zone: rail.key,
+              onAdd: add,
+              onSeeAll: seeAll,
+            ));
+          } else if (express && slot.key == 'bestsellers') {
+            emit(RankedList(
+              title: rail.title,
+              products: products,
+              zone: rail.key,
+              onAdd: add,
+              onSeeAll: seeAll,
+            ));
+            break;
+          } else if (express && slot.key == 'new') {
+            slivers.addAll(ArrivalsWall.slivers(
+              context,
+              title: rail.title,
+              products: products,
+              zone: rail.key,
+              onAdd: add,
+              onSeeAll: seeAll,
+            ));
+          } else {
+            final heading = ProductGridSliver.heading(rail.title);
+            if (heading != null) slivers.add(heading);
+            slivers.add(
+              ProductGridSliver(products: products, zone: rail.key, onAdd: add),
+            );
+          }
           slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 24)));
 
         case 'animal_nav':
@@ -607,7 +652,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           slivers.add(
             SliverToBoxAdapter(
               child: RepaintBoundary(
-                child: _ReplenishSlot(express: payload.scope?.shelf == 'express'),
+                child: _ReplenishSlot(express: express),
               ),
             ),
           );
@@ -624,6 +669,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           final personal = feedData?.personal;
           if (personal == null || personal.isEmpty) break;
           shown.addAll(personal.products.map((product) => product.id));
+          final personalSeeAll =
+              personal.kind == 'buyagain' ? () => context.push('/buy-again') : null;
+          if (express) {
+            emit(
+              ReorderStrip(
+                slot: personal,
+                products: personal.products,
+                zone: 'home_${personal.kind}',
+                onAdd: add,
+                onSeeAll: personalSeeAll,
+              ),
+            );
+            break;
+          }
           emit(
             ProductRailView(
               title: personal.title,
@@ -631,9 +690,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               products: personal.products,
               zone: 'home_${personal.kind}',
               onAdd: add,
-              onSeeAll: personal.kind == 'buyagain'
-                  ? () => context.push('/buy-again')
-                  : null,
+              onSeeAll: personalSeeAll,
             ),
           );
 
@@ -715,6 +772,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             );
             break;
           }
+          if (express && slot.key == 'foryou') {
+            emit(
+              PicksRail(
+                title: rail.title,
+                products: products,
+                zone: 'home_${slot.key}',
+                onAdd: add,
+              ),
+            );
+            break;
+          }
           emit(
             ProductRailView(
               title: rail.title,
@@ -729,7 +797,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (rail == null) break;
           final products = claim(rail.products);
           if (products == null) break;
-          emit(ClearanceBand(title: rail.title, products: products, onAdd: add));
+          emit(ClearanceBand(title: rail.title, products: products, onAdd: add, tags: express));
 
         // Saved items, sale first — the reason someone saved a product is
         // usually the price, so a drop is the news.

@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/widgets/rail.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../catalog/data/product_models.dart';
+import 'express_cards/card_form.dart';
+import 'express_cards/price_cut_rail.dart';
 
 /// Clearance, set apart from the rails around it.
 ///
@@ -18,17 +21,28 @@ class ClearanceBand extends StatelessWidget {
     required this.title,
     required this.products,
     this.onAdd,
+    this.tags = false,
   });
 
   final String title;
   final List<ProductCard> products;
   final Future<bool> Function(ProductCard product)? onAdd;
 
+  /// Draw the products as price tags (the express form) instead of the
+  /// store's standard rail.
+  final bool tags;
+
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) return const SizedBox.shrink();
     final sale = context.zb.sale;
     final dark = context.isDark;
+    void seeAll() => context.push(
+          Uri(
+            path: '/listing',
+            queryParameters: {'rail': 'clearance', 'title': title},
+          ).toString(),
+        );
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -44,18 +58,29 @@ class ClearanceBand extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 20),
-        child: ProductRailView(
-          title: title,
-          products: products,
-          zone: 'clearance',
-          onAdd: onAdd,
-          onSeeAll: () => context.push(
-            Uri(
-              path: '/listing',
-              queryParameters: {'rail': 'clearance', 'title': title},
-            ).toString(),
-          ),
-        ),
+        child: tags
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SectionHeader(
+                    title: title,
+                    leading: SectionMark(
+                      pair: ZbPair(sale, sale.withValues(alpha: dark ? 0.22 : 0.14)),
+                      icon: Icons.sell_rounded,
+                    ),
+                    onSeeAll: seeAll,
+                  ),
+                  const SizedBox(height: 12),
+                  PriceCutRail(products: products, zone: 'clearance', onAdd: onAdd),
+                ],
+              )
+            : ProductRailView(
+                title: title,
+                products: products,
+                zone: 'clearance',
+                onAdd: onAdd,
+                onSeeAll: seeAll,
+              ),
       ),
     );
   }

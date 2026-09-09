@@ -1747,6 +1747,9 @@
   },
   "searchBought": "اشتريته سابقاً",
   "searchBoughtDays": "{count, plural, =0{اليوم} =1{أمس} =2{قبل يومين} few{قبل {count} أيام} many{قبل {count} يومًا} other{قبل {count} يوم}}",
+  "homeTopToday": "الأعلى طلباً اليوم",
+  "cardNewSticker": "جديد",
+  "reorderDueShort": "حان وقتها",
   "@searchBoughtDays": {
     "placeholders": { "count": { "type": "int" } }
   },

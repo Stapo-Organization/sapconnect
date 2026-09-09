@@ -3237,6 +3237,15 @@ class LEn extends L {
   }
 
   @override
+  String get homeTopToday => 'Most ordered today';
+
+  @override
+  String get cardNewSticker => 'New';
+
+  @override
+  String get reorderDueShort => 'Due now';
+
+  @override
   String cartExpressFreeRemaining(String amount) {
     return '$amount more for free express delivery';
   }

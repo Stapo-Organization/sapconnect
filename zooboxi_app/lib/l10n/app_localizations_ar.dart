@@ -3297,6 +3297,15 @@ class LAr extends L {
   }
 
   @override
+  String get homeTopToday => 'الأعلى طلباً اليوم';
+
+  @override
+  String get cardNewSticker => 'جديد';
+
+  @override
+  String get reorderDueShort => 'حان وقتها';
+
+  @override
   String cartExpressFreeRemaining(String amount) {
     return 'باقي $amount لتوصيل سريع مجاني';
   }

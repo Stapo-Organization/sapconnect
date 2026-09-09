@@ -1482,6 +1482,9 @@
   },
   "searchBought": "Bought before",
   "searchBoughtDays": "{count, plural, =0{today} =1{yesterday} other{{count} days ago}}",
+  "homeTopToday": "Most ordered today",
+  "cardNewSticker": "New",
+  "reorderDueShort": "Due now",
   "@searchBoughtDays": {
     "placeholders": { "count": { "type": "int" } }
   },

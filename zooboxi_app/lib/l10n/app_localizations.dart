@@ -5203,6 +5203,24 @@ abstract class L {
   /// **'{count, plural, =0{اليوم} =1{أمس} =2{قبل يومين} few{قبل {count} أيام} many{قبل {count} يومًا} other{قبل {count} يوم}}'**
   String searchBoughtDays(int count);
 
+  /// No description provided for @homeTopToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأعلى طلباً اليوم'**
+  String get homeTopToday;
+
+  /// No description provided for @cardNewSticker.
+  ///
+  /// In ar, this message translates to:
+  /// **'جديد'**
+  String get cardNewSticker;
+
+  /// No description provided for @reorderDueShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'حان وقتها'**
+  String get reorderDueShort;
+
   /// No description provided for @cartExpressFreeRemaining.
   ///
   /// In ar, this message translates to:
