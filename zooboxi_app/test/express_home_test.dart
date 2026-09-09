@@ -208,10 +208,12 @@ void main() {
   /// a strip of cards a thumb's swipe wide, with the next already peeking.
   group('إكسبريس gets offers, not a hero', () {
     const slides = [
+      // Deliberately not `express_clock`: that one is the band's to say, and
+      // the strip filters it out.
       HeroSlide(
         kind: 'auto',
-        theme: 'express_clock',
-        title: 'يوصلك خلال ساعتين',
+        theme: 'express_top',
+        title: 'الأكثر طلباً في فرعك',
         subtitle: 'من فرع الملك فهد',
         ctaLabel: 'اطلب الآن',
       ),
@@ -238,7 +240,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('يوصلك خلال ساعتين'), findsOneWidget);
+      expect(find.text('الأكثر طلباً في فرعك'), findsOneWidget);
       expect(find.byType(AnimatedContainer), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -299,6 +301,27 @@ void main() {
       expect(large - plain, closeTo(0.3 * 54, 0.01));
     });
 
+    test('the arrival is the band\'s to say, not the strip\'s', () {
+      // The band directly above already prints the clock and the branch.
+      const clock = HeroSlide(
+        kind: 'auto',
+        theme: 'express_clock',
+        title: 'يوصلك خلال ساعتين',
+      );
+      const offer = HeroSlide(
+        kind: 'auto',
+        theme: 'express_new',
+        title: 'وصل حديثاً',
+      );
+      expect(
+        ExpressOfferSlider.offersFrom(const [clock, offer]).single.theme,
+        'express_new',
+      );
+      // A strip that would hold nothing but the arrival holds nothing.
+      expect(ExpressOfferSlider.hasContent(const [clock]), isFalse);
+      expect(ExpressOfferSlider.hasContent(const [clock, offer]), isTrue);
+    });
+
     test('a strip with nothing to put in it is no strip', () {
       expect(ExpressOfferSlider.hasContent(const []), isFalse);
       expect(
@@ -327,7 +350,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('يوصلك خلال ساعتين'), findsOneWidget);
+      expect(find.text('الأكثر طلباً في فرعك'), findsOneWidget);
       expect(find.text('من فرع الملك فهد'), findsOneWidget);
       expect(find.text('اطلب الآن'), findsOneWidget);
       // The second card is built and on screen, which is the invitation.

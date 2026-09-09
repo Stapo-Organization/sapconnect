@@ -31,8 +31,29 @@ class ExpressOfferSlider extends StatefulWidget {
 
   final List<HeroSlide> slides;
 
+  /// The slides worth putting in the strip.
+  ///
+  /// The arrival band directly above already says when the order lands and
+  /// which branch owes it. The server composes a slide that says exactly
+  /// that — right for the store, where nothing else does — and stacking the
+  /// two printed the same promise twice, one under the other, in the first
+  /// two rows of the page. The band wins: it is bigger, it is live, and it is
+  /// there whether or not a slide was composed. So the strip carries offers,
+  /// and only offers.
+  static List<HeroSlide> offersFrom(List<HeroSlide> slides) => [
+    for (final slide in slides)
+      if (!_saidByTheBand.contains(slide.theme)) slide,
+  ];
+
+  static const Set<String?> _saidByTheBand = {
+    'express',
+    'express_clock',
+    'express_hours',
+    'cutoff',
+  };
+
   /// A strip with nothing to put in it renders nothing at all.
-  static bool hasContent(List<HeroSlide> slides) => slides.any(
+  static bool hasContent(List<HeroSlide> slides) => offersFrom(slides).any(
     (s) => (s.title ?? '').isNotEmpty || (s.bestImage ?? '').isNotEmpty,
   );
 
@@ -89,8 +110,12 @@ class _ExpressOfferSliderState extends State<ExpressOfferSlider> {
 
   @override
   Widget build(BuildContext context) {
-    final List<HeroSlide> slides = widget.slides;
-    if (!ExpressOfferSlider.hasContent(slides)) return const SizedBox.shrink();
+    final List<HeroSlide> slides = ExpressOfferSlider.offersFrom(
+      widget.slides,
+    );
+    if (!ExpressOfferSlider.hasContent(widget.slides)) {
+      return const SizedBox.shrink();
+    }
 
     final bool still = context.reduceMotion;
     final double height = ExpressOfferSlider.cardHeight(context);
