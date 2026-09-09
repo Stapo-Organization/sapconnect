@@ -1,7 +1,7 @@
 name: zooboxi_app
 description: "Zooboxi — زوبوكسي · متجر مستلزمات الحيوانات الأليفة"
 publish_to: 'none'
-version: 1.0.0+7
+version: 1.0.0+9
 
 environment:
   sdk: ^3.11.5
@@ -31,7 +31,6 @@ dependencies:
   flutter_svg: ^2.3.0
   shimmer: ^3.0.0
   flutter_animate: ^4.5.2
-  google_fonts: ^8.1.0
   # Fires a campaign impression once the creative is actually ≥50% on screen —
   # a banner that scrolled past below the fold was never "shown".
   visibility_detector: ^0.4.0+2
@@ -75,6 +74,7 @@ flutter:
 
   assets:
     - assets/brand/
+    - assets/fonts/OFL.txt
 
   fonts:
     # Single-glyph font carrying the official Saudi Riyal symbol at U+E900.
@@ -82,6 +82,48 @@ flutter:
     - family: SaudiRiyal
       fonts:
         - asset: assets/fonts/SaudiRiyal.otf
+
+    # Bundled, not fetched. These are the byte-identical files google_fonts
+    # used to download from fonts.gstatic.com on first launch — which meant
+    # the whole app rendered in the system font until the network answered,
+    # and stayed there forever on a blocked one.
+    #
+    # Only the weights the app actually asks for are here. Two of them the
+    # families never drew — Tajawal has no 600, Manrope no 900 — and until now
+    # google_fonts answered those by picking Tajawal Medium and Manrope
+    # ExtraBold itself. Tajawal-SemiBold/Manrope-Black are those same drawings
+    # restamped with the weight class of the slot they fill, so the app keeps
+    # the type it has whether the engine reads the weight from here or from
+    # inside the file. Rebuild them with tools/set_font_weight.py.
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Tajawal-Black.ttf
+          weight: 900
+
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Manrope-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Manrope-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Manrope-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Manrope-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Manrope-Black.ttf
+          weight: 900
 
 # Launcher icon: the REAL logo, whole — pets, box and wordmark — on the brand's
 # own cream paper. Owner's call (2026-09-07): the logo is the logo, wordmark

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'zb_colors.dart';
 import 'zooboxi_tokens.dart';
@@ -103,17 +102,21 @@ abstract final class AppTheme {
   /// every style's fallback chain.
   static TextTheme _textTheme(Locale locale, ColorScheme cs) {
     final base = _baseTypography(cs);
-    final isArabic = locale.languageCode == 'ar';
-    final family = isArabic
-        ? GoogleFonts.tajawalTextTheme(base)
-        : GoogleFonts.manropeTextTheme(base);
-
-    return family.apply(
+    return base.apply(
+      fontFamily: familyFor(locale),
       fontFamilyFallback: riyalFallback,
       bodyColor: cs.onSurface,
       displayColor: cs.onSurface,
     );
   }
+
+  /// The type family for [locale]'s content language.
+  ///
+  /// Both families are bundled (see `pubspec.yaml`), so the first frame is
+  /// already in brand type — there is no font to fetch and nothing to reflow
+  /// once it lands.
+  static String familyFor(Locale locale) =>
+      locale.languageCode == 'ar' ? 'Tajawal' : 'Manrope';
 
   /// Sizes/weights first, family second — so switching language never shifts
   /// the layout. Slightly tighter than M3 defaults: commerce screens are dense.

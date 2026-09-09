@@ -1,8 +1,4 @@
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FontLoader;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -29,28 +25,12 @@ import 'package:zooboxi_app/features/pets/presentation/pet_profile_screen.dart';
 import 'package:zooboxi_app/features/pets/presentation/pets_screen.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
+import 'support/brand_fonts.dart';
+
 /// The family program's screens, rendered with the real Arabic face so the
 /// design can be judged as the customer sees it. A *design* golden:
 ///
-///   flutter test test/family_screens_sheet_test.dart --update-goldens \
-///     --dart-define=ZB_FONT_DIR=/path/to/tajawal/ttfs
-///
-/// Without the define the sheet still renders, in the test framework's box
-/// font — good enough for layout, useless for judging type.
-
-const String _fontDir = String.fromEnvironment('ZB_FONT_DIR');
-
-Future<void> _loadFonts() async {
-  if (_fontDir.isEmpty) return;
-  final loader = FontLoader('ZbPreview');
-  for (final file in ['Tajawal-Regular', 'Tajawal-Medium', 'Tajawal-Bold', 'Tajawal-ExtraBold']) {
-    final f = File('$_fontDir/$file.ttf');
-    if (!f.existsSync()) continue;
-    final bytes = await f.readAsBytes();
-    loader.addFont(Future.value(ByteData.view(bytes.buffer)));
-  }
-  await loader.load();
-}
+///   flutter test test/family_screens_sheet_test.dart --update-goldens
 
 class _SilentEvents implements EventsBuffer {
   @override
@@ -68,11 +48,7 @@ class _StubLedger extends LedgerController {
   Future<LedgerFeed> build() async => _feed;
 }
 
-ThemeData _theme() {
-  final base = AppTheme.light(const Locale('ar'));
-  if (_fontDir.isEmpty) return base;
-  return base.copyWith(textTheme: base.textTheme.apply(fontFamily: 'ZbPreview'));
-}
+ThemeData _theme() => AppTheme.light(const Locale('ar'));
 
 Widget _host(Widget screen, {List<Override> overrides = const []}) => ProviderScope(
       overrides: [eventsBufferProvider.overrideWithValue(_SilentEvents()), ...overrides],
@@ -224,7 +200,7 @@ Future<void> _shoot(WidgetTester tester, Widget screen, String name, {double hei
 }
 
 void main() {
-  setUpAll(_loadFonts);
+  setUpAll(loadBrandFonts);
 
   testWidgets('hub', (tester) async {
     await _shoot(tester, const FamilyHubScreen(), 'hub', height: 2500, overrides: _member());

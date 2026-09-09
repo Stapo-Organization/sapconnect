@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -10,6 +7,8 @@ import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/hero_auto_slide.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/hero_carousel.dart';
+
+import 'support/brand_fonts.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
 /// The two sliders, side by side.
@@ -30,27 +29,9 @@ import 'package:zooboxi_app/l10n/app_localizations.dart';
 /// both live sizes are drawn here, with the longest branch name in the fleet.
 ///
 /// Refresh with
-/// `flutter test test/hero_slides_sheet_test.dart --update-goldens --dart-define=ZB_FONT_DIR=$HOME/Library/Fonts`.
+/// `flutter test test/hero_slides_sheet_test.dart --update-goldens`.
 
-/// The real Arabic face, so type can be judged as the customer sees it.
-const String _fontDir = String.fromEnvironment('ZB_FONT_DIR');
-
-Future<void> _loadFonts() async {
-  if (_fontDir.isEmpty) return;
-  final loader = FontLoader('ZbPreview');
-  for (final file in ['Tajawal-Regular', 'Tajawal-Medium', 'Tajawal-Bold', 'Tajawal-ExtraBold']) {
-    final f = File('$_fontDir/$file.ttf');
-    if (!f.existsSync()) continue;
-    loader.addFont(Future.value(ByteData.view((await f.readAsBytes()).buffer)));
-  }
-  await loader.load();
-}
-
-ThemeData _theme() {
-  final base = AppTheme.light(const Locale('ar'));
-  if (_fontDir.isEmpty) return base;
-  return base.copyWith(textTheme: base.textTheme.apply(fontFamily: 'ZbPreview'));
-}
+ThemeData _theme() => AppTheme.light(const Locale('ar'));
 
 const _expressScope = CatalogScope(
   tier: 'express',
@@ -153,10 +134,10 @@ Widget _column(String caption, List<HeroSlide> slides, CatalogScope scope, DateT
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(
             caption,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w900,
-              fontFamily: _fontDir.isEmpty ? null : 'ZbPreview',
+              fontFamily: 'Tajawal',
             ),
           ),
         ),
@@ -187,9 +168,9 @@ Widget _production(HeroSlide slide, CatalogScope scope, DateTime now, double sca
         padding: const EdgeInsets.only(bottom: 4),
         child: Text(
           '${slide.theme}  ·  ${width.toInt()}pt  ·  ×$scale',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 10,
-            fontFamily: _fontDir.isEmpty ? null : 'ZbPreview',
+            fontFamily: 'Tajawal',
           ),
         ),
       ),
@@ -222,7 +203,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     await initializeDateFormatting('ar');
-    await _loadFonts();
+    await loadBrandFonts();
   });
 
   testWidgets('hero slides sheet', (tester) async {
