@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
@@ -16,9 +17,13 @@ import '../../../core/widgets/app_toast.dart';
 import '../../account/data/account_models.dart';
 import '../../account/data/addresses_controller.dart';
 import '../../account/presentation/address_editor_screen.dart';
+import '../../account/presentation/widgets/map_pin_picker.dart';
 import '../../auth/presentation/auth_sheet.dart';
 import '../../catalog/data/catalog_models.dart';
+import '../data/address_intake.dart';
 import 'delivery_when.dart';
+import '../../../core/delivery/delivery_eta.dart';
+import '../../orders/presentation/widgets/courier_search_glyph.dart';
 
 /// How this sheet opens the address editor. Indirection exists for one
 /// reason: the editor owns a live map, and the paths worth testing here are
@@ -105,19 +110,14 @@ class _LocationSheetState extends ConsumerState<LocationSheet> {
 
   /// The one way in: a pin on a map, the details beside it, and it is kept.
   ///
-  /// Every notifier is read *before* the awaits. The customer can swipe this
-  /// sheet away while the save is in flight, and an address they just pinned
-  /// must survive that — reaching for `ref` through a disposed widget would
-  /// throw exactly where the recovery path lives.
+  /// Keeping it is [adoptAddress]'s job — the same path the drift sheet uses,
+  /// so an address pinned because the customer is somewhere new lands in the
+  /// same book, under the same rules, as one added on purpose.
   Future<void> _openEditor({Address? initial}) async {
     if (_busy) return;
     Haptics.light();
 
     final loggedIn = ref.read(sessionProvider).isAuthenticated;
-    final book = ref.read(addressesControllerProvider.notifier);
-    final store = ref.read(localStoreProvider);
-    final location = ref.read(locationProvider.notifier);
-    final activeId = ref.read(locationProvider).location.addressId;
 
     final draft = await ref.read(addressEditorProvider)(
       context,
@@ -130,43 +130,11 @@ class _LocationSheetState extends ConsumerState<LocationSheet> {
     if (draft == null || !mounted) return;
 
     setState(() => _saving = true);
-    final address = draft.address;
-    Address? stored;
-    var refused = false;
-    if (loggedIn) {
-      try {
-        stored = await book.save(address);
-      } catch (_) {
-        refused = true;
-      }
-    }
-
-    // A refused save must never cost the customer the address they just
-    // pinned: the device keeps it and checkout picks it up. It must also
-    // never keep the id of the entry the server did NOT update — an order
-    // sent with that id would go to the address's OLD pin.
-    if (stored == null) {
-      await store.setPendingAddress(address.toJson());
-    }
-
-    final lat = stored?.lat ?? address.lat;
-    final lng = stored?.lng ?? address.lng;
-    // Editing the address we are already delivering to is the book's own
-    // business — AddressesController.save() moves the point with it, and
-    // resolving again here would only spend a second round trip.
-    final alreadyMoved = stored != null && stored.id == activeId;
-    if (lat != null && lng != null && !alreadyMoved) {
-      await location.resolve(
-        lat,
-        lng,
-        addressId: stored?.id,
-        label: stored?.label ?? address.label,
-      );
-    }
+    final outcome = await adoptAddress(ref, draft.address);
 
     if (!mounted) return;
     setState(() => _saving = false);
-    if (refused) {
+    if (outcome == AddressIntake.refused) {
       AppToast.error(context, L.of(context).locationAddressNotSaved);
       return;
     }
@@ -326,6 +294,10 @@ class _LocationSheetState extends ConsumerState<LocationSheet> {
 
 /// Where the order is going right now, and when it lands — the same sentence
 /// the header shows, so opening this sheet confirms rather than surprises.
+///
+/// With a strip of the actual map above it. «حي الملك فهد» is a name a person
+/// can misread as their other address; the block it sits on is not. The strip
+/// is a still — this card states the delivery point, it does not change it.
 class _CurrentPoint extends ConsumerWidget {
   const _CurrentPoint({required this.location});
 
@@ -337,35 +309,51 @@ class _CurrentPoint extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final detail = location.detailLabel(locale) ?? '';
     final when = deliveryWhenLabel(context, location: location);
+    final point = location.hasCoordinates
+        ? LatLng(location.lat!, location.lng!)
+        : null;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: cs.primaryContainer.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(ZbTokens.rMd),
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.place_rounded, size: 18, color: cs.onPrimaryContainer),
-          Gap.w8,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          if (point != null)
+            MapPinPicker(initial: point, height: 104, interactive: false),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
               children: [
-                Text(
-                  [
-                    if (location.label?.isNotEmpty == true) location.label!,
-                    if (detail.isNotEmpty) detail,
-                  ].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.tt.titleSmall?.copyWith(color: cs.onPrimaryContainer),
-                ),
-                if (when.isNotEmpty)
-                  Text(
-                    when,
-                    style: context.tt.bodySmall?.copyWith(color: cs.onPrimaryContainer),
+                Icon(Icons.place_rounded, size: 18, color: cs.onPrimaryContainer),
+                Gap.w8,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        [
+                          if (location.label?.isNotEmpty == true) location.label!,
+                          if (detail.isNotEmpty) detail,
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.tt.titleSmall
+                            ?.copyWith(color: cs.onPrimaryContainer),
+                      ),
+                      if (when.isNotEmpty)
+                        Text(
+                          when,
+                          style: context.tt.bodySmall
+                              ?.copyWith(color: cs.onPrimaryContainer),
+                        ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),
@@ -638,10 +626,9 @@ class LocationChip extends ConsumerWidget {
                           // سبتمبر») is long enough to overflow the row on a
                           // small phone at a large text scale.
                           Flexible(
-                            child: Text(
-                              when,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            child: _WhenLine(
+                              when: when,
+                              scope: scope,
                               style: context.tt.titleSmall?.copyWith(
                                 height: 1.2,
                                 fontWeight: FontWeight.w800,
@@ -712,6 +699,86 @@ class PromiseLine extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The hour on the address line — and, in the last ninety minutes before the
+/// express branch shuts, a clock running down to it in front of that hour.
+///
+/// «اطلب خلال 42:10 · يوصلك غدًا 12:35 ص» — the urgency is true (after that
+/// moment the branch stops taking orders) and the arrival is the app's own
+/// honest one, never a "tonight" the lead time may not deliver. The clock
+/// counts to the shutter itself, an absolute instant, so rebuilding the header
+/// as often as the page scrolls never restarts it.
+class _WhenLine extends StatefulWidget {
+  const _WhenLine({required this.when, required this.scope, required this.style});
+
+  final String when;
+  final CatalogScope? scope;
+  final TextStyle? style;
+
+  static const Duration window = Duration(minutes: 90);
+
+  @override
+  State<_WhenLine> createState() => _WhenLineState();
+}
+
+class _WhenLineState extends State<_WhenLine> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    // A minute is enough: this decides only whether the countdown is shown,
+    // and the countdown itself ticks on its own once it is.
+    _tick = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final scope = widget.scope;
+    final style = widget.style;
+    final plain = Text(widget.when, maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+
+    if (scope == null || scope.tier != 'express' || scope.expressAvailable == false) return plain;
+
+    final now = DateTime.now();
+    final close = expressCloseAt(now, scope.expressHours);
+    if (close == null || close.difference(now) > _WhenLine.window) return plain;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text('${l.closingOrderWithin} ', maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+        ),
+        CourierCountdown(
+          // Seconds only: the deadline must compare equal across rebuilds, or
+          // the countdown restarts its timer on every scroll.
+          deadline: DateTime.fromMillisecondsSinceEpoch(close.millisecondsSinceEpoch ~/ 1000 * 1000),
+          style: style?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+          // At zero the branch is shut; the ordinary line is the truth again.
+          expired: plain,
+        ),
+        Flexible(
+          child: Text(
+            ' · ${widget.when}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: style?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
     );
   }
 }

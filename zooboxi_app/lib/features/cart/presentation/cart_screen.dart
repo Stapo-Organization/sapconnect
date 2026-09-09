@@ -259,7 +259,14 @@ class _Loaded extends ConsumerWidget {
                 ],
                 if (cart.freeShipping.isActive || cart.loyalty.hasDeliveryPerk || cart.loyalty.hasClaims) ...[
                   FreeShippingBar(
-                    freeShipping: cart.freeShipping,
+                    freeShipping: cart.freeShipping.forShelf(
+                      cart.basket.effectiveShelf.isNotEmpty ? cart.basket.effectiveShelf : cart.basket.shelf,
+                    ),
+                    express: (cart.basket.effectiveShelf.isNotEmpty
+                            ? cart.basket.effectiveShelf
+                            : cart.basket.shelf) ==
+                        'express' &&
+                        cart.freeShipping.express?.isActive == true,
                     freeDeliveryReason: cart.loyalty.freeDeliveryReason ??
                         (cart.loyalty.claims.any((g) => g.reward.isFreeDelivery) ? 'reward' : null),
                     expressFreeReason: cart.loyalty.expressFreeReason ??

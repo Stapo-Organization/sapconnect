@@ -197,11 +197,19 @@ class CartTotals {
 /// the website can never disagree about it.
 @immutable
 class FreeShipping {
-  const FreeShipping({this.min = 0, this.remaining = 0, this.qualified = false});
+  const FreeShipping({this.min = 0, this.remaining = 0, this.qualified = false, this.express});
 
   final double min;
   final double remaining;
   final bool qualified;
+
+  /// The express basket's own, lower line. Null from a store that predates
+  /// it; the bar then falls back to the national threshold as before.
+  final FreeShipping? express;
+
+  /// The line this basket should measure itself against.
+  FreeShipping forShelf(String shelf) =>
+      shelf == 'express' && express != null && express!.isActive ? express! : this;
 
   bool get isActive => min > 0;
 
@@ -216,6 +224,7 @@ class FreeShipping {
         min: asDouble(json['min']),
         remaining: asDouble(json['remaining']),
         qualified: asBool(json['qualified']),
+        express: json['express'] is Map ? FreeShipping.fromJson(asMap(json['express'])) : null,
       );
 
   // Value equality, because Home listens for this and nothing else about the
@@ -227,6 +236,7 @@ class FreeShipping {
       other is FreeShipping &&
           other.min == min &&
           other.remaining == remaining &&
+          other.express == express &&
           other.qualified == qualified;
 
   @override

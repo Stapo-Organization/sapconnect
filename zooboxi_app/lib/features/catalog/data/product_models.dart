@@ -579,6 +579,8 @@ class SearchSuggestion {
     this.image,
     this.price,
     this.itemCode,
+    this.bought = false,
+    this.lastOrderedDays,
   });
 
   final int id;
@@ -587,11 +589,18 @@ class SearchSuggestion {
   final double? price;
   final String? itemCode;
 
+  /// This person has bought it before — the strongest signal a suggestion
+  /// can carry, and the reason the store ranks it first.
+  final bool bought;
+  final int? lastOrderedDays;
+
   factory SearchSuggestion.fromJson(Map<String, dynamic> json) => SearchSuggestion(
         id: asInt(json['id']),
         name: asString(json['name']),
         image: asStringOrNull(json['image']),
         price: asDoubleOrNull(json['price']),
         itemCode: asStringOrNull(json['item_code']),
+        bought: asBool(json['bought']),
+        lastOrderedDays: asIntOrNull(json['last_ordered_days']),
       );
 }

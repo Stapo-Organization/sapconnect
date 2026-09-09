@@ -101,6 +101,34 @@ bool isExpressOpen(DateTime now, ExpressHours? hours) {
       : (!now.isBefore(open) && now.isBefore(tail));
 }
 
+/// How long the express branch stays open from [now], or null when it is shut
+/// or keeps no hours. Handles a shift that runs past midnight.
+///
+/// This is what the header counts down in the last stretch of the evening:
+/// «اطلب خلال 42:10 يوصلك الليلة» is an honest urgency because the shutter
+/// really does come down at that moment.
+Duration? timeUntilExpressClose(DateTime now, ExpressHours? hours) {
+  final close = expressCloseAt(now, hours);
+  if (close == null) return null;
+  final left = close.difference(now);
+  return left.isNegative ? null : left;
+}
+
+/// The instant the express branch shuts next, while it is open; null when it
+/// is shut or keeps no hours. An absolute time, so a widget counting down to
+/// it can be rebuilt as often as it likes without the target moving.
+DateTime? expressCloseAt(DateTime now, ExpressHours? hours) {
+  if (hours == null || !isExpressOpen(now, hours)) return null;
+  final midnight = DateTime(now.year, now.month, now.day);
+  var close = midnight.add(Duration(minutes: hours.closeMinutes));
+  // Overnight: before the morning's close the shutter is today's; after
+  // opening in the evening it is tomorrow's.
+  if (hours.overnight && !now.isBefore(midnight.add(Duration(minutes: hours.openMinutes)))) {
+    close = close.add(const Duration(days: 1));
+  }
+  return close.isBefore(now) ? null : close;
+}
+
 /// A wall-clock time of day on today's date — for rendering opening hours.
 DateTime timeOfDayToday(int minutes, {DateTime? now}) {
   final base = now ?? DateTime.now();

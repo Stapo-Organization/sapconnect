@@ -71,6 +71,37 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>نستخدم الكاميرا لمسح باركود المنتج والعثور عليه مباشرة.</string>
+	<!-- The order on the lock screen and in the Dynamic Island. -->
+	<!-- zooboxi://app/orders/123 — how a tap on the lock screen finds the order. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.zooboxi.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>zooboxi</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Lock-screen taps arrive through the Live Activity plugin's stream, which
+	     respects the splash and the session; Flutter's own handler would push
+	     the route onto a cold app before either exists. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<!-- Push. Alert notifications need no background mode, but a silent
+		     data payload (an order status the app should hold before the
+		     customer opens it) is dropped without this one. -->
+		<string>remote-notification</string>
+	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نستخدم موقعك لعرض المنتجات المتوفّرة فعليًا قربك ووقت التوصيل الحقيقي.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

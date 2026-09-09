@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  Debug builds talk to Apple's sandbox push servers. The Release/Profile
+  configurations use RunnerRelease.entitlements, whose value is `production` —
+  a build signed for TestFlight or the App Store with `development` here gets
+  a token APNs will not deliver to, and the notifications simply never arrive
+  with nothing in any log to say why.
+-->
+<dict>
+	<key>aps-environment</key>
+	<string>development</string>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.zooboxi.app</string>
+	</array>
+</dict>
+</plist>

@@ -18,6 +18,7 @@ import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/zb_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/icons/zb_icons.dart';
+import '../../../core/session/session_controller.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
 import 'search_transition.dart';
@@ -51,6 +52,27 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   List<SearchSuggestion> _suggestions = const [];
   bool _loading = false;
   String _query = '';
+
+  /// What this person has bought, shown before they type a letter. The most
+  /// powerful search result is the thing they bought last month.
+  List<SearchSuggestion> _bought = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadBought());
+  }
+
+  Future<void> _loadBought() async {
+    if (!ref.read(isAuthenticatedProvider)) return;
+    try {
+      // An empty query asks the store for the customer's own purchases.
+      final rows = await ref.read(catalogRepositoryProvider).suggest('');
+      if (mounted) setState(() => _bought = rows.where((r) => r.bought).toList());
+    } catch (_) {
+      // Nothing to show is the ordinary state for a new customer.
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -223,6 +245,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (_query.length < 2) {
       return _RecentSearches(
         queries: recent,
+        bought: _bought,
         onPick: (query) {
           _controller.text = query;
           _submit(query);
@@ -267,6 +290,66 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 }
 
+/// A strip of what they buy, each a tap from its page — the fastest route
+/// through the store for someone replacing last month's bag.
+class _BoughtRow extends StatelessWidget {
+  const _BoughtRow({required this.items});
+
+  final List<SearchSuggestion> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    return SizedBox(
+      height: 96,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: items.length,
+        separatorBuilder: (_, _) => Gap.w10,
+        itemBuilder: (context, i) {
+          final item = items[i];
+          return SizedBox(
+            width: 72,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(ZbTokens.rMd),
+              onTap: () {
+                Haptics.selection();
+                context.push('/product/${item.id}');
+              },
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(ZbTokens.rMd),
+                    ),
+                    child: ZbImage(
+                      url: item.image,
+                      radius: BorderRadius.circular(ZbTokens.rMd),
+                      padding: const EdgeInsets.all(6),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: context.tt.labelSmall?.copyWith(height: 1.15),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _SuggestionTile extends StatelessWidget {
   const _SuggestionTile({required this.suggestion});
 
@@ -274,8 +357,11 @@ class _SuggestionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
     final price = suggestion.price;
+    final days = suggestion.lastOrderedDays;
 
     return ListTile(
       leading: SizedBox(
@@ -288,9 +374,26 @@ class _SuggestionTile extends StatelessWidget {
         ),
       ),
       title: Text(suggestion.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-      subtitle: price == null
-          ? null
-          : Text(Fmt.price(price, locale: locale)),
+      subtitle: Row(
+        children: [
+          if (price != null) Text(Fmt.price(price, locale: locale)),
+          // «اشتريته سابقاً · قبل ١٢ يومًا» — the reason it is at the top.
+          if (suggestion.bought) ...[
+            if (price != null) Gap.w8,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: context.isDark ? 0.22 : 0.12),
+                borderRadius: BorderRadius.circular(ZbTokens.rPill),
+              ),
+              child: Text(
+                days == null ? l.searchBought : '${l.searchBought} · ${l.searchBoughtDays(days)}',
+                style: context.tt.labelSmall?.copyWith(color: cs.primary, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ],
+      ),
       onTap: () {
         Haptics.selection();
         context.push('/product/${suggestion.id}');
@@ -344,18 +447,22 @@ class _RecentSearches extends StatelessWidget {
     required this.queries,
     required this.onPick,
     required this.onClear,
+    this.bought = const [],
   });
 
   final List<String> queries;
   final ValueChanged<String> onPick;
   final VoidCallback onClear;
 
+  /// Their own purchases, first — before a word is typed.
+  final List<SearchSuggestion> bought;
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final cs = context.cs;
 
-    if (queries.isEmpty) {
+    if (queries.isEmpty && bought.isEmpty) {
       return EmptyState(
         icon: Icons.search_rounded,
         title: l.searchTitle,
@@ -378,26 +485,34 @@ class _RecentSearches extends StatelessWidget {
           Haptics.light();
           context.push('/scan');
         }),
-        Gap.h12,
-        Row(
-          children: [
-            Expanded(child: Text(l.searchRecent, style: context.tt.titleSmall)),
-            TextButton(onPressed: onClear, child: Text(l.searchClearRecent)),
-          ],
-        ),
-        Gap.h8,
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final query in queries)
-              ActionChip(
-                avatar: Icon(Icons.history_rounded, size: 15, color: cs.onSurfaceVariant),
-                label: Text(query),
-                onPressed: () => onPick(query),
-              ),
-          ],
-        ),
+        if (bought.isNotEmpty) ...[
+          Gap.h16,
+          Text(l.searchBought, style: context.tt.titleSmall),
+          Gap.h8,
+          _BoughtRow(items: bought),
+        ],
+        if (queries.isNotEmpty) ...[
+          Gap.h12,
+          Row(
+            children: [
+              Expanded(child: Text(l.searchRecent, style: context.tt.titleSmall)),
+              TextButton(onPressed: onClear, child: Text(l.searchClearRecent)),
+            ],
+          ),
+          Gap.h8,
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final query in queries)
+                ActionChip(
+                  avatar: Icon(Icons.history_rounded, size: 15, color: cs.onSurfaceVariant),
+                  label: Text(query),
+                  onPressed: () => onPick(query),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

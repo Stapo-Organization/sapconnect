@@ -40,7 +40,9 @@ abstract final class Env {
   ///   1 — the shipped set (hero, rails, banners, family, …)
   ///   2 — adds `eta_band` and `grid`, the إكسبريس composition
   ///   3 — adds `offer_strip`, إكسبريس's own slider
-  static const int layoutSlots = 3;
+  ///   4 — adds `need_nav` and `replenish`, and asks for the composition that
+  ///       knows what time it is
+  static const int layoutSlots = 4;
 
   static String normalize(String url) {
     var u = url.trim();

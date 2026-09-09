@@ -24,9 +24,14 @@ class FreeShippingBar extends StatelessWidget {
     required this.freeShipping,
     this.freeDeliveryReason,
     this.expressFreeReason,
+    this.express = false,
   });
 
   final FreeShipping freeShipping;
+
+  /// The line is the express basket's own (see FreeShipping.forShelf), so the
+  /// sentence names express delivery rather than shipping.
+  final bool express;
 
   /// `tier` | `reward` | null — why delivery costs nothing, when it doesn't.
   final String? freeDeliveryReason;
@@ -63,21 +68,22 @@ class FreeShippingBar extends StatelessWidget {
           ),
           if (freeShipping.isActive) ...[
             Gap.h8,
-            _Bar(freeShipping: freeShipping),
+            _Bar(freeShipping: freeShipping, express: express),
           ],
         ],
       );
     }
     if (!freeShipping.isActive) return const SizedBox.shrink();
-    return _Bar(freeShipping: freeShipping);
+    return _Bar(freeShipping: freeShipping, express: express);
   }
 }
 
 /// The counter: the sentence and the bar.
 class _Bar extends StatelessWidget {
-  const _Bar({required this.freeShipping});
+  const _Bar({required this.freeShipping, this.express = false});
 
   final FreeShipping freeShipping;
+  final bool express;
 
   @override
   Widget build(BuildContext context) {
@@ -109,10 +115,10 @@ class _Bar extends StatelessWidget {
               Expanded(
                 child: Text(
                   qualified
-                      ? l.cartFreeShippingQualified
-                      : l.cartFreeShippingRemaining(
-                          Fmt.price(freeShipping.remaining, locale: locale),
-                        ),
+                      ? (express ? l.cartExpressFreeQualified : l.cartFreeShippingQualified)
+                      : (express
+                          ? l.cartExpressFreeRemaining(Fmt.price(freeShipping.remaining, locale: locale))
+                          : l.cartFreeShippingRemaining(Fmt.price(freeShipping.remaining, locale: locale))),
                   style: context.tt.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: qualified ? accent : cs.onSurface,

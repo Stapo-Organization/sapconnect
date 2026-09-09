@@ -27,6 +27,7 @@ import '../../../core/shelf/shelf_controller.dart';
 import '../../../core/session/session_controller.dart';
 import '../../location/presentation/location_drift_sheet.dart';
 import '../../../core/notifications/local_notify.dart';
+import '../../../core/notifications/push_service.dart';
 import '../../loyalty/data/loyalty_models.dart';
 import '../../loyalty/data/loyalty_repository.dart';
 import '../../wishlist/data/wishlist_controller.dart';
@@ -41,6 +42,8 @@ import 'widgets/family_card.dart';
 import 'widgets/hero_carousel.dart';
 import 'widgets/home_header.dart';
 import 'widgets/missions_strip.dart';
+import 'widgets/need_nav.dart';
+import 'widgets/replenish_tile.dart';
 import 'widgets/trust_strip.dart';
 
 /// Which storefront to paint, given the live answer and the warm snapshot.
@@ -285,7 +288,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // subscription moves the phone's reminders with it.
     ref.listen<AsyncValue<LoyaltySummary?>>(loyaltySummaryProvider, (_, next) {
       final summary = next.value;
-      if (summary != null) unawaited(LocalNotify.sync(summary.nudges));
+      if (summary == null) return;
+      // The store now pushes the food reminder itself to any phone it can
+      // reach. On such a phone the local copy of that one nudge would arrive
+      // a day apart from the push and read as nagging; the other reminders
+      // (birthday, care) stay local, the store does not send those.
+      final pushed = ref.read(pushServiceProvider).token != null;
+      final nudges = pushed ? summary.nudges.where((n) => n.kind != 'supply').toList() : summary.nudges;
+      unawaited(LocalNotify.sync(nudges));
     });
 
     // The store's own word on which shelf it served. Taken from the LIVE
@@ -583,6 +593,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (payload.animalNav.isEmpty) break;
           emit(AnimalNav(items: payload.animalNav));
 
+        // The needs under the animals. The cacheable payload carries every
+        // species' row; the feed says which is theirs and what they buy first.
+        // With the feed still in flight the curated cat row stands in — it is
+        // right for most of the store and never blank.
+        case 'need_nav':
+          final needs = NeedNav.resolve(payload.needNav, feedData?.needs ?? NeedsHint.none);
+          if (needs.isEmpty) break;
+          emit(NeedNav(items: needs));
+
+        // «يخلص طعام أوريو» — draws itself only when the gauge says so.
+        case 'replenish':
+          slivers.add(
+            SliverToBoxAdapter(
+              child: RepaintBoundary(
+                child: _ReplenishSlot(express: payload.scope?.shelf == 'express'),
+              ),
+            ),
+          );
+
         // What this customer buys, or — with no history — what they were just
         // looking at. It runs before every ranked rail and is *not* deduped
         // against them: their own shelf outranks our merchandising, and the
@@ -754,11 +783,29 @@ class _ShippingNudgeSlot extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final freeShipping = ref.watch(cartFreeShippingNudgeProvider);
-    if (freeShipping == null) return const SizedBox.shrink();
+    final nudge = ref.watch(cartFreeShippingNudgeProvider);
+    if (nudge == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 24),
-      child: FreeShippingBar(freeShipping: freeShipping),
+      child: FreeShippingBar(freeShipping: nudge.line, express: nudge.express),
+    );
+  }
+}
+
+/// The food gauge's own tile. A separate consumer so the loyalty summary's
+/// arrival rebuilds this slot and nothing else on the page.
+class _ReplenishSlot extends StatelessWidget {
+  const _ReplenishSlot({required this.express});
+
+  /// On the زوبكسي shelf the tile still reorders in one tap, but it does not
+  /// promise two hours to someone no express branch can reach.
+  final bool express;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: ReplenishTile(express: express),
     );
   }
 }

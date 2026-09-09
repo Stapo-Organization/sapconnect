@@ -1,390 +1,126 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zooboxi_app/app/theme/app_theme.dart';
-import 'package:zooboxi_app/core/analytics/events_buffer.dart';
-import 'package:zooboxi_app/core/location/location_controller.dart';
-import 'package:zooboxi_app/core/providers.dart';
-import 'package:zooboxi_app/core/storage/local_store.dart';
-import 'package:zooboxi_app/core/widgets/product_grid_sliver.dart';
-import 'package:zooboxi_app/core/widgets/rail.dart';
-import 'package:zooboxi_app/features/cart/data/cart_controller.dart';
+import 'package:zooboxi_app/core/delivery/delivery_eta.dart';
+import 'package:zooboxi_app/features/cart/data/cart_models.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
-import 'package:zooboxi_app/features/catalog/data/catalog_repository.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
-import 'package:zooboxi_app/features/home/presentation/home_screen.dart';
-import 'package:zooboxi_app/features/home/presentation/widgets/express_band.dart';
-import 'package:zooboxi_app/features/home/presentation/widgets/express_offers.dart';
-import 'package:zooboxi_app/features/home/presentation/widgets/hero_carousel.dart';
-import 'package:zooboxi_app/l10n/app_localizations.dart';
+import 'package:zooboxi_app/features/home/presentation/widgets/need_nav.dart';
 
-/// إكسبريس composes itself differently because it is a different errand: it
-/// leads with when the order arrives, and it lays the shelf out as a shelf
-/// rather than as a magazine of six-card strips. The server decides that — the
-/// layout is its call — so these lock the app's half: that it can draw the two
-/// slots the express composition is built from, and that the band tells the
-/// truth on both sides of closing time.
-
-ProductCard _p(int id) => ProductCard(id: id, name: 'P$id', itemCode: 'C$id', price: 10);
-
-class _SilentEvents implements EventsBuffer {
-  @override
-  void track(ZbEvent event) {}
-  @override
-  Future<void> flush() async {}
-  @override
-  void dispose() {}
-}
-
-const _hours = ExpressHours(openMinutes: 9 * 60, closeMinutes: 24 * 60);
-
-const _expressScope = CatalogScope(
-  tier: 'express',
-  note: 'كل ما هنا يصلك خلال ساعتين',
-  shelf: 'express',
-  label: 'توصيل خلال ساعتين',
-  expressBranch: 'فرع الملك فهد',
-  expressAvailable: true,
-  expressHours: _hours,
-);
-
-/// A customer standing inside the express zone — otherwise the app resolves
-/// to زوبكسي and refuses to paint an express payload over it, which is the
-/// Phase 0 guard doing its job.
-class _InExpressZone extends LocationController {
-  @override
-  LocationState build() => const LocationState(
-        location: ZbLocation(
-          lat: 24.7464,
-          lng: 46.6793,
-          city: 'الرياض',
-          deliveryType: 'express',
-          warehouseCode: 'RUH010',
-        ),
-      );
-}
-
-late LocalStore _store;
-
-Widget _host(HomePayload payload, {List<Override> overrides = const []}) =>
-    ProviderScope(
-      overrides: [
-        localStoreProvider.overrideWithValue(_store),
-        eventsBufferProvider.overrideWithValue(_SilentEvents()),
-        cartFreeShippingNudgeProvider.overrideWithValue(null),
-        locationProvider.overrideWith(_InExpressZone.new),
-        homeProvider.overrideWithValue(AsyncValue.data(payload)),
-        homeFeedProvider.overrideWithValue(const AsyncValue.data(HomeFeed.empty)),
-        ...overrides,
-      ],
-      child: MaterialApp(
-        locale: const Locale('ar'),
-        theme: AppTheme.light(const Locale('ar')),
-        localizationsDelegates: L.localizationsDelegates,
-        supportedLocales: L.supportedLocales,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: true),
-          child: child!,
-        ),
-        home: const HomeScreen(),
-      ),
-    );
-
-Widget _band(DateTime at, {CatalogScope scope = _expressScope}) => MaterialApp(
-      locale: const Locale('ar'),
-      theme: AppTheme.light(const Locale('ar')),
-      localizationsDelegates: L.localizationsDelegates,
-      supportedLocales: L.supportedLocales,
-      home: Scaffold(body: ExpressEtaBand(scope: scope, now: at)),
-    );
+/// The express home's new judgement calls, each pinned where it is decided:
+/// which free-delivery line a basket measures itself against, whose needs row
+/// is drawn and in what order, when the closing countdown may appear, and what
+/// a suggestion knows about being bought before.
 
 void main() {
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    _store = LocalStore(await SharedPreferences.getInstance());
+  group('the free-delivery line', () {
+    const national = FreeShipping(min: 200, remaining: 164, qualified: false);
+    const express = FreeShipping(min: 79, remaining: 43, qualified: false);
+
+    test('an express basket measures itself against its own line', () {
+      const line = FreeShipping(min: 200, remaining: 164, qualified: false, express: express);
+      expect(line.forShelf('express').min, 79);
+      expect(line.forShelf('all').min, 200);
+      expect(line.forShelf('').min, 200);
+    });
+
+    test('a store without an express line falls back to the national one', () {
+      expect(national.forShelf('express').min, 200);
+    });
+
+    test('an express line switched off (0) is not a line', () {
+      const line = FreeShipping(min: 200, remaining: 164, express: FreeShipping(min: 0));
+      expect(line.forShelf('express').min, 200);
+    });
+
+    test('it parses the nested express block and keeps value equality', () {
+      final a = FreeShipping.fromJson({
+        'min': 200, 'remaining': 164, 'qualified': false,
+        'express': {'min': 79, 'remaining': 43, 'qualified': false},
+      });
+      final b = FreeShipping.fromJson({
+        'min': 200, 'remaining': 164, 'qualified': false,
+        'express': {'min': 79, 'remaining': 43, 'qualified': false},
+      });
+      expect(a.express?.remaining, 43);
+      expect(a, equals(b));
+    });
   });
 
-  group('the express storefront is laid out as a shelf', () {
-    final payload = HomePayload(
-      scope: _expressScope,
-      rails: [
-        ProductRail(
-          key: 'trending',
-          title: 'رائج الآن',
-          products: [_p(1), _p(2), _p(3), _p(4), _p(5), _p(6)],
-        ),
+  group('the needs row', () {
+    final bySpecies = NeedNavItem.mapFrom({
+      'cat': [
+        {'key': 'dry', 'id': 109, 'slug': 'dry', 'name': 'طعام جاف', 'icon': 'dry'},
+        {'key': 'wet', 'id': 128, 'slug': 'wet', 'name': 'معلبات', 'icon': 'wet'},
+        {'key': 'litter', 'id': 235, 'slug': 'litter', 'name': 'رمل', 'icon': 'litter'},
+        {'key': 'treats', 'id': 132, 'slug': 'treats', 'name': 'مكافآت', 'icon': 'treats'},
       ],
-      layout: const [
-        HomeLayoutSlot('eta_band'),
-        HomeLayoutSlot('grid', key: 'trending'),
+      'dog': [
+        {'key': 'dry', 'id': 116, 'slug': 'dog-dry', 'name': 'طعام جاف', 'icon': 'dry'},
       ],
-    );
-
-    testWidgets('it opens with the arrival, not with a carousel',
-        (tester) async {
-      tester.view.physicalSize = const Size(1000, 3000);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(_host(payload));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ExpressEtaBand), findsOneWidget);
-      expect(find.byType(HeroCarousel), findsNothing);
-      // The address stays reachable even with no canvas above it.
-      expect(find.text('رائج الآن'), findsOneWidget);
     });
 
-    testWidgets('a rail asked for as a grid is drawn as one', (tester) async {
-      tester.view.physicalSize = const Size(1000, 3000);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(_host(payload));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ProductGridSliver), findsOneWidget);
-      // Not a strip: the same six products, in columns.
-      expect(find.byType(ProductRailView), findsNothing);
+    test('a guest gets the cat row in its curated order', () {
+      final tiles = NeedNav.resolve(bySpecies, NeedsHint.none);
+      expect(tiles.map((t) => t.key), ['dry', 'wet', 'litter', 'treats']);
     });
 
-    testWidgets('a grid too thin to be a grid steps aside', (tester) async {
-      final thin = HomePayload(
-        scope: _expressScope,
-        rails: [
-          ProductRail(key: 'trending', title: 'رائج الآن', products: [_p(1), _p(2)]),
-        ],
-        layout: const [
-          HomeLayoutSlot('eta_band'),
-          HomeLayoutSlot('grid', key: 'trending'),
-        ],
+    test('a dog owner gets the dog row', () {
+      final tiles = NeedNav.resolve(bySpecies, const NeedsHint(species: 'dog'));
+      expect(tiles.single.id, 116);
+    });
+
+    test('what they buy leads; the rest keep their place behind', () {
+      final tiles = NeedNav.resolve(
+        bySpecies,
+        const NeedsHint(species: 'cat', order: ['litter', 'wet']),
       );
-      await tester.pumpWidget(_host(thin));
-      await tester.pumpAndSettle();
+      expect(tiles.map((t) => t.key), ['litter', 'wet', 'dry', 'treats']);
+    });
 
-      expect(find.byType(ProductGridSliver), findsNothing);
-      expect(find.text('رائج الآن'), findsNothing);
-      expect(tester.takeException(), isNull);
+    test('a species the store has no row for falls back to the cat', () {
+      final tiles = NeedNav.resolve(bySpecies, const NeedsHint(species: 'reptile'));
+      expect(tiles.first.id, 109);
     });
   });
 
-  group('the band tells the truth on both sides of closing time', () {
-    testWidgets('open: the arrival leads, the branch is named under it',
-        (tester) async {
-      // 09:15 — two and a half hours of lead lands at 11:45.
-      await tester.pumpWidget(_band(DateTime(2026, 9, 9, 9, 15)));
-      expect(find.textContaining('11:45'), findsOneWidget);
-      expect(find.textContaining('فرع الملك فهد'), findsOneWidget);
+  group('the closing countdown', () {
+    const hours = ExpressHours(openMinutes: 9 * 60, closeMinutes: 23 * 60);
+
+    test('counts down to the shutter while the branch is open', () {
+      final left = timeUntilExpressClose(DateTime(2026, 9, 9, 22, 15), hours);
+      expect(left, const Duration(minutes: 45));
     });
 
-    testWidgets('shut: the opening leads, and it still promises a time',
-        (tester) async {
-      // 03:00 — the branch opens at 09:00, so the first delivery is 11:30.
-      await tester.pumpWidget(_band(DateTime(2026, 9, 9, 3, 0)));
-      // A whole hour is written bare — «يفتح 9 ص», not «9:00».
-      expect(find.textContaining('9'), findsWidgets);
-      expect(find.textContaining('11:30'), findsOneWidget);
+    test('is nothing once the branch has shut, or before it opens', () {
+      expect(timeUntilExpressClose(DateTime(2026, 9, 9, 23, 30), hours), isNull);
+      expect(timeUntilExpressClose(DateTime(2026, 9, 9, 7, 0), hours), isNull);
     });
 
-    testWidgets('a branch keeping no schedule is simply open', (tester) async {
-      await tester.pumpWidget(
-        _band(
-          DateTime(2026, 9, 9, 3, 0),
-          scope: const CatalogScope(
-            tier: 'express',
-            note: 'n',
-            shelf: 'express',
-            expressBranch: 'فرع الملك فهد',
-          ),
-        ),
-      );
-      expect(find.textContaining('5:30'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+    test('an overnight shift closes tomorrow, not an hour ago', () {
+      const night = ExpressHours(openMinutes: 18 * 60, closeMinutes: 2 * 60);
+      final left = timeUntilExpressClose(DateTime(2026, 9, 9, 23, 0), night);
+      expect(left, const Duration(hours: 3));
+      // And in the small hours the shutter is today's.
+      expect(timeUntilExpressClose(DateTime(2026, 9, 10, 1, 30), night), const Duration(minutes: 30));
+    });
+
+    test('no schedule means no shutter to count to', () {
+      expect(timeUntilExpressClose(DateTime(2026, 9, 9, 22, 0), null), isNull);
     });
   });
 
-  /// زوبكسي opens on a full-bleed canvas — the header fused into it, the slide
-  /// behind the status bar. The dark store cannot afford that screen; it gets
-  /// a strip of cards a thumb's swipe wide, with the next already peeking.
-  group('إكسبريس gets offers, not a hero', () {
-    const slides = [
-      // Deliberately not `express_clock`: that one is the band's to say, and
-      // the strip filters it out.
-      HeroSlide(
-        kind: 'auto',
-        theme: 'express_top',
-        title: 'الأكثر طلباً في فرعك',
-        subtitle: 'من فرع الملك فهد',
-        ctaLabel: 'اطلب الآن',
-      ),
-      HeroSlide(
-        kind: 'auto',
-        theme: 'express_new',
-        title: 'وصل حديثاً إلى فرعك',
-        ctaLabel: 'شاهد الجديد',
-      ),
-    ];
-
-    testWidgets('a lone offer needs no dots to say where you are',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ar'),
-          theme: AppTheme.light(const Locale('ar')),
-          localizationsDelegates: L.localizationsDelegates,
-          supportedLocales: L.supportedLocales,
-          home: Scaffold(
-            body: Center(child: ExpressOfferSlider(slides: [slides.first])),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('الأكثر طلباً في فرعك'), findsOneWidget);
-      expect(find.byType(AnimatedContainer), findsNothing);
-      expect(tester.takeException(), isNull);
+  group('a suggestion that was bought before', () {
+    test('carries the flag and the age of the last order', () {
+      final s = SearchSuggestion.fromJson({
+        'id': 42, 'name': 'رويال كانين', 'bought': true, 'last_ordered_days': 12,
+      });
+      expect(s.bought, isTrue);
+      expect(s.lastOrderedDays, 12);
     });
 
-    testWidgets('a kicker is drawn when the slide has one', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ar'),
-          theme: AppTheme.light(const Locale('ar')),
-          localizationsDelegates: L.localizationsDelegates,
-          supportedLocales: L.supportedLocales,
-          home: const Scaffold(
-            body: Center(
-              child: ExpressOfferSlider(
-                slides: [
-                  HeroSlide(
-                    kind: 'auto',
-                    theme: 'clearance',
-                    title: 'عروض التصفية',
-                    badge: 'خصم حتى ٤٥٪',
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('خصم حتى ٤٥٪'), findsOneWidget);
-    });
-
-    testWidgets('the card grows with the text instead of clipping it',
-        (tester) async {
-      late double plain;
-      late double large;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) {
-              plain = ExpressOfferSlider.cardHeight(context);
-              return MediaQuery(
-                data: MediaQuery.of(context)
-                    .copyWith(textScaler: const TextScaler.linear(1.3)),
-                child: Builder(
-                  builder: (context) {
-                    large = ExpressOfferSlider.cardHeight(context);
-                    return const SizedBox();
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-      );
-      expect(large, greaterThan(plain));
-      // …and stops growing where the app clamps every other fixed-extent box.
-      expect(large - plain, closeTo(0.3 * 54, 0.01));
-    });
-
-    test('the arrival is the band\'s to say, not the strip\'s', () {
-      // The band directly above already prints the clock and the branch.
-      const clock = HeroSlide(
-        kind: 'auto',
-        theme: 'express_clock',
-        title: 'يوصلك خلال ساعتين',
-      );
-      const offer = HeroSlide(
-        kind: 'auto',
-        theme: 'express_new',
-        title: 'وصل حديثاً',
-      );
-      expect(
-        ExpressOfferSlider.offersFrom(const [clock, offer]).single.theme,
-        'express_new',
-      );
-      // A strip that would hold nothing but the arrival holds nothing.
-      expect(ExpressOfferSlider.hasContent(const [clock]), isFalse);
-      expect(ExpressOfferSlider.hasContent(const [clock, offer]), isTrue);
-    });
-
-    test('a strip with nothing to put in it is no strip', () {
-      expect(ExpressOfferSlider.hasContent(const []), isFalse);
-      expect(
-        ExpressOfferSlider.hasContent(const [HeroSlide(kind: 'auto')]),
-        isFalse,
-      );
-      expect(ExpressOfferSlider.hasContent(slides), isTrue);
-    });
-
-    testWidgets('the first card is readable and the next one peeks',
-        (tester) async {
-      tester.view.physicalSize = const Size(393, 800);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ar'),
-          theme: AppTheme.light(const Locale('ar')),
-          localizationsDelegates: L.localizationsDelegates,
-          supportedLocales: L.supportedLocales,
-          home: const Scaffold(
-            body: Center(child: ExpressOfferSlider(slides: slides)),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('الأكثر طلباً في فرعك'), findsOneWidget);
-      expect(find.text('من فرع الملك فهد'), findsOneWidget);
-      expect(find.text('اطلب الآن'), findsOneWidget);
-      // The second card is built and on screen, which is the invitation.
-      expect(find.text('وصل حديثاً إلى فرعك'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('the storefront draws it from the payload it already has',
-        (tester) async {
-      tester.view.physicalSize = const Size(1000, 3000);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-
-      await tester.pumpWidget(_host(HomePayload(
-        scope: _expressScope,
-        hero: slides,
-        rails: [
-          ProductRail(
-            key: 'trending',
-            title: 'رائج الآن',
-            products: [_p(1), _p(2), _p(3), _p(4)],
-          ),
-        ],
-        layout: const [
-          HomeLayoutSlot('eta_band'),
-          HomeLayoutSlot('offer_strip'),
-          HomeLayoutSlot('grid', key: 'trending'),
-        ],
-      )));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ExpressOfferSlider), findsOneWidget);
-      // Still not the store's carousel.
-      expect(find.byType(HeroCarousel), findsNothing);
+    test('an older store that says nothing means not bought', () {
+      final s = SearchSuggestion.fromJson({'id': 42, 'name': 'x'});
+      expect(s.bought, isFalse);
+      expect(s.lastOrderedDays, isNull);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/motion/motion.dart';
+import '../../../core/notifications/live_activity_service.dart';
+import '../../../core/notifications/push_service.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/widgets/sparkles.dart';
@@ -39,12 +42,31 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final minimumSplash = Future<void>.delayed(const Duration(milliseconds: 1400));
 
     await ref.read(sessionProvider.notifier).restore();
+
+    // Push comes up alongside the session, never in front of it: it registers
+    // the device against whoever just came back, and a build with no Firebase
+    // configuration simply does nothing here.
+    unawaited(ref.read(pushServiceProvider).start());
+    // The lock screen follows the same feed the live bar does; on a phone
+    // that cannot show Live Activities this is a no-op.
+    unawaited(ref.read(liveActivityServiceProvider).start());
+
     await minimumSplash;
     if (!mounted) return;
 
     // The welcome journey owns language, location and notifications; it runs
     // once and hands over to the store.
-    context.go(ref.read(localStoreProvider).hasSeenWelcome ? '/home' : '/onboarding');
+    final home = ref.read(localStoreProvider).hasSeenWelcome ? '/home' : '/onboarding';
+    context.go(home);
+
+    // A notification that woke the app has a destination of its own. It is
+    // pushed on top of home rather than replacing it, so «رجوع» lands where
+    // the customer expects instead of on an empty stack.
+    final tapped = ref.read(pushServiceProvider).pendingRoute;
+    if (tapped != null && home == '/home') {
+      ref.read(pushServiceProvider).pendingRoute = null;
+      unawaited(context.push(tapped));
+    }
   }
 
   @override

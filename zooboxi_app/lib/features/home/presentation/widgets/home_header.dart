@@ -13,6 +13,7 @@ import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
+import '../../../search/presentation/express_search_field.dart';
 import '../../../search/presentation/search_transition.dart';
 import 'shelf_tabs.dart';
 
@@ -37,6 +38,7 @@ class HomeHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final fg = onCanvas ? _canvasFg(context) : null;
+    final express = scope?.shelf == 'express';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
@@ -68,8 +70,13 @@ class HomeHeader extends ConsumerWidget {
               //
               // The flight belongs to whoever is on screen: `branch` keeps
               // home's hero out of a search opened from another tab.
-              SearchHeroButton(onCanvas: onCanvas, branch: 0),
-              Gap.w4,
+              //
+              // إكسبريس is the exception — it gets the field, full width, on
+              // its own row below (there is no shop window to protect, and
+              // the customer arrives knowing what they want). One Hero per
+              // tag per route, so the button steps aside for it.
+              if (!express) SearchHeroButton(onCanvas: onCanvas, branch: 0),
+              if (!express) Gap.w4,
               IconButton(
                 onPressed: () {
                   Haptics.light();
@@ -84,6 +91,13 @@ class HomeHeader extends ConsumerWidget {
               ),
             ],
           ),
+          if (express) ...[
+            Gap.h8,
+            const Padding(
+              padding: EdgeInsetsDirectional.only(start: 8, end: 8),
+              child: SearchHeroField(branch: 0),
+            ),
+          ],
         ],
       ),
     );

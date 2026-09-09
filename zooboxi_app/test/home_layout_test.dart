@@ -392,8 +392,12 @@ void main() {
         tester,
         _host(
           nudgePayload(),
-          nudge: cartFreeShippingNudgeProvider
-              .overrideWith((ref) => ref.watch(_nudgeProvider)),
+          // The nudge now says which shelf's line it is; the test's own
+          // notifier only ever hands over the national one.
+          nudge: cartFreeShippingNudgeProvider.overrideWith((ref) {
+            final line = ref.watch(_nudgeProvider);
+            return line == null ? null : (line: line, express: false);
+          }),
         ),
       );
 

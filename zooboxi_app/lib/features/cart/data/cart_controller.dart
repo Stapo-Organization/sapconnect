@@ -321,10 +321,19 @@ final cartPawsToEarnProvider = Provider<int>(
 /// Derived rather than read inline on Home so the storefront rebuilds when the
 /// *nudge* changes, not on every optimistic quantity tap — and so it reads the
 /// cart the shell already keeps warm instead of asking for a fresh one.
-final cartFreeShippingNudgeProvider = Provider<FreeShipping?>((ref) {
+/// The free-delivery line the home nudge should draw, and which shelf it is
+/// about — null when there is nothing to nudge toward.
+typedef FreeShippingNudge = ({FreeShipping line, bool express});
+
+final cartFreeShippingNudgeProvider = Provider<FreeShippingNudge?>((ref) {
   final cart = ref.watch(cartControllerProvider).value;
   if (cart == null || cart.isEmpty) return null;
-  final freeShipping = cart.freeShipping;
-  if (!freeShipping.isActive || freeShipping.qualified) return null;
-  return freeShipping;
+  // An express basket measures itself against its own, reachable line. The
+  // national threshold would tell a 36 ﷼ basket it is 164 ﷼ away — a number
+  // that switches the nudge off rather than on.
+  final shelf = cart.basket.effectiveShelf.isNotEmpty ? cart.basket.effectiveShelf : cart.basket.shelf;
+  final express = shelf == 'express';
+  final line = cart.freeShipping.forShelf(shelf);
+  if (!line.isActive || line.qualified) return null;
+  return (line: line, express: express && !identical(line, cart.freeShipping));
 });
