@@ -85,19 +85,24 @@ class Zooboxi_V2_Catalog_Controller
      */
     private const EXPRESS_LAYOUT = [
         ['type' => 'eta_band'],
+        // Offers, not a hero: the same composed slides, drawn as a strip of
+        // cards with the next one peeking instead of a full-bleed canvas.
+        ['type' => 'offer_strip'],
         // What they buy, first — a third of express orders are a single line
         // someone is replacing.
         ['type' => 'personal'],
         ['type' => 'animal_nav'],
+        // The program keeps its place on the fast shelf: the owner asked for
+        // the paw missions to be visible here too, so the card and the strip
+        // stay together, above the shelf rather than buried under it.
+        ['type' => 'family'],
+        ['type' => 'missions'],
         ['type' => 'shipping_nudge'],
         ['type' => 'grid', 'key' => 'trending'],
         ['type' => 'feed_rail', 'key' => 'foryou'],
         ['type' => 'grid', 'key' => 'bestsellers'],
         ['type' => 'clearance_band'],
         ['type' => 'grid', 'key' => 'new'],
-        // The program keeps its place on the fast shelf too, at the foot
-        // where it does not stand between someone and their order.
-        ['type' => 'family'],
         ['type' => 'trust'],
     ];
 
