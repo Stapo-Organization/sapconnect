@@ -4,6 +4,9 @@ import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 
 /// A titled group of settings rows, rendered as one card.
+///
+/// The title sits outside the card in the platform's own idiom — a quiet,
+/// spaced label — so the card itself carries nothing but the rows.
 class SettingsSection extends StatelessWidget {
   const SettingsSection({super.key, required this.children, this.title});
 
@@ -22,7 +25,11 @@ class SettingsSection extends StatelessWidget {
             padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
             child: Text(
               title!,
-              style: context.tt.labelMedium?.copyWith(color: cs.onSurfaceVariant),
+              style: context.tt.labelMedium?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
         ],
@@ -38,7 +45,9 @@ class SettingsSection extends StatelessWidget {
               for (final (index, child) in children.indexed) ...[
                 if (index > 0)
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 52),
+                    // Starts past the icon, so the rows read as one stack
+                    // rather than as separate slabs.
+                    padding: const EdgeInsetsDirectional.only(start: 62),
                     child: Divider(height: 1, color: cs.outlineVariant),
                   ),
                 child,
@@ -53,6 +62,10 @@ class SettingsSection extends StatelessWidget {
 
 /// One settings row. A null [onTap] renders it as informational rather than
 /// as a broken button.
+///
+/// The icon sits in a soft rounded square rather than bare on the surface: at
+/// 20pt a lone glyph beside 16pt text reads as debris, and the tile gives every
+/// row the same optical weight no matter which icon it drew.
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
     super.key,
@@ -73,17 +86,28 @@ class SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = context.cs;
     final foreground = destructive ? cs.error : cs.onSurface;
+    final tint = destructive ? cs.error : cs.onSurfaceVariant;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: destructive ? cs.error : cs.onSurfaceVariant),
-              Gap.w16,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: destructive
+                      ? cs.error.withValues(alpha: 0.10)
+                      : cs.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, size: 19, color: tint),
+              ),
+              Gap.w12,
               Expanded(
                 child: Text(
                   label,
@@ -108,7 +132,7 @@ class SettingsTile extends StatelessWidget {
                       ? Icons.keyboard_arrow_left_rounded
                       : Icons.keyboard_arrow_right_rounded,
                   size: 20,
-                  color: cs.onSurfaceVariant,
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               ],
             ],

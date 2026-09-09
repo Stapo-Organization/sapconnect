@@ -28,6 +28,7 @@ import '../features/loyalty/presentation/scratch_screen.dart';
 import '../features/loyalty/presentation/subscriptions_screen.dart';
 import '../features/loyalty/presentation/supply_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/orders/presentation/order_detail_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
@@ -174,6 +175,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             orderId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
           ),
         ),
+      ),
+      GoRoute(
+        path: '/notifications',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => shellPage(state.pageKey, const NotificationsScreen()),
       ),
       GoRoute(
         path: '/addresses',

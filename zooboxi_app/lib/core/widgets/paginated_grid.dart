@@ -100,6 +100,10 @@ class _PaginatedProductGridState extends State<PaginatedProductGrid> {
     final generation = ++_generation;
     setState(() {
       _firstLoading = _items.isEmpty;
+      // A page in flight belongs to the filters we are leaving. Its result is
+      // dropped by the generation guard, which returns before clearing this —
+      // so it is cleared here, or infinite scroll never fires again.
+      _loadingMore = false;
       _error = null;
       _moreError = null;
     });

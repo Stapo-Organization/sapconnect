@@ -1084,6 +1084,38 @@ class LEn extends L {
       'Your first order will appear here with live tracking.';
 
   @override
+  String get ordersFilterAll => 'All';
+
+  @override
+  String get ordersFilterActive => 'Active';
+
+  @override
+  String get ordersFilterCompleted => 'Completed';
+
+  @override
+  String get ordersFilterCancelled => 'Cancelled';
+
+  @override
+  String get ordersEmptyFiltered => 'No orders in this tab';
+
+  @override
+  String get ordersEmptyFilteredHint =>
+      'The rest of your orders are under the other tabs.';
+
+  @override
+  String get ordersThisMonth => 'This month';
+
+  @override
+  String ordersMonthYear(String month, String year) {
+    return '$month $year';
+  }
+
+  @override
+  String ordersMorePhotos(int count) {
+    return '+$count';
+  }
+
+  @override
   String get orderDetailTitle => 'Order details';
 
   @override
@@ -1186,6 +1218,31 @@ class LEn extends L {
 
   @override
   String get addressPinUseGps => 'My location';
+
+  @override
+  String get mapZoomIn => 'Zoom in';
+
+  @override
+  String get mapStyleSatellite => 'Satellite view';
+
+  @override
+  String get mapStyleStreets => 'Map view';
+
+  @override
+  String get mapZoomOut => 'Zoom out';
+
+  @override
+  String get pinPlaceLoading => 'Finding this address…';
+
+  @override
+  String get pinPlaceUnnamed => 'Unnamed spot';
+
+  @override
+  String get pinPlaceUnnamedHint =>
+      'That\'s fine — the pin itself is the address the driver follows.';
+
+  @override
+  String get pinPlaceOutOfRange => 'Outside our delivery range for now';
 
   @override
   String get addressResolving => 'Finding the district…';
@@ -1361,6 +1418,102 @@ class LEn extends L {
   String get accountProfile => 'Profile';
 
   @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsSubtitle => 'Choose what is worth interrupting you.';
+
+  @override
+  String get notificationsOff =>
+      'Notifications are off in your device settings';
+
+  @override
+  String get notificationsOffBody =>
+      'Turn them on in iPhone Settings → Notifications → Zooboxi to get order updates.';
+
+  @override
+  String get notificationsAllow => 'Allow notifications';
+
+  @override
+  String get notificationsOpenSettings => 'Open Settings';
+
+  @override
+  String get notificationsUnavailable =>
+      'Push notifications are not enabled in this build';
+
+  @override
+  String get notificationsSilent =>
+      'Everything is off — we will send you nothing, not even order updates.';
+
+  @override
+  String get notificationsOrders => 'Order updates';
+
+  @override
+  String get notificationsOrdersBody =>
+      'Received, ready, on its way, delivered.';
+
+  @override
+  String get notificationsOffers => 'Offers and price drops';
+
+  @override
+  String get notificationsOffersBody =>
+      'Price drops on your products and new bundles.';
+
+  @override
+  String get notificationsReorder => 'Reorder reminders';
+
+  @override
+  String get notificationsReorderBody =>
+      'A few days before your friend\'s food runs out.';
+
+  @override
+  String get notificationsFamily => 'Zooboxi Family';
+
+  @override
+  String get notificationsFamilyBody =>
+      'A gift unlocked, new paws, or a birthday coming up.';
+
+  @override
+  String get notificationsSaveFailed => 'Could not save your preferences';
+
+  @override
+  String get accountStatOrders => 'orders';
+
+  @override
+  String get accountStatPaws => 'paws';
+
+  @override
+  String get accountStatPets => 'friends';
+
+  @override
+  String accountTierProgress(num count, String tier) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString orders to $tier',
+      one: 'One order to $tier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountShortcuts => 'Shortcuts';
+
+  @override
+  String get accountBuyAgainShort => 'Buy again';
+
+  @override
+  String get accountActiveOrder => 'Your order is on its way';
+
+  @override
+  String get accountActiveOrderCta => 'Track order';
+
+  @override
   String get accountSoon => 'Coming soon';
 
   @override
@@ -1485,12 +1638,19 @@ class LEn extends L {
   String get driftTitle => 'Looks like you\'re somewhere new';
 
   @override
-  String driftBody(String here, String saved) {
-    return 'You are at: $here\nDelivery address: $saved';
+  String get driftAdjustHint =>
+      'Move the map until the pin sits exactly where you are.';
+
+  @override
+  String driftSavedNow(String saved) {
+    return 'Delivering to: $saved';
   }
 
   @override
-  String get driftUseHere => 'Deliver to where I am';
+  String get driftUseHere => 'Deliver to this point';
+
+  @override
+  String get driftSaveAsNew => 'Save it as a new address';
 
   @override
   String get driftKeep => 'Keep my saved address';
@@ -3043,4 +3203,87 @@ class LEn extends L {
 
   @override
   String get liveBarSearching => 'Finding a courier';
+
+  @override
+  String get expressSearchHint1 => 'Royal Canin';
+
+  @override
+  String get expressSearchHint2 => 'cat litter';
+
+  @override
+  String get expressSearchHint3 => 'Whiskas';
+
+  @override
+  String get expressSearchHint4 => 'treats';
+
+  @override
+  String expressSearchPrefix(String example) {
+    return 'Search: $example';
+  }
+
+  @override
+  String get searchBought => 'Bought before';
+
+  @override
+  String searchBoughtDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: 'yesterday',
+      zero: 'today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cartExpressFreeRemaining(String amount) {
+    return '$amount more for free express delivery';
+  }
+
+  @override
+  String get cartExpressFreeQualified => 'Your express delivery is free';
+
+  @override
+  String get closingOrderWithin => 'Order within';
+
+  @override
+  String get homeNeedsTitle => 'Need something now?';
+
+  @override
+  String replenishTitle(String pet) {
+    return '$pet\'s food lasts';
+  }
+
+  @override
+  String get replenishTitleNoPet => 'Lasts';
+
+  @override
+  String replenishDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more days',
+      one: 'one more day',
+      zero: 'no more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishOut(String pet) {
+    return '$pet\'s food has run out';
+  }
+
+  @override
+  String get replenishOutNoPet => 'Run out';
+
+  @override
+  String get replenishCta => 'Reorder on Express';
+
+  @override
+  String get replenishArrives => 'arrives within two hours';
+
+  @override
+  String get replenishCtaPlain => 'Reorder';
 }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -448,7 +449,7 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
       urlTemplate: dark
           ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
           : 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-      userAgentPackageName: 'com.zooboxi.store',
+      userAgentPackageName: 'com.zooboxi.app',
       maxNativeZoom: 18,
     ),
     if (courier != null && target != null)
@@ -619,18 +620,28 @@ class _MapChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
-        color: context.cs.surface.withValues(alpha: 0.92),
+        // On top of a map, a translucent chip with a hairline border reads as
+        // part of the tiles. Nearly opaque, with a soft lift under it, and it
+        // reads as a control.
+        color: context.cs.surface.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(ZbTokens.rPill),
         border: Border.all(color: context.cs.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.open_in_full_rounded, size: 13, color: context.cs.onSurfaceVariant),
           Gap.w6,
-          Text(label, style: context.tt.labelSmall),
+          Text(label, style: context.tt.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -649,7 +660,8 @@ class _CourierRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final cs = context.cs;
-    final phone = courier.phone;
+    final phone = courier.phone ?? '';
+    final wa = whatsappNumber(phone);
 
     return Row(
       children: [
@@ -671,15 +683,35 @@ class _CourierRow extends StatelessWidget {
             ],
           ),
         ),
-        if (phone != null && phone.isNotEmpty)
-          FilledButton.tonalIcon(
-            onPressed: () {
+        if (phone.isNotEmpty) ...[
+          Gap.w8,
+          _ContactAction(
+            label: l.liveTrackCall,
+            fill: tone.withValues(alpha: 0.12),
+            border: tone.withValues(alpha: 0.32),
+            icon: Icon(Icons.phone_rounded, size: 19, color: tone),
+            onTap: () {
               Haptics.light();
               launchUrl(Uri(scheme: 'tel', path: phone));
             },
-            icon: const Icon(Icons.phone_rounded, size: 17),
-            label: Text(l.liveTrackCall),
           ),
+        ],
+        if (wa != null) ...[
+          Gap.w8,
+          _ContactAction(
+            label: l.liveTrackWhatsapp,
+            fill: _whatsapp,
+            glow: true,
+            icon: const _WhatsappGlyph(size: 20, color: Colors.white),
+            onTap: () {
+              Haptics.light();
+              launchUrl(
+                Uri.https('wa.me', '/$wa', {'text': l.liveTrackWhatsappHello}),
+                mode: LaunchMode.externalApplication,
+              );
+            },
+          ),
+        ],
       ],
     );
   }
@@ -692,6 +724,126 @@ class _CourierRow extends StatelessWidget {
     if (parts.length == 1) return parts.first.characters.first;
     return parts.first.characters.first + parts[1].characters.first;
   }
+}
+
+/// WhatsApp's own green. Left as the brand colour rather than pulled into the
+/// palette: this button is recognised before it is read, and a teal WhatsApp
+/// would cost exactly the recognition it exists for.
+const Color _whatsapp = Color(0xFF25D366);
+
+/// The courier's number the way `wa.me` wants it — digits only, in
+/// international form.
+///
+/// Mrsool hands the number back in whatever shape the rider typed it: `05xx…`,
+/// `+9665xx…`, `009665xx…`, sometimes with spaces. `tel:` forgives all of that;
+/// WhatsApp does not — a local `05…` opens on «the phone number is invalid».
+/// Anything that still does not look dialable returns null, and the button is
+/// simply not offered rather than offered broken.
+String? whatsappNumber(String raw) {
+  var digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return null;
+
+  if (digits.startsWith('00')) digits = digits.substring(2);
+  // «+966 055…» — the country code and the trunk zero, both written out. Left
+  // alone it is 13 digits, passes every length check, and dies on wa.me.
+  if (digits.startsWith('9660')) digits = '966${digits.substring(4)}';
+  if (digits.startsWith('0')) {
+    digits = '966${digits.substring(1)}';
+  } else if (digits.length == 9 && digits.startsWith('5')) {
+    digits = '966$digits';
+  }
+
+  return digits.length < 11 || digits.length > 15 ? null : digits;
+}
+
+/// One round contact button.
+///
+/// The call used to be a wide labelled button that took a third of the row and
+/// clipped the courier's own name to «هيثم أحمد حسن م…». Two circles give the
+/// name its width back and let WhatsApp — how most people here actually message
+/// a rider — stand BESIDE the phone instead of replacing it.
+class _ContactAction extends StatelessWidget {
+  const _ContactAction({
+    required this.label,
+    required this.icon,
+    required this.fill,
+    required this.onTap,
+    this.border,
+    this.glow = false,
+  });
+
+  final String label;
+  final Widget icon;
+  final Color fill;
+  final Color? border;
+
+  /// A soft halo in the button's own colour — used on the WhatsApp circle so
+  /// the pair reads as accent + quiet action rather than as two grey discs.
+  final bool glow;
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      // `button` only — the Tooltip already carries the label, and iOS
+      // concatenates the two into «اتصل بالمندوب، اتصل بالمندوب، زر».
+      button: true,
+      child: Tooltip(
+        message: label,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: glow
+                ? [
+                    BoxShadow(
+                      color: fill.withValues(alpha: 0.34),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Material(
+            color: fill,
+            shape: CircleBorder(
+              side: border == null ? BorderSide.none : BorderSide(color: border!),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              // 44: the smallest square a thumb hits reliably, and the reason
+              // the two of them still fit next to a long Arabic name.
+              child: SizedBox(width: 44, height: 44, child: Center(child: icon)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The WhatsApp mark itself, from the official outline.
+///
+/// A chat bubble from the Material set would have been half a sentence — the
+/// glyph is what makes the button legible at a glance, in a country where the
+/// customer will reach for WhatsApp before the dialler.
+class _WhatsappGlyph extends StatelessWidget {
+  const _WhatsappGlyph({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  static const String _d =
+      'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z';
+
+  @override
+  Widget build(BuildContext context) => SvgPicture.string(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="$_d"/></svg>',
+        width: size,
+        height: size,
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      );
 }
 
 /* ── What has happened so far ───────────────────────────────────── */

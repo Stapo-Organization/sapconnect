@@ -176,9 +176,15 @@ class _Line extends StatelessWidget {
       );
 }
 
-/// A square photo tile, white-bordered so it reads as an object on the colour.
-class _Tile extends StatelessWidget {
-  const _Tile({required this.url, required this.size, this.rank, this.tilt = 0});
+/// A product, floating.
+///
+/// It used to be a white-bordered tile, and on a deep field that is what you
+/// saw: a small white card with a product marooned inside it. sapconnect cuts
+/// the studio white off the photograph, so the pack itself can sit on the
+/// slide with nothing but its own shadow under it — which is how every good
+/// storefront hero has ever been built.
+class _Pack extends StatelessWidget {
+  const _Pack({required this.url, required this.size, this.rank, this.tilt = 0});
 
   final String url;
   final double size;
@@ -187,28 +193,40 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tile = Container(
+    final pack = SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(size * 0.24),
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.22),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // The shadow is drawn under the photo rather than around the box:
+          // a cut-out has no box.
+          PositionedDirectional(
+            start: size * 0.12,
+            end: size * 0.12,
+            bottom: -size * 0.02,
+            child: Container(
+              height: size * 0.10,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.elliptical(size * 0.4, size * 0.05)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.38),
+                    blurRadius: size * 0.16,
+                    spreadRadius: -size * 0.02,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: ZbImage(url: url, fit: BoxFit.contain, backgroundColor: Colors.transparent),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(size * 0.20),
-        child: ZbImage(url: url, fit: BoxFit.cover, backgroundColor: Colors.white),
-      ),
     );
 
-    final art = tilt == 0 ? tile : Transform.rotate(angle: tilt, child: tile);
+    final art = tilt == 0 ? pack : Transform.rotate(angle: tilt, child: pack);
     if (rank == null) return art;
 
     return Stack(
@@ -216,17 +234,17 @@ class _Tile extends StatelessWidget {
       children: [
         art,
         PositionedDirectional(
-          top: -6,
-          start: -6,
+          top: 0,
+          start: 0,
           child: Container(
-            width: 22,
-            height: 22,
+            width: 24,
+            height: 24,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: ZbTokens.amber,
               boxShadow: [
-                BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2)),
+                BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 3)),
               ],
             ),
             child: Text(
@@ -429,12 +447,12 @@ class _ShelfBody extends StatelessWidget {
               final byWidth =
                   (box.maxWidth - gap * (tiles.length - 1)) / tiles.length;
               final byHeight = box.maxHeight.isFinite ? box.maxHeight : 64.0;
-              final size = (byHeight < byWidth ? byHeight : byWidth).clamp(36.0, 88.0);
+              final size = (byHeight < byWidth ? byHeight : byWidth).clamp(52.0, 126.0);
               return Row(
                 children: [
                   for (var i = 0; i < tiles.length; i++) ...[
                     if (i > 0) const SizedBox(width: gap),
-                    _Tile(url: tiles[i], size: size, rank: i + 1),
+                    _Pack(url: tiles[i], size: size, rank: i + 1),
                   ],
                 ],
               );
@@ -472,7 +490,7 @@ class _PolaroidBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = (height * 0.86).clamp(64.0, 132.0);
+    final size = (height * 1.18).clamp(92.0, 176.0);
 
     return Row(
       children: [
@@ -512,8 +530,12 @@ class _PolaroidBody extends StatelessWidget {
                   // like one laid on a desk, rather than floating in it.
                   PositionedDirectional(
                     end: -size * 0.16,
-                    bottom: 0,
-                    child: _Tile(url: images.first, size: size, tilt: -0.05),
+                    // Sunk a little below the band as well as past its end
+                    // edge. A pack taller than the slide has to lose something;
+                    // losing the bottom of a tin keeps its FACE — the label,
+                    // the thing a customer recognises — inside the frame.
+                    bottom: -size * 0.09,
+                    child: _Pack(url: images.first, size: size, tilt: -0.05),
                   ),
                   PositionedDirectional(
                     end: size * 0.42,
@@ -578,7 +600,7 @@ class _CountdownBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = (height * 0.42).clamp(40.0, 64.0);
+    final size = (height * 0.66).clamp(58.0, 98.0);
     final packs = images.take(2).toList();
 
     return Row(
@@ -627,7 +649,7 @@ class _CountdownBody extends StatelessWidget {
                     PositionedDirectional(
                       end: i * size * 0.32,
                       top: i * 6,
-                      child: _Tile(url: packs[i], size: size - i * 8, tilt: (i - 0.5) * 0.10),
+                      child: _Pack(url: packs[i], size: size - i * 8, tilt: (i - 0.5) * 0.10),
                     ),
                 ],
               ),
@@ -662,7 +684,7 @@ class _StackBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = (height * 0.62).clamp(56.0, 96.0);
+    final size = (height * 0.90).clamp(78.0, 140.0);
     final packs = images.take(3).toList();
 
     return Stack(
@@ -705,7 +727,7 @@ class _StackBody extends StatelessWidget {
                       PositionedDirectional(
                         end: i * size * 0.24,
                         top: i * 5.0,
-                        child: _Tile(
+                        child: _Pack(
                           url: packs[i],
                           size: size - i * 9,
                           tilt: (i - 1) * 0.10,
@@ -781,7 +803,7 @@ class _PercentBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final size = (height * 0.38).clamp(36.0, 58.0);
+    final size = (height * 0.58).clamp(52.0, 90.0);
     final thumbs = images.take(3).toList();
 
     return Row(
@@ -832,19 +854,33 @@ class _PercentBody extends StatelessWidget {
             ],
           ),
         ),
-        // The goods themselves, small and in a line — a sale sign, not a
-        // gallery: the number is what sells this slide.
+        // The goods themselves, tipped against each other down the end edge —
+        // a sale sign, not a gallery: the number is what sells this slide.
+        // They OVERLAP rather than stack in a column, which is what lets them
+        // be big: two whole packs in a column can only ever be half the band
+        // each, and half a band is a thumbnail.
         if (thumbs.isNotEmpty)
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < thumbs.take(2).length; i++) ...[
-                  if (i > 0) const SizedBox(height: 6),
-                  _Tile(url: thumbs[i], size: size, tilt: (i - 0.5) * 0.08),
+            child: SizedBox(
+              width: size * 1.16,
+              height: size * 1.56,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  if (thumbs.length > 1)
+                    PositionedDirectional(
+                      end: size * 0.24,
+                      top: size * 0.60,
+                      child: _Pack(url: thumbs[1], size: size * 0.88, tilt: 0.08),
+                    ),
+                  PositionedDirectional(
+                    end: 0,
+                    top: 0,
+                    child: _Pack(url: thumbs.first, size: size, tilt: -0.06),
+                  ),
                 ],
-              ],
+              ),
             ),
           ),
       ],

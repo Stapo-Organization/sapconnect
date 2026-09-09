@@ -129,15 +129,36 @@ void main() {
     });
   });
 
+  group('the courier\'s WhatsApp number', () {
+    // `tel:` dials anything; wa.me refuses everything that is not an
+    // international number, and refuses it AFTER the customer has left the app.
+    test('a local Saudi number becomes an international one', () {
+      expect(whatsappNumber('0555555555'), '966555555555');
+      expect(whatsappNumber('055 555 5555'), '966555555555');
+      expect(whatsappNumber('555555555'), '966555555555');
+    });
+
+    test('a number that is already international is left alone', () {
+      expect(whatsappNumber('+966555555555'), '966555555555');
+      expect(whatsappNumber('00966555555555'), '966555555555');
+      expect(whatsappNumber('966555555555'), '966555555555');
+      // Country code AND trunk zero, both written out — a shape people really
+      // type, and one wa.me rejects after the customer has left the app.
+      expect(whatsappNumber('+966 055 555 5555'), '966555555555');
+    });
+
+    test('a number that could not be dialled offers no button at all', () {
+      expect(whatsappNumber(''), isNull);
+      expect(whatsappNumber('----'), isNull);
+      expect(whatsappNumber('12345'), isNull, reason: 'an extension, not a mobile');
+      expect(whatsappNumber('9665555555555555555'), isNull);
+    });
+  });
+
   group('the courier countdown', () {
     /// The one clock on screen, as the customer reads it.
     String clockText(WidgetTester tester) =>
         tester.widget<Text>(find.byType(Text).first).data!;
-
-    int seconds(String mmss) {
-      final parts = mmss.split(':');
-      return int.parse(parts[0]) * 60 + int.parse(parts[1]);
-    }
 
     testWidgets('it ticks down by the second', (tester) async {
       await tester.pumpWidget(_clock(const Duration(minutes: 14)));
@@ -184,7 +205,10 @@ void main() {
       expect(find.text('مندوبك في الطريق إليك'), findsOneWidget);
       expect(find.text('تقريباً 6 دقيقة'), findsOneWidget);
       expect(find.text('FAHAD MIAH'), findsOneWidget);
-      expect(find.text('اتصل بالمندوب'), findsOneWidget);
+      // Both ways of reaching him, as round buttons — so the name keeps the
+      // width a wide «اتصل بالمندوب» used to take from it.
+      expect(find.byTooltip('اتصل بالمندوب'), findsOneWidget);
+      expect(find.byTooltip('واتساب المندوب'), findsOneWidget);
 
       // The server's own sentence is a fallback, not the wording on screen.
       expect(find.text('من الخادم'), findsNothing);
@@ -255,7 +279,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('تم تسليم طلبك'), findsOneWidget);
-      expect(find.text('اتصل بالمندوب'), findsNothing);
+      expect(find.byTooltip('اتصل بالمندوب'), findsNothing);
+      expect(find.byTooltip('واتساب المندوب'), findsNothing);
       expect(find.textContaining('تقريباً'), findsNothing);
       expect(find.textContaining('يبعد عنك'), findsNothing);
     });
@@ -292,7 +317,7 @@ void main() {
 
       expect(find.text('جارٍ تحديد مندوب توصيل لطلبك'), findsOneWidget);
       expect(find.textContaining('تقريباً'), findsNothing);
-      expect(find.text('اتصل بالمندوب'), findsNothing);
+      expect(find.byTooltip('اتصل بالمندوب'), findsNothing);
     });
 
     testWidgets('an absurd arrival estimate is withheld, not displayed',

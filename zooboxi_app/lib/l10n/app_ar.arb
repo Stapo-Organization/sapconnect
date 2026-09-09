@@ -571,6 +571,21 @@
   "ordersTitle": "طلباتي",
   "ordersEmpty": "لا توجد طلبات بعد",
   "ordersEmptyHint": "أول طلب لك سيظهر هنا مع تتبّع لحظي.",
+  "ordersFilterAll": "الكل",
+  "ordersFilterActive": "جارية",
+  "ordersFilterCompleted": "مكتملة",
+  "ordersFilterCancelled": "ملغاة",
+  "ordersEmptyFiltered": "لا طلبات في هذا القسم",
+  "ordersEmptyFilteredHint": "بقية طلباتك موجودة في الأقسام الأخرى.",
+  "ordersThisMonth": "هذا الشهر",
+  "ordersMonthYear": "{month} {year}",
+  "@ordersMonthYear": {
+    "placeholders": { "month": { "type": "String" }, "year": { "type": "String" } }
+  },
+  "ordersMorePhotos": "+{count}",
+  "@ordersMorePhotos": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "orderDetailTitle": "تفاصيل الطلب",
   "orderItemsTitle": "المنتجات",
   "orderTimelineTitle": "مسار الطلب",
@@ -614,6 +629,14 @@
   "addressPinConfirm": "تأكيد الموقع",
   "addressPinChange": "تعديل الموقع",
   "addressPinUseGps": "موقعي الحالي",
+  "mapZoomIn": "تكبير الخريطة",
+  "mapStyleSatellite": "عرض القمر الصناعي",
+  "mapStyleStreets": "عرض الخريطة",
+  "mapZoomOut": "تصغير الخريطة",
+  "pinPlaceLoading": "جارٍ تحديد العنوان…",
+  "pinPlaceUnnamed": "موقع بلا اسم",
+  "pinPlaceUnnamedHint": "لا بأس — المؤشّر نفسه هو العنوان الذي يصل إليه المندوب.",
+  "pinPlaceOutOfRange": "خارج نطاق التوصيل حاليًا",
   "addressResolving": "جارٍ تحديد الحي…",
   "addressLabelTitle": "اسم العنوان",
   "addressLabelHome": "المنزل",
@@ -677,6 +700,42 @@
   "accountThemeDark": "داكن",
   "accountThemeSystem": "حسب النظام",
   "accountProfile": "الملف الشخصي",
+  "notificationsTitle": "الإشعارات",
+  "notificationsSubtitle": "اختر ما يستحق أن يقاطعك.",
+  "notificationsOff": "الإشعارات موقوفة من إعدادات الجهاز",
+  "notificationsOffBody": "فعّلها من إعدادات iPhone ← الإشعارات ← Zooboxi لتصلك تحديثات طلبك.",
+  "notificationsAllow": "السماح بالإشعارات",
+  "notificationsOpenSettings": "فتح الإعدادات",
+  "notificationsUnavailable": "الإشعارات الفورية غير مفعّلة في هذه النسخة",
+  "notificationsSilent": "أوقفت كل الإشعارات — لن نرسل لك شيئًا، حتى تحديثات الطلب.",
+  "notificationsOrders": "تحديثات الطلب",
+  "notificationsOrdersBody": "استلمنا طلبك، جاهز، في الطريق، وصل.",
+  "notificationsOffers": "العروض والتخفيضات",
+  "notificationsOffersBody": "انخفاض أسعار منتجاتك والبكجات الجديدة.",
+  "notificationsReorder": "تذكير إعادة الطلب",
+  "notificationsReorderBody": "قبل أن ينفد طعام صديقك بأيام.",
+  "notificationsFamily": "عائلة زوبوكسي",
+  "notificationsFamilyBody": "هدية جاهزة، بصمات جديدة، أو عيد ميلاد قريب.",
+  "notificationsSaveFailed": "تعذّر حفظ التفضيلات",
+  "accountStatOrders": "طلب",
+  "accountStatPaws": "بصمة",
+  "accountStatPets": "أصدقائي",
+  "accountTierProgress": "{count, plural, =1{طلب واحد يفصلك عن {tier}} =2{طلبان يفصلانك عن {tier}} other{{count} طلبات تفصلك عن {tier}}}",
+  "@accountTierProgress": {
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "accountShortcuts": "اختصارات",
+  "accountBuyAgainShort": "مشترياتي",
+  "accountActiveOrder": "طلبك في الطريق",
+  "accountActiveOrderCta": "تتبّع الطلب",
   "accountSoon": "قريبًا",
   "authTitle": "تسجيل الدخول",
   "authSubtitle": "أدخل رقم جوالك وسنرسل لك رمز تحقق.",
@@ -753,19 +812,18 @@
   "brandsTitle": "كل الماركات",
   "cartItemUnreachable": "هذا المنتج لا يمكن توصيله إلى موقعك حاليًا",
   "driftTitle": "يبدو أنك في مكان جديد",
-  "driftBody": "موقعك الحالي: {here}\nعنوان التوصيل المحدد: {saved}",
-  "driftUseHere": "وصّلوا لموقعي الحالي",
-  "driftKeep": "إبقاء العنوان المحدد",
-  "@driftBody": {
+  "driftAdjustHint": "حرّك الخريطة حتى يستقر المؤشّر على مكانك بالضبط.",
+  "driftSavedNow": "نوصّل حاليًا إلى: {saved}",
+  "@driftSavedNow": {
     "placeholders": {
-      "here": {
-        "type": "String"
-      },
       "saved": {
         "type": "String"
       }
     }
   },
+  "driftUseHere": "وصّلوا إلى هذا الموقع",
+  "driftSaveAsNew": "حفظه كعنوان جديد",
+  "driftKeep": "إبقاء العنوان المحدد",
   "familyTitle": "عائلة زوبوكسي",
   "familyTagline": "كل طلب يقرّبك من هدية لصديقك",
   "familyGuestTitle": "انضم إلى عائلة زوبوكسي",
@@ -1678,5 +1736,42 @@
   "liveTrackAssigning": "جارٍ تحديد مندوب توصيل لطلبك",
   "liveTrackStillSearching": "نواصل البحث عن مندوب لك",
   "liveTrackAssignHint": "نبحث بين المندوبين القريبين. ننبّهك فور تحديد المندوب.",
-  "liveBarSearching": "جارٍ تحديد مندوب"
+  "liveBarSearching": "جارٍ تحديد مندوب",
+  "expressSearchHint1": "رويال كانين",
+  "expressSearchHint2": "رمل قطط",
+  "expressSearchHint3": "ويسكاس",
+  "expressSearchHint4": "مكافآت",
+  "expressSearchPrefix": "ابحث: {example}",
+  "@expressSearchPrefix": {
+    "placeholders": { "example": { "type": "String" } }
+  },
+  "searchBought": "اشتريته سابقاً",
+  "searchBoughtDays": "{count, plural, =0{اليوم} =1{أمس} =2{قبل يومين} few{قبل {count} أيام} many{قبل {count} يومًا} other{قبل {count} يوم}}",
+  "@searchBoughtDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cartExpressFreeRemaining": "باقي {amount} لتوصيل سريع مجاني",
+  "@cartExpressFreeRemaining": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "cartExpressFreeQualified": "توصيلك السريع مجاني",
+  "closingOrderWithin": "اطلب خلال",
+  "homeNeedsTitle": "تحتاج الآن؟",
+  "replenishTitle": "طعام {pet} يكفي",
+  "@replenishTitle": {
+    "placeholders": { "pet": { "type": "String" } }
+  },
+  "replenishTitleNoPet": "يكفي",
+  "replenishDays": "{count, plural, =0{انتهى} =1{يوماً واحداً} =2{يومين} few{{count} أيام} many{{count} يومًا} other{{count} يوم}}",
+  "@replenishDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "replenishOut": "خلص طعام {pet}",
+  "@replenishOut": {
+    "placeholders": { "pet": { "type": "String" } }
+  },
+  "replenishOutNoPet": "خلص",
+  "replenishCta": "أعد الطلب إكسبريس",
+  "replenishArrives": "يوصلك خلال ساعتين",
+  "replenishCtaPlain": "أعد الطلب"
 }

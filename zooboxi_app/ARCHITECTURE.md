@@ -250,13 +250,24 @@ immediately on app resume.
   token comes from the server and opens one session against one invoice. That
   is what keeps PCI scope off the mobile build while still looking native.
   Wallets stay on the hosted page, because Apple Pay needs the real browser.
-- **No Firebase.** Push lands in phase 2.
+- **Firebase, for push only.** `firebase_core` + `firebase_messaging`, and
+  nothing else from the suite. The app is built to run *without* it: no
+  `GoogleService-Info.plist` means `PushService.available` stays false and the
+  feature folds away — see `core/notifications/push_service.dart`. The
+  scheduled program reminders stay local on purpose; a date the phone already
+  knows should not need a server that morning.
 - **HTML descriptions are stripped, not rendered.** `_Description` on the
   product page decodes entities and drops tags. A real renderer can drop in
   later; a wall of markup was the worse option today.
-- **Bundle ids are the generated ones** (`com.zooboxi.zooboxi_app`). The plan
-  names `com.zooboxi.store`; change both platforms *before* the first store
-  upload, since an application id cannot be changed once published.
+- **Bundle id is `com.zooboxi.app`** on both platforms (2026-09-09).
+  `com.zooboxi.store` — the name the plan used and every build up to 14 —
+  turned out to be registered to an Apple account that is not ours, and an App
+  ID cannot be shared or reclaimed. It was changed before the first upload,
+  which is the only moment it is free to change. The Android Kotlin package
+  stays `com.zooboxi.zooboxi_app`: it is a source namespace, not an identity,
+  and renaming it buys nothing. The staged Apple Pay merchant id
+  (`merchant.com.zooboxi.store`) is a different namespace, is registered to us,
+  and is deliberately left alone.
 
 ---
 

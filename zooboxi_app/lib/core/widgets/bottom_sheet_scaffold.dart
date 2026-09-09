@@ -88,16 +88,23 @@ class BottomSheetScaffold extends StatelessWidget {
 
 /// Opens a sheet with the app's standard presentation. Scrolling is controlled
 /// so a tall sheet (facets, cities) can still grow with the keyboard.
+///
+/// [enableDrag] exists for the sheets that carry a **map**: dragging the tiles
+/// and dragging the sheet are the same gesture, and a customer nudging a pin
+/// southward would throw the sheet off the bottom of the screen. Those sheets
+/// close by their own button instead.
 Future<T?> showZbSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   bool isScrollControlled = true,
   bool isDismissible = true,
+  bool enableDrag = true,
 }) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
     isDismissible: isDismissible,
+    enableDrag: enableDrag,
     useSafeArea: true,
     builder: builder,
   );

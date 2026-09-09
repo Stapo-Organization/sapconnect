@@ -8,6 +8,11 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      guard settings.authorizationStatus == .authorized
+              || settings.authorizationStatus == .provisional else { return }
+      DispatchQueue.main.async { application.registerForRemoteNotifications() }
+    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -43,13 +48,24 @@ import UserNotifications
       case "request":
         UNUserNotificationCenter.current()
           .requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
-            DispatchQueue.main.async { result(granted) }
+            DispatchQueue.main.async {
+              // The permission is only half of push: without this the device
+              // never gets an APNs token, Firebase never mints an FCM one, and
+              // the store registers a customer it can never reach. Local
+              // reminders worked without it, which is exactly why its absence
+              // would have gone unnoticed.
+              if granted {
+                UIApplication.shared.registerForRemoteNotifications()
+              }
+              result(granted)
+            }
           }
       case "sync":
         // Replace every scheduled program reminder («عدّاد الأكل», the
         // subscription date, a pet's birthday) with the list the store just
-        // computed. Local notifications only — there is no push server, and
-        // the dates are known days ahead, so the phone can carry them itself.
+        // computed. These stay *local* even now that push exists: the dates
+        // are known days ahead, and a reminder the phone can carry itself
+        // should never depend on a server being reachable that morning.
         let center = UNUserNotificationCenter.current()
         let args = call.arguments as? [String: Any]
         let items = args?["items"] as? [[String: Any]] ?? []

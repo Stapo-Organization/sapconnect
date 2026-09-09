@@ -18,8 +18,13 @@ class OrdersRepository {
 
   final ApiClient _api;
 
-  Future<OrdersPage> orders({int page = 1}) async =>
-      OrdersPage.fromJson(asMap(await _api.get('/orders', query: {'page': page})));
+  /// One page of history. [status] is the store's filter group — `active`,
+  /// `completed`, `cancelled` — or null for everything.
+  Future<OrdersPage> orders({int page = 1, String? status}) async =>
+      OrdersPage.fromJson(asMap(await _api.get('/orders', query: {
+        'page': page,
+        'status': ?status,
+      })));
 
   Future<OrderDetail> order(int id) async =>
       OrderDetail.fromJson(asMap(await _api.get('/orders/$id')));
@@ -58,14 +63,23 @@ class OrdersRepository {
 final ordersRepositoryProvider =
     Provider<OrdersRepository>((ref) => OrdersRepository(ref.watch(apiClientProvider)));
 
-/// First page of the order history. Guests have none — the provider resolves
-/// empty rather than firing a call that would 401.
-final ordersProvider = FutureProvider.autoDispose<OrdersPage>((ref) {
-  if (!ref.watch(isAuthenticatedProvider)) {
-    return Future.value(const OrdersPage());
-  }
-  return ref.watch(ordersRepositoryProvider).orders();
-});
+/// Bumped whenever something OUTSIDE «طلباتي» changed an order: a checkout
+/// landing, a payment settling, a payment abandoned.
+///
+/// The list is imperative paging — local state that no provider refreshes —
+/// and it cannot learn of those from the navigator: every one of those screens
+/// leaves by `pushReplacement` or `go`, which drop the pushed route's completer
+/// without ever completing it, so a `.then` on the push never fires. A revision
+/// survives all of that, and refreshes the list only when something actually
+/// happened rather than on every trip back.
+class OrdersRevision extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
+}
+
+final ordersRevisionProvider = NotifierProvider<OrdersRevision, int>(OrdersRevision.new);
 
 final orderDetailProvider = FutureProvider.autoDispose.family<OrderDetail, int>(
   (ref, id) => ref.watch(ordersRepositoryProvider).order(id),

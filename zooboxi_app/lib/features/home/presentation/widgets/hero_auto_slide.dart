@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
@@ -30,52 +31,118 @@ class AutoSlideSkin {
     required this.fg,
     required this.muted,
     required this.accent,
+    this.bloom,
   });
 
   final LinearGradient gradient;
   final Color fg;
   final Color muted;
 
+  /// The colour a photograph is darkened with so white type holds over it —
+  /// the field's own first stop, so the scrim reads as this slide's shadow
+  /// rather than as a grey sheet dropped on someone's photograph.
+  Color get scrim => gradient.colors.first;
+
   /// The deep theme color used for strokes on *white* — the badge text, the
   /// bolt inside its disc.
   final Color accent;
+
+  /// A light source inside the panel, over the goods.
+  ///
+  /// A flat two-stop wash is what made these fields look dead: the colour was
+  /// there, but nothing in the picture was LIT. This is the lamp — a hot spot
+  /// where the products sit, falling off to nothing before it reaches the
+  /// copy, so the type keeps its deep ground while the goods glow.
+  final RadialGradient? bloom;
 
   static AutoSlideSkin of(BuildContext context, String? theme) {
     final zb = context.zb;
     final dark = context.isDark;
     final onDark = dark ? ZbTokens.inkDark : Colors.white;
 
-    /// Deep field → the same field, one step deeper. Every canvas in this
-    /// carousel is dark by construction: the header (white location, white
-    /// search, white tabs) floats on top of whichever slide is showing.
-    AutoSlideSkin skin(Color from, Color to, Color accent) => AutoSlideSkin(
-          gradient: LinearGradient(
-            begin: AlignmentDirectional.topStart,
-            end: AlignmentDirectional.bottomEnd,
-            colors: dark ? [ZbTokens.graphiteHigh, from] : [from, to],
-          ),
-          fg: onDark,
-          muted: onDark.withValues(alpha: 0.82),
-          accent: accent,
-        );
+    /// A field in three stops: a deep ground where the copy sits, the hue at
+    /// full strength through the middle, and a hot end under the goods.
+    ///
+    /// Two stops could only ever be one colour twice, which is why every slide
+    /// used to look like the last one in a different tint. The third stop is
+    /// where the life is — and it is placed at the far end on purpose, because
+    /// white type lives at the start and needs the ground kept dark.
+    ///
+    /// [begin]/[end] carry the light's direction: a diagonal, a rise from the
+    /// bottom and a straight fall are three different pictures even before the
+    /// colours differ.
+    AutoSlideSkin skin(
+      Color ground,
+      Color hue,
+      Color hot,
+      Color accent, {
+      AlignmentGeometry begin = AlignmentDirectional.topStart,
+      AlignmentGeometry end = AlignmentDirectional.bottomEnd,
+    }) {
+      // Dark mode keeps the same three colours rather than collapsing to
+      // graphite: a night theme is a darker room, not a colourless one.
+      Color night(Color c) => Color.lerp(c, ZbTokens.graphite, 0.42)!;
+
+      return AutoSlideSkin(
+        gradient: LinearGradient(
+          begin: begin,
+          end: end,
+          colors: dark
+              ? [night(ground), night(hue), night(hot)]
+              : [ground, hue, hot],
+          stops: const [0.0, 0.60, 1.0],
+        ),
+        fg: onDark,
+        muted: onDark.withValues(alpha: 0.84),
+        accent: accent,
+        bloom: RadialGradient(
+          // Over the goods, which live on the end side of every layout.
+          center: AlignmentDirectional.centerEnd.resolve(Directionality.of(context)),
+          radius: 0.72,
+          colors: [
+            hot.withValues(alpha: dark ? 0.30 : 0.42),
+            hot.withValues(alpha: 0.0),
+          ],
+          stops: const [0.0, 1.0],
+        ),
+      );
+    }
 
     return switch (theme) {
-      // ── إكسبريس: the branch, in teal. Bright, electric, close by. ──
+      // ── إكسبريس: the branch. Teal is the storefront, so the family stays
+      //    teal — but at full voltage, and spread from deep water to an
+      //    electric turquoise no other slide in the app uses. ──
       // The clock slide is the storefront's own promise, so it wears the
-      // deepest teal — the colour the promise chip has always used.
-      'express' || 'express_clock' => skin(ZbTokens.tealDeep, ZbTokens.tealDark, ZbTokens.tealDeep),
-      'express_top' => skin(ZbTokens.tealDark, ZbTokens.teal, ZbTokens.tealDeep),
-      'express_new' => skin(ZbTokens.teal, ZbTokens.tealDark, ZbTokens.tealDeep),
+      // deepest ground and the brightest end: the two-hour promise, lit.
+      'express' || 'express_clock' => skin(
+          const Color(0xFF07344A), const Color(0xFF0E7C80), const Color(0xFF23DEBB), ZbTokens.tealDeep),
+      // The shelf, lit from below — a full aisle, green and awake.
+      'express_top' => skin(
+          const Color(0xFF06333A), const Color(0xFF0E8A78), const Color(0xFF54EAA6), ZbTokens.tealDeep,
+          begin: AlignmentDirectional.bottomStart, end: AlignmentDirectional.topEnd),
+      // What just landed: cyan falling straight down onto the new stock.
+      'express_new' => skin(
+          const Color(0xFF072C42), const Color(0xFF10809C), const Color(0xFF41E6DC), ZbTokens.tealDeep,
+          begin: AlignmentDirectional.centerStart, end: AlignmentDirectional.centerEnd),
       // Closing time is an evening: the teal cools into the night.
-      'express_hours' => skin(ZbTokens.tealDeep, ZbTokens.graphiteHighest, ZbTokens.tealDeep),
+      'express_hours' => skin(
+          const Color(0xFF06222E), const Color(0xFF0E5F6B), const Color(0xFF17A9A0), ZbTokens.tealDeep),
 
       // ── زوبكسي: the main store, in the warm half of the palette. Nothing
       //    here is teal, so the two sliders never read as the same shop. ──
-      // The cutoff is a deadline, not a discount: deep green-ink, amber pill.
-      'cutoff' => skin(ZbTokens.ink, ZbTokens.graphiteHighest, ZbTokens.orange),
-      'bundles' => skin(ZbTokens.coral, ZbTokens.orange, ZbTokens.coralDark),
-      'clearance' => skin(ZbTokens.coralDark, ZbTokens.coral, ZbTokens.coralDark),
-      'newin' => skin(ZbTokens.graphite, ZbTokens.orange, ZbTokens.orange),
+      // The cut-off is a deadline: wine, through fire, into full amber.
+      'cutoff' => skin(
+          const Color(0xFF2A0D18), const Color(0xFFB33B1B), const Color(0xFFF7A81B), ZbTokens.orange),
+      // Bundles are the generous one: plum rising through vermilion to marigold.
+      'bundles' => skin(
+          const Color(0xFF3D0722), const Color(0xFFD6421F), const Color(0xFFFFA424), ZbTokens.coralDark,
+          begin: AlignmentDirectional.bottomStart, end: AlignmentDirectional.topEnd),
+      // Clearance is the last of something, and it should shout: crimson into
+      // hot pink, the loudest field in the app and the only one that gets it.
+      'clearance' => skin(
+          const Color(0xFF230717), const Color(0xFFC4123F), const Color(0xFFFF5E7A), ZbTokens.coralDark),
+      'newin' => skin(
+          const Color(0xFF14261C), const Color(0xFF3F8F4A), const Color(0xFFC9D93F), ZbTokens.orange),
 
       // A brand slide belongs to the brand: a deep neutral stage, the logo on
       // its own white tile carrying the identity — the same reason the brand
@@ -152,25 +219,76 @@ class HeroAutoCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (!flush) DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
-          // The two storefronts are not the same shop, so they are not the
-          // same ground either: زوبكسي sits in a calm ring, إكسبريس in the
-          // streaks of something moving.
-          if (express)
-            _SpeedLayer(fg: skin.fg, slideHeight: h)
-          else
-            _DecorLayer(fg: skin.fg, slideHeight: h),
+          // The light over the goods. Painted inside the slide rather than on
+          // the canvas gradient, because it belongs to the composition — the
+          // status strip above has no products to light.
+          if (!slide.hasArt && skin.bloom != null)
+            DecoratedBox(decoration: BoxDecoration(gradient: skin.bloom)),
 
-          // …and on that ground, the composition this subject deserves.
-          HeroSlideBody(
-            slide: slide,
-            skin: skin,
-            live: live,
-            title: title,
-            badge: badge,
-            height: h,
-            compact: compact,
-            now: now,
-          ),
+          // The artwork, when sapconnect has generated one for this subject:
+          // a real advertising scene built around the same products the slide
+          // is about. It replaces the drawn ground entirely.
+          if (slide.hasArt) ...[
+            // Straight to the image widget, not through ZbImage: that one
+            // centres its child in loose constraints, which quietly turns a
+            // `cover` into a `contain` — the banner then sits as a small card
+            // in the middle of a coloured field, which is exactly what it did.
+            Positioned.fill(
+              child: CachedNetworkImage(
+                imageUrl: slide.art!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                fadeInDuration: const Duration(milliseconds: 240),
+                // Until it lands (and if it never does) the slide keeps the
+                // field it was always drawn on.
+                placeholder: (_, _) =>
+                    DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
+                errorWidget: (_, _, _) =>
+                    DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
+              ),
+            ),
+            // A baked banner carries its own copy and needs no help; a stage
+            // gets a scrim on the reading side so white type holds over
+            // whatever the model put there.
+            if (!slide.artIsBaked)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: AlignmentDirectional.centerStart,
+                      end: AlignmentDirectional.centerEnd,
+                      colors: [
+                        skin.scrim.withValues(alpha: 0.92),
+                        skin.scrim.withValues(alpha: 0.62),
+                        skin.scrim.withValues(alpha: 0.10),
+                      ],
+                      stops: const [0.0, 0.42, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+          ] else
+            // No art: the two storefronts are not the same shop, so they are
+            // not the same ground either — زوبكسي sits in a calm ring,
+            // إكسبريس in the streaks of something moving.
+            express
+                ? _SpeedLayer(fg: skin.fg, slideHeight: h)
+                : _DecorLayer(fg: skin.fg, slideHeight: h),
+
+          // …and on that ground, the composition this subject deserves —
+          // unless the picture is already the whole design.
+          if (!slide.artIsBaked)
+            HeroSlideBody(
+              slide: slide,
+              skin: skin,
+              live: live,
+              title: title,
+              badge: badge,
+              height: h,
+              compact: compact,
+              now: now,
+            ),
         ],
       );
     });

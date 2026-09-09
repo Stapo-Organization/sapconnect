@@ -10,6 +10,7 @@ import '../../../core/utils/haptics.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../checkout/data/checkout_models.dart';
 import '../../checkout/data/checkout_repository.dart';
+import '../../orders/data/orders_repository.dart';
 import '../data/native_payment_flow.dart';
 import '../data/payment_service.dart';
 import 'widgets/card_payment_panel.dart';
@@ -330,6 +331,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen>
     _poll = null;
     _native.dispose();
     _settled = true;
+    // Walking away from a gateway can leave the order `failed`, and this
+    // screen never pops — it replaces — so «طلباتي» has no other way to hear
+    // about it.
+    ref.read(ordersRevisionProvider.notifier).bump();
     context.pushReplacement('/orders/${widget.order.orderId}');
   }
 

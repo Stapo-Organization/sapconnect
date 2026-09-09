@@ -1843,6 +1843,60 @@ abstract class L {
   /// **'أول طلب لك سيظهر هنا مع تتبّع لحظي.'**
   String get ordersEmptyHint;
 
+  /// No description provided for @ordersFilterAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get ordersFilterAll;
+
+  /// No description provided for @ordersFilterActive.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارية'**
+  String get ordersFilterActive;
+
+  /// No description provided for @ordersFilterCompleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكتملة'**
+  String get ordersFilterCompleted;
+
+  /// No description provided for @ordersFilterCancelled.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملغاة'**
+  String get ordersFilterCancelled;
+
+  /// No description provided for @ordersEmptyFiltered.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا طلبات في هذا القسم'**
+  String get ordersEmptyFiltered;
+
+  /// No description provided for @ordersEmptyFilteredHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'بقية طلباتك موجودة في الأقسام الأخرى.'**
+  String get ordersEmptyFilteredHint;
+
+  /// No description provided for @ordersThisMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا الشهر'**
+  String get ordersThisMonth;
+
+  /// No description provided for @ordersMonthYear.
+  ///
+  /// In ar, this message translates to:
+  /// **'{month} {year}'**
+  String ordersMonthYear(String month, String year);
+
+  /// No description provided for @ordersMorePhotos.
+  ///
+  /// In ar, this message translates to:
+  /// **'+{count}'**
+  String ordersMorePhotos(int count);
+
   /// No description provided for @orderDetailTitle.
   ///
   /// In ar, this message translates to:
@@ -2016,6 +2070,54 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'موقعي الحالي'**
   String get addressPinUseGps;
+
+  /// No description provided for @mapZoomIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'تكبير الخريطة'**
+  String get mapZoomIn;
+
+  /// No description provided for @mapStyleSatellite.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض القمر الصناعي'**
+  String get mapStyleSatellite;
+
+  /// No description provided for @mapStyleStreets.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض الخريطة'**
+  String get mapStyleStreets;
+
+  /// No description provided for @mapZoomOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصغير الخريطة'**
+  String get mapZoomOut;
+
+  /// No description provided for @pinPlaceLoading.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تحديد العنوان…'**
+  String get pinPlaceLoading;
+
+  /// No description provided for @pinPlaceUnnamed.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقع بلا اسم'**
+  String get pinPlaceUnnamed;
+
+  /// No description provided for @pinPlaceUnnamedHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا بأس — المؤشّر نفسه هو العنوان الذي يصل إليه المندوب.'**
+  String get pinPlaceUnnamedHint;
+
+  /// No description provided for @pinPlaceOutOfRange.
+  ///
+  /// In ar, this message translates to:
+  /// **'خارج نطاق التوصيل حاليًا'**
+  String get pinPlaceOutOfRange;
 
   /// No description provided for @addressResolving.
   ///
@@ -2353,6 +2455,156 @@ abstract class L {
   /// **'الملف الشخصي'**
   String get accountProfile;
 
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإشعارات'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر ما يستحق أن يقاطعك.'**
+  String get notificationsSubtitle;
+
+  /// No description provided for @notificationsOff.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإشعارات موقوفة من إعدادات الجهاز'**
+  String get notificationsOff;
+
+  /// No description provided for @notificationsOffBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'فعّلها من إعدادات iPhone ← الإشعارات ← Zooboxi لتصلك تحديثات طلبك.'**
+  String get notificationsOffBody;
+
+  /// No description provided for @notificationsAllow.
+  ///
+  /// In ar, this message translates to:
+  /// **'السماح بالإشعارات'**
+  String get notificationsAllow;
+
+  /// No description provided for @notificationsOpenSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح الإعدادات'**
+  String get notificationsOpenSettings;
+
+  /// No description provided for @notificationsUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإشعارات الفورية غير مفعّلة في هذه النسخة'**
+  String get notificationsUnavailable;
+
+  /// No description provided for @notificationsSilent.
+  ///
+  /// In ar, this message translates to:
+  /// **'أوقفت كل الإشعارات — لن نرسل لك شيئًا، حتى تحديثات الطلب.'**
+  String get notificationsSilent;
+
+  /// No description provided for @notificationsOrders.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديثات الطلب'**
+  String get notificationsOrders;
+
+  /// No description provided for @notificationsOrdersBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'استلمنا طلبك، جاهز، في الطريق، وصل.'**
+  String get notificationsOrdersBody;
+
+  /// No description provided for @notificationsOffers.
+  ///
+  /// In ar, this message translates to:
+  /// **'العروض والتخفيضات'**
+  String get notificationsOffers;
+
+  /// No description provided for @notificationsOffersBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'انخفاض أسعار منتجاتك والبكجات الجديدة.'**
+  String get notificationsOffersBody;
+
+  /// No description provided for @notificationsReorder.
+  ///
+  /// In ar, this message translates to:
+  /// **'تذكير إعادة الطلب'**
+  String get notificationsReorder;
+
+  /// No description provided for @notificationsReorderBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'قبل أن ينفد طعام صديقك بأيام.'**
+  String get notificationsReorderBody;
+
+  /// No description provided for @notificationsFamily.
+  ///
+  /// In ar, this message translates to:
+  /// **'عائلة زوبوكسي'**
+  String get notificationsFamily;
+
+  /// No description provided for @notificationsFamilyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'هدية جاهزة، بصمات جديدة، أو عيد ميلاد قريب.'**
+  String get notificationsFamilyBody;
+
+  /// No description provided for @notificationsSaveFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حفظ التفضيلات'**
+  String get notificationsSaveFailed;
+
+  /// No description provided for @accountStatOrders.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب'**
+  String get accountStatOrders;
+
+  /// No description provided for @accountStatPaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصمة'**
+  String get accountStatPaws;
+
+  /// No description provided for @accountStatPets.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصدقائي'**
+  String get accountStatPets;
+
+  /// No description provided for @accountTierProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{طلب واحد يفصلك عن {tier}} =2{طلبان يفصلانك عن {tier}} other{{count} طلبات تفصلك عن {tier}}}'**
+  String accountTierProgress(num count, String tier);
+
+  /// No description provided for @accountShortcuts.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختصارات'**
+  String get accountShortcuts;
+
+  /// No description provided for @accountBuyAgainShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشترياتي'**
+  String get accountBuyAgainShort;
+
+  /// No description provided for @accountActiveOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك في الطريق'**
+  String get accountActiveOrder;
+
+  /// No description provided for @accountActiveOrderCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتبّع الطلب'**
+  String get accountActiveOrderCta;
+
   /// No description provided for @accountSoon.
   ///
   /// In ar, this message translates to:
@@ -2557,17 +2809,29 @@ abstract class L {
   /// **'يبدو أنك في مكان جديد'**
   String get driftTitle;
 
-  /// No description provided for @driftBody.
+  /// No description provided for @driftAdjustHint.
   ///
   /// In ar, this message translates to:
-  /// **'موقعك الحالي: {here}\nعنوان التوصيل المحدد: {saved}'**
-  String driftBody(String here, String saved);
+  /// **'حرّك الخريطة حتى يستقر المؤشّر على مكانك بالضبط.'**
+  String get driftAdjustHint;
+
+  /// No description provided for @driftSavedNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوصّل حاليًا إلى: {saved}'**
+  String driftSavedNow(String saved);
 
   /// No description provided for @driftUseHere.
   ///
   /// In ar, this message translates to:
-  /// **'وصّلوا لموقعي الحالي'**
+  /// **'وصّلوا إلى هذا الموقع'**
   String get driftUseHere;
+
+  /// No description provided for @driftSaveAsNew.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظه كعنوان جديد'**
+  String get driftSaveAsNew;
 
   /// No description provided for @driftKeep.
   ///
@@ -4896,6 +5160,120 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'جارٍ تحديد مندوب'**
   String get liveBarSearching;
+
+  /// No description provided for @expressSearchHint1.
+  ///
+  /// In ar, this message translates to:
+  /// **'رويال كانين'**
+  String get expressSearchHint1;
+
+  /// No description provided for @expressSearchHint2.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمل قطط'**
+  String get expressSearchHint2;
+
+  /// No description provided for @expressSearchHint3.
+  ///
+  /// In ar, this message translates to:
+  /// **'ويسكاس'**
+  String get expressSearchHint3;
+
+  /// No description provided for @expressSearchHint4.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآت'**
+  String get expressSearchHint4;
+
+  /// No description provided for @expressSearchPrefix.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابحث: {example}'**
+  String expressSearchPrefix(String example);
+
+  /// No description provided for @searchBought.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشتريته سابقاً'**
+  String get searchBought;
+
+  /// No description provided for @searchBoughtDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{اليوم} =1{أمس} =2{قبل يومين} few{قبل {count} أيام} many{قبل {count} يومًا} other{قبل {count} يوم}}'**
+  String searchBoughtDays(int count);
+
+  /// No description provided for @cartExpressFreeRemaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'باقي {amount} لتوصيل سريع مجاني'**
+  String cartExpressFreeRemaining(String amount);
+
+  /// No description provided for @cartExpressFreeQualified.
+  ///
+  /// In ar, this message translates to:
+  /// **'توصيلك السريع مجاني'**
+  String get cartExpressFreeQualified;
+
+  /// No description provided for @closingOrderWithin.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب خلال'**
+  String get closingOrderWithin;
+
+  /// No description provided for @homeNeedsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحتاج الآن؟'**
+  String get homeNeedsTitle;
+
+  /// No description provided for @replenishTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعام {pet} يكفي'**
+  String replenishTitle(String pet);
+
+  /// No description provided for @replenishTitleNoPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'يكفي'**
+  String get replenishTitleNoPet;
+
+  /// No description provided for @replenishDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{انتهى} =1{يوماً واحداً} =2{يومين} few{{count} أيام} many{{count} يومًا} other{{count} يوم}}'**
+  String replenishDays(int count);
+
+  /// No description provided for @replenishOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلص طعام {pet}'**
+  String replenishOut(String pet);
+
+  /// No description provided for @replenishOutNoPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'خلص'**
+  String get replenishOutNoPet;
+
+  /// No description provided for @replenishCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'أعد الطلب إكسبريس'**
+  String get replenishCta;
+
+  /// No description provided for @replenishArrives.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوصلك خلال ساعتين'**
+  String get replenishArrives;
+
+  /// No description provided for @replenishCtaPlain.
+  ///
+  /// In ar, this message translates to:
+  /// **'أعد الطلب'**
+  String get replenishCtaPlain;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -58,11 +59,11 @@ String? autoSlideRoute(HeroSlide slide) {
     // in a nearby warehouse to the top, which *is* the express promise.
     'express' || 'express_clock' || 'express_hours' || 'cutoff' => listing(),
     'brand' => switch (ZbLink.fromUrl(slide.linkUrl)) {
-        ZbLink(type: 'brand', :final value) => brandLocation(value, title: title),
-        // A brand slide whose link the server didn't spell as a brand archive
-        // still has a headline worth honouring.
-        _ => listing(),
-      },
+      ZbLink(type: 'brand', :final value) => brandLocation(value, title: title),
+      // A brand slide whose link the server didn't spell as a brand archive
+      // still has a headline worth honouring.
+      _ => listing(),
+    },
     _ => null,
   };
 }
@@ -91,7 +92,10 @@ abstract final class HeroMetrics {
 
   static double height(BuildContext context, double width) {
     final factor =
-        MediaQuery.textScalerOf(context).clamp(maxScaleFactor: maxTextScale).scale(16) / 16;
+        MediaQuery.textScalerOf(
+          context,
+        ).clamp(maxScaleFactor: maxTextScale).scale(16) /
+        16;
     return width / aspect + (factor - 1) * scaleHeadroom;
   }
 }
@@ -107,7 +111,12 @@ abstract final class HeroMetrics {
 /// page reserves its exact height with an invisible twin — so the two can
 /// never drift apart, at any text size.
 class HeroCarousel extends ConsumerStatefulWidget {
-  const HeroCarousel({super.key, required this.slides, this.campaigns = const [], this.scope});
+  const HeroCarousel({
+    super.key,
+    required this.slides,
+    this.campaigns = const [],
+    this.scope,
+  });
 
   final List<HeroSlide> slides;
   final List<Campaign> campaigns;
@@ -124,10 +133,20 @@ class HeroCarousel extends ConsumerStatefulWidget {
   ConsumerState<HeroCarousel> createState() => _HeroCarouselState();
 }
 
-class _HeroCarouselState extends ConsumerState<HeroCarousel> {
+class _HeroCarouselState extends ConsumerState<HeroCarousel>
+    with WidgetsBindingObserver {
   late final PageController _controller = PageController();
   Timer? _autoplay;
   int _index = 0;
+
+  /// Whether the hero is actually on screen. Scrolled past the fold — or on the
+  /// storefront the customer just left — it keeps animating a page nobody can
+  /// see, and every sixth second costs a page transition, a rebuild and a
+  /// repaint while they are reading something else further down.
+  bool _visible = true;
+
+  /// Whether the app is in front of the customer at all.
+  bool _foreground = true;
 
   /// Item count the running autoplay timer was built for.
   int _autoplayCount = 0;
@@ -135,22 +154,43 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
   /// Manual banners first (they are bought and paid for), then live campaigns,
   /// then the slides the server composed to fill the gap.
   List<_HeroItem> get _items => [
-        for (final slide in widget.slides)
-          if (!slide.isAuto) _ManualItem(slide),
-        for (final campaign in heroCampaignsOf(widget.campaigns)) _CampaignItem(campaign),
-        // A composed slide is only true for a while: the payload is held for
-        // the life of this screen and read again off disk at launch, so the
-        // ones whose moment has passed leave rather than repeat themselves
-        // until the refresh lands.
-        for (final slide in widget.slides)
-          if (slide.isAuto && !heroSlideIsStale(slide, widget.scope)) _AutoItem(slide),
-      ];
+    for (final slide in widget.slides)
+      if (!slide.isAuto) _ManualItem(slide),
+    for (final campaign in heroCampaignsOf(widget.campaigns))
+      _CampaignItem(campaign),
+    // A composed slide is only true for a while: the payload is held for
+    // the life of this screen and read again off disk at launch, so the
+    // ones whose moment has passed leave rather than repeat themselves
+    // until the refresh lands.
+    for (final slide in widget.slides)
+      if (slide.isAuto && !heroSlideIsStale(slide, widget.scope))
+        _AutoItem(slide),
+  ];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startAutoplay();
     WidgetsBinding.instance.addPostFrameCallback((_) => _reportImpression(0));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final foreground = state == AppLifecycleState.resumed;
+    if (foreground == _foreground) return;
+    _foreground = foreground;
+    _startAutoplay();
+  }
+
+  /// Called by the visibility detector wrapped around the carousel.
+  void _onVisibility(double fraction) {
+    // Half on screen is the same threshold the campaign impression uses, so a
+    // slide that counts as "shown" is exactly a slide that is allowed to move.
+    final visible = fraction >= 0.5;
+    if (visible == _visible) return;
+    _visible = visible;
+    _startAutoplay();
   }
 
   @override
@@ -163,12 +203,15 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
     if (count != _autoplayCount) {
       if (_index >= count) _index = count == 0 ? 0 : count - 1;
       _startAutoplay();
-      WidgetsBinding.instance.addPostFrameCallback((_) => _reportImpression(_index));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _reportImpression(_index),
+      );
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoplay?.cancel();
     _controller.dispose();
     super.dispose();
@@ -179,6 +222,8 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
     _autoplay = null;
     _autoplayCount = _items.length;
     if (_autoplayCount < 2) return;
+    // Nothing turns by itself while nobody is looking.
+    if (!_visible || !_foreground) return;
 
     _autoplay = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!mounted || !_controller.hasClients) return;
@@ -186,7 +231,11 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
       if (MediaQuery.disableAnimationsOf(context)) return;
       final next = (_index + 1) % _items.length;
       unawaited(
-        _controller.animateToPage(next, duration: Motion.page, curve: Motion.emphasized),
+        _controller.animateToPage(
+          next,
+          duration: Motion.page,
+          curve: Motion.emphasized,
+        ),
       );
     });
   }
@@ -236,80 +285,95 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel> {
       );
     }
 
-    return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: HeroMetrics.maxTextScale,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
-        child: Stack(
-          children: [
-            // The panning layer: canvas color + slide content per page. It
-            // fills whatever height the fixed foreground column decides.
-            Positioned.fill(
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: items.length,
-                onPageChanged: (index) {
-                  setState(() => _index = index);
-                  _reportImpression(index);
-                },
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return DecoratedBox(
-                    decoration: BoxDecoration(gradient: item.canvas(context)),
-                    child: Column(
-                      children: [
-                        SizedBox(height: statusTop),
-                        // The invisible twin that reserves the header's exact
-                        // height inside the page — measurement by construction.
-                        const _HeaderGhost(),
-                        Expanded(
-                          child: PressScale(
-                            onTap: () => _open(item),
-                            child: switch (item) {
-                              _ManualItem(:final slide) => _ManualSlide(slide: slide),
-                              _CampaignItem(:final campaign) =>
-                                _CampaignSlide(campaign: campaign),
-                              _AutoItem(:final slide) =>
-                                HeroAutoCard(slide: slide, flush: true, scope: widget.scope),
-                            },
+    return VisibilityDetector(
+      // Keyed to this element, so the two storefronts alive during the 380ms
+      // crossing cannot collide on one key and report each other's fraction.
+      key: ValueKey('hero-${identityHashCode(this)}'),
+      onVisibilityChanged: (info) => _onVisibility(info.visibleFraction),
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: HeroMetrics.maxTextScale,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(28),
+          ),
+          child: Stack(
+            children: [
+              // The panning layer: canvas color + slide content per page. It
+              // fills whatever height the fixed foreground column decides.
+              Positioned.fill(
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: items.length,
+                  onPageChanged: (index) {
+                    setState(() => _index = index);
+                    _reportImpression(index);
+                  },
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return DecoratedBox(
+                      decoration: BoxDecoration(gradient: item.canvas(context)),
+                      child: Column(
+                        children: [
+                          SizedBox(height: statusTop),
+                          // The invisible twin that reserves the header's exact
+                          // height inside the page — measurement by construction.
+                          const _HeaderGhost(),
+                          Expanded(
+                            child: PressScale(
+                              onTap: () => _open(item),
+                              child: switch (item) {
+                                _ManualItem(:final slide) => _ManualSlide(
+                                  slide: slide,
+                                ),
+                                _CampaignItem(:final campaign) =>
+                                  _CampaignSlide(campaign: campaign),
+                                _AutoItem(:final slide) => HeroAutoCard(
+                                  slide: slide,
+                                  flush: true,
+                                  scope: widget.scope,
+                                ),
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: HeroMetrics.dotsBand),
-                      ],
-                    ),
-                  );
-                },
+                          const SizedBox(height: HeroMetrics.dotsBand),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
 
-            // The fixed foreground: status inset + the real header + the space
-            // the slides show through. Empty boxes are hit-test transparent,
-            // so swipes and slide taps fall straight through to the pages.
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: statusTop),
-                HomeHeader(onCanvas: true, scope: widget.scope),
-                SizedBox(height: HeroMetrics.height(context, width)),
-                const SizedBox(height: HeroMetrics.dotsBand),
-              ],
-            ),
-
-            if (items.length > 1)
-              PositionedDirectional(
-                start: 0,
-                end: 0,
-                bottom: 9,
-                child: _Dots(count: items.length, index: _index),
+              // The fixed foreground: status inset + the real header + the space
+              // the slides show through. Empty boxes are hit-test transparent,
+              // so swipes and slide taps fall straight through to the pages.
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: statusTop),
+                  HomeHeader(onCanvas: true, scope: widget.scope),
+                  SizedBox(height: HeroMetrics.height(context, width)),
+                  const SizedBox(height: HeroMetrics.dotsBand),
+                ],
               ),
-          ],
+
+              if (items.length > 1)
+                PositionedDirectional(
+                  start: 0,
+                  end: 0,
+                  bottom: 9,
+                  child: _Dots(count: items.length, index: _index),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   LinearGradient _canvasFallback(BuildContext context) => context.isDark
-      ? const LinearGradient(colors: [ZbTokens.tealContainerDark, ZbTokens.graphiteHigh])
+      ? const LinearGradient(
+          colors: [ZbTokens.tealContainerDark, ZbTokens.graphiteHigh],
+        )
       : const LinearGradient(colors: [ZbTokens.tealDeep, ZbTokens.tealDark]);
 }
 
@@ -416,8 +480,21 @@ class _AutoItem extends _HeroItem {
   String? get title => slide.title;
 
   @override
-  LinearGradient canvas(BuildContext context) =>
-      AutoSlideSkin.of(context, slide.theme).gradient;
+  LinearGradient canvas(BuildContext context) {
+    // A slide with generated art paints the WHOLE unit in the picture's own
+    // colour — status bar strip, header, dots. Without this the art arrives on
+    // the drawn field it replaced, and a teal photograph on a coral canvas
+    // reads as a banner pasted onto someone else's screen.
+    final tint = slide.tintColor;
+    if (tint != null) {
+      return LinearGradient(
+        begin: AlignmentDirectional.topStart,
+        end: AlignmentDirectional.bottomEnd,
+        colors: [tint, Color.lerp(tint, Colors.black, 0.28) ?? tint],
+      );
+    }
+    return AutoSlideSkin.of(context, slide.theme).gradient;
+  }
 }
 
 class _CampaignItem extends _HeroItem {
@@ -426,7 +503,8 @@ class _CampaignItem extends _HeroItem {
   final Campaign campaign;
 
   @override
-  ZbLink? get link => ZbLink.fromUrl(campaign.linkUrl, productId: campaign.productId);
+  ZbLink? get link =>
+      ZbLink.fromUrl(campaign.linkUrl, productId: campaign.productId);
 
   @override
   String? get title => campaign.headline;
@@ -447,12 +525,18 @@ class _ManualSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasCopy = (slide.title ?? '').isNotEmpty || (slide.subtitle ?? '').isNotEmpty;
+    final hasCopy =
+        (slide.title ?? '').isNotEmpty || (slide.subtitle ?? '').isNotEmpty;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        ZbImage(url: slide.bestImage, fit: BoxFit.cover, backgroundColor: Colors.transparent),
+        ZbImage(
+          url: slide.bestImage,
+          fit: BoxFit.cover,
+          backgroundColor: Colors.transparent,
+          decodeWidth: ZbDecode.hero,
+        ),
         if (hasCopy)
           DecoratedBox(
             decoration: BoxDecoration(
@@ -521,7 +605,10 @@ class _CampaignSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final panel = CampaignPanel.of(context, campaignType: campaign.campaignType);
+    final panel = CampaignPanel.of(
+      context,
+      campaignType: campaign.campaignType,
+    );
     final headline = campaign.headline;
     final subheadline = campaign.subheadline;
     final cta = campaign.cta;
@@ -532,7 +619,12 @@ class _CampaignSlide extends StatelessWidget {
       paintBackground: false,
       // The hero band is short by design (owner-tuned aspect); the copy's
       // vertical breathing room comes from centering, not from padding.
-      padding: const EdgeInsetsDirectional.only(start: 16, end: 12, top: 6, bottom: 6),
+      padding: const EdgeInsetsDirectional.only(
+        start: 16,
+        end: 12,
+        top: 6,
+        bottom: 6,
+      ),
       art: campaign.artFor(const ['app_hero', 'card', 'hero', 'wide']),
       copy: Column(
         mainAxisSize: MainAxisSize.min,
@@ -568,10 +660,7 @@ class _CampaignSlide extends StatelessWidget {
               ),
             ),
           ],
-          if ((cta ?? '').isNotEmpty) ...[
-            Gap.h12,
-            CampaignCta(label: cta!),
-          ],
+          if ((cta ?? '').isNotEmpty) ...[Gap.h12, CampaignCta(label: cta!)],
           Gap.h8,
           CampaignChipRow(
             campaign: campaign,

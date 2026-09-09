@@ -1099,6 +1099,37 @@ class LAr extends L {
   String get ordersEmptyHint => 'أول طلب لك سيظهر هنا مع تتبّع لحظي.';
 
   @override
+  String get ordersFilterAll => 'الكل';
+
+  @override
+  String get ordersFilterActive => 'جارية';
+
+  @override
+  String get ordersFilterCompleted => 'مكتملة';
+
+  @override
+  String get ordersFilterCancelled => 'ملغاة';
+
+  @override
+  String get ordersEmptyFiltered => 'لا طلبات في هذا القسم';
+
+  @override
+  String get ordersEmptyFilteredHint => 'بقية طلباتك موجودة في الأقسام الأخرى.';
+
+  @override
+  String get ordersThisMonth => 'هذا الشهر';
+
+  @override
+  String ordersMonthYear(String month, String year) {
+    return '$month $year';
+  }
+
+  @override
+  String ordersMorePhotos(int count) {
+    return '+$count';
+  }
+
+  @override
   String get orderDetailTitle => 'تفاصيل الطلب';
 
   @override
@@ -1205,6 +1236,31 @@ class LAr extends L {
 
   @override
   String get addressPinUseGps => 'موقعي الحالي';
+
+  @override
+  String get mapZoomIn => 'تكبير الخريطة';
+
+  @override
+  String get mapStyleSatellite => 'عرض القمر الصناعي';
+
+  @override
+  String get mapStyleStreets => 'عرض الخريطة';
+
+  @override
+  String get mapZoomOut => 'تصغير الخريطة';
+
+  @override
+  String get pinPlaceLoading => 'جارٍ تحديد العنوان…';
+
+  @override
+  String get pinPlaceUnnamed => 'موقع بلا اسم';
+
+  @override
+  String get pinPlaceUnnamedHint =>
+      'لا بأس — المؤشّر نفسه هو العنوان الذي يصل إليه المندوب.';
+
+  @override
+  String get pinPlaceOutOfRange => 'خارج نطاق التوصيل حاليًا';
 
   @override
   String get addressResolving => 'جارٍ تحديد الحي…';
@@ -1378,6 +1434,100 @@ class LAr extends L {
   String get accountProfile => 'الملف الشخصي';
 
   @override
+  String get notificationsTitle => 'الإشعارات';
+
+  @override
+  String get notificationsSubtitle => 'اختر ما يستحق أن يقاطعك.';
+
+  @override
+  String get notificationsOff => 'الإشعارات موقوفة من إعدادات الجهاز';
+
+  @override
+  String get notificationsOffBody =>
+      'فعّلها من إعدادات iPhone ← الإشعارات ← Zooboxi لتصلك تحديثات طلبك.';
+
+  @override
+  String get notificationsAllow => 'السماح بالإشعارات';
+
+  @override
+  String get notificationsOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get notificationsUnavailable =>
+      'الإشعارات الفورية غير مفعّلة في هذه النسخة';
+
+  @override
+  String get notificationsSilent =>
+      'أوقفت كل الإشعارات — لن نرسل لك شيئًا، حتى تحديثات الطلب.';
+
+  @override
+  String get notificationsOrders => 'تحديثات الطلب';
+
+  @override
+  String get notificationsOrdersBody => 'استلمنا طلبك، جاهز، في الطريق، وصل.';
+
+  @override
+  String get notificationsOffers => 'العروض والتخفيضات';
+
+  @override
+  String get notificationsOffersBody =>
+      'انخفاض أسعار منتجاتك والبكجات الجديدة.';
+
+  @override
+  String get notificationsReorder => 'تذكير إعادة الطلب';
+
+  @override
+  String get notificationsReorderBody => 'قبل أن ينفد طعام صديقك بأيام.';
+
+  @override
+  String get notificationsFamily => 'عائلة زوبوكسي';
+
+  @override
+  String get notificationsFamilyBody =>
+      'هدية جاهزة، بصمات جديدة، أو عيد ميلاد قريب.';
+
+  @override
+  String get notificationsSaveFailed => 'تعذّر حفظ التفضيلات';
+
+  @override
+  String get accountStatOrders => 'طلب';
+
+  @override
+  String get accountStatPaws => 'بصمة';
+
+  @override
+  String get accountStatPets => 'أصدقائي';
+
+  @override
+  String accountTierProgress(num count, String tier) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString طلبات تفصلك عن $tier',
+      two: 'طلبان يفصلانك عن $tier',
+      one: 'طلب واحد يفصلك عن $tier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountShortcuts => 'اختصارات';
+
+  @override
+  String get accountBuyAgainShort => 'مشترياتي';
+
+  @override
+  String get accountActiveOrder => 'طلبك في الطريق';
+
+  @override
+  String get accountActiveOrderCta => 'تتبّع الطلب';
+
+  @override
   String get accountSoon => 'قريبًا';
 
   @override
@@ -1503,12 +1653,19 @@ class LAr extends L {
   String get driftTitle => 'يبدو أنك في مكان جديد';
 
   @override
-  String driftBody(String here, String saved) {
-    return 'موقعك الحالي: $here\nعنوان التوصيل المحدد: $saved';
+  String get driftAdjustHint =>
+      'حرّك الخريطة حتى يستقر المؤشّر على مكانك بالضبط.';
+
+  @override
+  String driftSavedNow(String saved) {
+    return 'نوصّل حاليًا إلى: $saved';
   }
 
   @override
-  String get driftUseHere => 'وصّلوا لموقعي الحالي';
+  String get driftUseHere => 'وصّلوا إلى هذا الموقع';
+
+  @override
+  String get driftSaveAsNew => 'حفظه كعنوان جديد';
 
   @override
   String get driftKeep => 'إبقاء العنوان المحدد';
@@ -3103,4 +3260,93 @@ class LAr extends L {
 
   @override
   String get liveBarSearching => 'جارٍ تحديد مندوب';
+
+  @override
+  String get expressSearchHint1 => 'رويال كانين';
+
+  @override
+  String get expressSearchHint2 => 'رمل قطط';
+
+  @override
+  String get expressSearchHint3 => 'ويسكاس';
+
+  @override
+  String get expressSearchHint4 => 'مكافآت';
+
+  @override
+  String expressSearchPrefix(String example) {
+    return 'ابحث: $example';
+  }
+
+  @override
+  String get searchBought => 'اشتريته سابقاً';
+
+  @override
+  String searchBoughtDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قبل $count يوم',
+      many: 'قبل $count يومًا',
+      few: 'قبل $count أيام',
+      two: 'قبل يومين',
+      one: 'أمس',
+      zero: 'اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cartExpressFreeRemaining(String amount) {
+    return 'باقي $amount لتوصيل سريع مجاني';
+  }
+
+  @override
+  String get cartExpressFreeQualified => 'توصيلك السريع مجاني';
+
+  @override
+  String get closingOrderWithin => 'اطلب خلال';
+
+  @override
+  String get homeNeedsTitle => 'تحتاج الآن؟';
+
+  @override
+  String replenishTitle(String pet) {
+    return 'طعام $pet يكفي';
+  }
+
+  @override
+  String get replenishTitleNoPet => 'يكفي';
+
+  @override
+  String replenishDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوماً واحداً',
+      zero: 'انتهى',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String replenishOut(String pet) {
+    return 'خلص طعام $pet';
+  }
+
+  @override
+  String get replenishOutNoPet => 'خلص';
+
+  @override
+  String get replenishCta => 'أعد الطلب إكسبريس';
+
+  @override
+  String get replenishArrives => 'يوصلك خلال ساعتين';
+
+  @override
+  String get replenishCtaPlain => 'أعد الطلب';
 }

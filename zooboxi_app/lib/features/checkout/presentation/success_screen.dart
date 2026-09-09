@@ -50,7 +50,13 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
             },
           ),
         );
-    WidgetsBinding.instance.addPostFrameCallback((_) => Haptics.success());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Haptics.success();
+      // «طلباتي» is imperative paging, not a provider — this is how it learns
+      // that the order the customer just placed exists. After the frame:
+      // writing to a provider during initState is a build-phase mutation.
+      if (mounted) ref.read(ordersRevisionProvider.notifier).bump();
+    });
     // The order just moved the wallet and may have minted a card; whatever the
     // family hub had cached is now stale.
     invalidateLoyalty(ref);

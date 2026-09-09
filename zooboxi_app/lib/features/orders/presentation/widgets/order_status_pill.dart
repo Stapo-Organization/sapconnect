@@ -18,20 +18,7 @@ class OrderStatusPill extends StatelessWidget {
     final label = order.statusLabel;
     if (label == null || label.isEmpty) return const SizedBox.shrink();
 
-    final cs = context.cs;
-    final zb = context.zb;
-
-    final (fg, bg) = switch (order.status) {
-      'completed' => (zb.success, zb.success.withValues(alpha: 0.13)),
-      // Out for delivery is the furthest an order gets before it is over, so
-      // it carries the same colour as "ready" but at full container strength.
-      'zb-out-for-delivery' => (cs.primary, cs.primary.withValues(alpha: 0.20)),
-      'zb-ready' => (cs.primary, cs.primary.withValues(alpha: 0.13)),
-      'processing' => (cs.primary, cs.primary.withValues(alpha: 0.10)),
-      'pending' || 'on-hold' => (zb.warning, zb.warning.withValues(alpha: 0.15)),
-      'failed' || 'cancelled' || 'refunded' => (cs.error, cs.errorContainer.withValues(alpha: 0.5)),
-      _ => (cs.onSurfaceVariant, cs.surfaceContainerHigh),
-    };
+    final (fg, bg) = orderStatusColors(context, order.status);
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -52,4 +39,27 @@ class OrderStatusPill extends StatelessWidget {
       ),
     );
   }
+}
+
+/// What an order's state looks like: its ink and its ground.
+///
+/// Public because the orders list paints the same meaning twice — as this pill,
+/// and as the rail down the card's reading edge — and two switch statements
+/// over WooCommerce statuses would drift apart the first time one gained a
+/// status the other did not.
+(Color fg, Color bg) orderStatusColors(BuildContext context, String status) {
+  final cs = context.cs;
+  final zb = context.zb;
+
+  return switch (status) {
+    'completed' => (zb.success, zb.success.withValues(alpha: 0.13)),
+    // Out for delivery is the furthest an order gets before it is over, so
+    // it carries the same colour as "ready" but at full container strength.
+    'zb-out-for-delivery' => (cs.primary, cs.primary.withValues(alpha: 0.20)),
+    'zb-ready' => (cs.primary, cs.primary.withValues(alpha: 0.13)),
+    'processing' => (cs.primary, cs.primary.withValues(alpha: 0.10)),
+    'pending' || 'on-hold' => (zb.warning, zb.warning.withValues(alpha: 0.15)),
+    'failed' || 'cancelled' || 'refunded' => (cs.error, cs.errorContainer.withValues(alpha: 0.5)),
+    _ => (cs.onSurfaceVariant, cs.surfaceContainerHigh),
+  };
 }

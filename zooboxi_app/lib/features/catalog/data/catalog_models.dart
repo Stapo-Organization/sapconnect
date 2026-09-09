@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
@@ -59,6 +61,9 @@ class HeroSlide {
     this.productImages = const [],
     this.badge,
     this.value,
+    this.art,
+    this.artMode,
+    this.artTint,
   });
 
   /// `manual` — an uploaded banner image. `auto` — a slide the server composed
@@ -95,6 +100,33 @@ class HeroSlide {
   /// in type the size of a fist. Null when the slide has no number to shout.
   final int? value;
 
+  /// Artwork generated for this subject: a real advertising scene built around
+  /// the same products the slide is about. Null until sapconnect has made one,
+  /// in which case the slide draws itself the way it always did.
+  final String? art;
+
+  /// `scene` — the picture is a stage and the app writes the live type over
+  /// it. `baked` — the picture already carries its own Arabic copy, so the app
+  /// adds nothing: a slide that says «يوصلك الساعة 10:45 م» can never be baked,
+  /// because a cached image cannot tell the time.
+  final String? artMode;
+
+  /// The picture's own quiet colour, `#rrggbb`, sampled from the side the
+  /// app's chrome sits on. The whole hero unit — the strip behind the status
+  /// bar, the header, the dots — is painted with it, so a teal photograph
+  /// never arrives on a coral field.
+  final String? artTint;
+
+  bool get hasArt => (art ?? '').isNotEmpty;
+  bool get artIsBaked => hasArt && artMode == 'baked';
+
+  /// The tint as a colour, or null when the server sent none.
+  Color? get tintColor {
+    final hex = artTint;
+    if (hex == null || !RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(hex)) return null;
+    return Color(0xFF000000 | int.parse(hex.substring(1), radix: 16));
+  }
+
   bool get isAuto => kind == 'auto';
 
   String? get bestImage => imageMobile ?? image;
@@ -114,6 +146,9 @@ class HeroSlide {
         productImages: asStringList(json['product_images']),
         badge: asStringOrNull(json['badge']),
         value: asIntOrNull(json['value']),
+        art: asStringOrNull(json['art']),
+        artMode: asStringOrNull(json['art_mode']),
+        artTint: asStringOrNull(json['art_tint']),
       );
 }
 
@@ -317,6 +352,59 @@ class BrandSummary {
 /// fastest, and says which one in [note] so a smaller catalogue reads as a
 /// promise ("everything here reaches you in two hours") rather than as missing
 /// stock.
+/// One tile of the needs row: a shelf a quick order starts from.
+@immutable
+class NeedNavItem {
+  const NeedNavItem({
+    required this.key,
+    required this.id,
+    required this.slug,
+    required this.name,
+    required this.icon,
+  });
+
+  /// `dry` | `wet` | `litter` | `treats` | `health` | `toys` | `clean` |
+  /// `food` | `supplies` — what the tile draws.
+  final String key;
+  final int id;
+  final String slug;
+  final String name;
+  final String icon;
+
+  factory NeedNavItem.fromJson(Map<String, dynamic> json) => NeedNavItem(
+        key: asString(json['key']),
+        id: asInt(json['id']),
+        slug: asString(json['slug']),
+        name: asString(json['name']),
+        icon: asString(json['icon'], fallback: asString(json['key'])),
+      );
+
+  /// species → tiles, as the cacheable payload ships them.
+  static Map<String, List<NeedNavItem>> mapFrom(dynamic value) {
+    final map = asMap(value);
+    return {
+      for (final entry in map.entries)
+        entry.key: asMapList(entry.value).map(NeedNavItem.fromJson).toList(),
+    };
+  }
+}
+
+/// Which species' needs to show, and which need first — the personal half.
+@immutable
+class NeedsHint {
+  const NeedsHint({this.species = 'cat', this.order = const []});
+
+  final String species;
+  final List<String> order;
+
+  static const NeedsHint none = NeedsHint();
+
+  factory NeedsHint.fromJson(Map<String, dynamic> json) => NeedsHint(
+        species: asString(json['species'], fallback: 'cat'),
+        order: asStringList(json['order']),
+      );
+}
+
 @immutable
 class CatalogScope {
   const CatalogScope({
@@ -480,6 +568,7 @@ class HomePayload {
     this.hero = const [],
     this.campaigns = const [],
     this.animalNav = const [],
+    this.needNav = const {},
     this.rails = const [],
     this.brands = const [],
     this.layout = const [],
@@ -489,6 +578,9 @@ class HomePayload {
   final List<HeroSlide> hero;
   final List<Campaign> campaigns;
   final List<AnimalNavItem> animalNav;
+
+  /// The needs row per species; the feed says which species is theirs.
+  final Map<String, List<NeedNavItem>> needNav;
   final List<ProductRail> rails;
   final List<BrandSummary> brands;
 
@@ -536,6 +628,7 @@ class HomePayload {
         hero: asMapList(json['hero']).map(HeroSlide.fromJson).toList(),
         campaigns: asMapList(json['campaigns']).map(Campaign.fromJson).toList(),
         animalNav: asMapList(json['animal_nav']).map(AnimalNavItem.fromJson).toList(),
+        needNav: NeedNavItem.mapFrom(json['need_nav']),
         rails: asMapList(json['rails'])
             .map(ProductRail.fromJson)
             .where((rail) => rail.products.isNotEmpty)
@@ -638,6 +731,7 @@ class HomeFeed {
     this.forYou,
     this.inCity,
     this.bundles,
+    this.needs = NeedsHint.none,
     this.loginNudge = false,
   });
 
@@ -649,6 +743,9 @@ class HomeFeed {
   /// (their pets' species, their food gauge, their reachable branch).
   final FeedRail? bundles;
 
+  /// Whose needs row, and in what order.
+  final NeedsHint needs;
+
   /// The server would have more to show if this person signed in.
   final bool loginNudge;
 
@@ -659,6 +756,7 @@ class HomeFeed {
         forYou: FeedRail.maybe(json['foryou']),
         inCity: FeedRail.maybe(json['incity']),
         bundles: FeedRail.maybe(json['bundles']),
+        needs: NeedsHint.fromJson(asMap(json['needs'])),
         loginNudge: asBool(json['login_nudge']),
       );
 }

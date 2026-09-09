@@ -20,10 +20,10 @@ android {
     }
 
     defaultConfig {
-        // Store identity: com.zooboxi.store (locked before first upload; the Kotlin
+        // Store identity: com.zooboxi.app (locked before first upload; the Kotlin
         // namespace below stays as generated, which Android permits).
         // application id cannot be changed once published.
-        applicationId = "com.zooboxi.store"
+        applicationId = "com.zooboxi.app"
         // 26 is MyFatoorah's floor (its Android SDK declares minSdk 26); it also
         // clears Flutter's own 24 and mobile_scanner's 23. Raising it is not
         // optional — a lower value fails the manifest merge outright.

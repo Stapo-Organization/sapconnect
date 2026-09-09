@@ -36,6 +36,7 @@ class OrderSummary {
     this.deliveryType,
     this.itemsPreview = const [],
     this.itemsCount = 0,
+    this.itemsLines = 0,
     this.canReorder = false,
   });
 
@@ -57,7 +58,15 @@ class OrderSummary {
   final String? paymentMethod;
   final String? deliveryType;
   final List<OrderItemPreview> itemsPreview;
+
+  /// How many UNITS were bought — «6 منتجات» for one carton of six.
   final int itemsCount;
+
+  /// How many distinct products there were. The card shows three photographs
+  /// and captions the rest «+N», and that N is this one: counting units would
+  /// promise five more photographs for a single carton. Zero from a store that
+  /// predates the field, which simply means no caption.
+  final int itemsLines;
   final bool canReorder;
 
   /// An order the customer can still pay for: an online gateway was chosen,
@@ -84,6 +93,7 @@ class OrderSummary {
         itemsPreview:
             asMapList(json['items_preview']).map(OrderItemPreview.fromJson).toList(),
         itemsCount: asInt(json['items_count']),
+        itemsLines: asInt(json['items_lines']),
         canReorder: asBool(json['can_reorder']),
       );
 }
