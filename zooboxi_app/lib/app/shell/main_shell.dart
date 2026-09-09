@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/active_branch.dart';
 import '../../core/utils/haptics.dart';
 import 'glass_nav_bar.dart';
+import 'express_cart_bar.dart';
 import 'live_order_bar.dart';
 
 /// The four tab destinations, in bar order. Pushed pages use the same list to
@@ -52,6 +53,11 @@ class _MainShellState extends ConsumerState<MainShell> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const LiveOrderBar(),
+          // The basket sits closest to the menu, under the order already on
+          // its way: one is what you are building, the other is what is
+          // already coming, and the nearer thumb belongs to the one you are
+          // still adding to.
+          const ExpressCartBar(),
           GlassNavBar(
             index: index,
             onSelect: (target) {

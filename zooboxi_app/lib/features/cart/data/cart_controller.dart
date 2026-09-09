@@ -278,6 +278,36 @@ final cartCountProvider = Provider<int>(
   (ref) => ref.watch(cartControllerProvider).value?.count ?? 0,
 );
 
+/// The two numbers the pinned إكسبريس basket bar shows.
+///
+/// A value, so a cart answer that moved neither of them leaves the bar — and
+/// the shell it rides in — untouched. Every basket response decodes fresh
+/// objects; without this the bar would rebuild on each optimistic tap.
+class CartGlance {
+  const CartGlance({required this.count, required this.subtotal});
+
+  final int count;
+  final double subtotal;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CartGlance &&
+          other.count == count &&
+          other.subtotal == subtotal;
+
+  @override
+  int get hashCode => Object.hash(count, subtotal);
+}
+
+final cartGlanceProvider = Provider<CartGlance>((ref) {
+  final cart = ref.watch(cartControllerProvider).value;
+  return CartGlance(
+    count: cart?.count ?? 0,
+    subtotal: cart?.totals.subtotal ?? 0,
+  );
+});
+
 /// What this basket earns once it is delivered. Its own provider so the
 /// totals line can move without the whole cart screen rebuilding, and so a
 /// store with the program switched off simply reports zero.
