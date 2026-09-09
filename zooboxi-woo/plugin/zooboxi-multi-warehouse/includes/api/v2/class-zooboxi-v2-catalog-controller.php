@@ -84,18 +84,15 @@ class Zooboxi_V2_Catalog_Controller
      * dark store's. Overridable through `zooboxi_app_home_layout_express`.
      */
     private const EXPRESS_LAYOUT = [
-        ['type' => 'eta_band'],
-        // The band already says when the order lands and which branch owes
-        // it; the composed clock slide said the same thing again, one row
-        // below, which is what the owner caught on the first screen. The
-        // program takes that place instead — the pet, the paws and the
-        // month's missions, which is the one thing on this page that is
-        // about him rather than about the shelf.
-        ['type' => 'family'],
-        ['type' => 'missions'],
-        // Offers, not a hero: the same composed slides, drawn as a strip of
-        // cards with the next one peeking instead of a full-bleed canvas.
-        // The app drops the arrival slide from it for the same reason.
+        // No `eta_band`. The arrival was being said three times before the
+        // page began: the إكسبريس tab carries the branch's hours, the address
+        // chip carries the arrival clock, and the band said both again. The
+        // app still draws the slot — the server simply stops asking for it.
+        //
+        // Offers open the page instead: the same composed slides, drawn as a
+        // strip of cards with the next one peeking instead of a full-bleed
+        // canvas. The app drops the arrival slide from it for the same
+        // reason the band is gone.
         ['type' => 'offer_strip'],
         // What they buy, first — a third of express orders are a single line
         // someone is replacing.
@@ -103,6 +100,12 @@ class Zooboxi_V2_Catalog_Controller
         ['type' => 'animal_nav'],
         ['type' => 'shipping_nudge'],
         ['type' => 'grid', 'key' => 'trending'],
+        // The program sits under the first shelf, not over it. Above «رائج
+        // الآن» it turned the head of a two-hour storefront into a loyalty
+        // page — the owner's words: «رأس الصفحة كله عائلة زوبوكسي». It is
+        // worth reading, but only once someone has seen what is on the shelf.
+        ['type' => 'family'],
+        ['type' => 'missions'],
         ['type' => 'feed_rail', 'key' => 'foryou'],
         ['type' => 'grid', 'key' => 'bestsellers'],
         ['type' => 'clearance_band'],
