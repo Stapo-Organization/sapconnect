@@ -16,6 +16,7 @@ import 'package:zooboxi_app/features/catalog/data/catalog_repository.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/features/home/presentation/home_screen.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/express_band.dart';
+import 'package:zooboxi_app/features/home/presentation/widgets/express_offers.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/hero_carousel.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
@@ -199,6 +200,92 @@ void main() {
       );
       expect(find.textContaining('5:30'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  /// زوبكسي opens on a full-bleed canvas — the header fused into it, the slide
+  /// behind the status bar. The dark store cannot afford that screen; it gets
+  /// a strip of cards a thumb's swipe wide, with the next already peeking.
+  group('إكسبريس gets offers, not a hero', () {
+    const slides = [
+      HeroSlide(
+        kind: 'auto',
+        theme: 'express_clock',
+        title: 'يوصلك خلال ساعتين',
+        subtitle: 'من فرع الملك فهد',
+        ctaLabel: 'اطلب الآن',
+      ),
+      HeroSlide(
+        kind: 'auto',
+        theme: 'express_new',
+        title: 'وصل حديثاً إلى فرعك',
+        ctaLabel: 'شاهد الجديد',
+      ),
+    ];
+
+    test('a strip with nothing to put in it is no strip', () {
+      expect(ExpressOfferSlider.hasContent(const []), isFalse);
+      expect(
+        ExpressOfferSlider.hasContent(const [HeroSlide(kind: 'auto')]),
+        isFalse,
+      );
+      expect(ExpressOfferSlider.hasContent(slides), isTrue);
+    });
+
+    testWidgets('the first card is readable and the next one peeks',
+        (tester) async {
+      tester.view.physicalSize = const Size(393, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ar'),
+          theme: AppTheme.light(const Locale('ar')),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: const Scaffold(
+            body: Center(child: ExpressOfferSlider(slides: slides)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('يوصلك خلال ساعتين'), findsOneWidget);
+      expect(find.text('من فرع الملك فهد'), findsOneWidget);
+      expect(find.text('اطلب الآن'), findsOneWidget);
+      // The second card is built and on screen, which is the invitation.
+      expect(find.text('وصل حديثاً إلى فرعك'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the storefront draws it from the payload it already has',
+        (tester) async {
+      tester.view.physicalSize = const Size(1000, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(_host(HomePayload(
+        scope: _expressScope,
+        hero: slides,
+        rails: [
+          ProductRail(
+            key: 'trending',
+            title: 'رائج الآن',
+            products: [_p(1), _p(2), _p(3), _p(4)],
+          ),
+        ],
+        layout: const [
+          HomeLayoutSlot('eta_band'),
+          HomeLayoutSlot('offer_strip'),
+          HomeLayoutSlot('grid', key: 'trending'),
+        ],
+      )));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ExpressOfferSlider), findsOneWidget);
+      // Still not the store's carousel.
+      expect(find.byType(HeroCarousel), findsNothing);
     });
   });
 }

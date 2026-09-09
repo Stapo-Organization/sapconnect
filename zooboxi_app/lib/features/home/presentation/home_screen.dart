@@ -35,6 +35,7 @@ import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
 import 'widgets/express_band.dart';
+import 'widgets/express_offers.dart';
 import 'widgets/clearance_band.dart';
 import 'widgets/family_card.dart';
 import 'widgets/hero_carousel.dart';
@@ -555,6 +556,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           final scope = payload.scope;
           if (scope == null) break;
           emit(ExpressEtaBand(scope: scope), bottom: 16);
+
+        // Offers, not a hero: a strip of cards the width of a thumb's swipe
+        // with the next already peeking, instead of the store's full-bleed
+        // canvas. Same slides the server composes, drawn small.
+        case 'offer_strip':
+          if (!ExpressOfferSlider.hasContent(payload.hero)) break;
+          emit(ExpressOfferSlider(slides: payload.hero), bottom: 20);
 
         // The same rail the strip slot would draw, laid out as the shelf it
         // is: two columns, no horizontal scrolling, everything in front of
