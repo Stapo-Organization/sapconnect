@@ -89,7 +89,12 @@ class BrandStage extends StatelessWidget {
         if (hero == null)
           const _StageDecor()
         else
-          ZbImage(url: hero, fit: BoxFit.cover, backgroundColor: Colors.transparent),
+          ZbImage(
+            url: hero,
+            fit: BoxFit.cover,
+            backgroundColor: Colors.transparent,
+            decodeWidth: ZbDecode.hero,
+          ),
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(

@@ -106,7 +106,7 @@ class _WideBanner extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ZbImage(url: art, fit: BoxFit.cover),
+        ZbImage(url: art, fit: BoxFit.cover, decodeWidth: ZbDecode.hero),
         if (_hasChips) ...[
           DecoratedBox(
             decoration: BoxDecoration(

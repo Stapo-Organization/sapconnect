@@ -141,6 +141,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     });
   }
 
+  /// Tells the hearts what this payload already knew, so they settle on the
+  /// first frame instead of popping a beat later.
+  ///
+  /// Deferred past the frame because seeding writes to a provider the hearts on
+  /// this very screen are watching.
+  void _seedHearts(Iterable<ProductCard> cards) {
+    final list = cards.toList(growable: false);
+    if (list.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(wishlistControllerProvider.notifier).seedFrom(list);
+    });
+  }
+
   /// Warms the other storefront so crossing the tabs paints instead of
   /// shimmering — the whole of «لمن أغيّر من عادي لإكسبريس المحتوى يتأخر».
   ///
@@ -222,7 +235,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // response landed. Which is precisely the stall this phase exists to end.
     ref.listen<AsyncValue<HomePayload>>(homeProvider, (_, next) {
       final payload = settledPayload(next);
-      if (payload != null) _adoptServedShelf(payload);
+      if (payload == null) return;
+      _adoptServedShelf(payload);
+      _seedHearts(payload.rails.expand((rail) => rail.products));
+    });
+
+    // The same seeding for the personal half, which arrives separately. Both
+    // run once per settled answer — it used to run on every single build, from
+    // a post-frame callback, walking every card in every rail each time.
+    ref.listen<AsyncValue<HomeFeed>>(homeFeedProvider, (_, next) {
+      if (next.isLoading || next.hasError) return;
+      final feed = next.value;
+      if (feed == null) return;
+      _seedHearts([
+        ...feed.personal.products,
+        ...?feed.forYou?.products,
+        ...?feed.inCity?.products,
+      ]);
     });
     final l = L.of(context);
     final home = ref.watch(homeProvider);
@@ -373,19 +402,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final loyalty = ref.watch(loyaltySummaryProvider).value;
     final loyaltyPending =
         ref.watch(isAuthenticatedProvider) && loyalty == null;
-
-    // Hearts settle on the first frame instead of popping in a beat later.
-    // Deferred past build: seeding writes to a provider that the hearts on
-    // this very screen are watching.
-    final allCards = <ProductCard>[
-      ...payload.rails.expand((rail) => rail.products),
-      ...?feedData?.personal.products,
-      ...?feedData?.forYou?.products,
-      ...?feedData?.inCity?.products,
-    ];
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => ref.read(wishlistControllerProvider.notifier).seedFrom(allCards),
-    );
 
     Future<bool> add(ProductCard product) =>
         addToCart(context, ref, product: product, zone: 'home', quiet: true);

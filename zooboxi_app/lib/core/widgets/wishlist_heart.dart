@@ -117,11 +117,20 @@ class _WishlistHeartState extends ConsumerState<WishlistHeart>
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final saved = ref.watch(wishlistControllerProvider);
-    // Until the shared set has loaded, trust the flag on the payload that
-    // supplied this card — otherwise every heart blinks off then back on.
-    final wishlisted =
-        saved.contains(widget.productId) || (widget.seeded && saved.isEmpty);
+    // Narrowed to the one bit this heart draws. Watching the whole set rebuilt
+    // EVERY heart on screen each time any product anywhere was saved — a grid
+    // of twenty cards did twenty rebuilds for one tap.
+    //
+    // The seeded clause stays inside the select, exactly as it was: until the
+    // shared set has loaded, the flag on the payload that supplied this card is
+    // the only truth there is, and dropping it makes every heart blink off and
+    // back on a second later.
+    final wishlisted = ref.watch(
+      wishlistControllerProvider.select(
+        (saved) =>
+            saved.contains(widget.productId) || (widget.seeded && saved.isEmpty),
+      ),
+    );
 
     return SizedBox(
       width: widget.size,

@@ -116,7 +116,12 @@ class CampaignComposition extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ZbImage(url: art, fit: BoxFit.cover, backgroundColor: Colors.transparent),
+                  ZbImage(
+          url: art,
+          fit: BoxFit.cover,
+          backgroundColor: Colors.transparent,
+          decodeWidth: ZbDecode.hero,
+        ),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(

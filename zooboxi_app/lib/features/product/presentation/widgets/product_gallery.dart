@@ -63,7 +63,8 @@ class _ProductGalleryState extends State<ProductGallery> {
               minScale: 1,
               maxScale: 3.6,
               clipBehavior: Clip.none,
-              child: ZbImage(
+              // Not capped: this is the one image the customer zooms into.
+              child: ZbImage.full(
                 url: images[index],
                 padding: const EdgeInsets.all(20),
                 backgroundColor: Colors.transparent,
