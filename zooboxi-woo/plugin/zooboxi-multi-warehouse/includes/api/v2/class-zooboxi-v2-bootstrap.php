@@ -301,6 +301,23 @@ class Zooboxi_V2_Bootstrap
         return in_array($raw, ['express', 'all'], true) ? $raw : '';
     }
 
+    /**
+     * Which generation of home-layout slots the calling app can draw
+     * (`X-ZB-Slots`), 1 for anything that does not say.
+     *
+     * The app skips a slot type it does not know, silently — right for one
+     * stray slot, catastrophic for a whole new composition. So a layout built
+     * from new slot types is only ever sent to a build that has declared it
+     * can render them; everyone still on the store is served what they can
+     * draw. Raise the gate in one place, `Zooboxi_V2_Catalog_Controller`.
+     */
+    public static function slot_level(): int
+    {
+        $raw = (string) (self::read_header('X-ZB-Slots', self::$request) ?? '');
+        $level = (int) trim($raw);
+        return $level > 0 ? $level : 1;
+    }
+
     /** Customer city for this request ('' when unknown). */
     public static function city(): string
     {

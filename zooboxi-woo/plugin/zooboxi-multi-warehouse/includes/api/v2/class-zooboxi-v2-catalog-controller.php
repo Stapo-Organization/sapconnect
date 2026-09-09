@@ -67,6 +67,40 @@ class Zooboxi_V2_Catalog_Controller
         ['type' => 'trust'],
     ];
 
+    /** The slot generation `EXPRESS_LAYOUT` needs: `eta_band` and `grid`. */
+    private const SLOTS_EXPRESS = 2;
+
+    /**
+     * إكسبريس composes itself differently, because it is a different errand.
+     *
+     * زوبكسي is browsed: a hero, rails of six, brands, a magazine you turn
+     * through. إكسبريس is not — it is the thousand things one branch can put
+     * at the door in two hours, and the customer already knows roughly what
+     * they want. So it leads with WHEN it arrives, puts what they bought
+     * before within one tap, and lays the shelf out as a shelf: two columns,
+     * no horizontal scrolling, everything in front of them.
+     *
+     * No hero: a rotating campaign carousel is the store's voice, not the
+     * dark store's. Overridable through `zooboxi_app_home_layout_express`.
+     */
+    private const EXPRESS_LAYOUT = [
+        ['type' => 'eta_band'],
+        // What they buy, first — a third of express orders are a single line
+        // someone is replacing.
+        ['type' => 'personal'],
+        ['type' => 'animal_nav'],
+        ['type' => 'shipping_nudge'],
+        ['type' => 'grid', 'key' => 'trending'],
+        ['type' => 'feed_rail', 'key' => 'foryou'],
+        ['type' => 'grid', 'key' => 'bestsellers'],
+        ['type' => 'clearance_band'],
+        ['type' => 'grid', 'key' => 'new'],
+        // The program keeps its place on the fast shelf too, at the foot
+        // where it does not stand between someone and their order.
+        ['type' => 'family'],
+        ['type' => 'trust'],
+    ];
+
     public function register_routes(): void
     {
         Zooboxi_V2_Bootstrap::route('/home', 'GET', [$this, 'home']);
@@ -129,7 +163,19 @@ class Zooboxi_V2_Catalog_Controller
      */
     private function layout(): array
     {
-        $raw = get_option('zooboxi_app_home_layout', '');
+        // The shelf actually SERVED, never the one asked for: after closing
+        // time an إكسبريس request is answered with the زوبكسي catalogue, and
+        // an arrival band over the main warehouse's stock would be a lie.
+        // …and only for a build that can draw it. An older app skips the slot
+        // types it does not know, so sending it the إكسبريس composition would
+        // hand it a nearly empty storefront.
+        $scope   = Zooboxi_V2_Scope::current();
+        $express = is_array($scope)
+            && ($scope['shelf'] ?? '') === 'express'
+            && Zooboxi_V2_Bootstrap::slot_level() >= self::SLOTS_EXPRESS;
+        $option  = $express ? 'zooboxi_app_home_layout_express' : 'zooboxi_app_home_layout';
+
+        $raw = get_option($option, '');
         if (is_string($raw) && trim($raw) !== '') {
             $decoded = json_decode($raw, true);
             if (is_array($decoded) && !empty($decoded)) {
@@ -139,7 +185,7 @@ class Zooboxi_V2_Catalog_Controller
         if (is_array($raw) && !empty($raw)) {
             return array_values($raw);
         }
-        return self::DEFAULT_LAYOUT;
+        return $express ? self::EXPRESS_LAYOUT : self::DEFAULT_LAYOUT;
     }
 
     /* ══════════════════════════════════════════════════════════════
