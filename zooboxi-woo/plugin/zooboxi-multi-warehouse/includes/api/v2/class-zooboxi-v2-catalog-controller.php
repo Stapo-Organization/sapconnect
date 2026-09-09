@@ -51,7 +51,14 @@ class Zooboxi_V2_Catalog_Controller
         // hydrates `personal` from /home/feed.
         ['type' => 'family'],
         ['type' => 'animal_nav'],
+        // The row of needs (dry, wet, litter …) under the row of animals. An
+        // older app skips a slot type it does not know, so this is safe to
+        // ship to every build.
+        ['type' => 'need_nav'],
         ['type' => 'personal'],
+        // «يخلص طعام أوريو» — drawn by the app from its own food gauge, only
+        // when something is actually running out.
+        ['type' => 'replenish'],
         ['type' => 'missions'],
         ['type' => 'shipping_nudge'],
         ['type' => 'rail', 'key' => 'trending'],
@@ -67,9 +74,6 @@ class Zooboxi_V2_Catalog_Controller
         ['type' => 'trust'],
     ];
 
-    /** The slot generation `EXPRESS_LAYOUT` needs: `eta_band` and `grid`. */
-    private const SLOTS_EXPRESS = 2;
-
     /**
      * إكسبريس composes itself differently, because it is a different errand.
      *
@@ -83,6 +87,15 @@ class Zooboxi_V2_Catalog_Controller
      * No hero: a rotating campaign carousel is the store's voice, not the
      * dark store's. Overridable through `zooboxi_app_home_layout_express`.
      */
+    /** The slot generation `EXPRESS_LAYOUT` needs: `eta_band` and `grid`. */
+    private const SLOTS_EXPRESS = 2;
+
+    /**
+     * The generation that draws `need_nav` and `replenish`, and is therefore
+     * sent the composition that knows what time it is (express_layout_now).
+     */
+    private const SLOTS_LIVE = 4;
+
     private const EXPRESS_LAYOUT = [
         // No `eta_band`. The arrival was being said three times before the
         // page began: the إكسبريس tab carries the branch's hours, the address
@@ -160,6 +173,7 @@ class Zooboxi_V2_Catalog_Controller
             'hero'          => $this->hero_slides(),
             'campaigns'     => $this->campaigns(),
             'animal_nav'    => $this->animal_nav(),
+            'need_nav'      => $this->need_nav(),
             'rails'         => array_values(array_filter($rails)),
             'brands'        => $this->brand_list(12),
             'layout'        => $this->layout(),
@@ -178,10 +192,10 @@ class Zooboxi_V2_Catalog_Controller
         // The shelf actually SERVED, never the one asked for: after closing
         // time an إكسبريس request is answered with the زوبكسي catalogue, and
         // an arrival band over the main warehouse's stock would be a lie.
+        $scope   = Zooboxi_V2_Scope::current();
         // …and only for a build that can draw it. An older app skips the slot
         // types it does not know, so sending it the إكسبريس composition would
         // hand it a nearly empty storefront.
-        $scope   = Zooboxi_V2_Scope::current();
         $express = is_array($scope)
             && ($scope['shelf'] ?? '') === 'express'
             && Zooboxi_V2_Bootstrap::slot_level() >= self::SLOTS_EXPRESS;
@@ -197,7 +211,62 @@ class Zooboxi_V2_Catalog_Controller
         if (is_array($raw) && !empty($raw)) {
             return array_values($raw);
         }
+        if ($express && Zooboxi_V2_Bootstrap::slot_level() >= self::SLOTS_LIVE) {
+            // A real Unix timestamp: wp_date() applies the site's zone itself.
+            // current_time('timestamp') is already zone-shifted and would be
+            // shifted again — three hours late, "morning" served at 21:00.
+            return self::express_layout_now(time());
+        }
         return $express ? self::EXPRESS_LAYOUT : self::DEFAULT_LAYOUT;
+    }
+
+    /**
+     * The إكسبريس composition for THIS hour.
+     *
+     * A dark store is a different shop at eight in the morning and at nine at
+     * night, and the layout engine lets the server say so without a release:
+     *   - before 11: what they buy leads — a morning order is a refill, not a
+     *     browse — and the food gauge sits right under it;
+     *   - from 18: the deals climb under the needs row, because that is when
+     *     the orders come (the branch shuts at 23 and most evenings peak
+     *     around nine);
+     *   - Friday: «البكجات» right after the offers, the weekend's basket.
+     * Every other hour is the plain shelf.
+     */
+    public static function express_layout_now(int $ts): array
+    {
+        $hour    = (int) wp_date('G', $ts);
+        $weekday = (int) wp_date('N', $ts); // 5 = Friday
+
+        $offers    = ['type' => 'offer_strip'];
+        $personal  = ['type' => 'personal'];
+        $replenish = ['type' => 'replenish'];
+        $animals   = ['type' => 'animal_nav'];
+        $needs     = ['type' => 'need_nav'];
+        $nudge     = ['type' => 'shipping_nudge'];
+        $trending  = ['type' => 'grid', 'key' => 'trending'];
+        $family    = ['type' => 'family'];
+        $missions  = ['type' => 'missions'];
+        $foryou    = ['type' => 'feed_rail', 'key' => 'foryou'];
+        $best      = ['type' => 'grid', 'key' => 'bestsellers'];
+        $clearance = ['type' => 'clearance_band'];
+        $new       = ['type' => 'grid', 'key' => 'new'];
+        $bundles   = ['type' => 'feed_rail', 'key' => 'bundles'];
+        $trust     = ['type' => 'trust'];
+
+        $head = $hour < 11
+            ? [$personal, $replenish, $offers]
+            : [$offers, $personal, $replenish];
+
+        if ($weekday === 5) {
+            $head[] = $bundles;
+        }
+
+        $body = $hour >= 18
+            ? [$animals, $needs, $clearance, $nudge, $trending, $family, $missions, $foryou, $best, $new]
+            : [$animals, $needs, $nudge, $trending, $family, $missions, $foryou, $best, $clearance, $new];
+
+        return array_merge($head, $body, [$trust]);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -595,6 +664,75 @@ class Zooboxi_V2_Catalog_Controller
             : sprintf("%d:%02d\u{00A0}%s", $h12, $m, $suffix);
     }
 
+    /**
+     * The slider's product photography, CUT OFF ITS WHITE CARD.
+     *
+     * Half the catalogue is shot on a white sweep, and on the slider's deep
+     * field those arrive as small white boxes with the product marooned
+     * inside. sapconnect cuts them out (App\Services\Marketing\HeroArtGenerator)
+     * and lists them per subject; the app then floats the products on the
+     * slide instead of framing them.
+     *
+     * No banner, no generated scene — the app draws every slide itself.
+     * A missing or unreachable manifest is not an error: the slide falls back
+     * to the ordinary catalogue thumbnails.
+     *
+     * @return array<string,array{products:string[],version:string}>
+     */
+    private function hero_art(): array
+    {
+        static $memo = null;
+        if ($memo !== null) {
+            return $memo;
+        }
+
+        // The kill switch stays, but it now guards CUT-OUT PHOTOGRAPHY rather
+        // than a banner: `update_option('zooboxi_hero_art_enabled', 'no')`
+        // puts the slides back on the raw catalogue thumbnails.
+        if (get_option('zooboxi_hero_art_enabled', 'yes') !== 'yes') {
+            return $memo = [];
+        }
+
+        $cached = get_transient('zb_hero_art');
+        if (is_array($cached)) {
+            return $memo = $cached;
+        }
+
+        // The same host every other sapconnect bridge uses, minus its /api/woo
+        // tail: the artwork is a public file, not an API call, and needs no
+        // token — which is the whole reason it is served this way.
+        $api  = rtrim((string) get_option('zooboxi_api_url', 'https://sapapi.muntajat.sa/api/woo'), '/');
+        $base = preg_replace('#/api/woo$#', '', $api);
+        $resp = wp_remote_get($base . '/storage/hero-art/manifest.json', ['timeout' => 8]);
+
+        $art = [];
+        if (!is_wp_error($resp) && (int) wp_remote_retrieve_response_code($resp) === 200) {
+            $decoded = json_decode((string) wp_remote_retrieve_body($resp), true);
+            foreach ((array) ($decoded['art'] ?? []) as $theme => $row) {
+                $products = [];
+                foreach ((array) ($row['products'] ?? []) as $one) {
+                    $one = esc_url_raw((string) $one);
+                    if ($one !== '') {
+                        $products[] = $one;
+                    }
+                }
+                if ($products === []) {
+                    continue;
+                }
+                $art[(string) $theme] = [
+                    'products' => $products,
+                    'version'  => (string) ($row['version'] ?? ''),
+                ];
+            }
+        }
+
+        // Six hours whether or not it answered: a slider is not worth an
+        // outbound request per home load, and art changes weekly at most.
+        set_transient('zb_hero_art', $art, 6 * HOUR_IN_SECONDS);
+
+        return $memo = $art;
+    }
+
     private function auto_slide(
         string $theme,
         string $title,
@@ -606,9 +744,17 @@ class Zooboxi_V2_Catalog_Controller
         ?string $badge = null,
         ?int $value = null
     ): array {
+        // Cut-out photography when sapconnect has prepared it, the ordinary
+        // thumbnails when it has not.
+        $cut = $this->hero_art()[$theme]['products'] ?? [];
+        if ($cut !== []) {
+            $images = $cut;
+        }
+
         return [
             'kind'           => 'auto',
             'theme'          => $theme,
+            'cutouts'        => $cut !== [],
             'title'          => $title,
             'subtitle'       => $subtitle,
             'cta_label'      => $cta,
@@ -902,6 +1048,105 @@ class Zooboxi_V2_Catalog_Controller
         }
 
         return $out;
+    }
+
+    /**
+     * The needs a quick order starts from, per species.
+     *
+     * A pet store is browsed by animal, but a two-hour order is placed by
+     * NEED — «خلص الرمل», not «عندي قطة». So under the row of animals sits a
+     * row of needs, and the customer's species picks which row. Curated ids,
+     * for the same reason animal_nav's are: a name lookup lands in the health
+     * tree and returns condition tags instead of shelves.
+     *
+     * Shipped for every species on the cacheable payload; the personal feed
+     * says which species and in what order (Zooboxi_V2_Feed_Controller::needs).
+     *
+     * @return array<string, array<int, array{key:string,id:int,name:string,icon:string}>>
+     */
+    private function need_nav(): array
+    {
+        $ar = static fn(string $ar, string $en) => Zooboxi_V2_Bootstrap::pick($ar, $en);
+
+        $curated = [
+            'cat' => [
+                ['dry',    109, $ar('طعام جاف', 'Dry food'),    'dry'],
+                ['wet',    128, $ar('معلبات', 'Wet food'),      'wet'],
+                ['litter', 235, $ar('رمل', 'Litter'),           'litter'],
+                ['treats', 132, $ar('مكافآت', 'Treats'),         'treats'],
+                ['health', 148, $ar('صحة', 'Health'),            'health'],
+                ['toys',   182, $ar('ألعاب', 'Toys'),            'toys'],
+            ],
+            'dog' => [
+                ['dry',    116, $ar('طعام جاف', 'Dry food'),    'dry'],
+                ['wet',    136, $ar('معلبات', 'Wet food'),      'wet'],
+                ['treats', 174, $ar('مكافآت', 'Treats'),         'treats'],
+                ['health', 126, $ar('صحة', 'Health'),            'health'],
+                ['toys',   252, $ar('ألعاب', 'Toys'),            'toys'],
+                ['clean',  162, $ar('تنظيف', 'Grooming'),        'clean'],
+            ],
+            'bird' => [
+                ['food',     247, $ar('طعام', 'Food'),           'food'],
+                ['supplies', 203, $ar('مستلزمات', 'Supplies'),   'supplies'],
+            ],
+            'small' => [
+                ['food',     305, $ar('طعام', 'Food'),           'food'],
+                ['treats',   309, $ar('مكافآت', 'Treats'),       'treats'],
+                ['supplies', 195, $ar('مستلزمات', 'Supplies'),   'supplies'],
+            ],
+        ];
+
+        // Only what the serving branch actually stocks — an empty shelf behind
+        // a tile is worse than no tile.
+        $counts = Zooboxi_V2_Scope::warehouse_code() !== '' ? Zooboxi_V2_Scope::category_counts() : null;
+
+        $out = [];
+        foreach ($curated as $species => $rows) {
+            $tiles = [];
+            foreach ($rows as [$key, $id, $name, $icon]) {
+                $term = get_term($id, 'product_cat');
+                if (!$term || is_wp_error($term)) {
+                    continue;
+                }
+                if ($counts !== null && !self::stocked_in_tree((int) $id, $counts)) {
+                    continue;
+                }
+                $tiles[] = [
+                    'key'  => $key,
+                    'id'   => (int) $term->term_id,
+                    'slug' => (string) $term->slug,
+                    'name' => $name,
+                    'icon' => $icon,
+                ];
+            }
+            if ($tiles) {
+                $out[$species] = $tiles;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Whether a category — or anything under it — has stock on the serving
+     * shelf. category_counts() counts direct assignments only, and a product
+     * is filed under «الطعام الرطب», never under «طعام» itself.
+     */
+    private static function stocked_in_tree(int $term_id, array $counts): bool
+    {
+        if (($counts[$term_id] ?? 0) > 0) {
+            return true;
+        }
+        $children = get_term_children($term_id, 'product_cat');
+        if (is_wp_error($children)) {
+            return false;
+        }
+        foreach ($children as $child) {
+            if (($counts[(int) $child] ?? 0) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1592,8 +1837,22 @@ class Zooboxi_V2_Catalog_Controller
     public function suggest(\WP_REST_Request $request): \WP_REST_Response
     {
         $q = trim(sanitize_text_field((string) $request->get_param('q')));
+
+        // What this person already buys, by product id. The most powerful
+        // search result is the thing someone bought last month, so it leads
+        // every list — and with no query at all it IS the list.
+        $uid    = get_current_user_id();
+        $bought = ($uid > 0 && class_exists('Zooboxi_V2_Feed_Controller'))
+            ? (new Zooboxi_V2_Feed_Controller())->bought_index($uid)
+            : [];
+
         if (mb_strlen($q) < 2) {
-            return Zooboxi_V2_Bootstrap::ok(['suggestions' => []]);
+            if (!$bought) {
+                return Zooboxi_V2_Bootstrap::ok(['suggestions' => []]);
+            }
+            $ids = array_slice(Zooboxi_V2_Scope::filter_ids(array_keys($bought)), 0, 6);
+            // Personal by construction → never cacheable.
+            return Zooboxi_V2_Bootstrap::ok(['suggestions' => $this->suggestion_rows($ids, $bought)], null);
         }
 
         global $wpdb;
@@ -1615,28 +1874,58 @@ class Zooboxi_V2_Catalog_Controller
             $prefix
         ));
 
+        $ids = array_map('intval', (array) $ids);
+
+        // Anything they have bought whose name carries the query goes first,
+        // whether or not the title query above happened to rank it.
+        if ($bought) {
+            $bought_ids = array_map('intval', array_keys($bought));
+            $lead = $wpdb->get_col($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts}
+                  WHERE ID IN (" . implode(',', array_fill(0, count($bought_ids), '%d')) . ")
+                    AND post_status = 'publish' AND post_title LIKE %s",
+                array_merge($bought_ids, [$like])
+            ));
+            $ids = array_values(array_unique(array_merge(array_map('intval', (array) $lead), $ids)));
+        }
+
         // Suggest only what this customer can actually be sent. Over-fetched
         // above so the list still fills up after the shelf filter.
-        $ids = array_slice(Zooboxi_V2_Scope::filter_ids(array_map('intval', (array) $ids)), 0, 8);
+        $ids = array_slice(Zooboxi_V2_Scope::filter_ids($ids), 0, 8);
+        $out = $this->suggestion_rows($ids, $bought);
 
+        // A list that knows who is asking cannot be shared between askers.
+        return Zooboxi_V2_Bootstrap::ok(['suggestions' => $out], $bought ? null : Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /**
+     * Suggestion rows for a list of ids, marking the ones this person has
+     * bought before and how long ago.
+     *
+     * @param int[]           $ids
+     * @param array<int,int>  $bought product id → days since last order
+     */
+    private function suggestion_rows(array $ids, array $bought): array
+    {
         $out = [];
-        foreach (array_map('intval', (array) $ids) as $id) {
+        foreach (array_map('intval', $ids) as $id) {
             $product = wc_get_product($id);
             if (!$product) {
                 continue;
             }
             $price = $product->get_price();
             $out[] = [
-                'id'        => $id,
-                'name'      => wp_strip_all_tags($product->get_name()),
-                'image'     => Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail'),
-                'sku'       => (string) $product->get_sku(),
-                'item_code' => (string) get_post_meta($id, '_zooboxi_item_code', true),
-                'price'     => ($price === '' || $price === null) ? null : (float) $price,
+                'id'                => $id,
+                'name'              => wp_strip_all_tags($product->get_name()),
+                'image'             => Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail'),
+                'sku'               => (string) $product->get_sku(),
+                'item_code'         => (string) get_post_meta($id, '_zooboxi_item_code', true),
+                'price'             => ($price === '' || $price === null) ? null : (float) $price,
+                'bought'            => array_key_exists($id, $bought),
+                'last_ordered_days' => $bought[$id] ?? null,
             ];
         }
-
-        return Zooboxi_V2_Bootstrap::ok(['suggestions' => $out], Zooboxi_V2_Bootstrap::TTL_LISTING);
+        return $out;
     }
 
     /* ══════════════════════════════════════════════════════════════

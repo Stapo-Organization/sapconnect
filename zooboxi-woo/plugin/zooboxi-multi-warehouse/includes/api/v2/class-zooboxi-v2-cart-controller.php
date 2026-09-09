@@ -825,6 +825,11 @@ class Zooboxi_V2_Cart_Controller
         $subtotal  = (float) $cart->get_subtotal();
         $qualified = $subtotal >= $free_min;
 
+        // The express basket measures itself against its own, reachable line.
+        // Sent alongside the national one; the app shows whichever the basket
+        // is actually standing in.
+        $express_min = class_exists('Zooboxi_Delivery_Engine') ? Zooboxi_Delivery_Engine::express_free_min() : 0.0;
+
         $coupons = [];
         foreach ($cart->get_applied_coupons() as $code) {
             $coupons[] = [
@@ -850,7 +855,7 @@ class Zooboxi_V2_Cart_Controller
                     'other_serves'    => true,
                     'other_since'     => null,
                 ],
-            'shipments'     => self::shipments($lat, $lng, $qualified),
+            'shipments'     => self::shipments($lat, $lng, $qualified, $express_min > 0 && $subtotal >= $express_min),
             'totals'        => [
                 'subtotal' => $subtotal,
                 'discount' => (float) $cart->get_discount_total(),
@@ -863,6 +868,11 @@ class Zooboxi_V2_Cart_Controller
                 'min'       => $free_min,
                 'remaining' => max(0, $free_min - $subtotal),
                 'qualified' => $qualified,
+                'express'   => [
+                    'min'       => $express_min,
+                    'remaining' => max(0, $express_min - $subtotal),
+                    'qualified' => $express_min > 0 && $subtotal >= $express_min,
+                ],
             ],
             'coupons'       => $coupons,
             'notices'       => self::drain_notices(),
@@ -882,7 +892,7 @@ class Zooboxi_V2_Cart_Controller
      * `zooboxi_smart_shipments` flag) because the app renders split cards regardless —
      * the flag only governs whether WooCommerce also splits the shipping packages.
      */
-    private static function shipments(float $lat, float $lng, bool $free_qualified): array
+    private static function shipments(float $lat, float $lng, bool $free_qualified, bool $express_qualified = false): array
     {
         if (!$lat || !$lng || !class_exists('Zooboxi_Smart_Shipments')) {
             return [];
@@ -915,8 +925,13 @@ class Zooboxi_V2_Cart_Controller
                 'color'          => (string) $pres['color'],
                 'date_label'     => (string) $pres['date'],
                 'relative_label' => (string) $pres['relative'],
-                'fee'            => $free_qualified ? 0.0 : self::tier_fee((string) $tier),
-                'free'           => $free_qualified,
+                // The express leg is also free past its own, lower line — the
+                // same rule the shipping method charges by, so the card never
+                // shows 25 ﷼ over a fee checkout will not take.
+                'fee'            => ($free_qualified || ($express_qualified && (string) $tier === Zooboxi_Delivery_Engine::TYPE_EXPRESS))
+                    ? 0.0
+                    : self::tier_fee((string) $tier),
+                'free'           => $free_qualified || ($express_qualified && (string) $tier === Zooboxi_Delivery_Engine::TYPE_EXPRESS),
                 'lines'          => $lines,
             ];
         }

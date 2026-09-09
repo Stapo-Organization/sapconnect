@@ -12,14 +12,20 @@ class Zooboxi_Settings_Page
     {
         if (!current_user_can('manage_woocommerce')) return;
 
-        $saved = false;
+        $saved      = false;
+        $push_error = false;
+        $push_test  = null;
 
         // Handle save
-        if (isset($_POST['zooboxi_save_settings']) && check_admin_referer('zooboxi_settings')) {
+        // The test button submits the same form, and saving first is what makes
+        // "paste the key, press test" behave the way it reads: without this the
+        // key the admin just pasted would still be unsaved when the send runs.
+        if ((isset($_POST['zooboxi_save_settings']) || isset($_POST['zooboxi_push_test']))
+            && check_admin_referer('zooboxi_settings')) {
             $fields = [
                 'zooboxi_api_url', 'zooboxi_api_token',
                 'zooboxi_express_fee', 'zooboxi_standard_fee', 'zooboxi_shipping_fee',
-                'zooboxi_free_shipping_min', 'zooboxi_stock_sync_interval', 'zooboxi_default_price_list',
+                'zooboxi_free_shipping_min', 'zooboxi_express_free_min', 'zooboxi_stock_sync_interval', 'zooboxi_default_price_list',
                 'zooboxi_low_stock_threshold', 'zooboxi_new_days',
                 'zooboxi_badge_pct_hot', 'zooboxi_badge_pct_back',
                 'zooboxi_badge_pct_trend', 'zooboxi_badge_pct_new',
@@ -36,12 +42,55 @@ class Zooboxi_Settings_Page
                 'zooboxi_smart_shipments', 'zooboxi_express_ranking',
                 'zooboxi_recommended_sort', 'zooboxi_dynamic_badges',
                 'zooboxi_fbt_block', 'zooboxi_clearance_collection',
-                'zooboxi_sku_search',
+                'zooboxi_sku_search', 'zooboxi_push_enabled',
             ];
             foreach ($toggles as $toggle) {
                 update_option($toggle, isset($_POST[$toggle]) ? 'yes' : 'no');
             }
+
+            // The Firebase service account is a multi-line JSON key and must
+            // NOT go through sanitize_text_field, which would flatten the PEM
+            // block and leave a key that signs nothing. It is validated as JSON
+            // instead, and an unparseable paste is refused rather than stored.
+            if (isset($_POST['zooboxi_fcm_service_account'])) {
+                $account_raw = trim((string) wp_unslash($_POST['zooboxi_fcm_service_account']));
+                if ($account_raw === '') {
+                    update_option(Zooboxi_Push::OPTION_ACCOUNT, '');
+                    delete_transient('zooboxi_fcm_access_token');
+                } else {
+                    $parsed = json_decode($account_raw, true);
+                    if (is_array($parsed) && !empty($parsed['project_id']) && !empty($parsed['private_key'])) {
+                        update_option(Zooboxi_Push::OPTION_ACCOUNT, wp_json_encode($parsed));
+                        // A new key invalidates the cached access token.
+                        delete_transient('zooboxi_fcm_access_token');
+                    } else {
+                        $push_error = true;
+                    }
+                }
+            }
+
             $saved = true;
+        }
+
+        // A test notification to every device the current admin has registered.
+        // Sending to *themselves* is the point: the only way to prove the chain
+        // — key, token, APNs, phone — is to make a phone in the room buzz.
+        if (isset($_POST['zooboxi_push_test']) && check_admin_referer('zooboxi_settings')) {
+            $devices = Zooboxi_Push::devices_for(get_current_user_id());
+            if (!$devices) {
+                $push_test = ['ok' => false, 'message' => __('لا يوجد جهاز مسجّل لحسابك. افتح التطبيق بنفس الحساب واسمح بالإشعارات أولًا.', 'zooboxi')];
+            } else {
+                $sent = Zooboxi_Push::send_to_devices(
+                    $devices,
+                    'orders',
+                    __('تجربة زوبوكسي', 'zooboxi'),
+                    __('وصلك هذا الإشعار — الإعداد سليم.', 'zooboxi'),
+                    '/account'
+                );
+                $push_test = $sent > 0
+                    ? ['ok' => true, 'message' => sprintf(__('أُرسل إلى %s جهاز.', 'zooboxi'), number_format_i18n($sent))]
+                    : ['ok' => false, 'message' => __('لم يُقبل الإرسال. راجع سجل الأخطاء — الغالب أن المفتاح ناقص أو مشروع Firebase مختلف.', 'zooboxi')];
+            }
         }
 
         $help = self::help_content();
@@ -59,6 +108,14 @@ class Zooboxi_Settings_Page
 
             <?php if ($saved): ?>
                 <div class="zbx-saved">✓ <?php esc_html_e('تم حفظ الإعدادات بنجاح', 'zooboxi'); ?></div>
+            <?php endif; ?>
+            <?php if ($push_test !== null): ?>
+                <div class="zbx-saved" <?php if (!$push_test['ok']) echo 'style="background:#fdecea;color:#8a1c12"'; ?>>
+                    <?php echo $push_test['ok'] ? '✓' : '✕'; ?> <?php echo esc_html($push_test['message']); ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($push_error): ?>
+                <div class="zbx-saved" style="background:#fdecea;color:#8a1c12">✕ <?php esc_html_e('مفتاح Firebase غير صالح — الصق ملف JSON كاملًا كما نزّلته.', 'zooboxi'); ?></div>
             <?php endif; ?>
 
             <form method="post">
@@ -93,6 +150,67 @@ class Zooboxi_Settings_Page
                                 <div class="zbx-field__control zbx-field__control--full">
                                     <input type="password" class="zbx-input--full" name="zooboxi_api_token" id="zooboxi_api_token" value="<?php echo esc_attr(get_option('zooboxi_api_token')); ?>" autocomplete="off">
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ── الإشعارات ── -->
+                    <section class="zbx-card">
+                        <header class="zbx-card__head">
+                            <span class="zbx-card__icon">🔔</span>
+                            <div>
+                                <h2 class="zbx-card__title"><?php esc_html_e('إشعارات التطبيق', 'zooboxi'); ?></h2>
+                                <p class="zbx-card__sub"><?php esc_html_e('الإشعارات الفورية لتطبيق زوبوكسي — حالة الطلب والعروض', 'zooboxi'); ?></p>
+                            </div>
+                        </header>
+                        <div class="zbx-card__body">
+                            <div class="zbx-field">
+                                <div class="zbx-field__main">
+                                    <label class="zbx-field__label" for="zooboxi_push_enabled"><?php esc_html_e('تفعيل الإشعارات', 'zooboxi'); ?></label>
+                                    <p class="zbx-field__desc"><?php esc_html_e('إيقافه يوقف كل إشعارات التطبيق فورًا دون حذف أجهزة العملاء.', 'zooboxi'); ?></p>
+                                </div>
+                                <div class="zbx-field__control">
+                                    <input type="checkbox" name="zooboxi_push_enabled" id="zooboxi_push_enabled" <?php checked(get_option('zooboxi_push_enabled', 'yes'), 'yes'); ?>>
+                                </div>
+                            </div>
+                            <div class="zbx-field zbx-field--stack">
+                                <div class="zbx-label-row">
+                                    <label class="zbx-field__label" for="zooboxi_fcm_service_account"><?php esc_html_e('مفتاح Firebase (service account JSON)', 'zooboxi'); ?></label>
+                                </div>
+                                <p class="zbx-field__desc">
+                                    <?php esc_html_e('من Firebase → إعدادات المشروع → حسابات الخدمة → إنشاء مفتاح خاص جديد. الصق محتوى الملف كاملًا.', 'zooboxi'); ?>
+                                </p>
+                                <div class="zbx-field__control zbx-field__control--full">
+                                    <textarea class="zbx-input--full" name="zooboxi_fcm_service_account" id="zooboxi_fcm_service_account" rows="5" spellcheck="false" placeholder='{"type":"service_account","project_id":"zooboxi", ...}'><?php echo esc_textarea((string) get_option(Zooboxi_Push::OPTION_ACCOUNT, '')); ?></textarea>
+                                </div>
+                                <p class="zbx-field__desc">
+                                    <?php
+                                    $project  = class_exists('Zooboxi_Push') ? Zooboxi_Push::project_id() : '';
+                                    $devices  = 0;
+                                    if (class_exists('Zooboxi_Push')) {
+                                        global $wpdb;
+                                        $table   = Zooboxi_Push::table();
+                                        $devices = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+                                    }
+                                    if ($project === '') {
+                                        esc_html_e('الحالة: لا يوجد مفتاح — الإشعارات متوقفة.', 'zooboxi');
+                                    } else {
+                                        printf(
+                                            /* translators: 1: firebase project id, 2: registered device count */
+                                            esc_html__('الحالة: متصل بمشروع %1$s · %2$s جهاز مسجّل.', 'zooboxi'),
+                                            esc_html($project),
+                                            esc_html(number_format_i18n($devices))
+                                        );
+                                    }
+                                    ?>
+                                </p>
+                                <?php if ($project !== ''): ?>
+                                    <p>
+                                        <button type="submit" name="zooboxi_push_test" value="1" class="button">
+                                            <?php esc_html_e('إرسال إشعار تجريبي إلى جهازي', 'zooboxi'); ?>
+                                        </button>
+                                    </p>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </section>
@@ -139,6 +257,7 @@ class Zooboxi_Settings_Page
                                     'zooboxi_standard_fee'     => ['📦', __('توصيل عادي', 'zooboxi'), 10, 'standard_fee'],
                                     'zooboxi_shipping_fee'     => ['🚛', __('شحن وطني', 'zooboxi'), 25, 'shipping_fee'],
                                     'zooboxi_free_shipping_min'=> ['🎁', __('حد الشحن المجاني', 'zooboxi'), 200, 'free_shipping_min'],
+                                    'zooboxi_express_free_min' => ['⚡', __('حد التوصيل السريع المجاني', 'zooboxi'), 79, 'express_free_min'],
                                 ];
                                 foreach ($fees as $name => $f): ?>
                                     <div class="zbx-fee">
@@ -410,6 +529,10 @@ class Zooboxi_Settings_Page
             'free_shipping_min' => [
                 'title' => __('حد الشحن المجاني', 'zooboxi'),
                 'body'  => __('<p>إجمالي السلة الذي عنده يصبح الشحن <strong>مجانياً</strong>.</p><p>مثال: <code>200</code> يعني الطلبات ≥ 200 ر.س تُشحن مجاناً.</p><p>ارفع الرقم لزيادة متوسط قيمة الطلب، أو اخفضه لتشجيع الطلبات الصغيرة.</p>', 'zooboxi'),
+            ],
+            'express_free_min' => [
+                'title' => __('حد التوصيل السريع المجاني', 'zooboxi'),
+                'body'  => __('<p>إجمالي السلة الذي عنده يصبح <strong>التوصيل السريع</strong> مجانياً — منفصل عن حد الشحن الوطني.</p><p>سلة إكسبريس صغيرة بطبيعتها (متوسطها ~36 ر.س)، فالحد المناسب هو ما يُبلغ بعبوة إضافية واحدة: <code>79</code> يغطي تكلفة المندوب حتى ~10 كم من هامش السلة.</p><p>اكتب <strong>0</strong> لتعطيله.</p>', 'zooboxi'),
             ],
             'smart_shipments' => [
                 'title' => __('الشحنات الذكية', 'zooboxi'),

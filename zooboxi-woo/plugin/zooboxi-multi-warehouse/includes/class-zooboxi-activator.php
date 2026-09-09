@@ -84,6 +84,10 @@ class Zooboxi_Activator
             'zooboxi_standard_fee'       => 10,
             'zooboxi_shipping_fee'       => 25,
             'zooboxi_free_shipping_min'  => 200,
+            // Express baskets are small (a bag, a box of pouches). A threshold set
+            // for the national shipment would tell them they are 160 ﷼ away and
+            // switch the nudge off; this one is reachable with one more item.
+            'zooboxi_express_free_min'   => 79,
             'zooboxi_stock_sync_interval'=> 5,
             'zooboxi_default_price_list' => 1,
         ];

@@ -196,6 +196,14 @@ class Zooboxi_Rest_Controller extends WP_REST_Controller
         }
         $order->save_meta_data();
 
+        // Real movement is worth telling the customer about, not only the
+        // order note. Fired before the note so a listener that throws cannot
+        // leave the note unwritten — and fired only on a change, because the
+        // backend re-pushes the same phase on every sync.
+        if ($mrsool_status !== '' && $mrsool_status !== $previous_status) {
+            do_action('zooboxi_mrsool_status_changed', $order, $mrsool_status, $previous_status, $courier_name);
+        }
+
         // Only note real movement — the backend may re-push the same phase.
         if ($mrsool_status !== '' && ($mrsool_status !== $previous_status || $courier_name !== $previous_courier)) {
             $note = sprintf(

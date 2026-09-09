@@ -77,8 +77,84 @@ class Zooboxi_V2_Feed_Controller
             'foryou'      => $foryou,
             'incity'      => $incity,
             'bundles'     => $this->bundles($uid, $lat, $lng),
+            'needs'       => $this->needs($uid),
             'login_nudge' => $uid <= 0,
         ], null);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SLOT — the needs row, tuned to this customer
+       ══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Which animal's needs to show, and which need first.
+     *
+     * The cacheable payload ships every species' row; this says which one this
+     * person gets — their pet on file, else the animal their purchases feed,
+     * else the cat, which is most of the store — and orders the needs by what
+     * they actually buy, so the bird owner sees seed before treats.
+     *
+     * @return array{species:string, order:string[]}
+     */
+    private function needs(int $uid): array
+    {
+        $species = '';
+        $counts  = [];
+
+        if ($uid > 0 && class_exists('Zooboxi_Loyalty_Pets') && class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled()) {
+            $owned   = Zooboxi_Loyalty_Pets::species_of($uid);
+            $species = (string) ($owned[0] ?? '');
+        }
+
+        if ($uid > 0 && class_exists('Zooboxi_Loyalty_Supply')) {
+            $by_species = [];
+            foreach ($this->buyagain_rows($uid) as $row) {
+                $pid = (int) $row['id'];
+                $sp  = Zooboxi_Loyalty_Supply::species_of_product($pid);
+                if ($sp !== '') {
+                    $by_species[$sp] = ($by_species[$sp] ?? 0) + 1;
+                }
+                $need = self::need_of(Zooboxi_Loyalty_Supply::kind_of($pid));
+                if ($need !== '') {
+                    $counts[$need] = ($counts[$need] ?? 0) + 1;
+                }
+            }
+            if ($species === '' && $by_species) {
+                arsort($by_species);
+                $species = (string) array_key_first($by_species);
+            }
+        }
+
+        $species = self::need_species($species);
+
+        arsort($counts);
+        return [
+            'species' => $species,
+            'order'   => array_keys($counts),
+        ];
+    }
+
+    /** A supply kind → the tile it belongs to. */
+    private static function need_of(string $kind): string
+    {
+        return match ($kind) {
+            'dry'    => 'dry',
+            'wet'    => 'wet',
+            'litter' => 'litter',
+            'treat'  => 'treats',
+            default  => '',
+        };
+    }
+
+    /** The four rows the catalogue keeps; anything else falls to the cat. */
+    private static function need_species(string $raw): string
+    {
+        return match ($raw) {
+            'dog'                       => 'dog',
+            'bird'                      => 'bird',
+            'small', 'rodent', 'rabbit' => 'small',
+            default                     => 'cat',
+        };
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -249,6 +325,23 @@ class Zooboxi_V2_Feed_Controller
      *
      * @return array<int,array{id:int,last_ordered_days:int,due:bool}>
      */
+    /**
+     * The customer's purchase history as the search box needs it: product id →
+     * days since it was last ordered. Public because the most powerful search
+     * result is what someone already bought, and the suggest endpoint lives in
+     * another controller.
+     *
+     * @return array<int,int>
+     */
+    public function bought_index(int $uid): array
+    {
+        $out = [];
+        foreach ($this->buyagain_rows($uid) as $row) {
+            $out[(int) $row['id']] = (int) $row['last_ordered_days'];
+        }
+        return $out;
+    }
+
     private function buyagain_rows(int $uid): array
     {
         if ($uid <= 0) {

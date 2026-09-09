@@ -109,6 +109,9 @@ class Zooboxi_Express_Shipping extends WC_Shipping_Method
             // is free — so splitting into baskets never adds a surprise charge.
             $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);
             if ($orderTotal >= $freeMin) $fee = 0;
+            // …and express's own, lower threshold (see Zooboxi_Delivery_Engine::express_free_min).
+            $expressFreeMin = class_exists('Zooboxi_Delivery_Engine') ? Zooboxi_Delivery_Engine::express_free_min() : 0.0;
+            if ($expressFreeMin > 0 && $orderTotal >= $expressFreeMin) $fee = 0;
 
             $this->add_rate([
                 'id'        => $this->id,

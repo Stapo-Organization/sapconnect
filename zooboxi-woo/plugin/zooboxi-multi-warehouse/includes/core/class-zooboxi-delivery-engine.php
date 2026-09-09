@@ -102,7 +102,27 @@ class Zooboxi_Delivery_Engine
             }
         }
 
+        // Express has its own, lower threshold: the two-hour basket is a bag and
+        // a box, and the national threshold is out of its reach by design.
+        $expressFreeMin = self::express_free_min();
+        if ($options['express'] && $expressFreeMin > 0 && $cartTotal >= $expressFreeMin) {
+            $options['express']['fee'] = 0;
+        }
+
         return $options;
+    }
+
+    /**
+     * The basket value at which the express fee is waived. 0 disables it.
+     *
+     * Kept apart from `zooboxi_free_shipping_min` on purpose: that one prices a
+     * national shipment and sits around 200 ﷼; an express basket averages a
+     * third of that, so the same number would never be reached and the nudge
+     * would only ever say "you are far away".
+     */
+    public static function express_free_min(): float
+    {
+        return (float) apply_filters('zooboxi_express_free_min', (float) get_option('zooboxi_express_free_min', 79));
     }
 
     /**

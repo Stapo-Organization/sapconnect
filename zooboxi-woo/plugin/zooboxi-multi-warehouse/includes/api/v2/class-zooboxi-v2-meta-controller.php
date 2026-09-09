@@ -25,6 +25,7 @@ class Zooboxi_V2_Meta_Controller
                 'android' => (string) get_option('zooboxi_min_app_android', '0.0.0'),
             ],
             'free_shipping_min' => (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200)),
+            'express_free_min'  => class_exists('Zooboxi_Delivery_Engine') ? Zooboxi_Delivery_Engine::express_free_min() : 0.0,
             'fees' => [
                 'express'  => (float) apply_filters('zooboxi_express_fee', (float) get_option('zooboxi_express_fee', 15)),
                 'standard' => (float) get_option('zooboxi_standard_fee', 10),
