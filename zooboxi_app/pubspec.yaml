@@ -1,7 +1,7 @@
 name: zooboxi_app
 description: "Zooboxi — زوبوكسي · متجر مستلزمات الحيوانات الأليفة"
 publish_to: 'none'
-version: 1.0.0+16
+version: 1.0.0+17
 
 environment:
   sdk: ^3.11.5
@@ -38,8 +38,6 @@ dependencies:
   # Push — Firebase Cloud Messaging. The app runs perfectly without it
   # configured (see PushService): no GoogleService-Info.plist means the whole
   # feature stays folded away rather than crashing on launch.
-  firebase_core: ^4.10.0
-  firebase_messaging: ^16.3.0
 
   # Location + maps
   geolocator: ^14.0.2
