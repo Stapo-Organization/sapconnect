@@ -1,7 +1,7 @@
 name: zooboxi_app
 description: "Zooboxi — زوبوكسي · متجر مستلزمات الحيوانات الأليفة"
 publish_to: 'none'
-version: 1.0.0+15
+version: 1.0.0+16
 
 environment:
   sdk: ^3.11.5
@@ -34,6 +34,12 @@ dependencies:
   # Fires a campaign impression once the creative is actually ≥50% on screen —
   # a banner that scrolled past below the fold was never "shown".
   visibility_detector: ^0.4.0+2
+
+  # Push — Firebase Cloud Messaging. The app runs perfectly without it
+  # configured (see PushService): no GoogleService-Info.plist means the whole
+  # feature stays folded away rather than crashing on launch.
+  firebase_core: ^4.10.0
+  firebase_messaging: ^16.3.0
 
   # Location + maps
   geolocator: ^14.0.2
