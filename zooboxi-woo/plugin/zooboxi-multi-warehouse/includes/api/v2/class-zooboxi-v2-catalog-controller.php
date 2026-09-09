@@ -85,18 +85,22 @@ class Zooboxi_V2_Catalog_Controller
      */
     private const EXPRESS_LAYOUT = [
         ['type' => 'eta_band'],
+        // The band already says when the order lands and which branch owes
+        // it; the composed clock slide said the same thing again, one row
+        // below, which is what the owner caught on the first screen. The
+        // program takes that place instead — the pet, the paws and the
+        // month's missions, which is the one thing on this page that is
+        // about him rather than about the shelf.
+        ['type' => 'family'],
+        ['type' => 'missions'],
         // Offers, not a hero: the same composed slides, drawn as a strip of
         // cards with the next one peeking instead of a full-bleed canvas.
+        // The app drops the arrival slide from it for the same reason.
         ['type' => 'offer_strip'],
         // What they buy, first — a third of express orders are a single line
         // someone is replacing.
         ['type' => 'personal'],
         ['type' => 'animal_nav'],
-        // The program keeps its place on the fast shelf: the owner asked for
-        // the paw missions to be visible here too, so the card and the strip
-        // stay together, above the shelf rather than buried under it.
-        ['type' => 'family'],
-        ['type' => 'missions'],
         ['type' => 'shipping_nudge'],
         ['type' => 'grid', 'key' => 'trending'],
         ['type' => 'feed_rail', 'key' => 'foryou'],
