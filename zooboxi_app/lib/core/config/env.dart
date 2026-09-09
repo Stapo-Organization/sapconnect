@@ -25,6 +25,22 @@ abstract final class Env {
   static const String appVersion =
       String.fromEnvironment('ZB_APP_VERSION', defaultValue: '1.0.0');
 
+  /// Which generation of home-layout slots this build can draw, sent as
+  /// `X-ZB-Slots`.
+  ///
+  /// The server composes the home page, and the app skips a slot type it does
+  /// not know — silently, which is right for one stray slot and catastrophic
+  /// for a whole new composition: an إكسبريس layout built from `eta_band` and
+  /// `grid` would reach an older build as a nearly empty page. So the app says
+  /// what it can render and the server only sends what will be drawn.
+  ///
+  /// Bump this in the same commit that teaches `_slots` a new type, and gate
+  /// the layout on it in `Zooboxi_V2_Catalog_Controller::layout()`.
+  ///
+  ///   1 — the shipped set (hero, rails, banners, family, …)
+  ///   2 — adds `eta_band` and `grid`, the إكسبريس composition
+  static const int layoutSlots = 2;
+
   static String normalize(String url) {
     var u = url.trim();
     while (u.endsWith('/')) {

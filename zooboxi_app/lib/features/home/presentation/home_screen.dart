@@ -11,6 +11,7 @@ import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/bundle_card.dart';
+import '../../../core/widgets/product_grid_sliver.dart';
 import '../../../core/widgets/rail.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
@@ -33,6 +34,7 @@ import 'widgets/address_nav_bar.dart';
 import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
+import 'widgets/express_band.dart';
 import 'widgets/clearance_band.dart';
 import 'widgets/family_card.dart';
 import 'widgets/hero_carousel.dart';
@@ -460,7 +462,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ],
               )
-            : SafeArea(bottom: false, child: storefront),
+            // No canvas — إكسبريس leads with its arrival band instead of a
+            // carousel — but "where is this going?" still has to be
+            // answerable from anywhere in the feed. The bar sits OUTSIDE the
+            // SafeArea because it insets itself.
+            : Stack(
+                children: [
+                  SafeArea(bottom: false, child: storefront),
+                  PositionedDirectional(
+                    top: 0,
+                    start: 0,
+                    end: 0,
+                    child: AddressNavBar(
+                      visible: _navVisible,
+                      scope: payload?.scope,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -529,6 +548,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // a canvas that starts behind the status bar cannot sit mid-page.
         case 'hero':
           break;
+
+        // إكسبريس leads with when it arrives, not with what it sells — the
+        // whole difference between a store and a delivery app, in one band.
+        case 'eta_band':
+          final scope = payload.scope;
+          if (scope == null) break;
+          emit(ExpressEtaBand(scope: scope), bottom: 16);
+
+        // The same rail the strip slot would draw, laid out as the shelf it
+        // is: two columns, no horizontal scrolling, everything in front of
+        // you. A sliver, so the cards build as they are reached.
+        case 'grid':
+          final rail = payload.rail(slot.key);
+          if (rail == null) break;
+          final products = claim(rail.products, minimum: 4);
+          if (products == null) break;
+          final heading = ProductGridSliver.heading(rail.title);
+          if (heading != null) slivers.add(heading);
+          slivers.add(
+            ProductGridSliver(products: products, zone: rail.key, onAdd: add),
+          );
+          slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 24)));
 
         case 'animal_nav':
           if (payload.animalNav.isEmpty) break;

@@ -137,6 +137,7 @@ class ApiClient {
     options.headers['X-ZB-Shelf'] =
         (options.extra[_shelfOverride] as String?) ?? readShelf();
     options.headers['X-ZB-App'] = '${_platformName()}/${Env.appVersion}';
+    options.headers['X-ZB-Slots'] = '${Env.layoutSlots}';
 
     // The server maps ids through Polylang from this parameter.
     options.queryParameters = {
