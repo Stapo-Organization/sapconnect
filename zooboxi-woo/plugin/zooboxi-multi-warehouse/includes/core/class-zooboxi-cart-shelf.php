@@ -367,6 +367,23 @@ class Zooboxi_Cart_Shelf
     }
 
     /**
+     * Pieces waiting for [$shelf], not lines.
+     *
+     * The live basket's own badge counts pieces (`get_cart_contents_count()`),
+     * so the waiting basket has to be counted the same way or the two shop
+     * signs would show numbers that cannot both be right — «٢» over a basket
+     * the cart calls «٥».
+     */
+    public static function stashed_units(string $shelf): int
+    {
+        $units = 0;
+        foreach (self::lines_of(self::stash()[$shelf] ?? []) as $line) {
+            $units += max(1, (int) ($line['quantity'] ?? 1));
+        }
+        return $units;
+    }
+
+    /**
      * Moves the customer to the other basket: what is in the cart now is put
      * away under its own shelf, and whatever was waiting under [$target] is
      * put back.
@@ -708,6 +725,10 @@ class Zooboxi_Cart_Shelf
             'shelf'       => $shelf,
             'other_shelf' => $other,
             'other_count' => $other === '' ? 0 : ($waiting[$other] ?? 0),
+            // Lines above, pieces here: the sentence «سلة زوبكسي فيها ٣
+            // منتجات» counts products, the badge on the shop sign counts what
+            // the cart counts.
+            'other_units' => $other === '' ? 0 : self::stashed_units($other),
             // False when there is no basket yet: the app then asks «this
             // product is from the other store» rather than «your basket is».
             'started'     => $shelf !== '',
