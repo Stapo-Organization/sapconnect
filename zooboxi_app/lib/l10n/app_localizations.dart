@@ -5215,6 +5215,12 @@ abstract class L {
   /// **'جديد'**
   String get cardNewSticker;
 
+  /// No description provided for @shelfBasketCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{في السلة قطعة واحدة} =2{في السلة قطعتان} few{في السلة {count} قطع} many{في السلة {count} قطعة} other{في السلة {count} قطعة}}'**
+  String shelfBasketCount(num count);
+
   /// No description provided for @reorderDueShort.
   ///
   /// In ar, this message translates to:

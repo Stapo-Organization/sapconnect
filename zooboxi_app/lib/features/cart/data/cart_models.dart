@@ -347,6 +347,7 @@ class CartBasket {
     this.shelf = '',
     this.otherShelf = '',
     this.otherCount = 0,
+    this.otherUnits,
     this.started = true,
     this.effectiveShelf = '',
     this.requestedShelf = '',
@@ -361,6 +362,15 @@ class CartBasket {
 
   /// Lines waiting in the other storefront's basket.
   final int otherCount;
+
+  /// Pieces waiting there — [otherCount] counts products, this counts what
+  /// the cart counts. Null from a store too old to say, where the line count
+  /// is the closest true answer.
+  final int? otherUnits;
+
+  /// The number to WEAR: the waiting basket measured the same way the live
+  /// one is, so the two shop signs can never disagree about the same basket.
+  int get otherPieces => otherUnits ?? otherCount;
 
   /// False when there is no basket yet and the product being added simply
   /// belongs to the other storefront — a different sentence from "your basket
@@ -402,6 +412,8 @@ class CartBasket {
         shelf: asString(json['shelf']),
         otherShelf: asString(json['other_shelf']),
         otherCount: asInt(json['other_count']),
+        otherUnits:
+            json.containsKey('other_units') ? asInt(json['other_units']) : null,
         started: json.containsKey('started') ? asBool(json['started']) : true,
         effectiveShelf: asString(json['effective_shelf']),
         requestedShelf: asString(json['requested_shelf']),

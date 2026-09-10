@@ -1749,6 +1749,10 @@
   "searchBoughtDays": "{count, plural, =0{اليوم} =1{أمس} =2{قبل يومين} few{قبل {count} أيام} many{قبل {count} يومًا} other{قبل {count} يوم}}",
   "homeTopToday": "الأعلى طلباً اليوم",
   "cardNewSticker": "جديد",
+  "shelfBasketCount": "{count, plural, =1{في السلة قطعة واحدة} =2{في السلة قطعتان} few{في السلة {count} قطع} many{في السلة {count} قطعة} other{في السلة {count} قطعة}}",
+  "@shelfBasketCount": {
+    "placeholders": { "count": { "type": "num", "format": "decimalPattern" } }
+  },
   "reorderDueShort": "حان وقتها",
   "@searchBoughtDays": {
     "placeholders": { "count": { "type": "int" } }

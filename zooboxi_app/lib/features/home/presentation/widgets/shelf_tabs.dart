@@ -11,8 +11,10 @@ import '../../../../core/shelf/shelf_identity.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/app_toast.dart';
+import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../cart/data/cart_controller.dart';
 import '../../../catalog/data/catalog_models.dart';
 
 /// The two storefronts, as signage above everything else.
@@ -139,6 +141,10 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
         'shipping';
     final still = context.reduceMotion;
     final cs = context.cs;
+    // What each shop is holding for this customer. Both numbers come from one
+    // cart answer, so the sign they are NOT standing in can never show a
+    // basket that has since moved.
+    final baskets = ref.watch(shelfBasketsProvider);
 
     final identity = ShelfIdentity.of(context, shelf);
     final track = widget.onCanvas
@@ -204,6 +210,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                     identity: ShelfIdentity.of(context, Shelf.express),
                     name: l.shelfExpressTab,
                     promise: _expressLine(context, l, expressOpen),
+                    count: baskets.express,
                     selected: expressSelected,
                     enabled: expressOpen,
                     onCanvas: widget.onCanvas,
@@ -220,6 +227,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                     identity: ShelfIdentity.of(context, Shelf.all),
                     name: l.shelfAllTab,
                     promise: shipping ? l.shelfAllSubShipping : _allLine(context, l),
+                    count: baskets.all,
                     selected: !expressSelected,
                     enabled: true,
                     onCanvas: widget.onCanvas,
@@ -245,6 +253,7 @@ class _Sign extends StatelessWidget {
     required this.identity,
     required this.name,
     required this.promise,
+    required this.count,
     required this.selected,
     required this.enabled,
     required this.onCanvas,
@@ -255,6 +264,11 @@ class _Sign extends StatelessWidget {
   final ShelfIdentity identity;
   final String name;
   final String promise;
+
+  /// Pieces in THIS storefront's basket — the live one when the sign is lit,
+  /// the one waiting on the server when it is not. Zero draws nothing.
+  final int count;
+
   final bool selected;
 
   /// False = this storefront does not exist here; the sign dims but stays
@@ -268,6 +282,7 @@ class _Sign extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final cs = context.cs;
     final resting = onCanvas
         ? Colors.white.withValues(alpha: 0.82)
@@ -279,7 +294,9 @@ class _Sign extends StatelessWidget {
       button: true,
       selected: selected,
       enabled: enabled,
-      label: '$name — $promise',
+      label: count > 0
+          ? '$name — $promise — ${l.shelfBasketCount(count)}'
+          : '$name — $promise',
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(ZbTokens.rMd + 2),
@@ -352,6 +369,18 @@ class _Sign extends StatelessWidget {
                         ],
                       ),
                     ),
+                    // What this shop is holding. It rides on BOTH signs, lit
+                    // or not — seeing that زوبكسي still has four while you
+                    // stand in إكسبريس is the whole point of two baskets.
+                    if (count > 0) ...[
+                      Gap.w6,
+                      _BasketPill(
+                        count: count,
+                        identity: identity,
+                        selected: selected,
+                        onCanvas: onCanvas,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -379,6 +408,82 @@ class _Sign extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+/// The basket a shop sign is holding: the app's own bag glyph and a number.
+///
+/// Deliberately not a red dot. A dot says «something happened»; this says
+/// «four things are waiting for you in there», which is an invitation to the
+/// other shop rather than an alarm about this one.
+class _BasketPill extends StatelessWidget {
+  const _BasketPill({
+    required this.count,
+    required this.identity,
+    required this.selected,
+    required this.onCanvas,
+  });
+
+  final int count;
+  final ShelfIdentity identity;
+  final bool selected;
+  final bool onCanvas;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+
+    // Lit: punched out of the sign's own gradient in its ink. Resting: the
+    // storefront's accent, quiet — on the deep canvas the accent can melt into
+    // it, so there it borrows plain white instead.
+    final Color ink;
+    final Color fill;
+    if (selected) {
+      ink = identity.onAccent;
+      fill = identity.onAccent.withValues(alpha: 0.22);
+    } else if (onCanvas) {
+      ink = Colors.white.withValues(alpha: 0.92);
+      fill = Colors.white.withValues(alpha: 0.18);
+    } else {
+      ink = identity.accent;
+      fill = identity.accent.withValues(alpha: context.isDark ? 0.24 : 0.14);
+    }
+
+    return Container(
+      padding: const EdgeInsetsDirectional.only(start: 5, end: 7, top: 3, bottom: 3),
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(ZbTokens.rPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ZbIcon(ZbIconKind.bag, size: 13, ink: ink),
+          const SizedBox(width: 3),
+          // The number changes under the glyph rather than the pill jumping:
+          // a basket that gains a line should look like it gained one.
+          AnimatedSwitcher(
+            duration: context.motion(const Duration(milliseconds: 200)),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+            child: Text(
+              Fmt.number(count, locale: locale, decimals: 0),
+              key: ValueKey<int>(count),
+              style: (context.tt.labelSmall ?? const TextStyle()).copyWith(
+                fontSize: 11,
+                height: 1.1,
+                fontWeight: FontWeight.w800,
+                color: ink,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

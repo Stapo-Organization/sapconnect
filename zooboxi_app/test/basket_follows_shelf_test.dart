@@ -19,8 +19,17 @@ import 'package:zooboxi_app/features/cart/data/cart_repository.dart';
 /// is browsing — which it reads the same way the server does, from the request
 /// rather than from a name the app chose.
 class _Repo implements CartRepository {
-  _Repo({this.shelf = '', this.count = 0, Map<String, int>? waiting, this.fails = false})
-      : waiting = {...?waiting};
+  _Repo({
+    this.shelf = '',
+    this.count = 0,
+    Map<String, int>? waiting,
+    this.fails = false,
+    this.fixed,
+  }) : waiting = {...?waiting};
+
+  /// A cart to hand back verbatim, for tests about how one is READ rather
+  /// than how baskets move.
+  final CartData? fixed;
 
   /// Resolved lazily so the repo can read the container it is installed in.
   late String Function() browsing;
@@ -36,6 +45,7 @@ class _Repo implements CartRepository {
   String get _other => shelf == 'express' ? 'all' : 'express';
 
   CartData get snapshot {
+    if (fixed != null) return fixed!;
     final other = shelf.isEmpty
         ? (waiting.keys.isEmpty ? '' : waiting.keys.first)
         : _other;
@@ -45,6 +55,7 @@ class _Repo implements CartRepository {
         shelf: shelf,
         otherShelf: other,
         otherCount: other.isEmpty ? 0 : (waiting[other] ?? 0),
+        otherUnits: other.isEmpty ? 0 : (waiting[other] ?? 0),
       ),
     );
   }
@@ -304,6 +315,73 @@ void main() {
       final move = BasketMove.maybe(const {'to': 'all', 'restored': 0});
       expect(move, isNotNull);
       expect(move!.isQuiet, isTrue);
+    });
+  });
+
+  group('what each shop sign is holding', () {
+    Future<ShelfBaskets> counts(CartData cart) async {
+      final container = await _container(_Repo(fixed: cart));
+      await container.read(cartControllerProvider.future);
+      return container.read(shelfBasketsProvider);
+    }
+
+    test('the live basket is counted by the cart it is in', () async {
+      expect(
+        await counts(const CartData(
+          count: 5,
+          basket: CartBasket(shelf: 'express', otherShelf: 'all'),
+        )),
+        (express: 5, all: 0),
+      );
+    });
+
+    test('and the waiting one by what the store kept for it', () async {
+      expect(
+        await counts(const CartData(
+          count: 3,
+          basket: CartBasket(
+            shelf: 'all',
+            otherShelf: 'express',
+            otherCount: 2,
+            otherUnits: 5,
+          ),
+        )),
+        (express: 5, all: 3),
+        reason: 'pieces, not lines — the cart badge counts pieces',
+      );
+    });
+
+    test('an empty cart belongs to neither, and only the stash shows', () async {
+      expect(
+        await counts(const CartData(
+          basket: CartBasket(otherShelf: 'all', otherCount: 4, otherUnits: 7),
+        )),
+        (express: 0, all: 7),
+      );
+    });
+
+    test('nothing anywhere is two blank signs', () async {
+      expect(await counts(const CartData(basket: CartBasket.none)), (express: 0, all: 0));
+    });
+
+    test('a store too old to count pieces is read in products instead', () {
+      final basket = CartBasket.fromJson(const {
+        'shelf': 'all',
+        'other_shelf': 'express',
+        'other_count': 2,
+      });
+      expect(basket.otherUnits, isNull);
+      expect(basket.otherPieces, 2, reason: 'the closest true answer, never zero');
+    });
+
+    test('a store that counts pieces is believed over the product count', () {
+      final basket = CartBasket.fromJson(const {
+        'shelf': 'all',
+        'other_shelf': 'express',
+        'other_count': 2,
+        'other_units': 9,
+      });
+      expect(basket.otherPieces, 9);
     });
   });
 }

@@ -13,7 +13,12 @@ import 'package:zooboxi_app/core/storage/local_store.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/home/presentation/home_screen.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/shelf_tabs.dart';
+import 'package:zooboxi_app/features/cart/data/cart_controller.dart';
+import 'package:zooboxi_app/features/cart/data/cart_models.dart';
+import 'package:zooboxi_app/features/cart/data/cart_repository.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
+
+import 'support/stub_cart.dart';
 
 class _FixedLocation extends LocationController {
   _FixedLocation(this._type);
@@ -32,12 +37,17 @@ class _FixedLocation extends LocationController {
       );
 }
 
-Future<ProviderContainer> _container({String? deliveryType, String? savedShelf}) async {
+Future<ProviderContainer> _container({
+  String? deliveryType,
+  String? savedShelf,
+  CartData cart = const CartData(basket: CartBasket.none),
+}) async {
   SharedPreferences.setMockInitialValues({'shelf.selected': ?savedShelf});
   final prefs = await SharedPreferences.getInstance();
   final container = ProviderContainer(overrides: [
     localStoreProvider.overrideWithValue(LocalStore(prefs)),
     locationProvider.overrideWith(() => _FixedLocation(deliveryType)),
+    cartRepositoryProvider.overrideWithValue(StubCartRepository(cart)),
   ]);
   addTearDown(container.dispose);
   return container;
@@ -209,6 +219,40 @@ void main() {
             ),
           ),
         );
+
+    testWidgets('each sign wears what its own basket holds', (tester) async {
+      // زوبكسي is live with three pieces; إكسبريس has five waiting on the
+      // server. Both numbers belong on screen at once — that is the reason
+      // for two baskets.
+      final c = await _container(
+        deliveryType: 'express',
+        cart: const CartData(
+          count: 3,
+          basket: CartBasket(
+            shelf: 'all',
+            otherShelf: 'express',
+            otherCount: 2,
+            otherUnits: 5,
+          ),
+        ),
+      );
+      await c.read(cartControllerProvider.future);
+      await pump(tester, c);
+      await tester.pump();
+
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+      expect(find.text('2'), findsNothing, reason: 'products are not the badge');
+    });
+
+    testWidgets('an empty basket wears nothing at all', (tester) async {
+      final c = await _container(deliveryType: 'express');
+      await c.read(cartControllerProvider.future);
+      await pump(tester, c);
+      await tester.pump();
+
+      expect(find.text('0'), findsNothing);
+    });
 
     testWidgets('both storefronts show, and a tap switches to the full store', (tester) async {
       final c = await _container(deliveryType: 'express');

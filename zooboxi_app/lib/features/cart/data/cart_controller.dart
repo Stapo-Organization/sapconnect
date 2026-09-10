@@ -383,6 +383,36 @@ final cartCountProvider = Provider<int>(
   (ref) => ref.watch(cartControllerProvider).value?.count ?? 0,
 );
 
+/// What each storefront's basket is holding, in pieces.
+///
+/// إكسبريس and زوبكسي each keep a basket; only one of them is live at a time
+/// and the other waits on the server. The two shop signs show both, so a
+/// customer can see what is in the shop they are not standing in — which is
+/// the whole reason for keeping it.
+///
+/// A record, so a cart answer that moved neither number leaves both signs
+/// alone: every cart response decodes fresh objects.
+typedef ShelfBaskets = ({int express, int all});
+
+final shelfBasketsProvider = Provider<ShelfBaskets>((ref) {
+  final cart = ref.watch(cartControllerProvider).value;
+  if (cart == null) return (express: 0, all: 0);
+  final basket = cart.basket;
+
+  // The live basket is counted by the cart itself; the waiting one by the
+  // stash. An empty cart belongs to neither shelf, and then `otherShelf` names
+  // whichever side still has something waiting.
+  var express = basket.shelf == Shelf.express.wire ? cart.count : 0;
+  var all = basket.shelf == Shelf.all.wire ? cart.count : 0;
+  if (basket.otherShelf == Shelf.express.wire && basket.shelf != Shelf.express.wire) {
+    express = basket.otherPieces;
+  }
+  if (basket.otherShelf == Shelf.all.wire && basket.shelf != Shelf.all.wire) {
+    all = basket.otherPieces;
+  }
+  return (express: express, all: all);
+});
+
 /// The two numbers the pinned إكسبريس basket bar shows.
 ///
 /// A value, so a cart answer that moved neither of them leaves the bar — and

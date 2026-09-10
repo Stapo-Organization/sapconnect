@@ -3243,6 +3243,21 @@ class LEn extends L {
   String get cardNewSticker => 'New';
 
   @override
+  String shelfBasketCount(num count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString items in the basket',
+      one: '1 item in the basket',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get reorderDueShort => 'Due now';
 
   @override

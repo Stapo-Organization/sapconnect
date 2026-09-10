@@ -15,7 +15,10 @@ import 'package:zooboxi_app/features/checkout/data/checkout_models.dart';
 import 'package:zooboxi_app/features/checkout/presentation/success_screen.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/home_header.dart';
 import 'package:zooboxi_app/features/onboarding/presentation/splash_screen.dart';
+import 'package:zooboxi_app/features/cart/data/cart_repository.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
+
+import 'support/stub_cart.dart';
 
 /// The logo touches are decorative, so nothing here asserts pixels. What it
 /// locks is that each touch is actually *mounted* — a missing asset path or a
@@ -54,7 +57,10 @@ Finder _assetImage(String name) => find.byWidgetPredicate(
 Widget _host(Widget child, {Brightness brightness = Brightness.light}) {
   const locale = Locale('ar');
   return ProviderScope(
-    overrides: [localStoreProvider.overrideWithValue(_store)],
+    overrides: [
+      localStoreProvider.overrideWithValue(_store),
+      cartRepositoryProvider.overrideWithValue(StubCartRepository()),
+    ],
     child: MaterialApp(
       locale: locale,
       theme: brightness == Brightness.dark ? AppTheme.dark(locale) : AppTheme.light(locale),
@@ -245,6 +251,7 @@ void main() {
         overrides: [
           localStoreProvider.overrideWithValue(_store),
           eventsBufferProvider.overrideWithValue(_SilentEvents()),
+          cartRepositoryProvider.overrideWithValue(StubCartRepository()),
         ],
         child: MaterialApp(
           locale: const Locale('ar'),
