@@ -219,12 +219,12 @@ void main() {
     });
   });
 
-  group('HomeHeader logo sticker', () {
+  group('HomeHeader', () {
     for (final onCanvas in [false, true]) {
-      // 360pt is the narrowest phone the store sees; the sticker must not
-      // squeeze the location chip off the row there.
+      // 360pt is the narrowest phone the store sees; the address row must
+      // survive there without the logo that used to open it.
       for (final width in [360.0, 900.0]) {
-        testWidgets('renders at ${width.toInt()}pt with onCanvas=$onCanvas',
+        testWidgets('the address row holds at ${width.toInt()}pt with onCanvas=$onCanvas',
             (tester) async {
           tester.view.physicalSize = Size(width, 1600);
           tester.view.devicePixelRatio = 1;
@@ -234,7 +234,9 @@ void main() {
           await tester.pump();
 
           expect(tester.takeException(), isNull);
-          expect(_assetImage(_logo), findsOneWidget);
+          // The header is no place for the logo: that row answers where the
+          // order goes and when it lands, and both need the width.
+          expect(_assetImage(_logo), findsNothing);
         });
       }
     }

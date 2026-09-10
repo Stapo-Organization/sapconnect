@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:clock/clock.dart';
 
 import '../../features/catalog/data/catalog_models.dart';
 
@@ -131,7 +132,7 @@ DateTime? expressCloseAt(DateTime now, ExpressHours? hours) {
 
 /// A wall-clock time of day on today's date — for rendering opening hours.
 DateTime timeOfDayToday(int minutes, {DateTime? now}) {
-  final base = now ?? DateTime.now();
+  final base = now ?? clock.now();
   return DateTime(base.year, base.month, base.day).add(Duration(minutes: minutes));
 }
 

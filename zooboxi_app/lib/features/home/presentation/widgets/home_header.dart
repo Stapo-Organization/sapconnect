@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'dart:math' as math;
-
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/icons/zb_icons.dart';
-import '../../../../core/motion/motion.dart';
 import '../../../../core/utils/haptics.dart';
-import '../../../../core/widgets/sparkles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
@@ -58,11 +54,12 @@ class HomeHeader extends ConsumerWidget {
           ),
           Row(
             children: [
-              const _LogoSticker(),
-              Gap.w10,
-              // The chip stays Expanded, so the sticker's fixed width is the
-              // only thing it gives up. It now carries the arrival time on
-              // its own second line, so no promise badge rides beside it.
+              // The address gets the whole row it needs. A logo sticker used
+              // to open it — pretty, and the one purely playful thing in the
+              // app — but it spent about fifty points on saying a name the
+              // customer already knows, in the row that answers the two
+              // questions they actually have: WHERE it goes and WHEN it
+              // arrives. The district and the hour own that space now.
               Expanded(child: LocationChip(onCanvas: onCanvas, scope: scope)),
               // Search is a button, not a field: the strip under the address
               // is worth more as store than as an empty input, and the button
@@ -99,119 +96,6 @@ class HomeHeader extends ConsumerWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-/// The logo, sitting on the header as a small printed sticker.
-///
-/// It navigates nowhere — it is decor. But it *answers*: a tap makes it
-/// wiggle and throw two sparkles, which is the cheapest possible piece of
-/// delight and the one place in the app where the brand is allowed to be
-/// purely playful.
-class _LogoSticker extends StatefulWidget {
-  const _LogoSticker();
-
-  @override
-  State<_LogoSticker> createState() => _LogoStickerState();
-}
-
-class _LogoStickerState extends State<_LogoSticker>
-    with SingleTickerProviderStateMixin {
-  /// Three full wiggles, ±6°, then still.
-  static const double _sweep = 6 * math.pi / 180;
-  static const int _cycles = 3;
-
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 500),
-  );
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  void _wiggle() {
-    Haptics.selection();
-    if (context.reduceMotion) return;
-    _c.forward(from: 0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _wiggle,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, child) {
-          final t = _c.value;
-          final angle = t == 0 || t == 1
-              ? 0.0
-              : math.sin(_cycles * 2 * math.pi * t) * _sweep * (1 - 0.35 * t);
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Transform.rotate(angle: angle, child: child),
-              if (_c.isAnimating)
-                const Positioned(
-                  left: -10,
-                  top: -9,
-                  width: 62,
-                  height: 54,
-                  child: SparkleField(sparkles: _stickerBurst),
-                ),
-            ],
-          );
-        },
-        child: const _StickerFace(),
-      ),
-    );
-  }
-}
-
-const List<SparkleSpec> _stickerBurst = [
-  SparkleSpec(dx: 0.06, dy: 0.12, size: 9, color: ZbTokens.sparkAmber),
-  SparkleSpec(
-    dx: 0.93,
-    dy: 0.78,
-    size: 7,
-    color: ZbTokens.logoTeal,
-    delay: Duration(milliseconds: 80),
-    rotation: 0.4,
-  ),
-];
-
-class _StickerFace extends StatelessWidget {
-  const _StickerFace();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: context.isDark ? Colors.white.withValues(alpha: 0.92) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      // The sticker is height-driven; the aspect gives the Row a finite width
-      // instead of the asset's intrinsic 1400px.
-      child: const AspectRatio(
-        aspectRatio: 1400 / 1204,
-        child: Image(
-          image: AssetImage('assets/brand/logo_full.png'),
-          fit: BoxFit.contain,
-        ),
       ),
     );
   }

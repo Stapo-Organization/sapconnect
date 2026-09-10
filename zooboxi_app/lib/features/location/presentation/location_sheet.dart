@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:clock/clock.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -589,48 +590,50 @@ class LocationChip extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      // What the customer calls the place they saved, when
-                      // they named one — «يوصلك في العمل» is a better answer
-                      // than a guess, and the guess only stands in for an
-                      // address set before labels existed.
-                      !isSet
-                          ? l.locationDeliverTo
-                          : (location.label?.isNotEmpty == true
-                              ? l.locationArrivesAtNamed(location.label!)
-                              : l.locationArrivesAtPoint),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.tt.labelSmall?.copyWith(
-                        color: muted,
-                        height: 1.1,
-                      ),
-                    ),
-                    // Address then hour on one line. The address gives way
-                    // first: an ellipsised district is still recognisable,
-                    // a half-printed time is not.
+                    // The context line, and the hour beside it. The two used
+                    // to sit apart: a short label alone up here with half the
+                    // row empty, and the district fighting the clock for one
+                    // line underneath. The hour moves into the space that was
+                    // already going spare, which costs no height and hands the
+                    // whole line below to the neighbourhood — a district that
+                    // ellipsises is a district the customer has to squint at
+                    // to recognise as theirs.
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Flexible(
                           child: Text(
-                            isSet ? detail : l.locationChoose,
+                            // What the customer calls the place they saved,
+                            // when they named one — «يوصلك في العمل» is a
+                            // better answer than a guess, and the guess only
+                            // stands in for an address set before labels
+                            // existed.
+                            !isSet
+                                ? l.locationDeliverTo
+                                : (location.label?.isNotEmpty == true
+                                    ? l.locationArrivesAtNamed(location.label!)
+                                    : l.locationArrivesAtPoint),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: context.tt.titleSmall?.copyWith(height: 1.2, color: fg),
+                            style: context.tt.labelSmall?.copyWith(
+                              color: muted,
+                              height: 1.15,
+                            ),
                           ),
                         ),
                         if (when.isNotEmpty) ...[
                           Gap.w6,
-                          // Flexible too: a shipping date («بحلول الخميس 10
-                          // سبتمبر») is long enough to overflow the row on a
-                          // small phone at a large text scale.
+                          // Small, but never quiet: the arrival is the whole
+                          // promise, so it keeps the accent and the heaviest
+                          // weight on the line. Flexible because a shipping
+                          // date («بحلول الخميس 10 سبتمبر») is long enough to
+                          // overflow on a small phone at a large text scale.
                           Flexible(
                             child: _WhenLine(
                               when: when,
                               scope: scope,
-                              style: context.tt.titleSmall?.copyWith(
-                                height: 1.2,
+                              style: context.tt.labelMedium?.copyWith(
+                                height: 1.15,
                                 fontWeight: FontWeight.w800,
                                 color: accent,
                               ),
@@ -638,6 +641,13 @@ class LocationChip extends ConsumerWidget {
                           ),
                         ],
                       ],
+                    ),
+                    // The neighbourhood, with the line to itself.
+                    Text(
+                      isSet ? detail : l.locationChoose,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.tt.titleSmall?.copyWith(height: 1.2, color: fg),
                     ),
                   ],
                 ),
@@ -752,7 +762,7 @@ class _WhenLineState extends State<_WhenLine> {
 
     if (scope == null || scope.tier != 'express' || scope.expressAvailable == false) return plain;
 
-    final now = DateTime.now();
+    final now = clock.now();
     final close = expressCloseAt(now, scope.expressHours);
     if (close == null || close.difference(now) > _WhenLine.window) return plain;
 

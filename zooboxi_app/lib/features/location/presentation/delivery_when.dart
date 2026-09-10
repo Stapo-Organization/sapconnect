@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:clock/clock.dart';
 
 import '../../../core/delivery/delivery_eta.dart';
 import '../../../core/location/location_controller.dart';
@@ -31,17 +32,19 @@ String deliveryWhenLabel(
   switch (tier) {
     case 'express':
       final eta = resolveExpressEta(
-        now: now ?? DateTime.now(),
+        now: now ?? clock.now(),
         hours: scope?.expressHours,
       );
       // A whole hour is written bare — «الساعة 11 م», not «11:00 م».
-      final clock = Fmt.clockShort(eta.at, locale);
-      return eta.tomorrow ? l.etaTomorrowAt(clock) : l.etaAt(clock);
+      // Not `clock` — that name now belongs to package:clock, which this
+      // file reads the current time from.
+      final at = Fmt.clockShort(eta.at, locale);
+      return eta.tomorrow ? l.etaTomorrowAt(at) : l.etaAt(at);
     case 'same_day':
       // «اليوم» before one o'clock, «غدًا» after it, «السبت» when Friday is
       // in the way — the same rule the server quotes on every product chip.
       final eta = resolveStandardEta(
-        now: now ?? DateTime.now(),
+        now: now ?? clock.now(),
         cutoffMinutes: scope?.standardCutoffMinutes ?? standardCutoffMinutes,
       );
       return switch (eta.kind) {
