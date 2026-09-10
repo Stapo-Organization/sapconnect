@@ -1,7 +1,7 @@
 name: zooboxi_app
 description: "Zooboxi — زوبوكسي · متجر مستلزمات الحيوانات الأليفة"
 publish_to: 'none'
-version: 1.0.0+26
+version: 1.0.0+27
 
 environment:
   sdk: ^3.11.5
@@ -88,7 +88,7 @@ flutter:
     # Every TextStyle lists it in fontFamilyFallback so ﷼ renders inline.
     - family: SaudiRiyal
       fonts:
-        - asset: assets/fonts/SaudiRiyal.otf
+        - asset: assets/fonts/SaudiRiyal.ttf
 
     # Bundled, not fetched. These are the byte-identical files google_fonts
     # used to download from fonts.gstatic.com on first launch — which meant
