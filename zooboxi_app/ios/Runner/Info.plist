@@ -95,6 +95,12 @@
 	<true/>
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
 	<true/>
+	<!-- The app speaks only standard HTTPS, which Apple exempts. Declaring it
+	     here answers the export-compliance question at build time; without it
+	     every single upload sits in "Missing Compliance" until someone clicks
+	     a radio button in App Store Connect. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<!-- Push. Alert notifications need no background mode, but a silent
