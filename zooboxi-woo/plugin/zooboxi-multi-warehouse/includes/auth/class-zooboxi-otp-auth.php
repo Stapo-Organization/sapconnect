@@ -79,6 +79,23 @@ class Zooboxi_OTP_Auth
      *
      * @return array{success:bool,error?:array,data?:array}
      */
+    /**
+     * The reviewer's number and its fixed code, or null when not configured.
+     *
+     * Both options must be set and the code must be a full-length digit string;
+     * a half-configured pair is treated as "no reviewer account" rather than as
+     * a number that silently never gets its SMS.
+     */
+    public static function review_login(): ?array
+    {
+        $phone = self::format_saudi_phone((string) get_option('zooboxi_review_phone', ''));
+        $code  = trim((string) get_option('zooboxi_review_otp', ''));
+        if (!$phone || !preg_match('/^\d{' . self::OTP_LENGTH . '}$/', $code)) {
+            return null;
+        }
+        return ['phone' => $phone, 'code' => $code];
+    }
+
     public static function send_otp(string $rawPhone, string $ip = ''): array
     {
         $phone = self::format_saudi_phone($rawPhone);
@@ -97,8 +114,18 @@ class Zooboxi_OTP_Auth
             ]];
         }
 
+        // App Review's account. Apple's reviewers sit in California and cannot
+        // receive a Saudi SMS, so ONE configured number gets a fixed code and no
+        // message. Everything else about the flow — the stored hash, the
+        // expiry, the attempt counter, the rate limits — stays exactly as it
+        // is: the reviewer walks the same path a customer does, minus the SMS.
+        $review    = self::review_login();
+        $is_review = $review !== null && $review['phone'] === $phone;
+
         // Generate OTP
-        $otp = str_pad((string) random_int(0, 9999), self::OTP_LENGTH, '0', STR_PAD_LEFT);
+        $otp = $is_review
+            ? $review['code']
+            : str_pad((string) random_int(0, 9999), self::OTP_LENGTH, '0', STR_PAD_LEFT);
         $otpHash = wp_hash_password($otp);
 
         // Store in DB
@@ -118,7 +145,7 @@ class Zooboxi_OTP_Auth
 
         // Send SMS via Taqnyat
         $message = sprintf('رمز التحقق الخاص بك في ZooBoxi: %s', $otp);
-        $result = Zooboxi_Taqnyat::send($phone, $message);
+        $result  = $is_review ? ['success' => true] : Zooboxi_Taqnyat::send($phone, $message);
 
         if (!$result['success']) {
             error_log('[Zooboxi OTP] Failed to send SMS to ' . $phone . ': ' . $result['message']);

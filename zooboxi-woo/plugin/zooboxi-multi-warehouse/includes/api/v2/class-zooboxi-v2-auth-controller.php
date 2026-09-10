@@ -25,6 +25,7 @@ class Zooboxi_V2_Auth_Controller
         Zooboxi_V2_Bootstrap::route('/auth/otp/send', 'POST', [$this, 'otp_send']);
         Zooboxi_V2_Bootstrap::route('/auth/otp/verify', 'POST', [$this, 'otp_verify']);
         Zooboxi_V2_Bootstrap::route('/auth/logout', 'POST', [$this, 'logout']);
+        Zooboxi_V2_Bootstrap::route('/me', 'DELETE', [$this, 'delete_me']);
         Zooboxi_V2_Bootstrap::route('/me', 'GET', [$this, 'me']);
         Zooboxi_V2_Bootstrap::route('/me', 'PATCH,PUT,POST', [$this, 'update_me']);
     }
@@ -156,6 +157,85 @@ class Zooboxi_V2_Auth_Controller
             Zooboxi_App_Tokens::revoke($raw);
         }
         return Zooboxi_V2_Bootstrap::ok(['revoked' => true]);
+    }
+
+    /* ── DELETE /me ────────────────────────────────── */
+
+    /**
+     * The customer closes their account.
+     *
+     * App Store rule 5.1.1(v): an app that creates accounts must let the person
+     * delete one from inside it. What "delete" means here is what the law
+     * allows: every piece of personal data goes — phone, name, email,
+     * addresses, pets, favourites, devices, sessions — and the orders are
+     * anonymised through WooCommerce's own eraser, so the financial record
+     * survives (it has to) with nobody's name on it.
+     *
+     * The phone is scrubbed rather than the row deleted for one reason: the
+     * user id is a foreign key in the paws ledger and the order history, and a
+     * dangling id there would break reports that count orders. Scrubbed, the
+     * same phone can sign up again tomorrow as a brand-new customer.
+     */
+    public function delete_me(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            return Zooboxi_V2_Bootstrap::unauthorized();
+        }
+        $user = get_userdata($user_id);
+        if (!$user || user_can($user, 'manage_options')) {
+            // An administrator's account is not the app's to erase.
+            return Zooboxi_V2_Bootstrap::fail('delete_forbidden', 'لا يمكن حذف هذا الحساب من التطبيق', 'This account cannot be deleted from the app', 403);
+        }
+
+        global $wpdb;
+
+        // 1. Orders: anonymise, keep. WooCommerce's eraser is the same one the
+        //    privacy tools use, so what it leaves behind is what Woo itself
+        //    considers a lawful record.
+        if (class_exists('WC_Privacy_Erasers')) {
+            foreach (wc_get_orders(['customer_id' => $user_id, 'limit' => -1, 'return' => 'objects']) as $order) {
+                try {
+                    \WC_Privacy_Erasers::remove_order_personal_data($order);
+                } catch (\Throwable $e) {
+                    error_log('[Zooboxi v2] order anonymisation failed for #' . $order->get_id() . ': ' . $e->getMessage());
+                }
+            }
+        }
+
+        // 2. Everything the app keeps about the person.
+        foreach ([
+            'billing_phone', 'billing_email', 'billing_first_name', 'billing_last_name',
+            'billing_address_1', 'billing_address_2', 'billing_city', 'billing_postcode',
+            'shipping_first_name', 'shipping_last_name', 'shipping_address_1', 'shipping_address_2',
+            'shipping_city', 'shipping_postcode', 'first_name', 'last_name', 'nickname', 'description',
+            Zooboxi_V2_Account_Controller::ADDRESSES_META, '_zbx_wishlist',
+            'zooboxi_phone_verified', 'zooboxi_pending_address',
+        ] as $key) {
+            delete_user_meta($user_id, $key);
+        }
+        if (class_exists('Zooboxi_Loyalty_Schema')) {
+            $wpdb->delete(Zooboxi_Loyalty_Schema::pets(), ['user_id' => $user_id]);
+        }
+        if (class_exists('Zooboxi_Push')) {
+            $wpdb->delete(Zooboxi_Push::table(), ['user_id' => $user_id]);
+        }
+        Zooboxi_App_Tokens::revoke_all($user_id);
+
+        // 3. The identity itself. user_login cannot go through wp_update_user,
+        //    and it carries the phone number, so it is rewritten directly.
+        $anon = 'deleted_' . $user_id;
+        $wpdb->update($wpdb->users, [
+            'user_login'    => $anon,
+            'user_nicename' => $anon,
+            'user_email'    => $anon . '@zooboxi.invalid',
+            'display_name'  => 'حساب محذوف',
+            'user_url'      => '',
+        ], ['ID' => $user_id]);
+        clean_user_cache($user_id);
+        update_user_meta($user_id, 'zooboxi_deleted_at', current_time('mysql', true));
+
+        return Zooboxi_V2_Bootstrap::ok(['deleted' => true]);
     }
 
     /* ── GET /me ───────────────────────────────────── */
