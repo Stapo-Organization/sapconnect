@@ -75,21 +75,36 @@ class Zooboxi_Settings_Page
         // A test notification to every device the current admin has registered.
         // Sending to *themselves* is the point: the only way to prove the chain
         // — key, token, APNs, phone — is to make a phone in the room buzz.
+        // A test notification to ONE chosen device.
+        //
+        // Not "to my devices": whoever administers this store signs into
+        // wp-admin as the shop, and into the app as a customer with their own
+        // phone number — two different WordPress users, permanently. A button
+        // that searched for the admin's own devices found nothing, every time.
+        // Never a broadcast either: the target is picked by hand.
         if (isset($_POST['zooboxi_push_test']) && check_admin_referer('zooboxi_settings')) {
-            $devices = Zooboxi_Push::devices_for(get_current_user_id());
-            if (!$devices) {
-                $push_test = ['ok' => false, 'message' => __('لا يوجد جهاز مسجّل لحسابك. افتح التطبيق بنفس الحساب واسمح بالإشعارات أولًا.', 'zooboxi')];
+            $device_id = (int) ($_POST['zooboxi_push_device'] ?? 0);
+            $device    = null;
+            if ($device_id > 0) {
+                global $wpdb;
+                $device = $wpdb->get_row(
+                    $wpdb->prepare('SELECT * FROM ' . Zooboxi_Push::table() . ' WHERE id = %d', $device_id),
+                    ARRAY_A
+                );
+            }
+            if (!$device) {
+                $push_test = ['ok' => false, 'message' => __('اختر جهازًا أولًا. لا تظهر الأجهزة هنا إلا بعد أن يفتح صاحبها التطبيق ويسمح بالإشعارات.', 'zooboxi')];
             } else {
-                $sent = Zooboxi_Push::send_to_devices(
-                    $devices,
-                    'orders',
+                $ok = Zooboxi_Push::send_raw(
+                    (string) $device['token'],
                     __('تجربة زوبوكسي', 'zooboxi'),
                     __('وصلك هذا الإشعار — الإعداد سليم.', 'zooboxi'),
-                    '/account'
+                    '/account',
+                    ['topic' => 'orders']
                 );
-                $push_test = $sent > 0
-                    ? ['ok' => true, 'message' => sprintf(__('أُرسل إلى %s جهاز.', 'zooboxi'), number_format_i18n($sent))]
-                    : ['ok' => false, 'message' => __('لم يُقبل الإرسال. راجع سجل الأخطاء — الغالب أن المفتاح ناقص أو مشروع Firebase مختلف.', 'zooboxi')];
+                $push_test = $ok
+                    ? ['ok' => true, 'message' => __('أُرسل. يفترض أن يصل خلال ثوانٍ.', 'zooboxi')]
+                    : ['ok' => false, 'message' => __('رفضت FCM الإرسال. الأسباب المعتادة: مفتاح APNs غير مرفوع في مشروع Firebase، أو رمز الجهاز انتهى. التفاصيل في سجل أخطاء PHP.', 'zooboxi')];
             }
         }
 
@@ -204,12 +219,40 @@ class Zooboxi_Settings_Page
                                     }
                                     ?>
                                 </p>
-                                <?php if ($project !== ''): ?>
-                                    <p>
-                                        <button type="submit" name="zooboxi_push_test" value="1" class="button">
-                                            <?php esc_html_e('إرسال إشعار تجريبي إلى جهازي', 'zooboxi'); ?>
-                                        </button>
-                                    </p>
+                                <?php if ($project !== ''):
+                                    global $wpdb;
+                                    $rows = $wpdb->get_results(
+                                        'SELECT id, user_id, guest_id, platform, app_version, last_seen_at FROM '
+                                        . Zooboxi_Push::table() . ' ORDER BY last_seen_at DESC LIMIT 50',
+                                        ARRAY_A
+                                    );
+                                    ?>
+                                    <?php if ($rows): ?>
+                                        <p style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                                            <select name="zooboxi_push_device">
+                                                <?php foreach ($rows as $row):
+                                                    $who = (int) $row['user_id'] > 0
+                                                        ? (($u = get_userdata((int) $row['user_id'])) ? $u->user_login : ('#' . $row['user_id']))
+                                                        : __('ضيف', 'zooboxi') . ' ' . substr((string) $row['guest_id'], 0, 8);
+                                                    ?>
+                                                    <option value="<?php echo (int) $row['id']; ?>">
+                                                        <?php echo esc_html(sprintf(
+                                                            '%s · %s v%s · %s',
+                                                            $who,
+                                                            $row['platform'],
+                                                            $row['app_version'],
+                                                            $row['last_seen_at']
+                                                        )); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <button type="submit" name="zooboxi_push_test" value="1" class="button">
+                                                <?php esc_html_e('إرسال إشعار تجريبي', 'zooboxi'); ?>
+                                            </button>
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="zbx-field__desc"><?php esc_html_e('لا توجد أجهزة مسجّلة بعد.', 'zooboxi'); ?></p>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         </div>

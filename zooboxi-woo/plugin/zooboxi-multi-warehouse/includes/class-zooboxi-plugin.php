@@ -142,6 +142,14 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/loyalty/class-zooboxi-loyalty.php';
         }
 
+        // Push notifications — the device registry and the sender. Loaded
+        // outside the v2 kill switch on purpose: the store's own hooks send
+        // through it, and switching the app API off must not switch off the
+        // notifications of the apps already installed.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-events.php';
+        Zooboxi_Push_Events::boot();
+
         // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:
         // set option `zooboxi_v2_enabled` to anything but 'yes' to unload it entirely.
         if (get_option('zooboxi_v2_enabled', 'yes') === 'yes') {
@@ -158,6 +166,7 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-orders-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-account-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-events-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-push-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-meta-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-bundles-controller.php';
             if (get_option('zooboxi_loyalty_enabled', 'yes') === 'yes') {

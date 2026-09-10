@@ -547,6 +547,14 @@ class Zooboxi_V2_Bootstrap
         $events->register_routes();
         $meta->register_routes();
 
+        // `/push/*` — the device registry. Registered whenever the class is
+        // present; a store with no FCM credentials simply answers with the
+        // defaults and sends nothing.
+        if (class_exists('Zooboxi_V2_Push_Controller')) {
+            Zooboxi_Push::maybe_install();
+            (new Zooboxi_V2_Push_Controller())->register_routes();
+        }
+
         // «البكجات» — live bundles ranked per viewer.
         if (class_exists('Zooboxi_V2_Bundles_Controller')) {
             (new Zooboxi_V2_Bundles_Controller())->register_routes();
