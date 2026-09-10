@@ -205,9 +205,77 @@ class Zooboxi_V2_Checkout_Controller
             'coupons'         => $cart['coupons'],
             'notices'         => $cart['notices'],
             'payment_methods' => $this->payment_methods(),
-            'addresses'       => Zooboxi_V2_Account_Controller::get_addresses(get_current_user_id()),
+            'addresses'       => $this->addresses_for_basket(
+                Zooboxi_V2_Account_Controller::get_addresses(get_current_user_id())
+            ),
             'promise'         => $this->promise_recap($cart['shipments']),
         ]);
+    }
+
+    /**
+     * Each saved address, told whether it can actually take THIS basket.
+     *
+     * An إكسبريس basket was quoted against one branch: its stock, its two-hour
+     * clock, its courier. Sending it to an address that branch does not cover
+     * is not a slightly worse delivery — it is a different warehouse, so the
+     * quantities the customer chose may not exist there and the promise on the
+     * receipt cannot be kept. The customer cannot see any of that, so the
+     * store has to say it before they pick.
+     *
+     * زوبكسي is judged by nothing here: the main warehouse reaches every
+     * address the app let them save, and the cart's own fulfilment guard
+     * already trims what cannot travel.
+     *
+     * @param array<int,array> $addresses
+     * @return array<int,array>
+     */
+    private function addresses_for_basket(array $addresses): array
+    {
+        if (!class_exists('Zooboxi_Cart_Shelf')) {
+            return $addresses;
+        }
+
+        $shelf = Zooboxi_Cart_Shelf::current();
+        if ($shelf === '') {
+            $shelf = Zooboxi_Cart_Shelf::requested();
+        }
+        if ($shelf !== Zooboxi_Cart_Shelf::EXPRESS
+            || !class_exists('Zooboxi_Warehouse_Manager')) {
+            foreach ($addresses as &$address) {
+                $address['serves']        = true;
+                $address['serves_reason'] = '';
+            }
+            unset($address);
+            return $addresses;
+        }
+
+        // The branch this basket belongs to — «نفس المعرض», not merely "some
+        // express branch": a second branch across town is a different shelf.
+        $branch = Zooboxi_Cart_Shelf::codes_for(Zooboxi_Cart_Shelf::EXPRESS);
+
+        foreach ($addresses as &$address) {
+            $lat = isset($address['lat']) ? (float) $address['lat'] : 0.0;
+            $lng = isset($address['lng']) ? (float) $address['lng'] : 0.0;
+
+            if (!$lat && !$lng) {
+                // No pin, no zone test. An express order needs a point on a
+                // map for the courier anyway, so this is worth saying plainly
+                // rather than guessing yes and failing at the door.
+                $address['serves']        = false;
+                $address['serves_reason'] = 'no_pin';
+                continue;
+            }
+
+            $found = Zooboxi_Warehouse_Manager::find_express_warehouses($lat, $lng);
+            $code  = (string) ($found[0]['warehouse']['warehouse_code'] ?? '');
+
+            $ok = $code !== '' && (empty($branch) || in_array($code, $branch, true));
+            $address['serves']        = $ok;
+            $address['serves_reason'] = $ok ? '' : 'out_of_zone';
+        }
+        unset($address);
+
+        return $addresses;
     }
 
     /** Only the gateways WooCommerce reports as available, allowlisted + labelled. */
@@ -449,6 +517,16 @@ class Zooboxi_V2_Checkout_Controller
         // literal is used so this line survives the module being switched off.
         if ((string) $order->get_meta('_zooboxi_app_order') !== '1') {
             $order->update_meta_data('_zooboxi_app_order', 1);
+        }
+        // The install this order was placed from. A guest has no account for a
+        // push notification to be addressed to, and the phone in their hand is
+        // still the phone waiting on the order — this is the only handle we
+        // have on it, so it goes on the record while we have it.
+        if (!get_current_user_id()) {
+            $guest_id = Zooboxi_V2_Bootstrap::guest_id($request);
+            if ($guest_id !== '') {
+                $order->update_meta_data('_zb_guest_id', $guest_id);
+            }
         }
         $order->save();
 

@@ -49,14 +49,24 @@ class Zooboxi_V2_Orders_Controller
         $page     = max(1, (int) $request->get_param('page'));
         $per_page = self::PER_PAGE;
 
-        $query = wc_get_orders([
+        $args = [
             'customer_id' => $user_id,
             'limit'       => $per_page,
             'paged'       => $page,
             'orderby'     => 'date',
             'order'       => 'DESC',
             'paginate'    => true,
-        ]);
+        ];
+
+        // The app's filter tabs. Narrowing here rather than in the app is the
+        // whole point: a page holds ten orders, so a client-side filter would
+        // show «3 مكتملة» to a customer who has thirty.
+        $group = self::status_group((string) $request->get_param('status'));
+        if ($group !== null) {
+            $args['status'] = $group;
+        }
+
+        $query = wc_get_orders($args);
 
         $orders = is_object($query) ? ($query->orders ?? []) : (array) $query;
 
@@ -236,8 +246,13 @@ class Zooboxi_V2_Orders_Controller
     private function list_dto(\WC_Order $order): array
     {
         $preview = [];
+        $lines   = 0;
         foreach ($order->get_items() as $item) {
-            if (count($preview) >= 3 || !($item instanceof \WC_Order_Item_Product)) {
+            if (!($item instanceof \WC_Order_Item_Product)) {
+                continue;
+            }
+            $lines++;
+            if (count($preview) >= 3) {
                 continue;
             }
             $product   = $item->get_product();
@@ -264,9 +279,35 @@ class Zooboxi_V2_Orders_Controller
             'payment_method' => (string) $order->get_payment_method(),
             'delivery_type' => (string) $order->get_meta('_zooboxi_delivery_type'),
             'items_preview' => $preview,
+            // Two different numbers, and the app needs both: `items_count` is
+            // how many UNITS were bought («6 منتجات»), `items_lines` is how
+            // many distinct products there were. The card stacks three photos
+            // and captions the rest «+N» — counting units there would promise
+            // five more photographs for one carton of six.
+            'items_lines'   => $lines,
             'items_count'   => (int) $order->get_item_count(),
             'can_reorder'   => in_array($status, ['completed', 'processing', 'zb-ready', 'zb-out-for-delivery', 'cancelled', 'refunded'], true),
         ];
+    }
+
+    /**
+     * The three groups the app's «طلباتي» filter offers, in WooCommerce's own
+     * vocabulary. Anything else — including no parameter at all — means every
+     * order, which is what the screen opens on.
+     *
+     * `failed` belongs with the live ones on purpose: an order whose payment
+     * did not land is the one the customer most needs to find again.
+     *
+     * @return string[]|null
+     */
+    private static function status_group(string $group): ?array
+    {
+        return match ($group) {
+            'active'    => ['pending', 'on-hold', 'processing', 'zb-ready', 'zb-out-for-delivery', 'failed'],
+            'completed' => ['completed'],
+            'cancelled' => ['cancelled', 'refunded'],
+            default     => null,
+        };
     }
 
     /** Bilingual status labels, including the store's own `zb-ready`. */
@@ -546,38 +587,59 @@ class Zooboxi_V2_Orders_Controller
             'date_created' => '>' . (time() - DAY_IN_SECONDS),
         ]);
 
-        $best = null;
+        $live = [];
         foreach ((array) $orders as $order) {
-            if (!$order instanceof \WC_Order) {
-                continue;
-            }
-            // Newest is the wrong question. A courier five minutes from the door
-            // matters more than a box someone started packing a moment ago, so a
-            // moving order outranks a waiting one and date only breaks ties.
-            if ($best === null || self::urgency($order) > self::urgency($best)) {
-                $best = $order;
+            if ($order instanceof \WC_Order) {
+                $live[] = $order;
             }
         }
 
-        if ($best === null) {
+        if (empty($live)) {
             return Zooboxi_V2_Bootstrap::ok(null);
         }
 
-        $courier = $this->courier_for($best);
-        $dto     = $this->list_dto($best);
+        // Newest is the wrong question. A courier five minutes from the door
+        // matters more than a box someone started packing a moment ago, so a
+        // moving order outranks a waiting one and date only breaks ties.
+        usort($live, static fn ($a, $b) => self::urgency($b) <=> self::urgency($a));
 
-        // The order key is the pay/receipt capability token. The bar never uses
-        // it, and this is the most frequently polled payload in the app.
-        unset($dto['order_key']);
+        // Two express orders at once is a real thing — a second household, a
+        // forgotten item ordered again — and reporting only the most urgent
+        // one made the other disappear from the app entirely. Capped, because
+        // each entry costs a courier lookup and this is the most frequently
+        // polled payload we serve; past three the bar is a list, not a bar.
+        $live = array_slice($live, 0, self::ACTIVE_LIMIT);
 
+        $entries = [];
+        foreach ($live as $order) {
+            $courier = $this->courier_for($order);
+            $dto     = $this->list_dto($order);
+
+            // The order key is the pay/receipt capability token. The bar never
+            // uses it, and this is the most frequently polled payload we serve.
+            unset($dto['order_key']);
+
+            $entries[] = [
+                'order' => $dto,
+                // A courier we could not reach is reported as absent here: the
+                // bar still has a real order status to show, and losing it over
+                // a slow proxy would be the worse trade.
+                'tracking' => $courier === false ? null : $courier,
+            ];
+        }
+
+        // `order` and `tracking` stay at the top level for builds that predate
+        // the list — they read the most urgent one and simply never learn
+        // about the rest, which is exactly the old behaviour.
         return Zooboxi_V2_Bootstrap::ok([
-            'order' => $dto,
-            // A courier we could not reach is reported as absent here: the bar
-            // still has a real order status to show, and losing the whole bar
-            // over a slow proxy would be the worse trade.
-            'tracking' => $courier === false ? null : $courier,
+            'order'    => $entries[0]['order'],
+            'tracking' => $entries[0]['tracking'],
+            'orders'   => $entries,
         ]);
     }
+
+    /** How many live orders the bar will carry at once. */
+    private const ACTIVE_LIMIT = 3;
 
     /** How much this order deserves the bar. Higher wins; date breaks ties. */
     private static function urgency(\WC_Order $order): int
