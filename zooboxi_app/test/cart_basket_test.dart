@@ -75,6 +75,14 @@ class _Repo implements CartRepository {
     return const CartData(basket: CartBasket(shelf: 'all', otherShelf: 'express', otherCount: 3));
   }
 
+  int aligns = 0;
+
+  @override
+  Future<({CartData cart, BasketMove? move})> alignBasket() async {
+    aligns++;
+    return (cart: const CartData(basket: _expressBasket), move: null);
+  }
+
   @override
   Future<CartData> fetch() async => const CartData(basket: _expressBasket);
 

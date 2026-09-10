@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/active_branch.dart';
 import '../../core/utils/haptics.dart';
+import '../../core/widgets/app_toast.dart';
+import '../../features/cart/data/cart_controller.dart';
+import '../../features/cart/data/cart_models.dart';
 import 'glass_nav_bar.dart';
 import 'express_cart_bar.dart';
 import 'live_order_bar.dart';
@@ -37,6 +40,29 @@ class _MainShellState extends ConsumerState<MainShell> {
   Widget build(BuildContext context) {
     final shell = widget.shell;
     final index = shell.currentIndex;
+
+    // The basket follows the storefront. Kept alive here because this is the
+    // one widget that outlives every tab: the wire itself lives in the cart
+    // layer, and holding it anywhere shorter would quietly stop moving the
+    // basket the moment that screen was popped.
+    ref.watch(basketFollowsShelfProvider);
+    ref.listen<BasketMove?>(basketMoveProvider, (_, move) {
+      if (move == null) return;
+      // Said here rather than in the cart screen, because the thing that just
+      // changed — the count on the menu — is on screen right now, and finding
+      // out later that a basket was put away is what «فجأة السلة تغيّرت»
+      // means. Read once: the inbox is cleared as it is spoken.
+      ref.read(basketMoveProvider.notifier).clear();
+      // Joined, not looped: a new toast REPLACES the last, so posting «حفظنا
+      // سلة إكسبريس» and «رجّعنا لك صنفين» one after the other would show
+      // only the second and silently swallow the half that explains where the
+      // basket went.
+      final said = [
+        for (final notice in move.notices)
+          if (notice.text.trim().isNotEmpty) notice.text.trim(),
+      ].join(' ');
+      if (said.isNotEmpty) AppToast.info(context, said);
+    });
     // Remembered for the pushed pages above us, after this frame — a provider
     // must never be written while the tree that reads it is building.
     WidgetsBinding.instance.addPostFrameCallback((_) {

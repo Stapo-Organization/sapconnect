@@ -37,6 +37,18 @@ class CartRepository {
     return CartData.fromJson(asMap(data));
   }
 
+  /// Puts the basket on whichever shelf this request says it is browsing.
+  ///
+  /// No shelf is named on purpose: the store aligns to the storefront it is
+  /// serving THIS request as, so a closed إكسبريس resolves to زوبكسي by
+  /// itself and there is never a target to argue about. It answers with the
+  /// cart either way — an alignment with nothing to move is a plain read.
+  Future<({CartData cart, BasketMove? move})> alignBasket() async {
+    final data = asMap(await _api.post('/cart/basket', body: const {}));
+    final cart = CartData.fromJson(data);
+    return (cart: cart, move: BasketMove.maybe(data['switched'], notices: cart.notices));
+  }
+
   Future<CartData> setQuantity(String key, int quantity) async {
     final data = await _api.patch('/cart/items/$key', body: {'quantity': quantity});
     return CartData.fromJson(asMap(data));

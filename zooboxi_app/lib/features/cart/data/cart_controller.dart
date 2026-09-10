@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/location/location_controller.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/session/session_controller.dart';
+import '../../../core/shelf/shelf_controller.dart';
 import '../../loyalty/data/loyalty_models.dart';
 import '../../loyalty/data/loyalty_repository.dart';
 import 'cart_models.dart';
@@ -145,6 +146,47 @@ class CartController extends AsyncNotifier<CartData> {
     _adopt(result);
   }
 
+  /// Puts the basket on the shelf now being browsed, and reports what moved.
+  ///
+  /// إكسبريس and زوبكسي are two shops with a basket each. Whichever one is on
+  /// screen must be the one the tab belongs to, or the customer is carrying
+  /// the other shop's bag: their count is wrong, their free-delivery line is
+  /// the other store's, and every line they add is a question instead of an
+  /// add. So the basket follows them.
+  ///
+  /// The store is asked to align to the shelf IT is serving this request as,
+  /// not to a name the app chooses — after closing time an إكسبريس tab is
+  /// زوبكسي, and only the store knows that. Failure is silent on purpose: an
+  /// alignment that could not happen leaves the basket exactly where it was,
+  /// and the add path still raises its own question if it matters.
+  Future<BasketMove?> alignToShelf(String shelf) async {
+    if (shelf.isEmpty) return null;
+    try {
+      return await _serial(() async {
+        // Judged INSIDE the queue, so a tap made while another alignment was
+        // in flight reads the basket that call left behind rather than the
+        // one it found. Tapping across and back costs one round trip, not two.
+        final basket = _current.basket;
+        if (basket.shelf == shelf) return null;
+        final waiting = basket.otherShelf == shelf && basket.otherCount > 0;
+        // Nothing here and nothing waiting there: there is no basket to move.
+        // The label is left alone too — an empty basket belongs to nobody, and
+        // the first line added names the shelf it was added on.
+        if (basket.shelf.isEmpty && !waiting) return null;
+
+        final result = await ref.read(cartRepositoryProvider).alignBasket();
+        _targetQty.clear();
+        // Not collected: these notices are handed to the caller so they are
+        // spoken NOW, next to the badge that just changed, instead of waiting
+        // for the customer to open the cart screen and find out then.
+        _adopt(result.cart, collect: false);
+        return result.move;
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<AddResult> add({
     required int productId,
     int? variationId,
@@ -271,6 +313,69 @@ class CartController extends AsyncNotifier<CartData> {
 
 final cartControllerProvider =
     AsyncNotifierProvider<CartController, CartData>(CartController.new);
+
+/// The last basket move nobody has said out loud yet.
+///
+/// A move the customer did not press a button for has to be announced beside
+/// the badge it changed, and only a widget can do that — so the alignment
+/// leaves its sentence here and the shell speaks it.
+class BasketMoveInbox extends Notifier<BasketMove?> {
+  @override
+  BasketMove? build() => null;
+
+  /// Quiet moves are dropped: two empty baskets swapping places is not news.
+  void post(BasketMove? move) {
+    if (move == null || move.isQuiet) return;
+    state = move;
+  }
+
+  void clear() {
+    if (state != null) state = null;
+  }
+}
+
+final basketMoveProvider =
+    NotifierProvider<BasketMoveInbox, BasketMove?>(BasketMoveInbox.new);
+
+/// Keeps the live basket on the storefront being browsed.
+///
+/// The tab is the customer saying which shop they are in; the basket is what
+/// they are carrying in it. This is the one wire between the two, so no caller
+/// has to remember to move the basket — the cart screen's banner, the sheet an
+/// add raises and a plain tab tap all end up here.
+///
+/// Held alive by the shell. It watches nothing and therefore never rebuilds:
+/// the listener is the whole body.
+final basketFollowsShelfProvider = Provider<void>((ref) {
+  Future<void> align(Shelf shelf) async {
+    try {
+      final move =
+          await ref.read(cartControllerProvider.notifier).alignToShelf(shelf.wire);
+      ref.read(basketMoveProvider.notifier).post(move);
+    } catch (_) {
+      // The scope went away mid-flight, or the store refused. Either way the
+      // basket is where it was and nothing here is worth crashing a tab tap.
+    }
+  }
+
+  ref.listen<Shelf>(shelfProvider, (previous, next) {
+    if (previous == next) return;
+    unawaited(align(next));
+  });
+
+  // And once at the start. Without this the app opens on إكسبريس carrying
+  // whatever basket it was left with — a زوبكسي count on an إكسبريس badge,
+  // which is the whole complaint. It waits for the first cart because an
+  // alignment judged against no cart at all can only decide to do nothing.
+  unawaited(() async {
+    try {
+      await ref.read(cartControllerProvider.future);
+    } catch (_) {
+      return; // No cart to align; the next successful read brings one.
+    }
+    await align(ref.read(shelfProvider));
+  }());
+});
 
 /// Unit count for the tab badge. Kept as its own provider so the badge
 /// rebuilds without every cart change rebuilding the whole shell.

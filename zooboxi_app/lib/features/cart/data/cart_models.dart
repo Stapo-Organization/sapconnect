@@ -269,6 +269,70 @@ class CartNotice {
       CartNotice(type: asString(json['type'], fallback: 'notice'), text: asString(json['text']));
 }
 
+/// What moving between the two storefronts' baskets actually did.
+///
+/// The store sends this beside every basket response. It matters most for the
+/// move nobody pressed a button for — the basket following the tab — where a
+/// badge that drops from twelve to zero has to be explained in the same
+/// breath, or it reads as loss.
+@immutable
+class BasketMove {
+  const BasketMove({
+    this.to = '',
+    this.from = '',
+    this.auto = false,
+    this.restored = 0,
+    this.stashed = 0,
+    this.lost = 0,
+    this.notices = const [],
+  });
+
+  /// The storefront now holding the live basket.
+  final String to;
+
+  /// The storefront whose basket was put away, empty when there was none.
+  final String from;
+
+  /// Whether the basket moved by itself, following the shelf being browsed.
+  final bool auto;
+
+  final int restored;
+  final int stashed;
+
+  /// Lines that could not come back because the store no longer has them.
+  final int lost;
+
+  /// The store's own sentences about it, already in the customer's language.
+  final List<CartNotice> notices;
+
+  /// Nothing was carried either way — the alignment was a formality and must
+  /// not interrupt anyone.
+  bool get isQuiet => restored == 0 && stashed == 0 && lost == 0;
+
+  factory BasketMove.fromJson(
+    Map<String, dynamic> json, {
+    List<CartNotice> notices = const [],
+  }) =>
+      BasketMove(
+        to: asString(json['to']),
+        from: asString(json['from']),
+        auto: asBool(json['auto']),
+        restored: asInt(json['restored']),
+        stashed: asInt(json['stashed']),
+        lost: asInt(json['lost']),
+        notices: notices,
+      );
+
+  /// Null when the store said nothing moved, or is too old to say.
+  static BasketMove? maybe(dynamic value, {List<CartNotice> notices = const []}) {
+    final map = asMap(value);
+    if (map.isEmpty) return null;
+    // `moved: false` is the store telling us the basket was already right.
+    if (map.containsKey('moved') && !asBool(map['moved'])) return null;
+    return BasketMove.fromJson(map, notices: notices);
+  }
+}
+
 /// The whole cart, server-authoritative. Every mutation returns a fresh copy
 /// of this — the app never computes totals, shipping or caps itself.
 @immutable
