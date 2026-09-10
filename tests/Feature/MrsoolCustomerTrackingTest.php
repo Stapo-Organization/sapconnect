@@ -302,17 +302,79 @@ class MrsoolCustomerTrackingTest extends TestCase
         Http::assertSentCount(2);
     }
 
-    public function test_a_courier_with_no_gps_fix_has_no_position_and_no_eta(): void
+    public function test_a_courier_with_no_gps_fix_has_no_position_but_still_has_an_eta(): void
     {
         $order = $this->order();
         $this->delivery($order, ['courier_lat' => 0, 'courier_lng' => 0]);
 
         $data = $this->track(32664)->assertOk()->json('data');
 
+        // Null Island is not a place, so there is no dot and no distance.
         $this->assertNull($data['courier']['lat']);
         $this->assertNull($data['courier']['lng']);
         $this->assertNull($data['distance_km']);
-        $this->assertNull($data['eta_minutes']);
+
+        // The arrival does not depend on the dot: we know when he collected
+        // and how far the branch is from the door, and that clock runs whether
+        // or not his phone ever reports a position.
+        $this->assertNotNull($data['eta_minutes']);
+        $this->assertGreaterThan(0, $data['eta_minutes']);
+    }
+
+    public function test_a_stale_fix_stops_claiming_a_distance_but_keeps_counting_down(): void
+    {
+        $order = $this->order();
+        // The shape of a real ride: Mrsool stamped the courier at the branch
+        // when he confirmed pickup and has said nothing since.
+        $this->delivery($order, [
+            'picked_up_at' => now()->subMinutes(20),
+            'courier_lat'  => 24.7493638,
+            'courier_lng'  => 46.6678227,
+            'events'       => [
+                ['event' => 'CONFIRMED_PICKUP', 'created_at' => now()->subMinutes(20)->toIso8601String()],
+                ['event' => 'DELIVERING', 'created_at' => now()->subMinutes(20)->toIso8601String()],
+            ],
+        ]);
+
+        $data = $this->track(32664)->assertOk()->json('data');
+
+        // The dot is still drawn — it is where he was — but nothing is measured
+        // from it.
+        $this->assertNotNull($data['courier']['lat']);
+        $this->assertNull($data['distance_km']);
+        $this->assertNotNull($data['courier_seen_at']);
+
+        // And the arrival keeps moving: twenty minutes of the ride are spent.
+        $this->assertNotNull($data['eta_minutes']);
+    }
+
+    public function test_the_countdown_shrinks_as_the_ride_goes_on(): void
+    {
+        $order = $this->order();
+        // A real express ride, not the fixture's short hop: 12 km from فرع
+        // الملك فهد, which is ~33 minutes of the estimate. A ride that lands
+        // on the two-minute floor at both ends proves nothing.
+        $order->update(['customer_latitude' => 24.8163909, 'customer_longitude' => 46.7589742]);
+
+        // Both readings are taken with a STALE fix, so both come from the ride
+        // clock — otherwise this would compare a map answer with a clock one.
+        $stamp = static fn (int $ago) => [
+            'picked_up_at' => now()->subMinutes($ago),
+            'events'       => [
+                ['event' => 'DELIVERING', 'created_at' => now()->subMinutes($ago)->toIso8601String()],
+            ],
+        ];
+
+        $this->delivery($order, $stamp(8));
+        $early = $this->track(32664)->assertOk()->json('data.eta_minutes');
+
+        $order->mrsoolDeliveries()->first()->update($stamp(20));
+        $later = $this->track(32664)->assertOk()->json('data.eta_minutes');
+
+        $this->assertNotNull($early);
+        $this->assertNotNull($later);
+        $this->assertSame(12, $early - $later, 'twelve minutes of riding is twelve minutes off');
+        $this->assertLessThan($early, $later, 'the arrival must approach, not sit still');
     }
 
     public function test_before_pickup_there_is_no_distance_to_the_customers_door(): void

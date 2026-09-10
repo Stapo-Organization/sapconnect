@@ -21,6 +21,16 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class MrsoolCustomerTrackingResource extends JsonResource
 {
     /**
+     * How old a courier fix may be and still be treated as "where he is".
+     *
+     * Mrsool moves the dot on status events, not on a GPS feed, so anything
+     * older than this is a place he HAS BEEN, not a place he is. Five minutes:
+     * long enough that a fix taken at pickup still answers while he is pulling
+     * away from the branch, short enough that it never answers mid-ride.
+     */
+    private const FIX_FRESH_SECONDS = 300;
+
+    /**
      * Customer-facing wording per Mrsool status. The model's STATUS_LABELS are
      * the operations wording and stay as they are.
      */
@@ -67,8 +77,23 @@ class MrsoolCustomerTrackingResource extends JsonResource
         // Until the courier has the box, the distance between him and the door
         // is not the distance to your order — he is riding the other way, to
         // the branch. Saying "300 m away" then is simply untrue.
-        $inTransit  = $d->phase === MrsoolDelivery::PHASE_IN_TRANSIT;
-        $distanceKm = $inTransit ? $this->distanceKm($courierLat, $courierLng) : null;
+        $inTransit = $d->phase === MrsoolDelivery::PHASE_IN_TRANSIT;
+
+        // WHEN that position was taken, which is not when we last asked for it.
+        // Mrsool's `courier_location` is the fix recorded at the last status
+        // EVENT, not a live feed: between «استلم الطلب» and «وصل عندك» it can
+        // sit unchanged for half an hour while the courier crosses the city.
+        // Polling it every twenty seconds returns the same point, and reporting
+        // our poll time as the update time made a stale dot look alive.
+        $seenAt     = $this->courierSeenAt($d);
+        $freshFix   = $seenAt !== null
+            && (int) floor($seenAt->diffInSeconds(now())) <= self::FIX_FRESH_SECONDS;
+
+        // Only a fix we believe gets to answer "how far": a distance measured
+        // from where he was twenty-six minutes ago is not a distance.
+        $distanceKm = $inTransit && $freshFix
+            ? $this->distanceKm($courierLat, $courierLng)
+            : null;
 
         return [
             'active'        => $showCourier,
@@ -96,7 +121,12 @@ class MrsoolCustomerTrackingResource extends JsonResource
             'dropoff' => $this->dropoff,
 
             'distance_km' => $distanceKm,
-            'eta_minutes' => $this->etaMinutes($distanceKm),
+            'eta_minutes' => $this->etaMinutes($distanceKm, $freshFix),
+
+            // When the courier's dot was actually recorded. The app draws it as
+            // a LAST KNOWN position once this is old, instead of implying he is
+            // parked outside the branch he left twenty minutes ago.
+            'courier_seen_at' => optional($seenAt)->toIso8601String(),
 
             // Which leg the courier is riding: the app draws the line to this
             // end, not always to the customer's door.
@@ -169,16 +199,25 @@ class MrsoolCustomerTrackingResource extends JsonResource
             return null;
         }
 
-        $lat2 = (float) ($this->dropoff['lat'] ?? 0);
-        $lng2 = (float) ($this->dropoff['lng'] ?? 0);
+        return $this->haversine(
+            $lat,
+            $lng,
+            (float) ($this->dropoff['lat'] ?? 0),
+            (float) ($this->dropoff['lng'] ?? 0),
+        );
+    }
+
+    /** Straight-line kilometres, or null when either end is unknown. */
+    private function haversine(float $lat1, float $lng1, float $lat2, float $lng2): ?float
+    {
         if (!$lat2 || !$lng2) {
             return null;
         }
 
         $r = 6371.0;
-        $dLat = deg2rad($lat2 - $lat);
-        $dLng = deg2rad($lng2 - $lng);
-        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
 
         return round(2 * $r * asin(min(1.0, sqrt($a))), 2);
     }
@@ -189,12 +228,12 @@ class MrsoolCustomerTrackingResource extends JsonResource
      * folded in. Shown to the customer as «تقريباً», never as a promise, and
      * only while the courier is genuinely moving toward the door.
      */
-    private function etaMinutes(?float $distanceKm): ?int
+    private function etaMinutes(?float $distanceKm, bool $freshFix): ?int
     {
         /** @var MrsoolDelivery $d */
         $d = $this->resource;
 
-        if ($distanceKm === null || $d->phase !== MrsoolDelivery::PHASE_IN_TRANSIT) {
+        if ($d->phase !== MrsoolDelivery::PHASE_IN_TRANSIT) {
             return null;
         }
 
@@ -202,6 +241,67 @@ class MrsoolCustomerTrackingResource extends JsonResource
             return 0;
         }
 
-        return max(2, (int) ceil(($distanceKm / 22.0) * 60));
+        if ($freshFix && $distanceKm !== null) {
+            return max(2, (int) ceil(($distanceKm / 22.0) * 60));
+        }
+
+        // No fix worth trusting — which is the NORMAL case for most of the
+        // ride, because Mrsool only moves the dot on a status event. So the
+        // clock answers instead of the map: the whole ride is the branch-to-
+        // door distance, and what is left is that minus how long he has been
+        // gone. It counts down honestly, which the frozen-distance estimate
+        // never did — it read the same «٣٣ دقيقة» from pickup to doorstep.
+        $ride = $this->rideMinutes();
+        if ($ride === null || !$d->picked_up_at) {
+            return null;
+        }
+
+        return max(2, $ride - (int) floor($d->picked_up_at->diffInMinutes(now())));
+    }
+
+    /** How long the whole branch → door ride should take, in minutes. */
+    private function rideMinutes(): ?int
+    {
+        if (!$this->warehouse || $this->warehouse->latitude === null || !$this->dropoff) {
+            return null;
+        }
+
+        $km = $this->haversine(
+            (float) $this->warehouse->latitude,
+            (float) $this->warehouse->longitude,
+            (float) ($this->dropoff['lat'] ?? 0),
+            (float) ($this->dropoff['lng'] ?? 0),
+        );
+
+        return $km === null ? null : max(2, (int) ceil(($km / 22.0) * 60));
+    }
+
+    /**
+     * When the courier's position was recorded.
+     *
+     * Mrsool stamps the fix at the moment of the last status event, so the
+     * newest entry in the event history is the honest age of the dot. Falls
+     * back to our own phase timestamps for a delivery whose history we never
+     * received.
+     */
+    private function courierSeenAt(MrsoolDelivery $d): ?\Carbon\CarbonInterface
+    {
+        $newest = null;
+        foreach ((array) ($d->events ?? []) as $event) {
+            $at = $event['created_at'] ?? null;
+            if (!is_string($at) || $at === '') {
+                continue;
+            }
+            try {
+                $parsed = \Illuminate\Support\Carbon::parse($at);
+            } catch (\Throwable) {
+                continue;
+            }
+            if ($newest === null || $parsed->greaterThan($newest)) {
+                $newest = $parsed;
+            }
+        }
+
+        return $newest ?? $d->picked_up_at ?? $d->assigned_at;
     }
 }
