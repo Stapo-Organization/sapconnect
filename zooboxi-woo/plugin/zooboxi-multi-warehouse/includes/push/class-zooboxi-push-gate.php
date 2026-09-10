@@ -137,7 +137,7 @@ class Zooboxi_Push_Gate
         }
 
         // ── Windows: hold, never drop ─────────────────────────────────
-        $hold = self::window_block($tier, $now, $o);
+        $hold = self::window_block($tier, $now, $o, $msg);
         if ($hold !== null) {
             [$reason, $until] = $hold;
             if ($expires > 0 && $expires <= $until) {
@@ -221,9 +221,22 @@ class Zooboxi_Push_Gate
      *
      * @return array{0:string,1:int}|null
      */
-    public static function window_block(string $tier, int $now, array $o): ?array
+    public static function window_block(string $tier, int $now, array $o, array $msg = []): ?array
     {
         $tz = self::tz_of((string) $o['tz']);
+
+        // 0. A calendar that replaces the defaults (Ramadan): ['allow'] means
+        //    inside its window — send; [reason, until] means hold; null means
+        //    the mode is off and the defaults below apply.
+        $override = apply_filters('zooboxi_push_window_override', null, $tier, $now, $o, $msg);
+        if (is_array($override) && $override) {
+            if ($override[0] === 'allow') {
+                return null;
+            }
+            if (count($override) === 2 && (int) $override[1] > $now) {
+                return [(string) $override[0], (int) $override[1]];
+            }
+        }
 
         // 1. Quiet hours — everyone but transactional.
         $quiet = self::span_containing($now, (string) $o['quiet_start'], (string) $o['quiet_end'], $tz);
@@ -253,7 +266,7 @@ class Zooboxi_Push_Gate
         }
 
         // 4. Anything a later phase adds (adhan, Ramadan): [reason, until] or null.
-        $extra = apply_filters('zooboxi_push_window_block', null, $tier, $now, $o);
+        $extra = apply_filters('zooboxi_push_window_block', null, $tier, $now, $o, $msg);
         if (is_array($extra) && count($extra) === 2 && (int) $extra[1] > $now) {
             return [(string) $extra[0], (int) $extra[1]];
         }

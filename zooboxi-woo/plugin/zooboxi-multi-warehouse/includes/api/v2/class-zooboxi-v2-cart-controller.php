@@ -958,6 +958,14 @@ class Zooboxi_V2_Cart_Controller
             $dto['loyalty'] = Zooboxi_Loyalty_Rewards::cart_block($cart);
         }
 
+        // The abandoned-basket watcher keeps one snapshot per person from
+        // every answer; a failure there must never reach the customer.
+        try {
+            do_action('zooboxi_v2_cart_dto', $dto, (string) $shelf, (float) $lat, (float) $lng);
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi v2] cart dto hook failed: ' . $e->getMessage());
+        }
+
         return array_merge($dto, $extra);
     }
 

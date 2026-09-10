@@ -23,6 +23,73 @@ class Zooboxi_V2_Push_Controller
         Zooboxi_V2_Bootstrap::route('/push/live-activity', 'POST', [$this, 'live_activity_start']);
         Zooboxi_V2_Bootstrap::route('/push/live-activity/end', 'POST', [$this, 'live_activity_end']);
         Zooboxi_V2_Bootstrap::route('/push/opened', 'POST', [$this, 'opened']);
+        Zooboxi_V2_Bootstrap::route('/push/inbox', 'GET', [$this, 'inbox']);
+        Zooboxi_V2_Bootstrap::route('/push/inbox/read', 'POST', [$this, 'inbox_read']);
+        Zooboxi_V2_Bootstrap::route('/push/waitlist', 'GET', [$this, 'waitlist_status']);
+        Zooboxi_V2_Bootstrap::route('/push/waitlist', 'POST', [$this, 'waitlist_add']);
+        Zooboxi_V2_Bootstrap::route('/push/waitlist/remove', 'POST', [$this, 'waitlist_remove']);
+    }
+
+    /** The last thirty days of what this person was told — and would have been. */
+    public function inbox(\WP_REST_Request $request): \WP_REST_Response
+    {
+        if (!class_exists('Zooboxi_Push_Engine')) {
+            return Zooboxi_V2_Bootstrap::ok(['items' => [], 'unread' => 0]);
+        }
+        return Zooboxi_V2_Bootstrap::ok(Zooboxi_Push_Engine::inbox_for(
+            get_current_user_id(),
+            Zooboxi_V2_Bootstrap::guest_id($request),
+            Zooboxi_V2_Bootstrap::lang($request),
+            max(1, min(60, (int) ($request->get_param('limit') ?: 30)))
+        ));
+    }
+
+    public function inbox_read(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $ids = (array) ($request->get_param('ids') ?? []);
+        $n   = class_exists('Zooboxi_Push_Engine')
+            ? Zooboxi_Push_Engine::mark_read(get_current_user_id(), Zooboxi_V2_Bootstrap::guest_id($request), $ids)
+            : 0;
+        return Zooboxi_V2_Bootstrap::ok(['read' => $n]);
+    }
+
+    /** «نبّهني» — restock / price for one product. */
+    public function waitlist_status(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $pid = absint($request->get_param('product_id'));
+        if ($pid <= 0 || !class_exists('Zooboxi_Push_Waitlist')) {
+            return Zooboxi_V2_Bootstrap::ok(['restock' => false, 'price' => false]);
+        }
+        return Zooboxi_V2_Bootstrap::ok(Zooboxi_Push_Waitlist::status(get_current_user_id(), Zooboxi_V2_Bootstrap::guest_id($request), $pid));
+    }
+
+    public function waitlist_add(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $pid  = absint($request->get_param('product_id'));
+        $kind = (string) ($request->get_param('kind') ?: 'restock');
+        $uid  = get_current_user_id();
+        $gid  = Zooboxi_V2_Bootstrap::guest_id($request);
+        if ($pid <= 0 || !class_exists('Zooboxi_Push_Waitlist')) {
+            return Zooboxi_V2_Bootstrap::fail('product_not_found', __('منتج غير معروف', 'zooboxi'), 'Unknown product.', 404);
+        }
+        [$lat, $lng] = Zooboxi_V2_Bootstrap::latlng();
+        $ok = Zooboxi_Push_Waitlist::subscribe($uid, $gid, $pid, $kind, (float) $lat, (float) $lng);
+        if (!$ok) {
+            return Zooboxi_V2_Bootstrap::fail('waitlist_failed', __('تعذّر التسجيل', 'zooboxi'), 'Could not subscribe.', 400);
+        }
+        return Zooboxi_V2_Bootstrap::ok(Zooboxi_Push_Waitlist::status($uid, $gid, $pid));
+    }
+
+    public function waitlist_remove(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $pid  = absint($request->get_param('product_id'));
+        $kind = (string) ($request->get_param('kind') ?: '');
+        $uid  = get_current_user_id();
+        $gid  = Zooboxi_V2_Bootstrap::guest_id($request);
+        if ($pid > 0 && class_exists('Zooboxi_Push_Waitlist')) {
+            Zooboxi_Push_Waitlist::unsubscribe($uid, $gid, $pid, $kind);
+        }
+        return Zooboxi_V2_Bootstrap::ok(class_exists('Zooboxi_Push_Waitlist') ? Zooboxi_Push_Waitlist::status($uid, $gid, $pid) : ['restock' => false, 'price' => false]);
     }
 
     /**

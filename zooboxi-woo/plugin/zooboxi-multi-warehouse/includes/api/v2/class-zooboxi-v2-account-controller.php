@@ -70,6 +70,9 @@ class Zooboxi_V2_Account_Controller
         if (function_exists('zooboxi_wishlist_toggle')) {
             $force  = $request->get_param('force');
             $result = zooboxi_wishlist_toggle($product_id, $user_id, $force === null ? null : (bool) $force);
+            if (class_exists('Zooboxi_Push_Waitlist')) {
+                Zooboxi_Push_Waitlist::on_wishlisted($user_id, $product_id, ($result['state'] ?? '') === 'added');
+            }
             return Zooboxi_V2_Bootstrap::ok([
                 'wishlisted' => ($result['state'] ?? '') === 'added',
                 'count'      => (int) ($result['count'] ?? 0),

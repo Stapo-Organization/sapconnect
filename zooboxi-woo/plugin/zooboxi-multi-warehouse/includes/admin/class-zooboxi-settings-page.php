@@ -42,7 +42,7 @@ class Zooboxi_Settings_Page
                 'zooboxi_smart_shipments', 'zooboxi_express_ranking',
                 'zooboxi_recommended_sort', 'zooboxi_dynamic_badges',
                 'zooboxi_fbt_block', 'zooboxi_clearance_collection',
-                'zooboxi_sku_search', 'zooboxi_push_enabled', 'zooboxi_push_engine_enabled',
+                'zooboxi_sku_search', 'zooboxi_push_enabled',
             ];
             foreach ($toggles as $toggle) {
                 update_option($toggle, isset($_POST[$toggle]) ? 'yes' : 'no');
@@ -69,32 +69,7 @@ class Zooboxi_Settings_Page
                 }
             }
 
-            // The gatekeeper's knobs. Times as HH:MM, counts as integers; an
-            // empty field falls back to the plan's default.
-            foreach (['quiet_start', 'quiet_end', 'marketing_start', 'marketing_end'] as $knob) {
-                if (isset($_POST['zooboxi_push_' . $knob])) {
-                    $v = trim(sanitize_text_field(wp_unslash($_POST['zooboxi_push_' . $knob])));
-                    update_option('zooboxi_push_' . $knob, preg_match('/^\d{1,2}:\d{2}$/', $v) ? $v : '', false);
-                }
-            }
-            foreach (['marketing_per_day', 'marketing_per_week', 'marketing_gap_h', 'service_per_day', 'total_per_day', 'total_per_week'] as $knob) {
-                if (isset($_POST['zooboxi_push_' . $knob])) {
-                    $v = trim((string) wp_unslash($_POST['zooboxi_push_' . $knob]));
-                    update_option('zooboxi_push_' . $knob, $v === '' ? '' : max(0, (int) $v), false);
-                }
-            }
-
             $saved = true;
-        }
-
-        // «شغّل الآن»: one tick of the outbox by hand, to watch a queued row go.
-        if (isset($_POST['zooboxi_push_tick_now']) && check_admin_referer('zooboxi_settings') && class_exists('Zooboxi_Push_Engine')) {
-            $tick = Zooboxi_Push_Engine::tick();
-            $push_test = ['ok' => true, 'message' => sprintf(
-                /* translators: 1: claimed 2: sent 3: still pending 4: skipped */
-                __('دورة واحدة: %1$d مأخوذة · %2$d أُرسلت · %3$d ما زالت تنتظر · %4$d تخطّاها الحارس.', 'zooboxi'),
-                $tick['claimed'], $tick['sent'], $tick['pending'], $tick['skipped']
-            )];
         }
 
         // A test notification to every device the current admin has registered.
@@ -281,105 +256,14 @@ class Zooboxi_Settings_Page
                                 <?php endif; ?>
                             </div>
 
-                            <?php if (class_exists('Zooboxi_Push_Engine')):
-                                $stats   = Zooboxi_Push_Engine::stats(7);
-                                $reasons = [
-                                    'quiet_hours' => 'ساعات الهدوء', 'marketing_window' => 'خارج نافذة التسويق', 'friday_pause' => 'هدنة الجمعة',
-                                    'cap_daily' => 'سقف اليوم', 'cap_weekly' => 'سقف الأسبوع', 'cap_gap' => 'الفجوة الزمنية',
-                                    'repeat_text' => 'نص مكرّر', 'control' => 'المجموعة الضابطة', 'no_device' => 'لا جهاز',
-                                    'topic_off' => 'الموضوع مغلق', 'expired' => 'انتهت صلاحيته', 'engine_off' => 'المحرك متوقف',
-                                    'converted' => 'اشترى قبل الإرسال', 'retry' => 'بانتظار إعادة المحاولة', 'token_dead' => 'رمز ميت', 'fcm_error' => 'خطأ FCM',
-                                    'already_pending' => 'مكرّر', '' => '—',
-                                ];
-                                $statuses = ['sent' => 'أُرسل', 'pending' => 'ينتظر', 'skipped' => 'تخطّاه الحارس', 'control' => 'ضابطة', 'failed' => 'فشل', 'cancelled' => 'أُلغي'];
-                                $sources  = ['order_status' => 'حالة الطلب', 'courier' => 'المندوب', 'order_late' => 'يتأخّر قليلًا', 'reorder' => 'الطعام قبل أن يخلص', '' => '—'];
-                                $tiers    = ['transactional' => 'معاملات', 'service' => 'خدمة', 'marketing' => 'تسويق'];
-                                $rate     = $stats['sent'] > 0 ? round(100 * $stats['opened'] / $stats['sent'], 1) : 0;
-                            ?>
+                            <?php if (class_exists('Zooboxi_Push_Engine')): ?>
                             <div class="zbx-field">
                                 <div class="zbx-field__main">
-                                    <label class="zbx-field__label" for="zooboxi_push_engine_enabled"><?php esc_html_e('محرك الإشعارات (حارس البوابة)', 'zooboxi'); ?></label>
-                                    <p class="zbx-field__desc"><?php esc_html_e('يمرّر كل إشعار غير معاملاتي (إعادة الطلب، العروض، العائلة) عبر السقوف وساعات الهدوء والمجموعة الضابطة. إيقافه يوقف هذه فقط — حالات الطلب تستمر.', 'zooboxi'); ?></p>
+                                    <label class="zbx-field__label"><?php esc_html_e('محرك الإشعارات', 'zooboxi'); ?></label>
+                                    <p class="zbx-field__desc"><?php esc_html_e('الرحلات، الحملات، السقوف، ساعات الهدوء، رمضان والأذان، والأرقام — كلها في صفحتها.', 'zooboxi'); ?></p>
                                 </div>
                                 <div class="zbx-field__control">
-                                    <input type="checkbox" name="zooboxi_push_engine_enabled" id="zooboxi_push_engine_enabled" <?php checked(get_option('zooboxi_push_engine_enabled', 'yes'), 'yes'); ?>>
-                                </div>
-                            </div>
-                            <div class="zbx-field zbx-field--stack">
-                                <div class="zbx-label-row"><span class="zbx-field__label"><?php esc_html_e('آخر 7 أيام', 'zooboxi'); ?></span></div>
-                                <p class="zbx-field__desc">
-                                    <?php printf(
-                                        /* translators: 1: sent 2: opened 3: open rate 4: pending 5: last tick */
-                                        esc_html__('أُرسل %1$s · فُتح %2$s (%3$s%%) · ينتظر الآن %4$s · آخر دورة %5$s', 'zooboxi'),
-                                        esc_html(number_format_i18n($stats['sent'])),
-                                        esc_html(number_format_i18n($stats['opened'])),
-                                        esc_html((string) $rate),
-                                        esc_html(number_format_i18n($stats['pending'])),
-                                        esc_html($stats['tick_at'] > 0 ? human_time_diff($stats['tick_at'], time()) : __('لم تعمل بعد', 'zooboxi'))
-                                    ); ?>
-                                </p>
-                                <?php if ($stats['by_source']): ?>
-                                <table class="widefat striped" style="max-width:720px;margin-top:8px">
-                                    <thead><tr>
-                                        <th><?php esc_html_e('المصدر', 'zooboxi'); ?></th><th><?php esc_html_e('الدرجة', 'zooboxi'); ?></th>
-                                        <th><?php esc_html_e('أُرسل', 'zooboxi'); ?></th><th><?php esc_html_e('فُتح', 'zooboxi'); ?></th>
-                                        <th><?php esc_html_e('تخطّاه', 'zooboxi'); ?></th><th><?php esc_html_e('ضابطة', 'zooboxi'); ?></th><th><?php esc_html_e('ينتظر', 'zooboxi'); ?></th>
-                                    </tr></thead>
-                                    <tbody>
-                                    <?php foreach ($stats['by_source'] as $r): ?>
-                                        <tr>
-                                            <td><?php echo esc_html($sources[$r['source']] ?? $r['source']); ?></td>
-                                            <td><?php echo esc_html($tiers[$r['tier']] ?? $r['tier']); ?></td>
-                                            <td><?php echo (int) $r['sent']; ?></td><td><?php echo (int) $r['opened']; ?></td>
-                                            <td><?php echo (int) $r['skipped']; ?></td><td><?php echo (int) $r['control']; ?></td><td><?php echo (int) $r['pending']; ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                                <?php endif; ?>
-                                <?php if ($stats['by_status']): ?>
-                                <p class="zbx-field__desc" style="margin-top:8px">
-                                    <?php
-                                    $bits = [];
-                                    foreach ($stats['by_status'] as $r) {
-                                        $label = ($statuses[$r['status']] ?? $r['status']);
-                                        if ((string) $r['reason'] !== '') {
-                                            $label .= ' · ' . ($reasons[$r['reason']] ?? $r['reason']);
-                                        }
-                                        $bits[] = $label . ' ' . (int) $r['n'];
-                                    }
-                                    echo esc_html(implode(' — ', $bits));
-                                    ?>
-                                </p>
-                                <?php endif; ?>
-                                <p style="margin-top:8px">
-                                    <button type="submit" name="zooboxi_push_tick_now" value="1" class="button"><?php esc_html_e('شغّل دورة الآن', 'zooboxi'); ?></button>
-                                </p>
-                            </div>
-                            <div class="zbx-field zbx-field--stack">
-                                <div class="zbx-label-row"><span class="zbx-field__label"><?php esc_html_e('السقوف والنوافذ', 'zooboxi'); ?></span></div>
-                                <p class="zbx-field__desc"><?php esc_html_e('بتوقيت الرياض. فارغ = الافتراضي. المعاملات (حالة الطلب والمندوب) لا تخضع لأي منها.', 'zooboxi'); ?></p>
-                                <?php
-                                $knobs = [
-                                    'quiet_start'        => ['هدوء من', '22:00'],
-                                    'quiet_end'          => ['هدوء حتى', '08:00'],
-                                    'marketing_start'    => ['تسويق من', '09:00'],
-                                    'marketing_end'      => ['تسويق حتى', '21:30'],
-                                    'marketing_per_day'  => ['تسويق / يوم', '1'],
-                                    'marketing_per_week' => ['تسويق / أسبوع', '3'],
-                                    'marketing_gap_h'    => ['فجوة التسويق (ساعات)', '20'],
-                                    'service_per_day'    => ['خدمة / يوم', '2'],
-                                    'total_per_day'      => ['الكل / يوم', '2'],
-                                    'total_per_week'     => ['الكل / أسبوع', '5'],
-                                ];
-                                ?>
-                                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px 14px;max-width:760px">
-                                    <?php foreach ($knobs as $key => [$label, $placeholder]): ?>
-                                        <label style="display:flex;flex-direction:column;gap:2px;font-size:12px">
-                                            <span><?php echo esc_html($label); ?></span>
-                                            <input type="text" name="zooboxi_push_<?php echo esc_attr($key); ?>" value="<?php echo esc_attr((string) get_option('zooboxi_push_' . $key, '')); ?>" placeholder="<?php echo esc_attr($placeholder); ?>" style="width:100%">
-                                        </label>
-                                    <?php endforeach; ?>
+                                    <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=zooboxi-push')); ?>">📣 <?php esc_html_e('لوحة الإشعارات', 'zooboxi'); ?></a>
                                 </div>
                             </div>
                             <?php endif; ?>

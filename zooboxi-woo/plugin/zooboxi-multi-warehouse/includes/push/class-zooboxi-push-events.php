@@ -27,10 +27,8 @@ class Zooboxi_Push_Events
         // The iOS lock screen follows both.
         add_action('woocommerce_order_status_changed', [self::class, 'live_activity_on_status'], 30, 4);
         add_action('zooboxi_mrsool_status_changed', [self::class, 'live_activity_on_mrsool'], 20, 4);
-        // Once a day: whose food is about to run out.
-        if (class_exists('Zooboxi_Loyalty')) {
-            add_action(Zooboxi_Loyalty::CRON_DAILY, [self::class, 'on_daily_reorder'], 20);
-        }
+        // The daily food reminder moved into the `supply` journey
+        // (Zooboxi_Push_Journeys): −4 days, then −1 day, ended by the purchase.
         // Every five minutes: an express order past its promise.
         add_action('zooboxi_push_tick', [self::class, 'sweep_late_orders']);
         // The reorder nudge's "once a week per product" clock starts when the
@@ -591,7 +589,7 @@ class Zooboxi_Push_Events
     }
 
     /** Whether this customer's most recent order rode the two-hour shelf. */
-    private static function last_order_was_express(int $uid): bool
+    public static function last_order_was_express(int $uid): bool
     {
         $orders = wc_get_orders([
             'customer_id' => $uid,

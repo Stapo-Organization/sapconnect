@@ -50,6 +50,12 @@ class Zooboxi_V2_Events_Controller
 
             if (Zooboxi_Intelligence::forward_event($input)) {
                 $accepted++;
+                // The app is in someone's hand right now: the hour counts
+                // toward when their reminders should arrive.
+                $type = (string) $input['event_type'];
+                if (($type === 'app_open' || $type === 'push_open') && class_exists('Zooboxi_Push_STO')) {
+                    Zooboxi_Push_STO::observe($user_id, $anon_id, time(), $type === 'push_open' ? 2.0 : 1.0);
+                }
             }
         }
 

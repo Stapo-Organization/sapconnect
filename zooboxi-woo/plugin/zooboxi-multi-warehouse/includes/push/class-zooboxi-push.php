@@ -131,12 +131,27 @@ class Zooboxi_Push
         if ($existing === null) {
             $row['prefs']      = wp_json_encode(self::default_prefs());
             $row['created_at'] = $now;
-            return (bool) $wpdb->insert(self::table(), $row);
+            $ok = (bool) $wpdb->insert(self::table(), $row);
+            if ($ok) {
+                // Is this a person we have never had a phone for? The
+                // welcome journey wants to know; a re-install does not count.
+                $others = (int) $wpdb->get_var(
+                    'SELECT COUNT(*) FROM ' . self::table() . $wpdb->prepare(' WHERE token <> %s AND ', $token)
+                    . ($row['user_id'] > 0 ? $wpdb->prepare('user_id = %d', $row['user_id']) : $wpdb->prepare('guest_id = %s', $row['guest_id']))
+                );
+                do_action('zooboxi_push_device_registered', (int) $row['user_id'], (string) $row['guest_id'], $others === 0);
+            }
+            return $ok;
         }
 
         // Preferences belong to the customer, not to the registration — a
         // token refresh must never silently switch offers back on.
-        return $wpdb->update(self::table(), $row, ['token' => $token]) !== false;
+        $was_guest = (int) $existing['user_id'] === 0 && $row['user_id'] > 0;
+        $ok = $wpdb->update(self::table(), $row, ['token' => $token]) !== false;
+        if ($ok && $was_guest) {
+            do_action('zooboxi_push_device_registered', (int) $row['user_id'], (string) $row['guest_id'], false);
+        }
+        return $ok;
     }
 
     public static function unregister(string $token): void
@@ -223,10 +238,27 @@ class Zooboxi_Push
 
         global $wpdb;
         $json = wp_json_encode($current);
+        // What changed, for the record: a topic switched off within two days
+        // of a send is the one signal that says a message cost us trust.
+        $before  = [];
+        $devices = self::devices_for($user_id, $guest_id);
+        if ($devices) {
+            $before = self::prefs_of($devices[0]);
+        }
         if ($user_id > 0) {
             $wpdb->update(self::table(), ['prefs' => $json, 'updated_at' => current_time('mysql')], ['user_id' => $user_id]);
         } elseif ($guest_id !== '') {
             $wpdb->update(self::table(), ['prefs' => $json, 'updated_at' => current_time('mysql')], ['guest_id' => $guest_id]);
+        }
+        if (class_exists('Zooboxi_Push_Engine') && $before) {
+            foreach (self::TOPICS as $topic) {
+                if (($before[$topic] ?? true) !== $current[$topic]) {
+                    $wpdb->insert(Zooboxi_Push_Engine::prefs_log(), [
+                        'user_id' => $user_id, 'guest_id' => $user_id > 0 ? '' : $guest_id,
+                        'topic' => $topic, 'value' => $current[$topic] ? 1 : 0, 'at' => gmdate('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
         }
         return $current;
     }
@@ -316,6 +348,8 @@ class Zooboxi_Push
         }
         $relevance = max(0.0, min(1.0, (float) ($opts['relevance'] ?? 0.5)));
         $thread    = substr((string) ($opts['thread_id'] ?? ''), 0, 64);
+        $image     = (string) ($opts['image'] ?? '');
+        $image     = str_starts_with($image, 'https://') ? $image : '';
 
         $aps = [
             // The customer reads Arabic; the alert must too.
@@ -330,6 +364,11 @@ class Zooboxi_Push
         }
         if ($thread !== '') {
             $aps['thread-id'] = $thread;
+        }
+        if ($image !== '') {
+            // iOS hands the payload to the app's service extension to fetch
+            // the picture; without the extension the text still shows.
+            $aps['mutable-content'] = 1;
         }
 
         $apns_headers = [
@@ -354,10 +393,15 @@ class Zooboxi_Push
             $android['ttl'] = $ttl . 's';
         }
 
+        $notification = ['title' => $title, 'body' => $body];
+        if ($image !== '') {
+            $notification['image'] = $image;
+            $data['image'] = $image;
+        }
         $payload = [
             'message' => [
                 'token'        => $token,
-                'notification' => ['title' => $title, 'body' => $body],
+                'notification' => $notification,
                 'data'         => array_map('strval', $data + ['route' => $route]),
                 'apns'         => [
                     'headers' => $apns_headers,

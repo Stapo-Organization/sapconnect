@@ -279,7 +279,12 @@ class Zooboxi_Loyalty_Rewards
             'updated_at'         => $now,
         ], ['%d', '%d', '%s', '%d', '%s', '%d', '%s', '%s', '%s']);
 
-        return $ok ? (int) $wpdb->insert_id : 0;
+        $grant_id = $ok ? (int) $wpdb->insert_id : 0;
+        if ($grant_id > 0 && !$pending) {
+            // A gift the customer can use right now: the family topic tells them.
+            do_action('zooboxi_loyalty_granted', $grant_id, $user_id, $reward, $source);
+        }
+        return $grant_id;
     }
 
     private static function expiry_from(array $reward, string $now): string

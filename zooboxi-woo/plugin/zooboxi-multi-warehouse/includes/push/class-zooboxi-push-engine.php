@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 
 class Zooboxi_Push_Engine
 {
-    const SCHEMA_VERSION = 1;
+    const SCHEMA_VERSION = 2;
     const OPTION_SCHEMA  = 'zooboxi_push_engine_schema';
     /** The engine kill switch — stops the outbox, leaves transactional alone. */
     const OPTION_ENABLED = 'zooboxi_push_engine_enabled';
@@ -38,6 +38,12 @@ class Zooboxi_Push_Engine
     const S_CONTROL   = 'control';
     const S_FAILED    = 'failed';
     const S_CANCELLED = 'cancelled';
+    /** Held for the in-app inbox only: a cap said "not today" but the fact stays true. */
+    const S_INBOX     = 'inbox';
+    /** A dry-run campaign: written, never sent, never counted. */
+    const S_DRY       = 'dry';
+
+    const CRON_DAILY  = 'zooboxi_push_daily';
 
     /** How many rows one tick may deliver, and how long it may run. */
     const BATCH  = 300;
@@ -65,9 +71,16 @@ class Zooboxi_Push_Engine
         return get_option(self::OPTION_ENABLED, 'yes') === 'yes';
     }
 
+    public static function prefs_log(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'zooboxi_push_prefs_log';
+    }
+
     public static function boot(): void
     {
         add_action(self::CRON, [self::class, 'tick']);
+        add_action(self::CRON_DAILY, [self::class, 'daily']);
         add_action('init', [self::class, 'schedule'], 30);
         // Buying is the exit for a reminder to buy: a reorder nudge still
         // waiting in the outbox when the order lands is cancelled, not sent.
@@ -80,6 +93,35 @@ class Zooboxi_Push_Engine
     {
         if (!wp_next_scheduled(self::CRON)) {
             wp_schedule_event(time() + 60, 'zooboxi_5_minutes', self::CRON);
+        }
+        if (!wp_next_scheduled(self::CRON_DAILY)) {
+            // 03:00 UTC = 06:00 Riyadh: before the marketing window opens.
+            $next = strtotime('tomorrow 03:00 UTC');
+            wp_schedule_event($next ?: time() + DAY_IN_SECONDS, 'daily', self::CRON_DAILY);
+        }
+    }
+
+    /** Once a day, before the marketing window: housekeeping and the daily scans. */
+    public static function daily(): void
+    {
+        try {
+            self::maybe_install();
+            if (class_exists('Zooboxi_Push_STO')) {
+                Zooboxi_Push_STO::decay();
+            }
+            self::evaluate_pauses();
+            global $wpdb;
+            $old = gmdate('Y-m-d H:i:s', time() - 180 * DAY_IN_SECONDS);
+            $wpdb->query($wpdb->prepare('DELETE FROM ' . self::outbox() . ' WHERE created_at < %s AND status <> %s', $old, self::S_PENDING));
+            $wpdb->query($wpdb->prepare('DELETE FROM ' . self::log() . ' WHERE sent_at < %s', $old));
+            if (class_exists('Zooboxi_Push_Journeys')) {
+                $wpdb->query($wpdb->prepare('DELETE FROM ' . Zooboxi_Push_Journeys::table() . " WHERE status <> 'active' AND updated_at < %s", gmdate('Y-m-d H:i:s', time() - 90 * DAY_IN_SECONDS)));
+            }
+            delete_transient('zooboxi_push_lift');
+            do_action('zooboxi_push_daily');
+            update_option('zooboxi_push_daily_ran_at', time(), false);
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi push] daily failed: ' . $e->getMessage());
         }
     }
 
@@ -132,6 +174,8 @@ class Zooboxi_Push_Engine
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             sent_at DATETIME NULL,
             opened_at DATETIME NULL,
+            read_at DATETIME NULL,
+            image VARCHAR(255) NOT NULL DEFAULT '',
             PRIMARY KEY  (id),
             UNIQUE KEY idem (idem_key),
             KEY due (status, not_before, next_attempt_at),
@@ -161,9 +205,26 @@ class Zooboxi_Push_Engine
             KEY user_sent (user_id, sent_at)
         ) {$collate};";
 
+        $sql_prefs = "CREATE TABLE " . self::prefs_log() . " (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            guest_id VARCHAR(64) NOT NULL DEFAULT '',
+            topic VARCHAR(16) NOT NULL DEFAULT '',
+            value TINYINT(1) NOT NULL DEFAULT 0,
+            at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY topic_at (topic, value, at)
+        ) {$collate};";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql_outbox);
         dbDelta($sql_log);
+        dbDelta($sql_prefs);
+        foreach (['Zooboxi_Push_STO', 'Zooboxi_Push_Journeys', 'Zooboxi_Push_Cart', 'Zooboxi_Push_Waitlist', 'Zooboxi_Push_Campaigns'] as $class) {
+            if (class_exists($class)) {
+                dbDelta($class::install($collate));
+            }
+        }
         update_option(self::OPTION_SCHEMA, self::SCHEMA_VERSION, false);
     }
 
@@ -254,6 +315,18 @@ class Zooboxi_Push_Engine
                 }
             }
 
+            // A marketing message with no fixed time goes out at this person's
+            // own hour (or the store's), inside the marketing window.
+            if ($not_before <= 0 && $tier === Zooboxi_Push_Gate::TIER_MARKETING
+                && ($msg['sto'] ?? true) !== false && class_exists('Zooboxi_Push_STO')) {
+                $not_before = Zooboxi_Push_STO::next_slot($user_id, $guest_id, time());
+            }
+
+            $data_in = array_map('strval', (array) ($msg['data'] ?? []));
+            if (!empty($msg['express'])) {
+                $data_in['express'] = '1';
+            }
+
             $level = (string) ($msg['level'] ?? 'active');
             if (!in_array($level, ['passive', 'active', 'time-sensitive'], true)) {
                 $level = 'active';
@@ -277,7 +350,8 @@ class Zooboxi_Push_Engine
                 'body_ar'      => $body_ar,
                 'title_en'     => trim((string) ($en[0] ?? $title_ar)),
                 'body_en'      => trim((string) ($en[1] ?? $body_ar)),
-                'data'         => wp_json_encode(array_map('strval', (array) ($msg['data'] ?? []))),
+                'data'         => wp_json_encode($data_in),
+                'image'        => substr(esc_url_raw((string) ($msg['image'] ?? '')), 0, 255),
                 'collapse_key' => substr((string) ($msg['collapse_key'] ?? ''), 0, 64),
                 'ttl_s'        => $ttl,
                 'level'        => $level,
@@ -287,7 +361,8 @@ class Zooboxi_Push_Engine
                 'counts'       => (isset($msg['counts']) ? (bool) $msg['counts'] : $tier !== Zooboxi_Push_Gate::TIER_TRANSACTIONAL) ? 1 : 0,
                 'not_before'   => $not_before > 0 ? gmdate('Y-m-d H:i:s', $not_before) : null,
                 'expires_at'   => $expires > 0 ? gmdate('Y-m-d H:i:s', $expires) : null,
-                'status'       => self::S_PENDING,
+                'status'       => !empty($msg['dry_run']) ? self::S_DRY : self::S_PENDING,
+                'reason'       => !empty($msg['dry_run']) ? 'dry_run' : '',
                 'created_at'   => gmdate('Y-m-d H:i:s'),
             ];
 
@@ -303,6 +378,9 @@ class Zooboxi_Push_Engine
             }
             $id = (int) $wpdb->insert_id;
 
+            if (!empty($msg['dry_run'])) {
+                return ['id' => $id, 'status' => self::S_DRY, 'reason' => 'dry_run'];
+            }
             if ($tier === Zooboxi_Push_Gate::TIER_TRANSACTIONAL) {
                 $fresh = self::row($id);
                 $status = $fresh ? self::dispatch($fresh, time()) : self::S_FAILED;
@@ -377,12 +455,18 @@ class Zooboxi_Push_Engine
         }
 
         if (!$transactional) {
+            if (in_array((string) $row['source'], self::paused_sources(), true)) {
+                return self::finish($id, self::S_SKIPPED, 'paused');
+            }
             $control = $user_id > 0 && class_exists('Zooboxi_Loyalty_Members') && class_exists('Zooboxi_Loyalty')
                 && Zooboxi_Loyalty::is_enabled() && Zooboxi_Loyalty_Members::is_holdout($user_id);
+            $row_data = json_decode((string) ($row['data'] ?? ''), true) ?: [];
             $decision = Zooboxi_Push_Gate::decide(
                 [
                     'tier'       => $tier,
                     'topic'      => $topic,
+                    'source'     => (string) $row['source'],
+                    'express'    => !empty($row_data['express']),
                     'text_hash'  => (string) $row['text_hash'],
                     'expires_at' => self::ts($row['expires_at'] ?? null),
                 ],
@@ -401,6 +485,11 @@ class Zooboxi_Push_Engine
             }
             if ($decision['action'] === 'skip') {
                 $status = $decision['reason'] === Zooboxi_Push_Gate::R_CONTROL ? self::S_CONTROL : self::S_SKIPPED;
+                // A cap is "not today", not "never": the fact is still true, so
+                // it waits in the app's own inbox without a buzz.
+                if (in_array($decision['reason'], [Zooboxi_Push_Gate::R_CAP_DAY, Zooboxi_Push_Gate::R_CAP_WEEK, Zooboxi_Push_Gate::R_CAP_GAP], true)) {
+                    $status = self::S_INBOX;
+                }
                 if ($status === self::S_CONTROL) {
                     // Recorded as if sent: the conversion window starts now for
                     // the holdout too, or the lift read is meaningless.
@@ -427,6 +516,7 @@ class Zooboxi_Push_Engine
             'level'        => (string) $row['level'],
             'relevance'    => (float) $row['relevance'],
             'thread_id'    => (string) $row['thread_id'],
+            'image'        => (string) ($row['image'] ?? ''),
         ];
 
         $sent = 0;
@@ -689,6 +779,179 @@ class Zooboxi_Push_Engine
     }
 
     /* ══════════════════════════════════════════════════════════════
+       THE IN-APP INBOX
+       ══════════════════════════════════════════════════════════════ */
+
+    /** What this person has been told (sent) or would have been (inbox), newest first. */
+    public static function inbox_for(int $user_id, string $guest_id, string $locale = 'ar', int $limit = 30): array
+    {
+        global $wpdb;
+        if ($user_id <= 0 && $guest_id === '') {
+            return ['items' => [], 'unread' => 0];
+        }
+        $where = $user_id > 0
+            ? $wpdb->prepare('user_id = %d', $user_id)
+            : $wpdb->prepare('guest_id = %s AND user_id = 0', $guest_id);
+        $rows = $wpdb->get_results(
+            'SELECT id, topic, tier, source, route, title_ar, body_ar, title_en, body_en, image, status, sent_at, created_at, opened_at, read_at FROM '
+            . self::outbox() . ' WHERE ' . $where . $wpdb->prepare(' AND status IN (%s, %s) AND created_at >= %s ORDER BY COALESCE(sent_at, created_at) DESC LIMIT %d',
+                self::S_SENT, self::S_INBOX, gmdate('Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS), $limit),
+            ARRAY_A
+        ) ?: [];
+        $en = str_starts_with($locale, 'en');
+        $items = [];
+        $unread = 0;
+        foreach ($rows as $r) {
+            $read = !empty($r['read_at']) || !empty($r['opened_at']);
+            if (!$read) {
+                $unread++;
+            }
+            $items[] = [
+                'id'     => (int) $r['id'],
+                'topic'  => (string) $r['topic'],
+                'tier'   => (string) $r['tier'],
+                'source' => (string) $r['source'],
+                'title'  => (string) ($en && $r['title_en'] !== '' ? $r['title_en'] : $r['title_ar']),
+                'body'   => (string) ($en && $r['body_en'] !== '' ? $r['body_en'] : $r['body_ar']),
+                'route'  => (string) $r['route'],
+                'image'  => (string) $r['image'],
+                'quiet'  => $r['status'] === self::S_INBOX,
+                'at'     => gmdate('c', self::ts($r['sent_at'] ?: $r['created_at'])),
+                'read'   => $read,
+            ];
+        }
+        return ['items' => $items, 'unread' => $unread];
+    }
+
+    public static function mark_read(int $user_id, string $guest_id, array $ids = []): int
+    {
+        global $wpdb;
+        if ($user_id <= 0 && $guest_id === '') {
+            return 0;
+        }
+        $where = $user_id > 0
+            ? $wpdb->prepare('user_id = %d', $user_id)
+            : $wpdb->prepare('guest_id = %s AND user_id = 0', $guest_id);
+        $sql = 'UPDATE ' . self::outbox() . $wpdb->prepare(' SET read_at = %s WHERE read_at IS NULL AND ', gmdate('Y-m-d H:i:s')) . $where;
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if ($ids) {
+            $sql .= ' AND id IN (' . implode(',', $ids) . ')';
+        }
+        return (int) $wpdb->query($sql);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       AUTO-PAUSE AND LIFT
+       ══════════════════════════════════════════════════════════════ */
+
+    public static function paused_sources(): array
+    {
+        $v = get_option('zooboxi_push_paused_sources', []);
+        return is_array($v) ? array_values(array_map('strval', $v)) : [];
+    }
+
+    public static function set_paused(string $source, bool $paused): void
+    {
+        $list = self::paused_sources();
+        if ($paused && !in_array($source, $list, true)) {
+            $list[] = $source;
+        } elseif (!$paused) {
+            $list = array_values(array_diff($list, [$source]));
+        }
+        update_option('zooboxi_push_paused_sources', $list, false);
+    }
+
+    /**
+     * A source that has sent 500+ in 30 days and is either not being opened
+     * (under 1%) or is driving opt-outs (over 1% within 48 h) is paused and
+     * the store owner is told. Better one email than a hundred uninstalls.
+     */
+    public static function evaluate_pauses(): array
+    {
+        global $wpdb;
+        $since = gmdate('Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS);
+        $rows = $wpdb->get_results($wpdb->prepare(
+            'SELECT source, topic, COUNT(*) sent, SUM(opened_at IS NOT NULL) opened FROM ' . self::outbox()
+            . " WHERE status = 'sent' AND tier <> 'transactional' AND sent_at >= %s GROUP BY source, topic HAVING sent >= 500", $since
+        ), ARRAY_A) ?: [];
+        $newly = [];
+        foreach ($rows as $r) {
+            $sent = (int) $r['sent'];
+            $open_rate = $sent > 0 ? (int) $r['opened'] / $sent : 0;
+            // Opt-outs: this topic switched off within 48 h of one of this source's sends.
+            $optouts = (int) $wpdb->get_var($wpdb->prepare(
+                'SELECT COUNT(DISTINCT p.id) FROM ' . self::prefs_log() . ' p JOIN ' . self::outbox() . ' o'
+                . ' ON (o.user_id = p.user_id AND o.user_id > 0) OR (o.user_id = 0 AND o.guest_id = p.guest_id)'
+                . " WHERE p.topic = %s AND p.value = 0 AND p.at >= %s AND o.source = %s AND o.status = 'sent' AND p.at BETWEEN o.sent_at AND DATE_ADD(o.sent_at, INTERVAL 48 HOUR)",
+                (string) $r['topic'], $since, (string) $r['source']
+            ));
+            $optout_rate = $sent > 0 ? $optouts / $sent : 0;
+            if (($open_rate < 0.01 || $optout_rate > 0.01) && !in_array((string) $r['source'], self::paused_sources(), true)) {
+                self::set_paused((string) $r['source'], true);
+                $newly[] = ['source' => (string) $r['source'], 'sent' => $sent, 'open_rate' => $open_rate, 'optout_rate' => $optout_rate];
+            }
+        }
+        if ($newly) {
+            $lines = array_map(fn ($n) => sprintf('%s — أُرسل %d، فتح %.1f%%، إلغاء %.1f%%', $n['source'], $n['sent'], 100 * $n['open_rate'], 100 * $n['optout_rate']), $newly);
+            wp_mail(
+                (string) get_option('admin_email'),
+                'زوبوكسي: أوقفنا إشعارًا تلقائيًا',
+                "توقّف المصدر التالي لأن أرقامه تحت الحد:\n\n" . implode("\n", $lines) . "\n\nأعد تشغيله من Zooboxi → الإشعارات → الرحلات."
+            );
+        }
+        return $newly;
+    }
+
+    /**
+     * Lift per source over 30 days: people who got the message vs. the
+     * holdout who did not, and who ordered within 72 hours. Cached six
+     * hours; flagged as a small sample below 30 in either arm.
+     */
+    public static function lift(int $days = 30): array
+    {
+        $cached = get_transient('zooboxi_push_lift');
+        if (is_array($cached)) {
+            return $cached;
+        }
+        global $wpdb;
+        $since = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
+        $rows = $wpdb->get_results($wpdb->prepare(
+            'SELECT source, status, user_id, MIN(COALESCE(sent_at, created_at)) at FROM ' . self::outbox()
+            . " WHERE user_id > 0 AND tier <> 'transactional' AND status IN ('sent','control') AND created_at >= %s GROUP BY source, status, user_id", $since
+        ), ARRAY_A) ?: [];
+        $arms = [];
+        foreach ($rows as $r) {
+            $src = (string) $r['source'];
+            $arm = $r['status'] === 'control' ? 'control' : 'treated';
+            $arms[$src][$arm] = $arms[$src][$arm] ?? ['n' => 0, 'converted' => 0];
+            if ($arms[$src][$arm]['n'] >= 300) {
+                continue;
+            }
+            $arms[$src][$arm]['n']++;
+            $at = self::ts($r['at']);
+            if (class_exists('Zooboxi_Push_Journeys') && Zooboxi_Push_Journeys::ordered_since((int) $r['user_id'], $at)
+                && !Zooboxi_Push_Journeys::ordered_since((int) $r['user_id'], $at + 72 * HOUR_IN_SECONDS)) {
+                $arms[$src][$arm]['converted']++;
+            }
+        }
+        $out = [];
+        foreach ($arms as $src => $a) {
+            $t = $a['treated'] ?? ['n' => 0, 'converted' => 0];
+            $c = $a['control'] ?? ['n' => 0, 'converted' => 0];
+            $tr = $t['n'] > 0 ? $t['converted'] / $t['n'] : 0;
+            $cr = $c['n'] > 0 ? $c['converted'] / $c['n'] : 0;
+            $out[$src] = [
+                'treated' => $t, 'control' => $c,
+                'treated_rate' => $tr, 'control_rate' => $cr,
+                'lift' => $cr > 0 ? ($tr - $cr) / $cr : null,
+                'small_sample' => $t['n'] < 30 || $c['n'] < 30,
+            ];
+        }
+        set_transient('zooboxi_push_lift', $out, 6 * HOUR_IN_SECONDS);
+        return $out;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
        NUMBERS FOR ADMIN
        ══════════════════════════════════════════════════════════════ */
 
@@ -715,20 +978,36 @@ class Zooboxi_Push_Engine
         ));
         $by_source = $wpdb->get_results($wpdb->prepare(
             "SELECT source, tier, SUM(status = 'sent') AS sent, SUM(status = 'sent' AND opened_at IS NOT NULL) AS opened,
-                    SUM(status = 'skipped') AS skipped, SUM(status = 'control') AS control, SUM(status = 'pending') AS pending
+                    SUM(status = 'skipped') AS skipped, SUM(status = 'control') AS control, SUM(status = 'pending') AS pending,
+                    SUM(status = 'inbox') AS inbox
              FROM {$outbox} WHERE created_at >= %s GROUP BY source, tier ORDER BY sent DESC", $since
         ), ARRAY_A) ?: [];
         $pending = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$outbox} WHERE status = 'pending'");
 
+        $inbox = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$outbox} WHERE status = 'inbox' AND created_at >= %s", $since));
+        $control = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$outbox} WHERE status = 'control' AND created_at >= %s", $since));
+        $devices = (int) $wpdb->get_var('SELECT COUNT(*) FROM ' . Zooboxi_Push::table() . ' WHERE enabled = 1');
+        $persons = (int) $wpdb->get_var("SELECT COUNT(DISTINCT IF(user_id > 0, CONCAT('u', user_id), CONCAT('g', guest_id))) FROM " . Zooboxi_Push::table() . ' WHERE enabled = 1');
+        $active_runs = class_exists('Zooboxi_Push_Journeys')
+            ? ($wpdb->get_results('SELECT journey, COUNT(*) n FROM ' . Zooboxi_Push_Journeys::table() . " WHERE status = 'active' GROUP BY journey", ARRAY_A) ?: [])
+            : [];
+
         return [
-            'days'       => $days,
-            'sent'       => $sent,
-            'opened'     => $opened,
-            'pending'    => $pending,
-            'by_status'  => $by_status,
-            'by_source'  => $by_source,
-            'tick_at'    => (int) get_option('zooboxi_push_tick_ran_at', 0),
-            'next_tick'  => (int) wp_next_scheduled(self::CRON),
+            'days'        => $days,
+            'sent'        => $sent,
+            'opened'      => $opened,
+            'inbox'       => $inbox,
+            'control'     => $control,
+            'pending'     => $pending,
+            'devices'     => $devices,
+            'persons'     => $persons,
+            'by_status'   => $by_status,
+            'by_source'   => $by_source,
+            'active_runs' => $active_runs,
+            'paused'      => self::paused_sources(),
+            'tick_at'     => (int) get_option('zooboxi_push_tick_ran_at', 0),
+            'daily_at'    => (int) get_option('zooboxi_push_daily_ran_at', 0),
+            'next_tick'   => (int) wp_next_scheduled(self::CRON),
         ];
     }
 

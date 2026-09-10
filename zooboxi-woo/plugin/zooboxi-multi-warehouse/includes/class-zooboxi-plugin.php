@@ -148,10 +148,26 @@ class Zooboxi_Plugin
         // notifications of the apps already installed.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-gate.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-windows.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-sto.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-engine.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-journeys.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-cart.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-waitlist.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-moments.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-campaigns.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-events.php';
+        Zooboxi_Push_Windows::boot();
         Zooboxi_Push_Engine::boot();
+        Zooboxi_Push_Journeys::boot();
+        Zooboxi_Push_Cart::boot();
+        Zooboxi_Push_Waitlist::boot();
+        Zooboxi_Push_Moments::boot();
         Zooboxi_Push_Events::boot();
+        if (is_admin()) {
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-push-admin.php';
+            (new Zooboxi_Push_Admin())->register_hooks();
+        }
 
         // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:
         // set option `zooboxi_v2_enabled` to anything but 'yes' to unload it entirely.

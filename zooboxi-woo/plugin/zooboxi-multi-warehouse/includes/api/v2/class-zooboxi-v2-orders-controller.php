@@ -35,6 +35,7 @@ class Zooboxi_V2_Orders_Controller
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)', 'GET', [$this, 'show']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/reorder', 'POST', [$this, 'reorder']);
         Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/live-tracking', 'GET', [$this, 'live_tracking']);
+        Zooboxi_V2_Bootstrap::route('/orders/(?P<id>\d+)/rate', 'POST', [$this, 'rate']);
     }
 
     /* ── GET /orders ───────────────────────────────── */
@@ -278,6 +279,11 @@ class Zooboxi_V2_Orders_Controller
             'is_paid'       => (bool) $order->is_paid(),
             'payment_method' => (string) $order->get_payment_method(),
             'delivery_type' => (string) $order->get_meta('_zooboxi_delivery_type'),
+            // «قيّم توصيلتك»: 1–5 once the order is delivered; null until rated.
+            'rating'        => (string) $order->get_meta('_zb_rating') !== '' ? [
+                'stars'   => (int) $order->get_meta('_zb_rating'),
+                'comment' => (string) $order->get_meta('_zb_rating_comment'),
+            ] : null,
             'items_preview' => $preview,
             // Two different numbers, and the app needs both: `items_count` is
             // how many UNITS were bought («6 منتجات»), `items_lines` is how
@@ -676,6 +682,40 @@ class Zooboxi_V2_Orders_Controller
     }
 
     /* ── Helpers ───────────────────────────────────── */
+
+    /**
+     * One rating per delivered order: stars 1–5 and an optional line. Stored
+     * on the order (and as a note the branch sees), never editable after the
+     * first save — a review is a moment, not a setting.
+     */
+    public function rate(\WP_REST_Request $request): \WP_REST_Response
+    {
+        if (!get_current_user_id()) {
+            return Zooboxi_V2_Bootstrap::unauthorized();
+        }
+        $order = $this->owned_order($request);
+        if ($order === null) {
+            return Zooboxi_V2_Bootstrap::fail('order_not_found', __('الطلب غير موجود', 'zooboxi'), 'Order not found.', 404);
+        }
+        if ($order->get_status() !== 'completed') {
+            return Zooboxi_V2_Bootstrap::fail('order_not_delivered', __('يمكن التقييم بعد التسليم', 'zooboxi'), 'You can rate once the order is delivered.', 409);
+        }
+        if ((string) $order->get_meta('_zb_rating') !== '') {
+            return Zooboxi_V2_Bootstrap::ok(['rating' => ['stars' => (int) $order->get_meta('_zb_rating'), 'comment' => (string) $order->get_meta('_zb_rating_comment')], 'saved' => false]);
+        }
+        $stars = (int) $request->get_param('stars');
+        if ($stars < 1 || $stars > 5) {
+            return Zooboxi_V2_Bootstrap::fail('rating_invalid', __('اختر من 1 إلى 5', 'zooboxi'), 'Stars must be 1–5.', 422);
+        }
+        $comment = mb_substr(sanitize_textarea_field((string) $request->get_param('comment')), 0, 500);
+        $order->update_meta_data('_zb_rating', $stars);
+        $order->update_meta_data('_zb_rating_comment', $comment);
+        $order->update_meta_data('_zb_rated_at', current_time('mysql'));
+        $order->save_meta_data();
+        $order->add_order_note(sprintf('تقييم العميل: %d/5%s', $stars, $comment !== '' ? ' — ' . $comment : ''));
+        do_action('zooboxi_order_rated', $order, $stars, $comment);
+        return Zooboxi_V2_Bootstrap::ok(['rating' => ['stars' => $stars, 'comment' => $comment], 'saved' => true]);
+    }
 
     private function owned_order(\WP_REST_Request $request): ?\WC_Order
     {
