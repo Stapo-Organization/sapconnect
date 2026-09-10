@@ -107,6 +107,12 @@ class PushRepository {
     await _api.post('/push/unregister', body: {'token': token});
   }
 
+  /// A notification was tapped. [msg] is the store's id for it, carried in
+  /// the payload; the store marks it opened and counts it.
+  Future<void> opened(int msg) async {
+    await _api.post('/push/opened', body: {'msg': msg});
+  }
+
   Future<PushPreferences> preferences({String? token}) async {
     final data = asMap(await _api.get(
       '/push/preferences',

@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/router.dart';
 import '../../features/notifications/data/push_repository.dart';
 import '../config/env.dart';
 import '../providers.dart';
@@ -76,10 +77,10 @@ class PushService {
 
       // A notification that opened the app, and one tapped while it was warm.
       final initial = await messaging.getInitialMessage();
-      if (initial != null) pendingRoute = _routeOf(initial);
-      _opened = FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        pendingRoute = _routeOf(message);
-      });
+      if (initial != null) _onTapped(initial, cold: true);
+      _opened = FirebaseMessaging.onMessageOpenedApp.listen(
+        (message) => _onTapped(message, cold: false),
+      );
 
       _tokenRefresh = messaging.onTokenRefresh.listen((token) {
         _token = token;
@@ -140,6 +141,51 @@ class PushService {
           );
     } catch (error) {
       if (kDebugMode) debugPrint('[push] store registration failed: $error');
+    }
+  }
+
+  /// A notification was tapped.
+  ///
+  /// Two things happen, in this order: the store is told (so the tap counts
+  /// in the notification's own numbers — the only measure of whether it was
+  /// worth sending), and the app goes where the notification pointed. On a
+  /// cold start the router does not exist yet, so the route waits for the
+  /// splash; while the app is warm it is pushed right away — a tap that
+  /// merely brought the app forward, onto whatever screen it was on, was the
+  /// bug this replaces.
+  void _onTapped(RemoteMessage message, {required bool cold}) {
+    final msg = int.tryParse('${message.data['msg'] ?? ''}');
+    if (msg != null && msg > 0) {
+      unawaited(_reportOpened(msg));
+    }
+    final route = _routeOf(message);
+    if (route == null) return;
+
+    if (cold) {
+      pendingRoute = route;
+      return;
+    }
+    try {
+      final router = _ref.read(routerProvider);
+      final here = router.routerDelegate.currentConfiguration.uri.path;
+      // Still booting, or inside the welcome journey: the screen that ends
+      // those reads pendingRoute and pushes it.
+      if (here == '/splash' || here == '/' || here.startsWith('/onboarding')) {
+        pendingRoute = route;
+      } else {
+        router.push(route);
+      }
+    } catch (error) {
+      if (kDebugMode) debugPrint('[push] route failed: $error');
+      pendingRoute = route;
+    }
+  }
+
+  Future<void> _reportOpened(int msg) async {
+    try {
+      await _ref.read(pushRepositoryProvider).opened(msg);
+    } catch (_) {
+      // A tap the store did not hear about is a number, not a broken screen.
     }
   }
 

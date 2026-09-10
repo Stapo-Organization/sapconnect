@@ -17,10 +17,24 @@ class ZooboxiApp extends ConsumerStatefulWidget {
 }
 
 class _ZooboxiAppState extends ConsumerState<ZooboxiApp> with WidgetsBindingObserver {
+  /// The last time an `app_open` went out; one per half hour is a session,
+  /// anything finer is the customer checking a message.
+  DateTime? _lastOpenSignal;
+  static const _openSignalGap = Duration(minutes: 30);
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _signalOpen();
+  }
+
+  void _signalOpen() {
+    final now = DateTime.now();
+    final last = _lastOpenSignal;
+    if (last != null && now.difference(last) < _openSignalGap) return;
+    _lastOpenSignal = now;
+    ref.read(eventsBufferProvider).track(const ZbEvent(type: ZbEvents.appOpen));
   }
 
   @override
@@ -39,6 +53,8 @@ class _ZooboxiAppState extends ConsumerState<ZooboxiApp> with WidgetsBindingObse
 
     // The live feeds wait on this rather than polling a phone in a pocket.
     ref.read(appResumedProvider.notifier).set(state == AppLifecycleState.resumed);
+
+    if (state == AppLifecycleState.resumed) _signalOpen();
   }
 
   @override

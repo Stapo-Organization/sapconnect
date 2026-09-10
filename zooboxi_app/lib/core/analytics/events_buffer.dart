@@ -95,6 +95,18 @@ abstract final class ZbEvents {
 
   /// A weight was logged from the pet profile.
   static const weightLogged = 'weight_logged';
+
+  // ── الإشعارات ──────────────────────────────────────────────────
+
+  /// The app came to the foreground. The store learns each customer's own
+  /// hour from these and sends reminders then rather than at a fixed time.
+  /// Throttled at the call site so a flurry of app switches is one signal.
+  static const appOpen = 'app_open';
+
+  /// A push notification was tapped — reported to the store directly by
+  /// PushService (POST /push/opened) and forwarded from there; listed here so
+  /// the name has one spelling.
+  static const pushOpen = 'push_open';
 }
 
 /// Batches signals and posts them in the background.

@@ -14,6 +14,7 @@ import '../../../core/location/location_controller.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/icons/zb_icons.dart';
 import '../../../core/notifications/notify_permission.dart';
+import '../../../core/notifications/push_service.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/utils/haptics.dart';
@@ -96,6 +97,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await ref.read(localStoreProvider).setWelcomeSeen();
     if (!mounted) return;
     context.go('/home');
+
+    // A first-run user who arrived by tapping a notification still wants the
+    // thing it was about; it waited here while the welcome ran.
+    final push = ref.read(pushServiceProvider);
+    final tapped = push.pendingRoute;
+    if (tapped != null) {
+      push.pendingRoute = null;
+      unawaited(context.push(tapped));
+    }
   }
 
   Future<void> _pickLocale(String code) async {
