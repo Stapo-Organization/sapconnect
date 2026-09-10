@@ -15,6 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
 import '../../location/presentation/location_sheet.dart';
 import '../../loyalty/data/loyalty_repository.dart';
+import '../../notifications/data/push_repository.dart';
 import '../../orders/data/live_tracking.dart';
 import '../../orders/data/orders_repository.dart';
 import '../../orders/presentation/widgets/order_status_pill.dart';
@@ -165,6 +166,15 @@ class AccountScreen extends ConsumerWidget {
                       SettingsTile(
                         icon: Icons.notifications_none_rounded,
                         label: l.notificationsTitle,
+                        // What is waiting in the inbox, when something is.
+                        // A failed read shows nothing at all: an unread count
+                        // is a promise, and a zero we are not sure of is a
+                        // worse answer than silence.
+                        trailingLabel:
+                            switch (ref.watch(inboxProvider).value?.unread ?? 0) {
+                              0 => null,
+                              final unread => l.inboxUnread(unread),
+                            },
                         onTap: () => context.push('/notifications'),
                       ),
                       SettingsTile(
