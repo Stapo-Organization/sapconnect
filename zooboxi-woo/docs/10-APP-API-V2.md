@@ -811,3 +811,48 @@ Contract: `14-LOYALTY-PHASE2-SPEC.md` §8. Every route below is bearer-only and
 - **Ledger reasons** added: `on_time` (+20% on lines ordered inside their window), `sub_bonus` (+10% on a subscription
   delivery, and the every-Nth gift fallback), `referral` (the referrer's reward), `birthday` (the gift fallback).
 - **Missions** — new kinds: `regular` (`on_time`), `growth` (`refer_friend`), `winback` (minted by the daily sweep only).
+
+## 16. Notifications — the engine, the inbox, «نبّهني», the rating
+
+Every customer push now goes through one outbox with a gatekeeper (`includes/push/`): transactional pushes send at
+once; service and marketing rows wait for the five-minute tick and are held through quiet hours (22:00–08:00 Riyadh),
+the marketing window (09:00–21:30), the Friday pause, the adhan pause and Ramadan mode, skipped past the caps
+(marketing 1/day · 3/week · 20 h apart; service 2/day; 2/day · 5/week in total), never sent to the 10% loyalty holdout,
+and queued for each customer's own most-active hour (`app_open`/`push_open` events). A cap does not drop a message:
+it lands in the in-app inbox with `quiet: true`.
+
+Every push carries `data.msg` (the outbox id), `data.route` (deep link), `data.topic`, and — when a picture was
+attached — `data.image` + `notification.image` + `aps.mutable-content: 1`.
+
+### `POST /push/opened` body `{ "msg": 123 }` → `{ "opened": true }`
+The app reports every tap; the store counts it per journey and forwards `push_open`.
+
+### `GET /push/inbox?limit=30` → `{ "items": [InboxItem], "unread": 2 }`
+- `InboxItem = { "id", "topic", "tier", "source", "title", "body", "route", "image", "quiet", "at": ISO-8601, "read" }`
+  in the request language; the last 30 days; newest first. `quiet` = held by a cap, never pushed.
+- `POST /push/inbox/read` body `{ "ids": [1, 2] }` (empty = all) → `{ "read": n }`.
+
+### `GET /push/waitlist?product_id=N` → `{ "restock": false, "price": false }`
+- `POST /push/waitlist` body `{ "product_id", "kind": "restock" | "price" }` → the same status. Guests allowed
+  (keyed by `X-ZB-Guest`). The point the phone was at (`X-ZB-Lat/Lng`) is kept: «رجع للمخزون» only fires when a branch
+  that serves it has stock; «نزل السعر» when the displayed price falls ≥10% below the price at subscription.
+- `POST /push/waitlist/remove` body `{ "product_id", "kind"? }`.
+- Wishlisting a product subscribes it to `price` (and to `restock` when it is out of stock); un-wishlisting removes both.
+
+### `POST /orders/{id}/rate` body `{ "stars": 1..5, "comment"? }` → `{ "rating": { "stars", "comment" }, "saved": true }`
+- Bearer only; the order must be `completed`; a second call returns the stored rating with `saved: false`.
+- Order summary/detail DTOs gain `"rating": { "stars", "comment" } | null`.
+- The store asks for it once: 90 minutes after an express delivery, 18:00 the next day for a parcel, route
+  `/orders/{id}?rate=1`.
+
+### Events
+- `app_open` — sent by the app on launch and on resume, at most once per half hour; feeds the send-hour model.
+- `push_open` — forwarded by the store from `/push/opened`; the app does not send it itself.
+
+### Journeys and moments (server-side, for reference)
+`welcome` (+24 h no pet → +3 d no order → +7 d), `post_first` (+2 d sealed scratch card → +10 d buy again),
+`winback` (customer's own expected date +10 / +45 / +90 days), `reorder` (food gauge −4 then −1 day, ended by buying
+that product), `cart` (45 min on an open express branch, 2 h on the store, one second reminder at 24 h for ≥100 ﷼),
+`rating`, `restock`, `price_drop`, `closing_soon` (express basket, 65–50 min before the branch closes),
+`gift`/`birthday`/`tier_risk`/`mission` (family topic), `bundles` (Thursday 19:00 digest per species), `campaign`
+(composed and approved in wp-admin → «📣 الإشعارات»). Each is a `source` on the outbox row and a line on the admin board.
