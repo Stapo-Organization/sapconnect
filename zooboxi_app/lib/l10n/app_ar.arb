@@ -333,6 +333,10 @@
   },
   "pdpAddedToCart": "أُضيف إلى السلة",
   "pdpLangFallback": "بعض التفاصيل معروضة بالعربية",
+  "pdpNotifyMe": "نبّهني عند التوفر",
+  "pdpNotifyMeOn": "سنبلغك عند التوفر ✓",
+  "pdpNotifyMeAdded": "تمام — نبلغك أول ما يتوفّر",
+  "pdpNotifyMeRemoved": "أوقفنا تنبيه التوفّر",
   "priceFrom": "يبدأ من",
   "priceWas": "بدلًا من",
   "priceOff": "خصم {percent}٪",
@@ -533,6 +537,9 @@
   "successCodNote": "ادفع عند الاستلام",
   "successTrack": "تتبّع الطلب",
   "successKeepShopping": "مواصلة التسوّق",
+  "successNotifyTitle": "نبلّغك بحالة طلبك؟",
+  "successNotifyBody": "استلمناه، جاهز، في الطريق، وصل — إشعار لكل خطوة.",
+  "successNotifyAction": "نعم، أبلغني",
   "paymentTitle": "الدفع",
   "paymentOpening": "جارٍ فتح صفحة الدفع…",
   "paymentWaiting": "أكمل الدفع في النافذة",
@@ -618,6 +625,12 @@
       }
     }
   },
+  "orderRateTitle": "كيف كانت توصيلتك؟",
+  "orderRateHint": "تقييمك يصل للفرع الذي جهّز طلبك.",
+  "orderRateComment": "ملاحظة (اختياري)",
+  "orderRateSubmit": "إرسال",
+  "orderRateThanks": "شكرًا لك",
+  "orderRateYours": "تقييمك",
   "addressesTitle": "عناويني",
   "addressesEmpty": "لا توجد عناوين محفوظة",
   "addressesEmptyHint": "احفظ عنوانك مرة واحدة، ونوصّل إليه في كل مرة.",
@@ -673,11 +686,11 @@
   "wishlistRemoved": "أُزيل من المفضّلة",
   "accountTitle": "حسابي",
   "accountGuest": "زائر",
+  "accountMemberFallback": "عميل زوبوكسي",
   "accountGuestHint": "سجّل الدخول لحفظ طلباتك ومفضّلتك",
   "accountLogin": "تسجيل الدخول",
   "accountLogout": "تسجيل الخروج",
   "accountLogoutConfirm": "هل تريد تسجيل الخروج؟",
-  "accountMemberFallback": "عميل زوبوكسي",
   "accountDelete": "حذف الحساب",
   "accountDeleteConfirmTitle": "حذف حسابك نهائيًا؟",
   "accountDeleteConfirmBody": "سنمسح رقمك واسمك وعناوينك وحيواناتك ومفضّلتك، ونُخفي اسمك عن طلباتك السابقة. لا يمكن التراجع. تقدر تسجّل من جديد بنفس الرقم كعميل جديد.",
@@ -723,6 +736,49 @@
   "notificationsFamily": "عائلة زوبوكسي",
   "notificationsFamilyBody": "هدية جاهزة، بصمات جديدة، أو عيد ميلاد قريب.",
   "notificationsSaveFailed": "تعذّر حفظ التفضيلات",
+  "notificationsQuiet": "الإشعارات تصلك بهدوء",
+  "notificationsQuietBody": "تصل إلى مركز الإشعارات مباشرة، بلا صوت ولا تنبيه على الشاشة. فعّل التنبيهات الكاملة ليصلك تحديث طلبك لحظة حدوثه.",
+  "notificationsEnableFull": "فعّل التنبيهات الكاملة",
+  "inboxTitle": "صندوق الإشعارات",
+  "inboxSubtitle": "كل ما أرسلناه لك — بما في ذلك ما وصل بهدوء دون تنبيه.",
+  "inboxMarkAllRead": "قرأت الكل",
+  "inboxEmpty": "لا إشعارات بعد",
+  "inboxEmptyHint": "تحديثات طلباتك وعروضك ستظهر هنا.",
+  "inboxQuiet": "هادئ",
+  "inboxQuietNote": "«هادئ» يعني أنه وصلك هنا فقط: بلغنا حدّ التنبيهات اليومي فلم نقاطعك به.",
+  "inboxUnread": "{count, plural, =1{جديد} =2{جديدان} few{{count} جديدة} other{{count} جديد}}",
+  "@inboxUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeJustNow": "الآن",
+  "timeMinutesAgo": "{count, plural, =1{قبل دقيقة} =2{قبل دقيقتين} few{قبل {count} دقائق} other{قبل {count} دقيقة}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{قبل ساعة} =2{قبل ساعتين} few{قبل {count} ساعات} other{قبل {count} ساعة}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{أمس} =2{قبل يومين} few{قبل {count} أيام} other{قبل {count} يومًا}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "accountStatOrders": "طلب",
   "accountStatPaws": "بصمة",
   "accountStatPets": "أصدقائي",

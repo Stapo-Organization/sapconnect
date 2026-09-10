@@ -28,6 +28,7 @@ import '../features/loyalty/presentation/scratch_screen.dart';
 import '../features/loyalty/presentation/subscriptions_screen.dart';
 import '../features/loyalty/presentation/supply_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../features/notifications/presentation/inbox_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/orders/presentation/order_detail_screen.dart';
@@ -173,6 +174,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.pageKey,
           OrderDetailScreen(
             orderId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+            // «قيّم توصيلتك» arrives as a deep link from the notification that
+            // asks for it, and lands on the card rather than on the receipt.
+            rate: state.uri.queryParameters['rate'] == '1',
           ),
         ),
       ),
@@ -180,6 +184,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (_, state) => shellPage(state.pageKey, const NotificationsScreen()),
+      ),
+      // The record of what was sent, which is not the same list as what the
+      // phone rang for — see InboxScreen.
+      GoRoute(
+        path: '/inbox',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => shellPage(state.pageKey, const InboxScreen()),
       ),
       GoRoute(
         path: '/addresses',

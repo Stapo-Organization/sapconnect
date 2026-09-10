@@ -670,6 +670,18 @@ class LAr extends L {
   String get pdpLangFallback => 'بعض التفاصيل معروضة بالعربية';
 
   @override
+  String get pdpNotifyMe => 'نبّهني عند التوفر';
+
+  @override
+  String get pdpNotifyMeOn => 'سنبلغك عند التوفر ✓';
+
+  @override
+  String get pdpNotifyMeAdded => 'تمام — نبلغك أول ما يتوفّر';
+
+  @override
+  String get pdpNotifyMeRemoved => 'أوقفنا تنبيه التوفّر';
+
+  @override
   String get priceFrom => 'يبدأ من';
 
   @override
@@ -1000,6 +1012,16 @@ class LAr extends L {
   String get successKeepShopping => 'مواصلة التسوّق';
 
   @override
+  String get successNotifyTitle => 'نبلّغك بحالة طلبك؟';
+
+  @override
+  String get successNotifyBody =>
+      'استلمناه، جاهز، في الطريق، وصل — إشعار لكل خطوة.';
+
+  @override
+  String get successNotifyAction => 'نعم، أبلغني';
+
+  @override
   String get paymentTitle => 'الدفع';
 
   @override
@@ -1204,6 +1226,24 @@ class LAr extends L {
   }
 
   @override
+  String get orderRateTitle => 'كيف كانت توصيلتك؟';
+
+  @override
+  String get orderRateHint => 'تقييمك يصل للفرع الذي جهّز طلبك.';
+
+  @override
+  String get orderRateComment => 'ملاحظة (اختياري)';
+
+  @override
+  String get orderRateSubmit => 'إرسال';
+
+  @override
+  String get orderRateThanks => 'شكرًا لك';
+
+  @override
+  String get orderRateYours => 'تقييمك';
+
+  @override
   String get addressesTitle => 'عناويني';
 
   @override
@@ -1372,6 +1412,9 @@ class LAr extends L {
   String get accountGuest => 'زائر';
 
   @override
+  String get accountMemberFallback => 'عميل زوبوكسي';
+
+  @override
   String get accountGuestHint => 'سجّل الدخول لحفظ طلباتك ومفضّلتك';
 
   @override
@@ -1382,9 +1425,6 @@ class LAr extends L {
 
   @override
   String get accountLogoutConfirm => 'هل تريد تسجيل الخروج؟';
-
-  @override
-  String get accountMemberFallback => 'عميل زوبوكسي';
 
   @override
   String get accountDelete => 'حذف الحساب';
@@ -1507,6 +1547,94 @@ class LAr extends L {
 
   @override
   String get notificationsSaveFailed => 'تعذّر حفظ التفضيلات';
+
+  @override
+  String get notificationsQuiet => 'الإشعارات تصلك بهدوء';
+
+  @override
+  String get notificationsQuietBody =>
+      'تصل إلى مركز الإشعارات مباشرة، بلا صوت ولا تنبيه على الشاشة. فعّل التنبيهات الكاملة ليصلك تحديث طلبك لحظة حدوثه.';
+
+  @override
+  String get notificationsEnableFull => 'فعّل التنبيهات الكاملة';
+
+  @override
+  String get inboxTitle => 'صندوق الإشعارات';
+
+  @override
+  String get inboxSubtitle =>
+      'كل ما أرسلناه لك — بما في ذلك ما وصل بهدوء دون تنبيه.';
+
+  @override
+  String get inboxMarkAllRead => 'قرأت الكل';
+
+  @override
+  String get inboxEmpty => 'لا إشعارات بعد';
+
+  @override
+  String get inboxEmptyHint => 'تحديثات طلباتك وعروضك ستظهر هنا.';
+
+  @override
+  String get inboxQuiet => 'هادئ';
+
+  @override
+  String get inboxQuietNote =>
+      '«هادئ» يعني أنه وصلك هنا فقط: بلغنا حدّ التنبيهات اليومي فلم نقاطعك به.';
+
+  @override
+  String inboxUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جديد',
+      few: '$count جديدة',
+      two: 'جديدان',
+      one: 'جديد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timeJustNow => 'الآن';
+
+  @override
+  String timeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قبل $count دقيقة',
+      few: 'قبل $count دقائق',
+      two: 'قبل دقيقتين',
+      one: 'قبل دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قبل $count ساعة',
+      few: 'قبل $count ساعات',
+      two: 'قبل ساعتين',
+      one: 'قبل ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قبل $count يومًا',
+      few: 'قبل $count أيام',
+      two: 'قبل يومين',
+      one: 'أمس',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get accountStatOrders => 'طلب';

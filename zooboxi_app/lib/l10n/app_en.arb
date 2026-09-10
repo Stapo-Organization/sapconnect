@@ -307,6 +307,10 @@
   },
   "pdpAddedToCart": "Added to cart",
   "pdpLangFallback": "Some details are shown in Arabic",
+  "pdpNotifyMe": "Notify me when back",
+  "pdpNotifyMeOn": "We'll tell you when it's back ✓",
+  "pdpNotifyMeAdded": "Done — we'll tell you the moment it's back",
+  "pdpNotifyMeRemoved": "Restock alert turned off",
   "priceFrom": "From",
   "priceWas": "Was",
   "priceOff": "{percent}% off",
@@ -507,6 +511,9 @@
   "successCodNote": "Pay on delivery",
   "successTrack": "Track order",
   "successKeepShopping": "Keep shopping",
+  "successNotifyTitle": "Shall we keep you posted?",
+  "successNotifyBody": "Received, ready, on the way, delivered — one notification for each step.",
+  "successNotifyAction": "Yes, tell me",
   "paymentTitle": "Payment",
   "paymentOpening": "Opening the payment page…",
   "paymentWaiting": "Finish paying in the window",
@@ -592,6 +599,12 @@
       }
     }
   },
+  "orderRateTitle": "How was your delivery?",
+  "orderRateHint": "Your rating goes straight to the branch that packed it.",
+  "orderRateComment": "Add a note (optional)",
+  "orderRateSubmit": "Send",
+  "orderRateThanks": "Thank you",
+  "orderRateYours": "Your rating",
   "addressesTitle": "My addresses",
   "addressesEmpty": "No saved addresses",
   "addressesEmptyHint": "Save an address once, and we'll deliver there every time.",
@@ -647,11 +660,11 @@
   "wishlistRemoved": "Removed from wishlist",
   "accountTitle": "Account",
   "accountGuest": "Guest",
+  "accountMemberFallback": "Zooboxi customer",
   "accountGuestHint": "Sign in to keep your orders and wishlist",
   "accountLogin": "Sign in",
   "accountLogout": "Sign out",
   "accountLogoutConfirm": "Sign out of your account?",
-  "accountMemberFallback": "Zooboxi customer",
   "accountDelete": "Delete account",
   "accountDeleteConfirmTitle": "Delete your account for good?",
   "accountDeleteConfirmBody": "We will erase your phone number, name, addresses, pets and favourites, and remove your name from past orders. This cannot be undone. You can sign up again with the same number as a new customer.",
@@ -697,6 +710,49 @@
   "notificationsFamily": "Zooboxi Family",
   "notificationsFamilyBody": "A gift unlocked, new paws, or a birthday coming up.",
   "notificationsSaveFailed": "Could not save your preferences",
+  "notificationsQuiet": "Notifications arrive quietly",
+  "notificationsQuietBody": "They land in Notification Centre with no sound and no banner. Turn on full alerts to hear about your order the moment it moves.",
+  "notificationsEnableFull": "Turn on full alerts",
+  "inboxTitle": "Notification inbox",
+  "inboxSubtitle": "Everything we sent you — including what arrived quietly, with no alert.",
+  "inboxMarkAllRead": "Mark all read",
+  "inboxEmpty": "Nothing here yet",
+  "inboxEmptyHint": "Updates on your orders and offers will show up here.",
+  "inboxQuiet": "Quiet",
+  "inboxQuietNote": "\u201cQuiet\u201d means it only landed here: we had hit the daily alert limit, so we did not interrupt you with it.",
+  "inboxUnread": "{count, plural, =1{1 new} other{{count} new}}",
+  "@inboxUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeDaysAgo": "{count, plural, =1{Yesterday} other{{count} days ago}}",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "accountStatOrders": "orders",
   "accountStatPaws": "paws",
   "accountStatPets": "friends",

@@ -660,6 +660,18 @@ class LEn extends L {
   String get pdpLangFallback => 'Some details are shown in Arabic';
 
   @override
+  String get pdpNotifyMe => 'Notify me when back';
+
+  @override
+  String get pdpNotifyMeOn => 'We\'ll tell you when it\'s back ✓';
+
+  @override
+  String get pdpNotifyMeAdded => 'Done — we\'ll tell you the moment it\'s back';
+
+  @override
+  String get pdpNotifyMeRemoved => 'Restock alert turned off';
+
+  @override
   String get priceFrom => 'From';
 
   @override
@@ -982,6 +994,16 @@ class LEn extends L {
   String get successKeepShopping => 'Keep shopping';
 
   @override
+  String get successNotifyTitle => 'Shall we keep you posted?';
+
+  @override
+  String get successNotifyBody =>
+      'Received, ready, on the way, delivered — one notification for each step.';
+
+  @override
+  String get successNotifyAction => 'Yes, tell me';
+
+  @override
   String get paymentTitle => 'Payment';
 
   @override
@@ -1186,6 +1208,25 @@ class LEn extends L {
   }
 
   @override
+  String get orderRateTitle => 'How was your delivery?';
+
+  @override
+  String get orderRateHint =>
+      'Your rating goes straight to the branch that packed it.';
+
+  @override
+  String get orderRateComment => 'Add a note (optional)';
+
+  @override
+  String get orderRateSubmit => 'Send';
+
+  @override
+  String get orderRateThanks => 'Thank you';
+
+  @override
+  String get orderRateYours => 'Your rating';
+
+  @override
   String get addressesTitle => 'My addresses';
 
   @override
@@ -1356,6 +1397,9 @@ class LEn extends L {
   String get accountGuest => 'Guest';
 
   @override
+  String get accountMemberFallback => 'Zooboxi customer';
+
+  @override
   String get accountGuestHint => 'Sign in to keep your orders and wishlist';
 
   @override
@@ -1366,9 +1410,6 @@ class LEn extends L {
 
   @override
   String get accountLogoutConfirm => 'Sign out of your account?';
-
-  @override
-  String get accountMemberFallback => 'Zooboxi customer';
 
   @override
   String get accountDelete => 'Delete account';
@@ -1496,6 +1537,87 @@ class LEn extends L {
 
   @override
   String get notificationsSaveFailed => 'Could not save your preferences';
+
+  @override
+  String get notificationsQuiet => 'Notifications arrive quietly';
+
+  @override
+  String get notificationsQuietBody =>
+      'They land in Notification Centre with no sound and no banner. Turn on full alerts to hear about your order the moment it moves.';
+
+  @override
+  String get notificationsEnableFull => 'Turn on full alerts';
+
+  @override
+  String get inboxTitle => 'Notification inbox';
+
+  @override
+  String get inboxSubtitle =>
+      'Everything we sent you — including what arrived quietly, with no alert.';
+
+  @override
+  String get inboxMarkAllRead => 'Mark all read';
+
+  @override
+  String get inboxEmpty => 'Nothing here yet';
+
+  @override
+  String get inboxEmptyHint =>
+      'Updates on your orders and offers will show up here.';
+
+  @override
+  String get inboxQuiet => 'Quiet';
+
+  @override
+  String get inboxQuietNote =>
+      '“Quiet” means it only landed here: we had hit the daily alert limit, so we did not interrupt you with it.';
+
+  @override
+  String inboxUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new',
+      one: '1 new',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timeJustNow => 'Just now';
+
+  @override
+  String timeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: 'Yesterday',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get accountStatOrders => 'orders';

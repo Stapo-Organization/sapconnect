@@ -212,6 +212,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await _finish();
   }
 
+  /// «لاحقًا» is not "never".
+  ///
+  /// iOS lets us ask *provisionally*: no dialog, and notifications that land
+  /// quietly in Notification Centre. So a customer who skips this step still
+  /// hears that their first order is on its way, and the one prompt iOS will
+  /// ever show is saved for the moment there is an order to follow — the
+  /// checkout that just succeeded. Nothing is awaited before moving on: the
+  /// answer does not change the journey, and a step that hangs on a platform
+  /// channel is a step that looks broken.
+  void _laterNotifications() {
+    _next();
+    unawaited(NotifyPermission.request(provisional: true));
+  }
+
   @override
   Widget build(BuildContext context) {
     final zb = context.zb;
@@ -231,7 +245,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _NotificationsStep(
         asking: _asking,
         onAllow: () => unawaited(_allowNotifications()),
-        onLater: _next,
+        onLater: _laterNotifications,
       ),
     ];
 

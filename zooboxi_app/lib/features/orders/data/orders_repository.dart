@@ -34,6 +34,18 @@ class OrdersRepository {
   Future<ReorderResult> reorder(int id) async =>
       ReorderResult.fromJson(asMap(await _api.post('/orders/$id/reorder')));
 
+  /// «قيّم توصيلتك» — the stars, and whatever they wanted to add.
+  ///
+  /// The store answers with the rating it stored, so the screen redraws from
+  /// the server's copy rather than from what was typed into the field.
+  Future<OrderRating?> rate(int id, {required int stars, String comment = ''}) async {
+    final data = asMap(await _api.post(
+      '/orders/$id/rate',
+      body: {'stars': stars, 'comment': comment},
+    ));
+    return OrderRating.maybe(data['rating']);
+  }
+
   /// Where the courier is right now, or null when this order has none.
   ///
   /// Cheap enough to poll: the store answers from a few-seconds cache and only

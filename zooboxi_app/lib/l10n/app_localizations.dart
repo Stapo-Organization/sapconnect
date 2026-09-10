@@ -1171,6 +1171,30 @@ abstract class L {
   /// **'بعض التفاصيل معروضة بالعربية'**
   String get pdpLangFallback;
 
+  /// No description provided for @pdpNotifyMe.
+  ///
+  /// In ar, this message translates to:
+  /// **'نبّهني عند التوفر'**
+  String get pdpNotifyMe;
+
+  /// No description provided for @pdpNotifyMeOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنبلغك عند التوفر ✓'**
+  String get pdpNotifyMeOn;
+
+  /// No description provided for @pdpNotifyMeAdded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمام — نبلغك أول ما يتوفّر'**
+  String get pdpNotifyMeAdded;
+
+  /// No description provided for @pdpNotifyMeRemoved.
+  ///
+  /// In ar, this message translates to:
+  /// **'أوقفنا تنبيه التوفّر'**
+  String get pdpNotifyMeRemoved;
+
   /// No description provided for @priceFrom.
   ///
   /// In ar, this message translates to:
@@ -1657,6 +1681,24 @@ abstract class L {
   /// **'مواصلة التسوّق'**
   String get successKeepShopping;
 
+  /// No description provided for @successNotifyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'نبلّغك بحالة طلبك؟'**
+  String get successNotifyTitle;
+
+  /// No description provided for @successNotifyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'استلمناه، جاهز، في الطريق، وصل — إشعار لكل خطوة.'**
+  String get successNotifyBody;
+
+  /// No description provided for @successNotifyAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'نعم، أبلغني'**
+  String get successNotifyAction;
+
   /// No description provided for @paymentTitle.
   ///
   /// In ar, this message translates to:
@@ -2005,6 +2047,42 @@ abstract class L {
   /// **'{count, plural, =1{منتج واحد غير متوفّر حاليًا} =2{منتجان غير متوفّرين حاليًا} few{{count} منتجات غير متوفّرة حاليًا} other{{count} منتجًا غير متوفّر حاليًا}}'**
   String orderReorderMissing(int count);
 
+  /// No description provided for @orderRateTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيف كانت توصيلتك؟'**
+  String get orderRateTitle;
+
+  /// No description provided for @orderRateHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقييمك يصل للفرع الذي جهّز طلبك.'**
+  String get orderRateHint;
+
+  /// No description provided for @orderRateComment.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظة (اختياري)'**
+  String get orderRateComment;
+
+  /// No description provided for @orderRateSubmit.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال'**
+  String get orderRateSubmit;
+
+  /// No description provided for @orderRateThanks.
+  ///
+  /// In ar, this message translates to:
+  /// **'شكرًا لك'**
+  String get orderRateThanks;
+
+  /// No description provided for @orderRateYours.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقييمك'**
+  String get orderRateYours;
+
   /// No description provided for @addressesTitle.
   ///
   /// In ar, this message translates to:
@@ -2335,6 +2413,12 @@ abstract class L {
   /// **'زائر'**
   String get accountGuest;
 
+  /// No description provided for @accountMemberFallback.
+  ///
+  /// In ar, this message translates to:
+  /// **'عميل زوبوكسي'**
+  String get accountMemberFallback;
+
   /// No description provided for @accountGuestHint.
   ///
   /// In ar, this message translates to:
@@ -2358,12 +2442,6 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'هل تريد تسجيل الخروج؟'**
   String get accountLogoutConfirm;
-
-  /// No description provided for @accountMemberFallback.
-  ///
-  /// In ar, this message translates to:
-  /// **'عميل زوبوكسي'**
-  String get accountMemberFallback;
 
   /// No description provided for @accountDelete.
   ///
@@ -2592,6 +2670,96 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'تعذّر حفظ التفضيلات'**
   String get notificationsSaveFailed;
+
+  /// No description provided for @notificationsQuiet.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإشعارات تصلك بهدوء'**
+  String get notificationsQuiet;
+
+  /// No description provided for @notificationsQuietBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصل إلى مركز الإشعارات مباشرة، بلا صوت ولا تنبيه على الشاشة. فعّل التنبيهات الكاملة ليصلك تحديث طلبك لحظة حدوثه.'**
+  String get notificationsQuietBody;
+
+  /// No description provided for @notificationsEnableFull.
+  ///
+  /// In ar, this message translates to:
+  /// **'فعّل التنبيهات الكاملة'**
+  String get notificationsEnableFull;
+
+  /// No description provided for @inboxTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'صندوق الإشعارات'**
+  String get inboxTitle;
+
+  /// No description provided for @inboxSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل ما أرسلناه لك — بما في ذلك ما وصل بهدوء دون تنبيه.'**
+  String get inboxSubtitle;
+
+  /// No description provided for @inboxMarkAllRead.
+  ///
+  /// In ar, this message translates to:
+  /// **'قرأت الكل'**
+  String get inboxMarkAllRead;
+
+  /// No description provided for @inboxEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا إشعارات بعد'**
+  String get inboxEmpty;
+
+  /// No description provided for @inboxEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديثات طلباتك وعروضك ستظهر هنا.'**
+  String get inboxEmptyHint;
+
+  /// No description provided for @inboxQuiet.
+  ///
+  /// In ar, this message translates to:
+  /// **'هادئ'**
+  String get inboxQuiet;
+
+  /// No description provided for @inboxQuietNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'«هادئ» يعني أنه وصلك هنا فقط: بلغنا حدّ التنبيهات اليومي فلم نقاطعك به.'**
+  String get inboxQuietNote;
+
+  /// No description provided for @inboxUnread.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{جديد} =2{جديدان} few{{count} جديدة} other{{count} جديد}}'**
+  String inboxUnread(int count);
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'الآن'**
+  String get timeJustNow;
+
+  /// No description provided for @timeMinutesAgo.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{قبل دقيقة} =2{قبل دقيقتين} few{قبل {count} دقائق} other{قبل {count} دقيقة}}'**
+  String timeMinutesAgo(int count);
+
+  /// No description provided for @timeHoursAgo.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{قبل ساعة} =2{قبل ساعتين} few{قبل {count} ساعات} other{قبل {count} ساعة}}'**
+  String timeHoursAgo(int count);
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{أمس} =2{قبل يومين} few{قبل {count} أيام} other{قبل {count} يومًا}}'**
+  String timeDaysAgo(int count);
 
   /// No description provided for @accountStatOrders.
   ///

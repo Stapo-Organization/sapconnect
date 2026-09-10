@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme/zb_colors.dart';
@@ -11,6 +12,7 @@ import '../../../core/notifications/push_service.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../account/presentation/widgets/settings_tile.dart';
 import '../data/push_repository.dart';
 
 /// «الإشعارات» — what the store may interrupt this customer for.
@@ -34,7 +36,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
   bool _loading = true;
   bool _saving = false;
 
+  /// A full grant: banners, sounds, the lock screen.
   bool get _granted => _permission == 'granted';
+
+  /// The quiet grant. We may send, but nothing rings — see AppDelegate. The
+  /// customer's own four switches still mean something here, so the screen
+  /// stays live rather than greying out.
+  bool get _quiet => _permission == 'provisional';
+
+  /// Whether the store can reach this device at all.
+  bool get _reachable => _granted || _quiet;
 
   @override
   void initState() {
@@ -74,7 +85,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
       if (prefs != null) _prefs = prefs;
       _loading = false;
     });
-    if (permission == 'granted') {
+    if (permission == 'granted' || permission == 'provisional') {
       // Coming back from Settings with a fresh yes: the store still has no
       // token for this device until we hand it one.
       unawaited(ref.read(pushServiceProvider).refreshRegistration());
@@ -101,6 +112,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     if (!await launchUrl(uri)) {
       if (mounted) AppToast.info(context, L.of(context).notificationsOffBody);
     }
+  }
+
+  /// The badge on the inbox row, or nothing when there is nothing waiting.
+  /// A failed read shows no badge rather than a zero: "0 جديد" is a claim,
+  /// and we do not have one to make.
+  String? _unreadLabel(L l) {
+    final unread = ref.watch(inboxProvider).value?.unread ?? 0;
+    return unread > 0 ? l.inboxUnread(unread) : null;
   }
 
   Future<void> _set(PushPreferences next) async {
@@ -152,13 +171,32 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                 ),
                 Gap.h16,
 
+                // The record of what was actually sent. It leads because it
+                // is the one part of this screen that survives every answer
+                // above: even a device that refused the permission outright
+                // still has an inbox worth reading.
+                SettingsSection(
+                  children: [
+                    SettingsTile(
+                      icon: Icons.inbox_rounded,
+                      label: l.inboxTitle,
+                      trailingLabel: _unreadLabel(l),
+                      onTap: () {
+                        Haptics.light();
+                        unawaited(context.push('/inbox'));
+                      },
+                    ),
+                  ],
+                ),
+                Gap.h16,
+
                 if (!available) ...[
                   _Notice(
                     icon: Icons.cloud_off_rounded,
                     title: l.notificationsUnavailable,
                   ),
                   Gap.h16,
-                ] else if (!_granted) ...[
+                ] else if (!_reachable) ...[
                   _Notice(
                     icon: Icons.notifications_off_rounded,
                     title: l.notificationsOff,
@@ -174,6 +212,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                           ),
                   ),
                   Gap.h16,
+                ] else if (_quiet) ...[
+                  // Not a fault, and not a nag: the notifications ARE
+                  // arriving, and the only thing on offer is to make them
+                  // audible. iOS shows its one prompt here.
+                  _Notice(
+                    icon: Icons.notifications_paused_rounded,
+                    title: l.notificationsQuiet,
+                    body: l.notificationsQuietBody,
+                    action: FilledButton(
+                      onPressed: _ask,
+                      style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
+                      child: Text(l.notificationsEnableFull),
+                    ),
+                  ),
+                  Gap.h16,
                 ] else if (_prefs.isSilent) ...[
                   _Notice(
                     icon: Icons.volume_off_rounded,
@@ -187,9 +240,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                 // greying them out explains the state better than hiding them,
                 // which would make the screen look broken.
                 Opacity(
-                  opacity: _granted && available ? 1 : 0.45,
+                  opacity: _reachable && available ? 1 : 0.45,
                   child: IgnorePointer(
-                    ignoring: !_granted || !available || _saving,
+                    ignoring: !_reachable || !available || _saving,
                     child: Container(
                       decoration: BoxDecoration(
                         color: cs.surface,

@@ -21,6 +21,28 @@ class OrderItemPreview {
       );
 }
 
+/// What the customer said about a delivery, once they have said it.
+///
+/// Stars only ever arrive from the store: the app never keeps a local draft
+/// of a rating, so an order shows «تقييمك» exactly when the store holds one.
+@immutable
+class OrderRating {
+  const OrderRating({required this.stars, this.comment = ''});
+
+  /// 1..5. The store validates the range; anything outside it never becomes
+  /// an [OrderRating] at all.
+  final int stars;
+  final String comment;
+
+  static OrderRating? maybe(dynamic value) {
+    final map = asMap(value);
+    if (map.isEmpty) return null;
+    final stars = asInt(map['stars']);
+    if (stars < 1 || stars > 5) return null;
+    return OrderRating(stars: stars, comment: asString(map['comment']));
+  }
+}
+
 @immutable
 class OrderSummary {
   const OrderSummary({
@@ -38,6 +60,7 @@ class OrderSummary {
     this.itemsCount = 0,
     this.itemsLines = 0,
     this.canReorder = false,
+    this.rating,
   });
 
   final int id;
@@ -69,6 +92,10 @@ class OrderSummary {
   final int itemsLines;
   final bool canReorder;
 
+  /// The customer's own verdict on this delivery, or null while they have not
+  /// given one. Only a completed order is ever asked.
+  final OrderRating? rating;
+
   /// An order the customer can still pay for: an online gateway was chosen,
   /// the money never landed, and the order has not been called off.
   bool get awaitsPayment =>
@@ -95,6 +122,7 @@ class OrderSummary {
         itemsCount: asInt(json['items_count']),
         itemsLines: asInt(json['items_lines']),
         canReorder: asBool(json['can_reorder']),
+        rating: OrderRating.maybe(json['rating']),
       );
 }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,9 +29,14 @@ import 'widgets/order_timeline.dart';
 /// screen for — *where is it* — and the receipt follows underneath for the
 /// times the question is *what did I pay*.
 class OrderDetailScreen extends ConsumerWidget {
-  const OrderDetailScreen({super.key, required this.orderId});
+  const OrderDetailScreen({super.key, required this.orderId, this.rate = false});
 
   final int orderId;
+
+  /// Arrived from «قيّم توصيلتك» — the notification that asks for the rating
+  /// deep-links here with `?rate=1`, and the card it means is brought into
+  /// view instead of being left below three sections of receipt.
+  final bool rate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,7 +54,7 @@ class OrderDetailScreen extends ConsumerWidget {
           value: order,
           onRetry: () => ref.invalidate(orderDetailProvider(orderId)),
           skeleton: const _DetailSkeleton(),
-          builder: (detail) => _Detail(detail: detail),
+          builder: (detail) => _Detail(detail: detail, rate: rate),
         ),
       ),
     );
@@ -55,9 +62,10 @@ class OrderDetailScreen extends ConsumerWidget {
 }
 
 class _Detail extends ConsumerStatefulWidget {
-  const _Detail({required this.detail});
+  const _Detail({required this.detail, this.rate = false});
 
   final OrderDetail detail;
+  final bool rate;
 
   @override
   ConsumerState<_Detail> createState() => _DetailState();
@@ -65,6 +73,29 @@ class _Detail extends ConsumerStatefulWidget {
 
 class _DetailState extends ConsumerState<_Detail> {
   bool _reordering = false;
+
+  /// Where the rating card sits, so a `?rate=1` arrival can scroll to it.
+  final GlobalKey _rateKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.rate) return;
+    // After the first frame: the card has no position until the list has been
+    // laid out, and an order that turns out to be rated already has no card
+    // at all — in which case this quietly does nothing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final target = _rateKey.currentContext;
+      if (target == null) return;
+      unawaited(Scrollable.ensureVisible(
+        target,
+        alignment: 0.12,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOut,
+      ));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +128,16 @@ class _DetailState extends ConsumerState<_Detail> {
             icon: Icons.route_rounded,
             child: OrderTimeline(steps: detail.timeline),
           ),
+          Gap.h12,
+        ],
+
+        // The verdict comes straight after the timeline: it is the last step
+        // of that story, and it is asked only once the box has landed.
+        if (summary.status == 'completed') ...[
+          if (summary.rating == null)
+            _RateCard(key: _rateKey, orderId: summary.id)
+          else
+            _RatingGiven(key: _rateKey, rating: summary.rating!),
           Gap.h12,
         ],
 
@@ -214,6 +255,200 @@ class _DetailState extends ConsumerState<_Detail> {
       Haptics.warning();
       AppToast.error(context, errorMessage(context, e));
     }
+  }
+}
+
+/// «كيف كانت توصيلتك؟» — five stars, and only then a place to say more.
+///
+/// The comment field stays hidden until a star is tapped, because a text box
+/// under a question makes the whole thing look like a form. One tap is a
+/// complete answer here; the note is for the customer who wants to add one.
+class _RateCard extends ConsumerStatefulWidget {
+  const _RateCard({super.key, required this.orderId});
+
+  final int orderId;
+
+  @override
+  ConsumerState<_RateCard> createState() => _RateCardState();
+}
+
+class _RateCardState extends ConsumerState<_RateCard> {
+  final TextEditingController _comment = TextEditingController();
+  int _stars = 0;
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _comment.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final l = L.of(context);
+    setState(() => _sending = true);
+    try {
+      await ref.read(ordersRepositoryProvider).rate(
+            widget.orderId,
+            stars: _stars,
+            comment: _comment.text.trim(),
+          );
+      if (!mounted) return;
+      // The card is replaced by the store's own copy of what was said, so
+      // nothing on screen is the app's guess at what was saved.
+      ref.invalidate(orderDetailProvider(widget.orderId));
+      await Haptics.success();
+      if (!mounted) return;
+      setState(() => _sending = false);
+      AppToast.success(context, l.orderRateThanks);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _sending = false);
+      Haptics.warning();
+      AppToast.error(context, errorMessage(context, error));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+
+    return OrderSection(
+      title: l.orderRateTitle,
+      icon: Icons.star_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Stars(
+            stars: _stars,
+            size: 38,
+            onTap: _sending
+                ? null
+                : (value) {
+                    Haptics.selection();
+                    setState(() => _stars = value);
+                  },
+          ),
+          if (_stars > 0) ...[
+            Gap.h12,
+            TextField(
+              controller: _comment,
+              enabled: !_sending,
+              maxLines: 1,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) {
+                if (!_sending) unawaited(_submit());
+              },
+              decoration: InputDecoration(
+                hintText: l.orderRateComment,
+                isDense: true,
+              ),
+            ),
+            Gap.h12,
+            FilledButton(
+              onPressed: _sending ? null : () => unawaited(_submit()),
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
+              child: _sending
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.4),
+                    )
+                  : Text(l.orderRateSubmit),
+            ),
+          ] else ...[
+            Gap.h8,
+            Text(
+              l.orderRateHint,
+              style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// «تقييمك ★★★★☆» — one line, because the question has been answered and the
+/// screen is back to being about the order.
+class _RatingGiven extends StatelessWidget {
+  const _RatingGiven({super.key, required this.rating});
+
+  final OrderRating rating;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(l.orderRateYours, style: context.tt.titleSmall)),
+              _Stars(stars: rating.stars, size: 18),
+            ],
+          ),
+          if (rating.comment.isNotEmpty) ...[
+            Gap.h4,
+            Text(
+              rating.comment,
+              style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Five stars. Tappable when [onTap] is given, a read-out when it is not —
+/// the same row either way, so a rating never changes shape once it is made.
+class _Stars extends StatelessWidget {
+  const _Stars({required this.stars, required this.size, this.onTap});
+
+  final int stars;
+  final double size;
+  final ValueChanged<int>? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final zb = context.zb;
+    final cs = context.cs;
+    return Row(
+      mainAxisSize: onTap == null ? MainAxisSize.min : MainAxisSize.max,
+      mainAxisAlignment:
+          onTap == null ? MainAxisAlignment.end : MainAxisAlignment.spaceEvenly,
+      children: [
+        for (var i = 1; i <= 5; i++)
+          if (onTap == null)
+            Icon(
+              i <= stars ? Icons.star_rounded : Icons.star_outline_rounded,
+              size: size,
+              color: i <= stars ? zb.warning : cs.outlineVariant,
+            )
+          else
+            IconButton(
+              onPressed: () => onTap!(i),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints.tightFor(width: size + 8, height: size + 8),
+              icon: Icon(
+                i <= stars ? Icons.star_rounded : Icons.star_outline_rounded,
+                size: size,
+                color: i <= stars ? zb.warning : cs.outlineVariant,
+              ),
+            ),
+      ],
+    );
   }
 }
 

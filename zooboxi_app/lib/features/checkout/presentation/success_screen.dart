@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/icons/zb_icons.dart';
+import '../../../core/notifications/notify_permission.dart';
+import '../../../core/notifications/push_service.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/utils/haptics.dart';
@@ -37,6 +40,12 @@ class CheckoutSuccessScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
+  /// Whether this phone is still worth asking. Hidden by default: a customer
+  /// who has already granted the permission must not be asked for it again,
+  /// and the answer only arrives a frame or two after the screen does.
+  bool _offerNotify = false;
+  bool _asking = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +73,56 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
     // idle cadence is two minutes; without this the customer walks back into
     // the shop and waits up to that long to see the thing they just bought.
     ref.invalidate(activeOrderProvider);
+
+    // The one moment the question answers itself: there is now an order to
+    // follow, so «نبلّغك بحالة طلبك؟» is about something concrete rather than
+    // about notifications in the abstract — which is how the welcome journey
+    // used to lose it.
+    unawaited(_readPermission());
+  }
+
+  Future<void> _readPermission() async {
+    String status;
+    try {
+      status = await NotifyPermission.status();
+    } catch (_) {
+      // No channel, no offer. Never a broken card.
+      return;
+    }
+    if (!mounted) return;
+    // 'provisional' means notifications are already arriving quietly; asking
+    // is how they start ringing. 'undetermined' means iOS has not been asked
+    // at all. Anything else — granted, denied — has nothing left to ask.
+    if (status == 'provisional' || status == 'undetermined') {
+      setState(() => _offerNotify = true);
+    }
+  }
+
+  /// The full prompt, and then the token the store needs to use it.
+  ///
+  /// The card goes away either way: iOS shows that dialog once, and a card
+  /// that stays after a refusal is a card that will never be tapped.
+  Future<void> _askNotify() async {
+    Haptics.light();
+    setState(() => _asking = true);
+    var granted = false;
+    try {
+      granted = await NotifyPermission.request();
+    } catch (_) {
+      // Treated as a no.
+    }
+    if (!mounted) return;
+    setState(() {
+      _offerNotify = false;
+      _asking = false;
+    });
+    if (!granted) return;
+    try {
+      await ref.read(pushServiceProvider).refreshRegistration();
+    } catch (_) {
+      // A device the store did not hear about re-registers on next launch.
+    }
+    await Haptics.success();
   }
 
   @override
@@ -158,6 +217,10 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                       ),
                     ),
                   ),
+                  if (_offerNotify) ...[
+                    Gap.h16,
+                    _NotifyCard(busy: _asking, onAsk: () => unawaited(_askNotify())),
+                  ],
                 ],
               ),
             ),
@@ -186,6 +249,74 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+/// «نبلّغك بحالة طلبك؟» — asked here, and only here.
+///
+/// Deliberately quiet: a tonal button under the receipt, not a second
+/// confirmation competing with the one the screen exists for. A customer who
+/// ignores it still gets everything the order promised.
+class _NotifyCard extends StatelessWidget {
+  const _NotifyCard({required this.busy, required this.onAsk});
+
+  final bool busy;
+  final VoidCallback onAsk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.notifications_active_outlined, size: 20, color: cs.primary),
+              Gap.w12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.successNotifyTitle,
+                      style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    Gap.h4,
+                    Text(
+                      l.successNotifyBody,
+                      style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Gap.h12,
+          FilledButton.tonal(
+            onPressed: busy ? null : onAsk,
+            style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 52)),
+            child: busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2.4),
+                  )
+                : Text(l.successNotifyAction),
+          ),
+        ],
       ),
     );
   }

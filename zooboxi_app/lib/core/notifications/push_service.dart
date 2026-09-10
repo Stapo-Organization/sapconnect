@@ -97,13 +97,15 @@ class PushService {
   /// Re-registers the current token — after sign-in, after sign-out, and after
   /// the customer grants the permission from the settings screen.
   ///
-  /// Silent when the OS permission is not granted: a token minted without it
-  /// is a device the store would count and never reach.
+  /// Silent when the OS has given us nothing: a token minted without any
+  /// permission is a device the store would count and never reach. A
+  /// *provisional* grant is not nothing — APNs mints a token for it and the
+  /// store can deliver quietly — so it registers exactly like a full one.
   Future<void> refreshRegistration() async {
     final messaging = _messaging;
     if (messaging == null) return;
     try {
-      if (await NotifyPermission.status() != 'granted') return;
+      if (!await NotifyPermission.isRegistered) return;
 
       // On iOS the FCM token only exists once APNs has handed over its own.
       if (Platform.isIOS && await messaging.getAPNSToken() == null) return;

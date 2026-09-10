@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,9 @@ import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/motion/fly_to_cart.dart';
 import '../../../core/providers.dart';
+import '../../../core/utils/error_text.dart';
+import '../../../core/utils/haptics.dart';
+import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/badge_chip.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/price_text.dart';
@@ -15,6 +20,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../cart/presentation/add_to_cart.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
+import '../../notifications/data/push_repository.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/add_to_cart_bar.dart';
 import 'widgets/delivery_card.dart';
@@ -46,6 +52,14 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
   int _qty = 1;
   bool _adding = false;
   bool _tracked = false;
+
+  /// Where «نبّهني عند التوفر» stands. It opens as [NotifyState.busy] because
+  /// the first thing an out-of-stock page does is ask the store what this
+  /// customer is already waiting for — and a button that flickers from
+  /// «غير متوفّر» to an offer reads as a page still making up its mind. An
+  /// in-stock page never shows it at all.
+  NotifyState _notify = NotifyState.busy;
+  bool _waitlistAsked = false;
 
   /// The purchase button — where a successful add flies from.
   final GlobalKey _addKey = GlobalKey();
@@ -118,6 +132,57 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
     setState(() => _adding = false);
   }
 
+  /// Reads the waitlist once, and only for a product that is actually out of
+  /// stock — an in-stock page must not spend a request on a question nobody
+  /// is asking.
+  void _loadWaitlist() {
+    if (_waitlistAsked) return;
+    _waitlistAsked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_readWaitlist()));
+  }
+
+  Future<void> _readWaitlist() async {
+    try {
+      final state = await ref.read(pushRepositoryProvider).waitlist(widget.productId);
+      if (!mounted) return;
+      setState(() => _notify = state.restock ? NotifyState.on : NotifyState.off);
+    } catch (_) {
+      // The store could not say. Offering the alert is still the right call:
+      // the toggle itself is what decides, and it is idempotent.
+      if (!mounted) return;
+      setState(() => _notify = NotifyState.off);
+    }
+  }
+
+  /// Subscribes to the restock, or takes the subscription back.
+  ///
+  /// No sign-in gate: the store keys the waitlist by the guest id the app
+  /// already carries, and asking someone to make an account before they may
+  /// be told about a bag of food is how the alert never gets set.
+  Future<void> _toggleNotify() async {
+    final l = L.of(context);
+    final wasOn = _notify == NotifyState.on;
+    Haptics.light();
+    setState(() => _notify = NotifyState.busy);
+    try {
+      final repository = ref.read(pushRepositoryProvider);
+      final state = wasOn
+          ? await repository.unwatch(productId: widget.productId, kind: 'restock')
+          : await repository.watch(productId: widget.productId, kind: 'restock');
+      if (!mounted) return;
+      setState(() => _notify = state.restock ? NotifyState.on : NotifyState.off);
+      AppToast.success(
+        context,
+        state.restock ? l.pdpNotifyMeAdded : l.pdpNotifyMeRemoved,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _notify = wasOn ? NotifyState.on : NotifyState.off);
+      Haptics.warning();
+      AppToast.error(context, errorMessage(context, error));
+    }
+  }
+
   void _onLoaded(ProductDetail detail) {
     if (_tracked) return;
     _tracked = true;
@@ -166,13 +231,22 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         }
       }
 
+      // The bar needs to know before it paints, and so does the waitlist read
+      // — so out-of-stock is decided here rather than inside _Loaded.
+      final maxQty = _maxQty(data);
+      final outOfStock = !data.card.inStock || (maxQty != null && maxQty <= 0);
+      if (outOfStock) _loadWaitlist();
+
       return _Loaded(
         detail: data,
         selection: _selection,
         qty: _qty,
         adding: _adding,
         price: _price(data),
-        maxQty: _maxQty(data),
+        maxQty: maxQty,
+        outOfStock: outOfStock,
+        notifyState: outOfStock ? _notify : NotifyState.none,
+        onNotify: () => unawaited(_toggleNotify()),
         variation: matched,
         availabilityRefreshing: availabilityRefreshing,
         onSelect: (attribute, option) => setState(() {
@@ -209,7 +283,10 @@ class _Loaded extends ConsumerWidget {
     required this.adding,
     required this.price,
     required this.maxQty,
+    required this.outOfStock,
     required this.variation,
+    this.notifyState = NotifyState.none,
+    this.onNotify,
     this.availabilityRefreshing = false,
     required this.onSelect,
     required this.onQty,
@@ -227,6 +304,11 @@ class _Loaded extends ConsumerWidget {
   final bool adding;
   final double price;
   final int? maxQty;
+
+  /// Decided by the screen, because the restock read depends on it.
+  final bool outOfStock;
+  final NotifyState notifyState;
+  final VoidCallback? onNotify;
   final ProductVariation? variation;
   final void Function(String attribute, String option) onSelect;
   final ValueChanged<int> onQty;
@@ -238,7 +320,6 @@ class _Loaded extends ConsumerWidget {
     final l = L.of(context);
     final cs = context.cs;
     final card = detail.card;
-    final outOfStock = !card.inStock || (maxQty != null && maxQty! <= 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -373,6 +454,8 @@ class _Loaded extends ConsumerWidget {
         onQty: onQty,
         onAdd: onAdd,
         anchorKey: addKey,
+        notifyState: notifyState,
+        onNotify: onNotify,
       ),
     );
   }

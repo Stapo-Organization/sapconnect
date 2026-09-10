@@ -34,8 +34,13 @@ import UserNotifications
         UNUserNotificationCenter.current().getNotificationSettings { settings in
           let status: String
           switch settings.authorizationStatus {
-          case .authorized, .provisional, .ephemeral:
+          case .authorized, .ephemeral:
             status = "granted"
+          case .provisional:
+            // Quiet delivery: we may send, but nothing rings and nothing
+            // reaches the lock screen. Reported separately because it is the
+            // one state where the app should still offer the real prompt.
+            status = "provisional"
           case .denied:
             status = "denied"
           default:
@@ -46,8 +51,18 @@ import UserNotifications
           DispatchQueue.main.async { result(status) }
         }
       case "request":
+        // `provisional: true` asks for the quiet grant: iOS shows NO dialog,
+        // notifications go straight to Notification Centre, and the customer
+        // is never made to answer a question before there is anything to
+        // answer it about.
+        let arguments = call.arguments as? [String: Any]
+        let provisional = arguments?["provisional"] as? Bool ?? false
+        var options: UNAuthorizationOptions = [.alert, .badge, .sound]
+        if provisional {
+          options.insert(.provisional)
+        }
         UNUserNotificationCenter.current()
-          .requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
+          .requestAuthorization(options: options) { granted, _ in
             DispatchQueue.main.async {
               // The permission is only half of push: without this the device
               // never gets an APNs token, Firebase never mints an FCM one, and
