@@ -22,6 +22,25 @@ class Zooboxi_V2_Push_Controller
         Zooboxi_V2_Bootstrap::route('/push/preferences', 'PUT,PATCH,POST', [$this, 'save_preferences']);
         Zooboxi_V2_Bootstrap::route('/push/live-activity', 'POST', [$this, 'live_activity_start']);
         Zooboxi_V2_Bootstrap::route('/push/live-activity/end', 'POST', [$this, 'live_activity_end']);
+        Zooboxi_V2_Bootstrap::route('/push/opened', 'POST', [$this, 'opened']);
+    }
+
+    /**
+     * The phone tapped a notification. `msg` is the outbox id the store put
+     * in the data payload; only the person it was sent to may mark it.
+     */
+    public function opened(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $msg = absint($request->get_param('msg'));
+        $ok  = false;
+        if ($msg > 0 && class_exists('Zooboxi_Push_Engine')) {
+            $ok = Zooboxi_Push_Engine::mark_opened(
+                $msg,
+                get_current_user_id(),
+                Zooboxi_V2_Bootstrap::guest_id($request)
+            );
+        }
+        return Zooboxi_V2_Bootstrap::ok(['opened' => $ok]);
     }
 
     public function register_device(\WP_REST_Request $request): \WP_REST_Response

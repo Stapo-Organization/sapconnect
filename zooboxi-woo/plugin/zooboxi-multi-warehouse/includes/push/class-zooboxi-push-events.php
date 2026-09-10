@@ -31,6 +31,11 @@ class Zooboxi_Push_Events
         if (class_exists('Zooboxi_Loyalty')) {
             add_action(Zooboxi_Loyalty::CRON_DAILY, [self::class, 'on_daily_reorder'], 20);
         }
+        // Every five minutes: an express order past its promise.
+        add_action('zooboxi_push_tick', [self::class, 'sweep_late_orders']);
+        // The reorder nudge's "once a week per product" clock starts when the
+        // message actually went out — not when it was queued and then held.
+        add_action('zooboxi_push_sent', [self::class, 'on_sent'], 10, 2);
     }
 
     /**
@@ -96,34 +101,67 @@ class Zooboxi_Push_Events
                 return;
             }
 
-            $customer_id = (int) $order->get_customer_id();
-            // A guest checkout still has a phone in its hand: the app registers
-            // its device id even before there is an account, and the order
-            // carries the one it was placed from.
-            $guest_id = (string) $order->get_meta('_zb_guest_id');
-            $devices  = Zooboxi_Push::devices_for($customer_id, $guest_id);
-            if (!$devices) {
+            // A status that flaps (processing → on-hold → processing) must not
+            // announce itself twice. One stamp per (order, status), forever.
+            $flag = '_zb_push_status_' . $to;
+            if ((string) $order->get_meta($flag) !== '') {
                 return;
             }
+            $order->update_meta_data($flag, current_time('mysql'));
+            $order->save_meta_data();
 
-            $route = '/orders/' . $order->get_id();
-            foreach ($devices as $device) {
-                $locale = str_starts_with((string) ($device['locale'] ?? 'ar'), 'en') ? 'en' : 'ar';
-                [$title, $body] = $copy[$locale];
-                Zooboxi_Push::send_to_devices(
-                    [$device],
-                    'orders',
-                    $title,
-                    $body,
-                    $route,
-                    ['order_id' => (string) $order->get_id(), 'status' => $to]
-                );
-            }
+            self::order_push($order, $copy, 'order_status', $to, [
+                'status' => $to,
+                // Only the courier at the door may break through Focus; a box
+                // being packed can wait for the next glance at the phone.
+                'level'  => 'active',
+            ]);
         } catch (\Throwable $e) {
             // An order transition is never allowed to fail because a phone
             // could not be reached.
             error_log('[Zooboxi push] order status notification failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * One transactional push about one order, through the engine: the
+     * customer, or the guest device the order was placed from; collapsed and
+     * threaded per order so the lock screen shows the latest fact, not the
+     * whole history; six hours to live, because a stale "on its way" is
+     * worse than silence.
+     */
+    private static function order_push(\WC_Order $order, array $copy, string $source, string $source_id, array $extra = []): void
+    {
+        if (!class_exists('Zooboxi_Push_Engine')) {
+            return;
+        }
+        $id = $order->get_id();
+        // A guest checkout still has a phone in its hand: the app registers
+        // its device id even before there is an account, and the order
+        // carries the one it was placed from.
+        $data = ['order_id' => (string) $id];
+        foreach ($extra as $k => $v) {
+            if ($k !== 'level') {
+                $data[$k] = (string) $v;
+            }
+        }
+        Zooboxi_Push_Engine::submit([
+            'user_id'      => (int) $order->get_customer_id(),
+            'guest_id'     => (string) $order->get_meta('_zb_guest_id'),
+            'topic'        => 'orders',
+            'tier'         => Zooboxi_Push_Gate::TIER_TRANSACTIONAL,
+            'copy'         => $copy,
+            'route'        => '/orders/' . $id,
+            'data'         => $data,
+            'collapse_key' => 'order-' . $id,
+            'thread_id'    => 'order-' . $id,
+            'ttl_s'        => 6 * HOUR_IN_SECONDS,
+            'level'        => (string) ($extra['level'] ?? 'active'),
+            'relevance'    => 1.0,
+            'source'       => $source,
+            'source_id'    => $source_id,
+            'key'          => $source . ':' . $id . ':' . $source_id,
+        ]);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -154,22 +192,96 @@ class Zooboxi_Push_Events
             $order->update_meta_data($flag, current_time('mysql'));
             $order->save_meta_data();
 
-            $devices = Zooboxi_Push::devices_for((int) $order->get_customer_id(), (string) $order->get_meta('_zb_guest_id'));
-            $route   = '/orders/' . $order->get_id();
-            foreach ($devices as $device) {
-                $locale = str_starts_with((string) ($device['locale'] ?? 'ar'), 'en') ? 'en' : 'ar';
-                [$title, $body] = $copy[$locale];
-                Zooboxi_Push::send_to_devices(
-                    [$device],
-                    'orders',
-                    $title,
-                    $body,
-                    $route,
-                    ['order_id' => (string) $order->get_id(), 'mrsool_status' => $status]
-                );
-            }
+            self::order_push($order, $copy, 'courier', strtolower($status) . ($courier !== '' ? '_' . substr(md5($courier), 0, 8) : ''), [
+                'mrsool_status' => $status,
+                // The one moment that earns breaking through Focus: someone is
+                // standing at the door. (Downgraded to `active` by iOS on a
+                // build without the Time Sensitive entitlement.)
+                'level'         => $status === 'DROPOFF_ARRIVED' ? 'time-sensitive' : 'active',
+            ]);
         } catch (\Throwable $e) {
             error_log('[Zooboxi push] mrsool notification failed: ' . $e->getMessage());
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       AN EXPRESS ORDER PAST ITS PROMISE
+       ══════════════════════════════════════════════════════════════ */
+
+    /** Minutes an express order promises, and how long past that we stay quiet. */
+    const EXPRESS_PROMISE_MIN = 120;
+    const LATE_GRACE_MIN      = 10;
+
+    /**
+     * «طلبك يتأخّر قليلًا» — said once, by us, before the customer has to ask.
+     *
+     * An express order still open ten minutes past its two-hour promise gets
+     * one transactional push. It collapses onto the order's own thread, so
+     * the next real status replaces it. Runs on the engine's five-minute
+     * heartbeat and only looks at the last day of orders.
+     */
+    public static function sweep_late_orders(int $now = 0): int
+    {
+        if (!class_exists('Zooboxi_Push') || !Zooboxi_Push::is_enabled() || !function_exists('wc_get_orders')) {
+            return 0;
+        }
+        $now = $now > 0 ? $now : time();
+        try {
+            $orders = wc_get_orders([
+                'limit'        => 50,
+                'orderby'      => 'date',
+                'order'        => 'ASC',
+                'status'       => ['processing', 'zb-ready', 'zb-out-for-delivery'],
+                'meta_query'   => [[
+                    'key'   => '_zooboxi_delivery_type',
+                    'value' => 'express',
+                ]],
+                'date_created' => '>' . ($now - DAY_IN_SECONDS),
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[Zooboxi push] late sweep query failed: ' . $e->getMessage());
+            return 0;
+        }
+
+        $pushed = 0;
+        foreach ((array) $orders as $order) {
+            if (!($order instanceof \WC_Order)) {
+                continue;
+            }
+            $created = $order->get_date_created();
+            if ($created === null) {
+                continue;
+            }
+            $due = $created->getTimestamp() + (self::EXPRESS_PROMISE_MIN + self::LATE_GRACE_MIN) * MINUTE_IN_SECONDS;
+            if ($now < $due) {
+                continue;
+            }
+            if ((string) $order->get_meta('_zb_push_late') !== '') {
+                continue;
+            }
+            // Delivered by the courier but not yet marked completed by the
+            // branch is not late — it is paperwork.
+            if (in_array((string) $order->get_meta('_mrsool_status'), ['DELIVERED', 'PARTIALLY_DELIVERED', 'DROPOFF_ARRIVED'], true)) {
+                continue;
+            }
+            $order->update_meta_data('_zb_push_late', current_time('mysql'));
+            $order->save_meta_data();
+
+            $number = $order->get_order_number();
+            self::order_push($order, [
+                'ar' => ['طلبك يتأخّر قليلًا', 'نتابع طلبك ' . $number . ' مع الفرع والمندوب — نعتذر عن التأخير.'],
+                'en' => ['Running a little late', 'We are following up on order ' . $number . ' with the branch and the courier. Sorry for the delay.'],
+            ], 'order_late', 'late', ['status' => 'late']);
+            $pushed++;
+        }
+        return $pushed;
+    }
+
+    /** The engine delivered a row: stamp the clocks that start on delivery. */
+    public static function on_sent(array $row, int $sent): void
+    {
+        if ((string) $row['source'] === 'reorder' && (int) $row['user_id'] > 0 && (string) $row['source_id'] !== '') {
+            update_user_meta((int) $row['user_id'], '_zb_push_reorder_' . (int) $row['source_id'], time());
         }
     }
 
@@ -453,23 +565,29 @@ class Zooboxi_Push_Events
             ],
         ];
 
-        $sent = 0;
-        foreach (Zooboxi_Push::devices_for($uid) as $device) {
-            $locale = str_starts_with((string) ($device['locale'] ?? 'ar'), 'en') ? 'en' : 'ar';
-            [$title, $body] = $copy[$locale];
-            $sent += Zooboxi_Push::send_to_devices(
-                [$device],
-                'reorder',
-                $title,
-                $body,
-                '/family/supply',
-                ['product_id' => (string) $pid]
-            );
+        if (!class_exists('Zooboxi_Push_Engine')) {
+            return 0;
         }
-        if ($sent > 0) {
-            update_user_meta($uid, $flag, time());
-        }
-        return $sent;
+        // Queued, not sent: the gate decides the hour (never at night, never
+        // a second marketing push the same day), and the seven-day clock on
+        // this product starts only when it actually reaches the phone
+        // (see on_sent). Buying it cancels the row (see the engine's exits).
+        $result = Zooboxi_Push_Engine::submit([
+            'user_id'      => $uid,
+            'topic'        => 'reorder',
+            'tier'         => Zooboxi_Push_Gate::TIER_MARKETING,
+            'copy'         => $copy,
+            'route'        => '/family/supply',
+            'data'         => ['product_id' => (string) $pid],
+            'collapse_key' => 'supply-' . $pid,
+            'thread_id'    => 'family',
+            'level'        => 'active',
+            'relevance'    => 0.8,
+            'source'       => 'reorder',
+            'source_id'    => (string) $pid,
+            'expires_at'   => time() + 2 * DAY_IN_SECONDS,
+        ]);
+        return $result['status'] === Zooboxi_Push_Engine::S_PENDING && $result['reason'] === '' ? 1 : 0;
     }
 
     /** Whether this customer's most recent order rode the two-hour shelf. */

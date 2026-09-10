@@ -147,7 +147,10 @@ class Zooboxi_Plugin
         // through it, and switching the app API off must not switch off the
         // notifications of the apps already installed.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-gate.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-engine.php';
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/push/class-zooboxi-push-events.php';
+        Zooboxi_Push_Engine::boot();
         Zooboxi_Push_Events::boot();
 
         // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:
@@ -767,6 +770,14 @@ class Zooboxi_Plugin
             $order->update_meta_data('_zooboxi_lat', $session->get('zooboxi_customer_lat', ''));
             $order->update_meta_data('_zooboxi_lng', $session->get('zooboxi_customer_lng', ''));
             $order->save();
+        }
+
+        // Route the order to exactly ONE fulfiler. RUH003 («مستودع الشحن — الرياض»)
+        // is run by ShipGo/Stapo, whose own plugin pushes those orders; sapconnect
+        // must not also receive them or the order gets picked twice.
+        if (Zooboxi_Stock_Manager::fulfilment_source($order) === 'shipgo') {
+            $order->add_order_note(__('التنفيذ عبر ShipGo (مستودع الشحن) — لم يُرسل إلى sapconnect.', 'zooboxi'));
+            return;
         }
 
         // Push order to sapconnect

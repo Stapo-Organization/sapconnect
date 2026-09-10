@@ -388,6 +388,9 @@ class Zooboxi_Intelligence
         // SILENTLY (forward_event returns false), so this list and the Laravel
         // validator must be extended in the same change, every time.
         'supply_action', 'subscription', 'referral_share', 'care_action', 'weight_logged',
+        // Notifications: a tapped push (forwarded by Zooboxi_Push_Engine) and
+        // the app coming to the foreground (feeds the per-user send hour).
+        'push_open', 'app_open',
     ];
 
     /**

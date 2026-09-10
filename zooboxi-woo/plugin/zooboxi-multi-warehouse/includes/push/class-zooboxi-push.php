@@ -293,12 +293,65 @@ class Zooboxi_Push
         string $title,
         string $body,
         string $route = '',
-        array $data = []
+        array $data = [],
+        array $opts = []
     ): bool {
+        self::$last_message_name = '';
+        self::$last_token_dead   = false;
+        self::$last_error_code   = '';
+
         $project = self::project_id();
         $access  = self::access_token();
         if ($project === '' || $access === '') {
+            self::$last_error_code = 'no_credentials';
             return false;
+        }
+
+        // Delivery options, all optional — see Zooboxi_Push_Engine::submit().
+        $collapse  = substr((string) ($opts['collapse_key'] ?? ''), 0, 64);
+        $ttl       = max(0, (int) ($opts['ttl_s'] ?? 0));
+        $level     = (string) ($opts['level'] ?? 'active');
+        if (!in_array($level, ['passive', 'active', 'time-sensitive'], true)) {
+            $level = 'active';
+        }
+        $relevance = max(0.0, min(1.0, (float) ($opts['relevance'] ?? 0.5)));
+        $thread    = substr((string) ($opts['thread_id'] ?? ''), 0, 64);
+
+        $aps = [
+            // The customer reads Arabic; the alert must too.
+            'alert'              => ['title' => $title, 'body' => $body],
+            'interruption-level' => $level,
+            'relevance-score'    => $relevance,
+        ];
+        // A passive notification does not light the screen or make a sound —
+        // right for "a bundle you might like", wrong for "your courier is here".
+        if ($level !== 'passive') {
+            $aps['sound'] = 'default';
+        }
+        if ($thread !== '') {
+            $aps['thread-id'] = $thread;
+        }
+
+        $apns_headers = [
+            // Marketing rides the power-aware priority; anything the customer
+            // is waiting for goes out immediately.
+            'apns-priority' => $level === 'passive' ? '5' : '10',
+            'apns-push-type' => 'alert',
+        ];
+        $android = [
+            'priority'     => $level === 'passive' ? 'normal' : 'high',
+            'notification' => $level === 'passive' ? [] : ['sound' => 'default'],
+        ];
+        if ($collapse !== '') {
+            // A newer status replaces the older one on the device instead of
+            // stacking beneath it.
+            $apns_headers['apns-collapse-id'] = $collapse;
+            $android['collapse_key'] = $collapse;
+        }
+        if ($ttl > 0) {
+            // «مندوبك عند بابك» delivered three hours late is a lie.
+            $apns_headers['apns-expiration'] = (string) (time() + $ttl);
+            $android['ttl'] = $ttl . 's';
         }
 
         $payload = [
@@ -307,19 +360,10 @@ class Zooboxi_Push
                 'notification' => ['title' => $title, 'body' => $body],
                 'data'         => array_map('strval', $data + ['route' => $route]),
                 'apns'         => [
-                    'headers' => ['apns-priority' => '10'],
-                    'payload' => [
-                        'aps' => [
-                            'sound' => 'default',
-                            // The customer reads Arabic; the alert must too.
-                            'alert' => ['title' => $title, 'body' => $body],
-                        ],
-                    ],
+                    'headers' => $apns_headers,
+                    'payload' => ['aps' => $aps],
                 ],
-                'android' => [
-                    'priority'     => 'high',
-                    'notification' => ['sound' => 'default'],
-                ],
+                'android' => array_filter($android, static fn ($v) => $v !== []),
             ],
         ];
 
@@ -336,22 +380,48 @@ class Zooboxi_Push
         );
 
         if (is_wp_error($response)) {
+            self::$last_error_code = 'transport';
             error_log('[Zooboxi push] send failed: ' . $response->get_error_message());
             return false;
         }
 
         $code = (int) wp_remote_retrieve_response_code($response);
+        $raw  = (string) wp_remote_retrieve_body($response);
         if ($code >= 200 && $code < 300) {
+            self::$last_message_name = (string) (json_decode($raw, true)['name'] ?? '');
             return true;
         }
 
-        $raw    = (string) wp_remote_retrieve_body($response);
         $status = (string) (json_decode($raw, true)['error']['status'] ?? '');
-        if ($code === 404 || $status === 'UNREGISTERED' || $status === 'INVALID_ARGUMENT') {
+        self::$last_error_code = $status !== '' ? $status : ('http_' . $code);
+        if ($code === 404 || $status === 'UNREGISTERED' || $status === 'INVALID_ARGUMENT' || $status === 'SENDER_ID_MISMATCH') {
+            self::$last_token_dead = true;
             self::unregister($token);
         }
         error_log('[Zooboxi push] FCM ' . $code . ': ' . substr($raw, 0, 300));
         return false;
+    }
+
+    /** @var string FCM's name for the last accepted message ("projects/…/messages/…"). */
+    private static $last_message_name = '';
+    /** @var bool Whether the last failure was a token FCM declared dead. */
+    private static $last_token_dead = false;
+    /** @var string The last failure's FCM status or an internal code. */
+    private static $last_error_code = '';
+
+    public static function last_message_name(): string
+    {
+        return self::$last_message_name;
+    }
+
+    public static function last_token_dead(): bool
+    {
+        return self::$last_token_dead;
+    }
+
+    public static function last_error_code(): string
+    {
+        return self::$last_error_code;
     }
 
     /* ══════════════════════════════════════════════════════════════
