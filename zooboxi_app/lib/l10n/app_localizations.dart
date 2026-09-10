@@ -5251,6 +5251,12 @@ abstract class L {
   /// **'لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.'**
   String get checkoutAddressNoneInZone;
 
+  /// No description provided for @liveTrackLastSeen.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{آخر موقع للمندوب قبل دقيقة} =2{آخر موقع للمندوب قبل دقيقتين} few{آخر موقع للمندوب قبل {count} دقائق} other{آخر موقع للمندوب قبل {count} دقيقة}}'**
+  String liveTrackLastSeen(num count);
+
   /// No description provided for @reorderDueShort.
   ///
   /// In ar, this message translates to:

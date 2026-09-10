@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:clock/clock.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -118,7 +119,7 @@ class _Headline extends StatelessWidget {
           ? null
           : l.liveTrackDeliveredAt(
               Fmt.clock(tracking.deliveredAt!, Localizations.localeOf(context).languageCode)),
-      _ => _distanceLine(context, tracking),
+      _ => _distanceLine(context, tracking) ?? _lastSeenLine(context, tracking),
     };
 
     return Container(
@@ -1212,6 +1213,32 @@ String _stepLabel(BuildContext context, LiveStep step) {
     _ => step.label,
   };
 }
+
+/// «آخر موقع للمندوب قبل ٧ دقائق».
+///
+/// Mrsool stamps the courier's position at the last status event, not from a
+/// live GPS feed, so for most of the ride the dot on the map is where he WAS.
+/// Drawing it without saying so is what makes the screen look broken: the
+/// customer watches a marker that never moves and concludes the tracking is
+/// dead. This is the sentence that turns a frozen dot into an honest one.
+///
+/// Only while he is actually riding, and only once the fix is old enough that
+/// its stillness is worth explaining.
+String? _lastSeenLine(BuildContext context, LiveTracking t) {
+  if (t.phase != LivePhase.inTransit || !t.courier.hasPosition) return null;
+
+  final seen = t.courierSeenAt;
+  if (seen == null) return null;
+
+  final minutes = clock.now().difference(seen).inMinutes;
+  if (minutes < _fixStaleMinutes) return null;
+
+  return L.of(context).liveTrackLastSeen(minutes);
+}
+
+/// Past this, a position is a place he has been rather than a place he is.
+/// Matches the store's own freshness window.
+const int _fixStaleMinutes = 5;
 
 String? _distanceLine(BuildContext context, LiveTracking t) {
   final km = t.distanceKm;

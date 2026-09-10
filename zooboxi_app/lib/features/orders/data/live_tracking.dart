@@ -111,6 +111,7 @@ class LiveTracking {
     this.requestedAt,
     this.deliveredAt,
     this.updatedAt,
+    this.courierSeenAt,
   });
 
   final LivePhase phase;
@@ -155,6 +156,12 @@ class LiveTracking {
   final DateTime? deliveredAt;
   final DateTime? updatedAt;
 
+  /// When the courier's POSITION was recorded — which is not when the store
+  /// last answered. Mrsool moves the dot on status events, not on a GPS feed,
+  /// so between «استلم طلبك» and «وصل عندك» it can sit unchanged for half an
+  /// hour. Null from a store too old to say, where the app claims nothing.
+  final DateTime? courierSeenAt;
+
   /// Whether the screen should keep polling.
   bool get isLive => !phase.isTerminal;
 
@@ -188,6 +195,7 @@ class LiveTracking {
         requestedAt: asDate(json['requested_at']),
         deliveredAt: asDate(json['delivered_at']),
         updatedAt: asDate(json['updated_at']),
+        courierSeenAt: asDate(json['courier_seen_at']),
       );
 }
 

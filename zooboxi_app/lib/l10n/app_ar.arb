@@ -1755,6 +1755,10 @@
   "checkoutAddressOutOfZoneTitle": "عناوين لا يصلها هذا الفرع",
   "checkoutAddressZoneHint": "طلبك السريع من فرع واحد، فلا يصل إلا للعناوين داخل نطاقه.",
   "checkoutAddressNoneInZone": "لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.",
+  "liveTrackLastSeen": "{count, plural, =1{آخر موقع للمندوب قبل دقيقة} =2{آخر موقع للمندوب قبل دقيقتين} few{آخر موقع للمندوب قبل {count} دقائق} other{آخر موقع للمندوب قبل {count} دقيقة}}",
+  "@liveTrackLastSeen": {
+    "placeholders": { "count": { "type": "num", "format": "decimalPattern" } }
+  },
   "@shelfBasketCount": {
     "placeholders": { "count": { "type": "num", "format": "decimalPattern" } }
   },

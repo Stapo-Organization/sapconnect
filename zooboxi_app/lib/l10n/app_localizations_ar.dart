@@ -3338,6 +3338,23 @@ class LAr extends L {
       'لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.';
 
   @override
+  String liveTrackLastSeen(num count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'آخر موقع للمندوب قبل $countString دقيقة',
+      few: 'آخر موقع للمندوب قبل $countString دقائق',
+      two: 'آخر موقع للمندوب قبل دقيقتين',
+      one: 'آخر موقع للمندوب قبل دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get reorderDueShort => 'حان وقتها';
 
   @override

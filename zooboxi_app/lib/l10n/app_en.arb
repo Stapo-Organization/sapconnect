@@ -1490,6 +1490,7 @@
   "checkoutAddressOutOfZoneTitle": "Addresses this branch cannot reach",
   "checkoutAddressZoneHint": "An express order comes from one branch, so it only reaches addresses inside its area.",
   "checkoutAddressNoneInZone": "No address falls inside this branch's area. Add one nearby, or move your basket to Zooboxi.",
+  "liveTrackLastSeen": "{count, plural, =1{Courier last seen 1 minute ago} other{Courier last seen {count} minutes ago}}",
   "reorderDueShort": "Due now",
   "@searchBoughtDays": {
     "placeholders": { "count": { "type": "int" } }

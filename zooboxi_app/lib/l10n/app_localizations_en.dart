@@ -3276,6 +3276,21 @@ class LEn extends L {
       'No address falls inside this branch\'s area. Add one nearby, or move your basket to Zooboxi.';
 
   @override
+  String liveTrackLastSeen(num count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Courier last seen $countString minutes ago',
+      one: 'Courier last seen 1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get reorderDueShort => 'Due now';
 
   @override

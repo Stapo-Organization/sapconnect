@@ -30,6 +30,7 @@ LiveTracking _tracking({
   List<String> proof = const [],
   bool active = true,
   String? assignmentDeadline,
+  String? courierSeenAt,
 }) =>
     LiveTracking.fromJson({
       'phase': phase,
@@ -55,6 +56,7 @@ LiveTracking _tracking({
       'tracking_url': 'https://mrsool.co/t/abc',
       'requested_at': '2026-09-08T18:41:52+03:00',
       'updated_at': '2026-09-08T18:55:00+03:00',
+      'courier_seen_at': courierSeenAt,
     });
 
 LiveTracking _trackingWithStep() => LiveTracking.fromJson({
@@ -378,6 +380,53 @@ void main() {
       expect(find.text('تم تعيين المندوب'), findsOneWidget);
       expect(find.text('استلم طلبك من الفرع'), findsOneWidget);
       expect(find.text('وصل إليك'), findsOneWidget);
+    });
+  });
+
+  group('a courier whose dot has stopped moving', () {
+    // Mrsool stamps the position at the last status EVENT, not from a live GPS
+    // feed, so for most of the ride the dot is where he WAS. Twenty minutes of
+    // a still marker with nothing said is what reads as broken tracking.
+    Future<void> pumpSeenAt(WidgetTester tester, DateTime seen, {double? km}) =>
+        withClock(Clock.fixed(DateTime(2026, 9, 10, 19, 30)), () async {
+          await tester.pumpWidget(
+            _host(
+              LiveTrackingCard(
+                tracking: _tracking(
+                  distanceKm: km,
+                  courierSeenAt: seen.toIso8601String(),
+                ),
+              ),
+            ),
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+        });
+
+    testWidgets('it says when he was last seen instead of saying nothing',
+        (tester) async {
+      await pumpSeenAt(tester, DateTime(2026, 9, 10, 19, 10));
+      expect(find.textContaining('آخر موقع للمندوب'), findsOneWidget);
+    });
+
+    testWidgets('a fresh fix says nothing of the sort', (tester) async {
+      await pumpSeenAt(tester, DateTime(2026, 9, 10, 19, 29), km: 1.2);
+      expect(find.textContaining('آخر موقع للمندوب'), findsNothing);
+    });
+
+    testWidgets('and the distance still wins when we have one', (tester) async {
+      // A fix old enough to explain, but a distance the store still vouches
+      // for: the measurement is the more useful of the two sentences.
+      await pumpSeenAt(tester, DateTime(2026, 9, 10, 19, 10), km: 1.2);
+      expect(find.textContaining('آخر موقع للمندوب'), findsNothing);
+    });
+
+    test('a store too old to say is never guessed at', () {
+      final t = LiveTracking.maybe({
+        'phase': 'in_transit',
+        'status': 'DELIVERING',
+        'courier': {'lat': 24.7, 'lng': 46.6},
+      });
+      expect(t!.courierSeenAt, isNull);
     });
   });
 }
