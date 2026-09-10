@@ -43,7 +43,12 @@ class Zooboxi_Push_Engine
     /** A dry-run campaign: written, never sent, never counted. */
     const S_DRY       = 'dry';
 
-    const CRON_DAILY  = 'zooboxi_push_daily';
+    /**
+     * The cron hook. Deliberately NOT 'zooboxi_push_daily' — that is the
+     * action the modules listen on, fired from inside daily(); naming the
+     * cron the same way made daily() call itself until the box ran dry.
+     */
+    const CRON_DAILY  = 'zooboxi_push_daily_cron';
 
     /** How many rows one tick may deliver, and how long it may run. */
     const BATCH  = 300;
