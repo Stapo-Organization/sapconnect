@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:clock/clock.dart';
 
 import '../../../core/network/envelope.dart';
 import 'order_models.dart';
@@ -88,6 +89,10 @@ class LiveStep {
       );
 }
 
+/// Past this many minutes a courier fix is a place he has been, not a place he
+/// is. Matches the store's own freshness window.
+const int courierFixStaleMinutes = 5;
+
 @immutable
 class LiveTracking {
   const LiveTracking({
@@ -166,7 +171,33 @@ class LiveTracking {
   bool get isLive => !phase.isTerminal;
 
   /// The map is only worth drawing once there is something moving on it.
+  /// A courier on the job and a door to take it to.
+  ///
+  /// Still the *recorded* position, not a believed one: a stale fix means we
+  /// stop drawing his dot (see [courierIsWhereWeSay]), not that we stop drawing
+  /// the journey. Before a courier exists at all there is nothing to map, and
+  /// the searching panel is the better answer.
   bool get hasMap => courier.hasPosition && dropoff != null;
+
+  /// How old the courier's position is, or null when the store never said.
+  Duration? get courierFixAge =>
+      courierSeenAt == null ? null : clock.now().difference(courierSeenAt!);
+
+  /// Whether the courier's dot may be drawn as where he **is**.
+  ///
+  /// Mrsool records the position at the last STATUS EVENT, not from a live GPS
+  /// feed, so between «استلم طلبك» and «وصل عندك» the same point comes back for
+  /// half an hour while he crosses the city. Drawing it anyway put a courier
+  /// marker on the branch he had long left — the loudest possible way to say
+  /// something untrue, because a picture outranks any caption beside it.
+  ///
+  /// A store too old to send `courier_seen_at` says nothing, and we go on
+  /// believing the point: that is exactly the behaviour those builds had.
+  bool get courierIsWhereWeSay {
+    if (!courier.hasPosition) return false;
+    final age = courierFixAge;
+    return age == null || age.inMinutes < courierFixStaleMinutes;
+  }
 
   static LiveTracking? maybe(dynamic value) {
     final map = asMap(value);

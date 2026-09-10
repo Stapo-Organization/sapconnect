@@ -423,11 +423,20 @@ class _CourierMapState extends State<_CourierMap> {
 
 /// Every point worth framing: the courier, the door, and the branch when we
 /// know it.
+/// What the camera has to keep in frame.
+///
+/// A stale courier point is deliberately NOT one of them: framing the map
+/// around a place he left half an hour ago drags the view back to the branch
+/// and squeezes the part of the journey that is still ahead.
 List<LatLng> mapPoints(LiveTracking t) => [
-      if (t.courier.hasPosition) LatLng(t.courier.lat!, t.courier.lng!),
+      if (t.courierIsWhereWeSay) LatLng(t.courier.lat!, t.courier.lng!),
       if (t.dropoff != null) LatLng(t.dropoff!.lat, t.dropoff!.lng),
       if (t.pickup != null) LatLng(t.pickup!.lat, t.pickup!.lng),
     ];
+
+/// The courier's dot, keyed so a test can assert on it: it is the one mark on
+/// this screen that must never be drawn from a position we no longer believe.
+const Key courierDotKey = Key('zb-courier-dot');
 
 /// The tiles, the leg being ridden, and the three markers — shared by the
 /// preview and the full-screen map so they can never drift apart.
@@ -436,7 +445,11 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
   final tone = livePhaseColor(context, t.phase);
   final dark = Theme.of(context).brightness == Brightness.dark;
 
-  final courier = t.courier.hasPosition ? LatLng(t.courier.lat!, t.courier.lng!) : null;
+  // Only a position we still believe becomes a dot. For most of a ride Mrsool
+  // has not moved the courier since he confirmed pickup, and drawing him there
+  // parks a marker on the branch while he is halfway across Riyadh — which is
+  // what «ليش باين المندوب عند المعرض» was looking at.
+  final courier = t.courierIsWhereWeSay ? LatLng(t.courier.lat!, t.courier.lng!) : null;
   final dropoff = t.dropoff == null ? null : LatLng(t.dropoff!.lat, t.dropoff!.lng);
   final pickup = t.pickup == null ? null : LatLng(t.pickup!.lat, t.pickup!.lng);
 
@@ -444,6 +457,11 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
   // for the branch, and a line to the customer's door would be a lie drawn to
   // scale.
   final target = t.headingTo == 'pickup' ? pickup : dropoff;
+
+  // With no dot to draw from, the line runs the whole journey instead: branch
+  // to door is what is actually true — he is somewhere along it.
+  final from = courier ?? (t.headingTo == 'dropoff' ? pickup : null);
+  final to = courier != null ? target : dropoff;
 
   return [
     TileLayer(
@@ -453,11 +471,11 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
       userAgentPackageName: 'com.zooboxi.app',
       maxNativeZoom: 18,
     ),
-    if (courier != null && target != null)
+    if (from != null && to != null)
       PolylineLayer(
         polylines: [
           Polyline(
-            points: [courier, target],
+            points: [from, to],
             strokeWidth: 3,
             color: tone.withValues(alpha: 0.55),
             pattern: const StrokePattern.dotted(),
@@ -490,7 +508,8 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
           ),
       ],
     ),
-    if (courier != null) _CourierMarkerLayer(to: courier, tone: tone),
+    if (courier != null)
+      _CourierMarkerLayer(key: courierDotKey, to: courier, tone: tone),
     RichAttributionWidget(
       alignment: AttributionAlignment.bottomLeft,
       showFlutterMapAttribution: false,
@@ -514,7 +533,7 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
 /// tweening from a value read during build would restart the glide on every
 /// unrelated rebuild.
 class _CourierMarkerLayer extends StatefulWidget {
-  const _CourierMarkerLayer({required this.to, required this.tone});
+  const _CourierMarkerLayer({super.key, required this.to, required this.tone});
 
   final LatLng to;
   final Color tone;
@@ -1231,14 +1250,10 @@ String? _lastSeenLine(BuildContext context, LiveTracking t) {
   if (seen == null) return null;
 
   final minutes = clock.now().difference(seen).inMinutes;
-  if (minutes < _fixStaleMinutes) return null;
+  if (minutes < courierFixStaleMinutes) return null;
 
   return L.of(context).liveTrackLastSeen(minutes);
 }
-
-/// Past this, a position is a place he has been rather than a place he is.
-/// Matches the store's own freshness window.
-const int _fixStaleMinutes = 5;
 
 String? _distanceLine(BuildContext context, LiveTracking t) {
   final km = t.distanceKm;

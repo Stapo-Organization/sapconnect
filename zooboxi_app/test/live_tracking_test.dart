@@ -420,6 +420,40 @@ void main() {
       expect(find.textContaining('آخر موقع للمندوب'), findsNothing);
     });
 
+    testWidgets('and the dot is not drawn where he no longer is', (tester) async {
+      // The complaint that started this: a courier marker parked on the branch
+      // half an hour after he left it. No fix we believe, no dot.
+      await pumpSeenAt(tester, DateTime(2026, 9, 10, 19, 10));
+      expect(find.byKey(courierDotKey), findsNothing);
+    });
+
+    testWidgets('a fresh fix still gets its dot', (tester) async {
+      await pumpSeenAt(tester, DateTime(2026, 9, 10, 19, 29), km: 1.2);
+      expect(find.byKey(courierDotKey), findsOneWidget);
+    });
+
+    test('a stale position is not a position, and is not framed as one', () {
+      withClock(Clock.fixed(DateTime(2026, 9, 10, 19, 30)), () {
+        final stale = _tracking(
+          courierSeenAt: DateTime(2026, 9, 10, 19, 10).toIso8601String(),
+        );
+        expect(stale.courierIsWhereWeSay, isFalse);
+        expect(mapPoints(stale).length, 2, reason: 'branch and door, no phantom');
+
+        final fresh = _tracking(
+          courierSeenAt: DateTime(2026, 9, 10, 19, 29).toIso8601String(),
+        );
+        expect(fresh.courierIsWhereWeSay, isTrue);
+        expect(mapPoints(fresh).length, 3);
+      });
+    });
+
+    test('a store too old to say is believed, exactly as before', () {
+      withClock(Clock.fixed(DateTime(2026, 9, 10, 19, 30)), () {
+        expect(_tracking().courierIsWhereWeSay, isTrue);
+      });
+    });
+
     test('a store too old to say is never guessed at', () {
       final t = LiveTracking.maybe({
         'phase': 'in_transit',
