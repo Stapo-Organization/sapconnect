@@ -43,8 +43,8 @@ class OrdersRepository {
 
   /// The order the customer is waiting on right now, or null when there is
   /// none. Express only — see the store endpoint for why.
-  Future<ActiveOrder?> activeOrder() async =>
-      ActiveOrder.maybe(await _api.get('/orders/active'));
+  Future<List<ActiveOrder>> activeOrders() async =>
+      ActiveOrder.listFrom(await _api.get('/orders/active'));
 
   /// Hands back the hosted payment page URL. The order key gates it, so a
   /// guest who placed the order can pay without an account.
@@ -168,9 +168,10 @@ final liveTrackingProvider = StreamProvider.autoDispose.family<LiveTracking?, in
 /// hard against it: ten seconds while a courier is riding, twenty while the
 /// branch is preparing, and a lazy two minutes when there is nothing to wait
 /// for at all — which is the common case, and must cost almost nothing.
-final activeOrderProvider = StreamProvider.autoDispose<ActiveOrder?>((ref) async* {
+final activeOrderProvider =
+    StreamProvider.autoDispose<List<ActiveOrder>>((ref) async* {
   if (!ref.watch(isAuthenticatedProvider)) {
-    yield null;
+    yield const [];
     return;
   }
 
@@ -179,7 +180,7 @@ final activeOrderProvider = StreamProvider.autoDispose<ActiveOrder?>((ref) async
   var alive = true;
   ref.onDispose(() => alive = false);
 
-  ActiveOrder? last;
+  List<ActiveOrder>? last;
 
   while (alive) {
     // Never poll a phone in a pocket. iOS suspends the isolate on its own;
@@ -187,15 +188,15 @@ final activeOrderProvider = StreamProvider.autoDispose<ActiveOrder?>((ref) async
     await _awaitForeground(ref);
     if (!alive) return;
 
-    ActiveOrder? active;
+    List<ActiveOrder>? active;
     var failed = false;
 
     try {
-      active = await repo.activeOrder();
+      active = await repo.activeOrders();
       last = active;
     } on ApiException catch (e) {
       if (e.type == ApiErrorType.unauthorized || e.type == ApiErrorType.forbidden) {
-        yield null;
+        yield const [];
         return;
       }
       active = last;
@@ -206,17 +207,32 @@ final activeOrderProvider = StreamProvider.autoDispose<ActiveOrder?>((ref) async
     }
 
     if (!alive) return;
-    yield active;
+    yield active ?? const [];
 
-    await Future<void>.delayed(switch ((failed, active?.tracking?.phase)) {
-      (true, _) => const Duration(seconds: 45),
-      (_, LivePhase.inTransit) => const Duration(seconds: 10),
-      (_, LivePhase.assigned) || (_, LivePhase.searching) => const Duration(seconds: 15),
-      _ when active == null => const Duration(minutes: 2),
+    // Paced by the order that is moving fastest: a courier at the door sets
+    // the cadence even when a second box is still being packed behind it.
+    final phases = {for (final o in active ?? const <ActiveOrder>[]) o.tracking?.phase};
+    await Future<void>.delayed(switch (failed) {
+      true => const Duration(seconds: 45),
+      false when phases.contains(LivePhase.inTransit) => const Duration(seconds: 10),
+      false when phases.contains(LivePhase.assigned) ||
+              phases.contains(LivePhase.searching) =>
+        const Duration(seconds: 15),
+      false when (active ?? const []).isEmpty => const Duration(minutes: 2),
       _ => const Duration(seconds: 20),
     });
   }
 });
+
+/// The one order that outranks the rest — a courier at the door before a box
+/// still being packed.
+///
+/// Everything that can only show ONE order reads this: the account card, the
+/// orders screen's banner, the lock-screen activity. The bar itself takes the
+/// whole list.
+final topActiveOrderProvider = Provider.autoDispose<ActiveOrder?>(
+  (ref) => ref.watch(activeOrderProvider).value?.firstOrNull,
+);
 
 /// Blocks until the app is in the foreground. Returns at once when it already
 /// is, which is the case on every tick a customer is actually looking.

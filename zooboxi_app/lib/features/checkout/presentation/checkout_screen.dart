@@ -23,17 +23,19 @@ import '../../account/presentation/address_editor_screen.dart';
 import '../../cart/data/cart_controller.dart';
 import '../data/checkout_models.dart';
 import '../data/checkout_repository.dart';
-import 'widgets/address_step.dart';
-import 'widgets/checkout_steps.dart';
+import 'widgets/address_picker.dart';
 import 'widgets/payment_step.dart';
 import 'widgets/review_step.dart';
 
-/// Checkout: address → review → payment, on one screen.
+/// Checkout, on one page.
 ///
-/// One screen rather than three routes because the three answers are one
-/// decision — the address changes the shipments, the shipments change the
-/// total, the total is what is being paid. Splitting them across routes makes
-/// each re-price look like a new page instead of a consequence.
+/// It was three steps behind one header — address, review, payment — and they
+/// are not three decisions. The address changes the shipments, the shipments
+/// change the total, the total is what is being paid; walking a customer
+/// through them one at a time made each re-price look like a new page instead
+/// of a consequence, and put two taps between someone and an order they had
+/// already decided to place. Now it reads top to bottom and the address is a
+/// card that opens a picker.
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
@@ -41,10 +43,38 @@ class CheckoutScreen extends ConsumerStatefulWidget {
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
+/// Which address checkout should open on.
+///
+/// Two rules, and the order matters. **Never** an address this basket cannot
+/// be sent to: the app choosing one for them is exactly how an إكسبريس order
+/// ends up outside its branch's zone without anyone deciding to send it there,
+/// and the quantities were quoted against that branch's shelf. Then, among the
+/// ones that work, the address the whole shop has been quoting — the header
+/// said «يوصلك في العمل», the stock and the ETA were computed for it, so
+/// checkout opening on «المنزل» would be the app changing its mind at the till.
+///
+/// Null means nothing here can take this basket, which is a real answer: the
+/// page says so and the button refuses rather than picking something wrong.
+@visibleForTesting
+String? preselectedAddressId({
+  required List<Address> addresses,
+  required Address? defaultAddress,
+  required String? activeId,
+}) {
+  final servable = [for (final address in addresses) if (address.serves) address];
+  if (servable.isEmpty) return null;
+
+  final quoted =
+      activeId == null ? null : servable.where((a) => a.id == activeId).firstOrNull;
+  final fallback =
+      defaultAddress != null && defaultAddress.serves ? defaultAddress : servable.first;
+
+  return (quoted ?? fallback).id;
+}
+
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _notes = TextEditingController();
 
-  CheckoutStep _step = CheckoutStep.address;
   String? _addressId;
   Address? _draftAddress;
 
@@ -91,16 +121,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l.checkoutTitle),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: CheckoutStepsHeader(
-            current: _step,
-            onTapStep: _placing ? null : (step) => setState(() => _step = step),
-          ),
-        ),
-      ),
+      appBar: AppBar(title: Text(l.checkoutTitle)),
       body: review.hasValue
           ? _body(review.requireValue)
           : review.hasError
@@ -113,39 +134,56 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  // ── Steps ────────────────────────────────────────────────────────────
+  // ── The page ─────────────────────────────────────────────────────────
 
   Widget _body(CheckoutReview review) {
     _syncSelection(review);
-    final address = _resolvedAddress(review);
 
-    return switch (_step) {
-      CheckoutStep.address => CheckoutAddressStep(
-          addresses: review.addresses,
-          selectedId: _addressId,
-          draft: _draftAddress,
-          onSelect: (value) => setState(() {
-            _addressId = value.id;
-            _draftAddress = null;
-            _draftFromPending = false;
-          }),
-          onSelectDraft: () => setState(() => _addressId = null),
-          onNew: () => _openEditor(),
-          onEdit: (value) => _openEditor(initial: value),
-        ),
-      CheckoutStep.review => CheckoutReviewStep(
-          review: review,
-          address: address,
-          changedNotice: _changedNotice,
-          onChangeAddress: () => setState(() => _step = CheckoutStep.address),
-        ),
-      CheckoutStep.payment => CheckoutPaymentStep(
-          methods: review.paymentMethods,
-          selectedId: _paymentId,
-          onSelect: (method) => setState(() => _paymentId = method.id),
-          notes: _notes,
-        ),
-    };
+    return CheckoutBody(
+      review: review,
+      address: _resolvedAddress(review),
+      changedNotice: _changedNotice,
+      onChangeAddress: () => unawaited(_pickAddress(review)),
+      payment: CheckoutPaymentSection(
+        methods: review.paymentMethods,
+        selectedId: _paymentId,
+        onSelect: (method) => setState(() => _paymentId = method.id),
+        notes: _notes,
+      ),
+    );
+  }
+
+  /// The address detour: a sheet over the page rather than a step behind it.
+  Future<void> _pickAddress(CheckoutReview review) async {
+    Haptics.selection();
+    final result = await showAddressPicker(
+      context,
+      addresses: review.addresses,
+      draft: _draftAddress,
+      selectedId: _addressId,
+      draftSelected: _draftAddress != null && _addressId == null,
+    );
+    if (result == null || !mounted) return;
+
+    if (result.isNew) {
+      await _openEditor();
+      return;
+    }
+
+    final chosen = result.address!;
+    setState(() {
+      if (chosen.isSaved) {
+        _addressId = chosen.id;
+        _draftAddress = null;
+        _draftFromPending = false;
+      } else {
+        _addressId = null;
+      }
+    });
+    // The basket is re-priced at the destination, so a new address means new
+    // shipments and a new total — read them before the customer pays for the
+    // old ones.
+    ref.invalidate(checkoutReviewProvider);
   }
 
   /// Keeps the selection valid against whatever the server just sent — a
@@ -154,14 +192,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (_draftAddress == null &&
         (_addressId == null ||
             !review.addresses.any((a) => a.id == _addressId))) {
-      // The address the whole shop has been quoting — the header said «يوصلك
-      // في العمل», the stock and the ETA were computed for it, so checkout
-      // opening on «المنزل» would be the app changing its mind at the till.
-      final active = ref.read(locationProvider).location.addressId;
-      final quoted = active == null
-          ? null
-          : review.addresses.where((a) => a.id == active).firstOrNull;
-      _addressId = (quoted ?? review.defaultAddress)?.id;
+      _addressId = preselectedAddressId(
+        addresses: review.addresses,
+        defaultAddress: review.defaultAddress,
+        activeId: ref.read(locationProvider).location.addressId,
+      );
     }
     if (_paymentId == null ||
         !review.paymentMethods.any((m) => m.id == _paymentId)) {
@@ -234,17 +269,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         .where((m) => m.id == _paymentId)
         .firstOrNull;
 
-    final ready = switch (_step) {
-      CheckoutStep.address => _addressId != null || _draftAddress != null,
-      CheckoutStep.review => true,
-      CheckoutStep.payment => method != null,
-    };
+    final address = _resolvedAddress(review);
+    final blocked = address != null && !address.serves;
+    final ready = address != null && !blocked && method != null;
 
-    final label = switch (_step) {
-      CheckoutStep.address || CheckoutStep.review => l.actionContinue,
-      CheckoutStep.payment =>
-        method?.isOnline == true ? l.checkoutPayNow : l.checkoutPlaceOrder,
-    };
+    final label = method?.isOnline == true
+        ? l.checkoutPayNow
+        : l.checkoutPlaceOrder;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -278,7 +309,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(label),
-                      if (_step == CheckoutStep.payment) ...[
+                      ...[
                         Gap.w8,
                         Container(
                           width: 1,
@@ -298,17 +329,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   void _advance() {
     Haptics.light();
-    switch (_step) {
-      case CheckoutStep.address:
-        setState(() => _step = CheckoutStep.review);
-      case CheckoutStep.review:
-        setState(() {
-          _changedNotice = null;
-          _step = CheckoutStep.payment;
-        });
-      case CheckoutStep.payment:
-        unawaited(_place());
-    }
+    unawaited(_place());
   }
 
   // ── Placing the order ────────────────────────────────────────────────
@@ -374,10 +395,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ref.read(cartControllerProvider.notifier).applyServerCart(fresh);
         }
         ref.invalidate(checkoutReviewProvider);
-        setState(() {
-          _changedNotice = message;
-          _step = CheckoutStep.review;
-        });
+        // One page, so there is nowhere to send them back to — the banner
+        // rides at the top of what they are already looking at.
+        setState(() => _changedNotice = message);
         AppToast.info(context, l.checkoutCartChangedTitle);
 
       case CheckoutErrors.cartEmpty:
@@ -386,13 +406,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         context.pop();
 
       case CheckoutErrors.gatewayUnavailable:
+        // The gateway went away between the page loading and the tap. Re-read
+        // the methods so the row that no longer exists stops being offered.
         ref.invalidate(checkoutReviewProvider);
-        setState(() => _step = CheckoutStep.payment);
         AppToast.error(context, message);
 
       default:
+        // An address the server refused is one the app should stop holding —
+        // re-reading tells us whether it is gone, or merely out of zone.
         if (CheckoutErrors.addressCodes.contains(error.code)) {
-          setState(() => _step = CheckoutStep.address);
+          ref.invalidate(checkoutReviewProvider);
         }
         AppToast.error(context, message);
     }

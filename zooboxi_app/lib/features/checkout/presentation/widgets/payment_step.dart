@@ -8,13 +8,17 @@ import '../../../../core/widgets/press_scale.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/checkout_models.dart';
 
-/// Step three: how it gets paid for, plus the note for the driver.
+/// How it gets paid for, plus the note for the driver.
+///
+/// A section of the one checkout page rather than a page of its own: paying is
+/// not a separate decision from what is being paid for, and making it one more
+/// screen only added a tap between a customer and their order.
 ///
 /// The methods are whatever WooCommerce actually reports as available — the
 /// app never hardcodes a gateway, so one being switched off on the store is a
 /// row disappearing here rather than a failed order.
-class CheckoutPaymentStep extends StatelessWidget {
-  const CheckoutPaymentStep({
+class CheckoutPaymentSection extends StatelessWidget {
+  const CheckoutPaymentSection({
     super.key,
     required this.methods,
     required this.selectedId,
@@ -32,11 +36,12 @@ class CheckoutPaymentStep extends StatelessWidget {
     final l = L.of(context);
     final cs = context.cs;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(l.checkoutPaymentTitle, style: context.tt.titleLarge),
-        Gap.h16,
+        Text(l.checkoutPaymentTitle, style: context.tt.titleMedium),
+        Gap.h12,
 
         if (methods.isEmpty)
           Container(

@@ -45,7 +45,7 @@ class AccountScreen extends ConsumerWidget {
     // Read, never awaited: the account tab renders in full whether or not the
     // loyalty layer answers.
     final loyalty = ref.watch(loyaltySummaryProvider).value;
-    final active = ref.watch(activeOrderProvider).value;
+    final active = ref.watch(topActiveOrderProvider);
 
     // The canvas runs behind the status bar and a pinned bar keeps a teal
     // ground up there after it scrolls away, so the clock is light for the

@@ -268,7 +268,7 @@ void main() {
           ordersRepositoryProvider.overrideWithValue(_Repo()),
           isAuthenticatedProvider.overrideWithValue(true),
           activeOrderProvider.overrideWith(
-            (ref) => Stream.value(ActiveOrder(
+            (ref) => Stream.value([ActiveOrder(
               order: _order(
                 number: '32665',
                 status: 'zb-out-for-delivery',
@@ -278,7 +278,7 @@ void main() {
                 photos: 1,
               ),
               tracking: _live(),
-            )),
+            )]),
           ),
         ],
         child: MaterialApp(

@@ -3321,6 +3321,23 @@ class LAr extends L {
   }
 
   @override
+  String get checkoutAddressOutOfZone => 'خارج نطاق فرع التوصيل السريع';
+
+  @override
+  String get checkoutAddressNoPin => 'بدون موقع على الخريطة';
+
+  @override
+  String get checkoutAddressOutOfZoneTitle => 'عناوين لا يصلها هذا الفرع';
+
+  @override
+  String get checkoutAddressZoneHint =>
+      'طلبك السريع من فرع واحد، فلا يصل إلا للعناوين داخل نطاقه.';
+
+  @override
+  String get checkoutAddressNoneInZone =>
+      'لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.';
+
+  @override
   String get reorderDueShort => 'حان وقتها';
 
   @override

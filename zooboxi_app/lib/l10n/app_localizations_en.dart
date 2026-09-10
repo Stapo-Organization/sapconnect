@@ -3258,6 +3258,24 @@ class LEn extends L {
   }
 
   @override
+  String get checkoutAddressOutOfZone => 'Outside the express branch\'s area';
+
+  @override
+  String get checkoutAddressNoPin => 'No map location';
+
+  @override
+  String get checkoutAddressOutOfZoneTitle =>
+      'Addresses this branch cannot reach';
+
+  @override
+  String get checkoutAddressZoneHint =>
+      'An express order comes from one branch, so it only reaches addresses inside its area.';
+
+  @override
+  String get checkoutAddressNoneInZone =>
+      'No address falls inside this branch\'s area. Add one nearby, or move your basket to Zooboxi.';
+
+  @override
   String get reorderDueShort => 'Due now';
 
   @override

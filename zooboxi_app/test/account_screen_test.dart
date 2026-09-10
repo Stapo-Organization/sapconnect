@@ -77,7 +77,7 @@ Future<void> _pump(
         localStoreProvider.overrideWithValue(LocalStore(prefs)),
         sessionProvider.overrideWith(() => _Session(signedIn: signedIn)),
         loyaltySummaryProvider.overrideWith((ref) => Future.value(summary)),
-        activeOrderProvider.overrideWith((ref) => Stream.value(active)),
+        activeOrderProvider.overrideWith((ref) => Stream.value([?active])),
         ...extra,
       ],
       child: MaterialApp(

@@ -1750,6 +1750,11 @@
   "homeTopToday": "الأعلى طلباً اليوم",
   "cardNewSticker": "جديد",
   "shelfBasketCount": "{count, plural, =1{في السلة قطعة واحدة} =2{في السلة قطعتان} few{في السلة {count} قطع} many{في السلة {count} قطعة} other{في السلة {count} قطعة}}",
+  "checkoutAddressOutOfZone": "خارج نطاق فرع التوصيل السريع",
+  "checkoutAddressNoPin": "بدون موقع على الخريطة",
+  "checkoutAddressOutOfZoneTitle": "عناوين لا يصلها هذا الفرع",
+  "checkoutAddressZoneHint": "طلبك السريع من فرع واحد، فلا يصل إلا للعناوين داخل نطاقه.",
+  "checkoutAddressNoneInZone": "لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.",
   "@shelfBasketCount": {
     "placeholders": { "count": { "type": "num", "format": "decimalPattern" } }
   },

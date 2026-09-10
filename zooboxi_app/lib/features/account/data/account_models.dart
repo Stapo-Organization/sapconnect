@@ -22,6 +22,8 @@ class Address {
     this.email,
     this.isDefault = false,
     this.createdAt,
+    this.serves = true,
+    this.servesReason = '',
   });
 
   final String id;
@@ -46,6 +48,19 @@ class Address {
   final bool isDefault;
   final DateTime? createdAt;
 
+  /// Whether the basket being checked out can actually be sent here.
+  ///
+  /// An إكسبريس basket was quoted against ONE branch — its stock, its clock,
+  /// its courier — so an address that branch does not cover is not a slower
+  /// delivery, it is a different warehouse where the chosen quantities may
+  /// not exist. Only `GET /checkout` knows this; everywhere else the address
+  /// book is just a book, and the default of `true` is what every screen
+  /// outside checkout means.
+  final bool serves;
+
+  /// Why not: `out_of_zone` | `no_pin`, empty when it does.
+  final String servesReason;
+
   /// True once this entry exists server-side and can be referenced by id.
   bool get isSaved => id.isNotEmpty;
 
@@ -68,6 +83,10 @@ class Address {
         lng: asDoubleOrNull(json['lng']),
         isDefault: asBool(json['is_default']),
         createdAt: asDate(json['created_at']),
+        // Absent everywhere except checkout, and absent from a store that
+        // predates the check — both mean "nothing says otherwise".
+        serves: json.containsKey('serves') ? asBool(json['serves']) : true,
+        servesReason: asString(json['serves_reason']),
       );
 
   /// The write shape. `is_default` only rides along when it is being *set* —
@@ -104,6 +123,8 @@ class Address {
     double? lng,
     String? email,
     bool? isDefault,
+    bool? serves,
+    String? servesReason,
   }) =>
       Address(
         id: id ?? this.id,
@@ -121,6 +142,8 @@ class Address {
         email: email ?? this.email,
         isDefault: isDefault ?? this.isDefault,
         createdAt: createdAt,
+        serves: serves ?? this.serves,
+        servesReason: servesReason ?? this.servesReason,
       );
 
   static List<Address> listFrom(dynamic value) {

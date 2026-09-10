@@ -14,18 +14,26 @@ import '../../../cart/presentation/widgets/shipment_card.dart';
 import '../../data/checkout_models.dart';
 import 'promise_recap.dart';
 
-/// Step two: everything the customer is agreeing to, on one screen.
+/// The whole checkout, on one page.
+///
+/// It used to be three: address, then review, then payment. They are one
+/// decision — the address changes the shipments, the shipments change the
+/// total, the total is what is being paid — and splitting them put two taps
+/// and two animations between a customer and an order they had already
+/// decided to place. Now the address is a card that opens a picker, and
+/// everything else is read top to bottom.
 ///
 /// The item list starts collapsed. By this point they have already seen the
 /// basket; what changes at checkout is the *fulfilment* — which shipment,
 /// which date, which fee — so that gets the space and the items stay one tap
 /// away for anyone who wants to double-check.
-class CheckoutReviewStep extends StatefulWidget {
-  const CheckoutReviewStep({
+class CheckoutBody extends StatefulWidget {
+  const CheckoutBody({
     super.key,
     required this.review,
     required this.address,
     required this.onChangeAddress,
+    required this.payment,
     this.changedNotice,
   });
 
@@ -33,15 +41,19 @@ class CheckoutReviewStep extends StatefulWidget {
   final Address? address;
   final VoidCallback onChangeAddress;
 
+  /// The payment methods and the driver's note, composed by the screen so this
+  /// widget stays about what is being bought.
+  final Widget payment;
+
   /// Shown when the server re-priced the basket at this address and something
   /// moved — the customer must see it before paying.
   final String? changedNotice;
 
   @override
-  State<CheckoutReviewStep> createState() => _CheckoutReviewStepState();
+  State<CheckoutBody> createState() => _CheckoutBodyState();
 }
 
-class _CheckoutReviewStepState extends State<CheckoutReviewStep> {
+class _CheckoutBodyState extends State<CheckoutBody> {
   bool _itemsOpen = false;
 
   @override
@@ -57,10 +69,11 @@ class _CheckoutReviewStepState extends State<CheckoutReviewStep> {
           Gap.h16,
         ],
 
-        if (widget.address != null) ...[
-          _DeliverToCard(address: widget.address!, onChange: widget.onChangeAddress),
-          Gap.h16,
-        ],
+        _DeliverToCard(
+          address: widget.address,
+          onChange: widget.onChangeAddress,
+        ),
+        Gap.h16,
 
         if (review.freeShipping.isActive) ...[
           FreeShippingBar(freeShipping: review.freeShipping),
@@ -95,6 +108,9 @@ class _CheckoutReviewStepState extends State<CheckoutReviewStep> {
         Gap.h16,
 
         CouponField(coupons: review.coupons),
+        Gap.h20,
+
+        widget.payment,
         Gap.h20,
 
         TotalsCard(totals: review.totals),
@@ -144,28 +160,47 @@ class _ChangedBanner extends StatelessWidget {
   }
 }
 
+/// Where the order is going — the first thing on the page, because it is the
+/// thing every number under it was computed for.
 class _DeliverToCard extends StatelessWidget {
   const _DeliverToCard({required this.address, required this.onChange});
 
-  final Address address;
+  /// Null when nothing has been chosen yet, which is a prompt rather than a
+  /// blank: a checkout with no address is a checkout that cannot finish.
+  final Address? address;
+
   final VoidCallback onChange;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final cs = context.cs;
+    final zb = context.zb;
+    final address = this.address;
+    // Chosen, but the branch this basket belongs to does not cover it. The
+    // page stays on screen and the button below is what refuses — an address
+    // card that simply vanished would be a worse kind of confusing.
+    final blocked = address != null && !address.serves;
+    final tone = blocked ? zb.warning : cs.primary;
 
     return Container(
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        border: Border.all(color: cs.outlineVariant),
+        border: Border.all(
+          color: blocked ? zb.warning.withValues(alpha: 0.55) : cs.outlineVariant,
+          width: blocked ? 1.4 : 1,
+        ),
       ),
       padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 6, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.place_rounded, size: 18, color: cs.primary),
+          Icon(
+            blocked ? Icons.wrong_location_rounded : Icons.place_rounded,
+            size: 18,
+            color: tone,
+          ),
           Gap.w12,
           Expanded(
             child: Column(
@@ -176,20 +211,34 @@ class _DeliverToCard extends StatelessWidget {
                   style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 Gap.h4,
-                Text(
-                  address.name,
-                  style: context.tt.titleSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  [address.addressLine, address.summary]
-                      .where((e) => e.isNotEmpty)
-                      .join('، '),
-                  style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                if (address == null)
+                  Text(l.checkoutAddressEmpty, style: context.tt.titleSmall)
+                else ...[
+                  Text(
+                    address.name,
+                    style: context.tt.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    [address.addressLine, address.summary]
+                        .where((e) => e.isNotEmpty)
+                        .join('، '),
+                    style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (blocked) ...[
+                    Gap.h8,
+                    Text(
+                      addressBlockedReason(l, address.servesReason),
+                      style: context.tt.labelSmall?.copyWith(
+                        color: zb.warning,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
               ],
             ),
           ),
@@ -199,6 +248,12 @@ class _DeliverToCard extends StatelessWidget {
     );
   }
 }
+
+/// Why an address cannot take this basket, in the customer's words.
+String addressBlockedReason(L l, String reason) => switch (reason) {
+      'no_pin' => l.checkoutAddressNoPin,
+      _ => l.checkoutAddressOutOfZone,
+    };
 
 class _ItemsSummary extends StatelessWidget {
   const _ItemsSummary({

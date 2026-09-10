@@ -1485,6 +1485,11 @@
   "homeTopToday": "Most ordered today",
   "cardNewSticker": "New",
   "shelfBasketCount": "{count, plural, =1{1 item in the basket} other{{count} items in the basket}}",
+  "checkoutAddressOutOfZone": "Outside the express branch's area",
+  "checkoutAddressNoPin": "No map location",
+  "checkoutAddressOutOfZoneTitle": "Addresses this branch cannot reach",
+  "checkoutAddressZoneHint": "An express order comes from one branch, so it only reaches addresses inside its area.",
+  "checkoutAddressNoneInZone": "No address falls inside this branch's area. Add one nearby, or move your basket to Zooboxi.",
   "reorderDueShort": "Due now",
   "@searchBoughtDays": {
     "placeholders": { "count": { "type": "int" } }

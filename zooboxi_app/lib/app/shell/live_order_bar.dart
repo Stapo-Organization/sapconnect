@@ -43,7 +43,7 @@ class LiveOrderBar extends ConsumerWidget {
     final path = GoRouterState.of(context).uri.path;
     if (path.startsWith('/orders/')) return const SizedBox(width: double.infinity);
 
-    final active = ref.watch(activeOrderProvider).value;
+    final orders = ref.watch(activeOrderProvider).value ?? const <ActiveOrder>[];
 
     // AnimatedSize opens the space; the switcher slides the bar up INTO it, so
     // the whole thing rises from behind the menu rather than blinking into
@@ -61,23 +61,58 @@ class LiveOrderBar extends ConsumerWidget {
           position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(anim),
           child: FadeTransition(opacity: anim, child: child),
         ),
-        child: active == null
+        // Keyed on WHICH orders, not how many: a poll that returns the same
+        // two orders must not re-run the entrance animation, and one that
+        // swaps a delivered order for a new one must.
+        child: orders.isEmpty
             ? const SizedBox(key: ValueKey('none'), width: double.infinity)
-            : _Bar(key: ValueKey(active.order.id), active: active),
+            : _Bar(
+                key: ValueKey(orders.map((o) => o.order.id).join('-')),
+                orders: orders,
+              ),
       ),
     );
   }
 }
 
-class _Bar extends StatelessWidget {
-  const _Bar({super.key, required this.active});
+/// The docked bar, carrying every order the customer is waiting on.
+///
+/// Usually one. When there are two — a second household, a forgotten item
+/// ordered again — they share the same slab and the customer swipes between
+/// them, rather than one of them silently not existing or the menu being
+/// buried under a stack of glass. Dots at the end of the grabber strip say how
+/// many there are; the strip itself still pulls the sheet open, and the sheet
+/// opens on whichever order is on screen.
+class _Bar extends StatefulWidget {
+  const _Bar({super.key, required this.orders});
 
-  final ActiveOrder active;
+  final List<ActiveOrder> orders;
+
+  @override
+  State<_Bar> createState() => _BarState();
+}
+
+class _BarState extends State<_Bar> {
+  late final PageController _pages = PageController();
+
+  /// The order in view. Clamped against the list on every build: an order that
+  /// is delivered leaves the feed, and a page index that outlived it would
+  /// point past the end.
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
     final dark = context.isDark;
+    final orders = widget.orders;
+    final index = _page.clamp(0, orders.length - 1);
+    final active = orders[index];
     final tone = _tone(context, active);
 
     return Semantics(
@@ -136,20 +171,27 @@ class _Bar extends StatelessWidget {
                   height: LiveOrderBar.barHeight,
                   child: Column(
                     children: [
-                      _Grabber(key: LiveOrderBarPreview.grabberKey, tone: tone),
+                      _Grabber(
+                        key: LiveOrderBarPreview.grabberKey,
+                        tone: tone,
+                        count: orders.length,
+                        index: index,
+                      ),
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
-                          child: Row(
-                            children: [
-                              _Leading(key: LiveOrderBarPreview.leadingKey, active: active, tone: tone),
-                              Gap.w12,
-                              Expanded(child: _Lines(active: active)),
-                              Gap.w8,
-                              _Trailing(active: active, tone: tone),
-                            ],
-                          ),
-                        ),
+                        child: orders.length == 1
+                            ? _Face(active: active, tone: tone, first: true)
+                            : PageView.builder(
+                                controller: _pages,
+                                itemCount: orders.length,
+                                onPageChanged: (page) {
+                                  if (page != _page) setState(() => _page = page);
+                                },
+                                itemBuilder: (context, i) => _Face(
+                                  active: orders[i],
+                                  tone: _tone(context, orders[i]),
+                                  first: i == 0,
+                                ),
+                              ),
                       ),
                     ],
                   ),
@@ -167,21 +209,97 @@ class _Bar extends StatelessWidget {
 /// order's own colour so the strip doubles as the first hint of where things
 /// have got to, before a single word is read.
 class _Grabber extends StatelessWidget {
-  const _Grabber({super.key, required this.tone});
+  const _Grabber({
+    super.key,
+    required this.tone,
+    this.count = 1,
+    this.index = 0,
+  });
 
   final Color tone;
+
+  /// How many orders share this bar, and which is showing. One draws no dots
+  /// at all — a single dot says nothing and only asks to be tapped.
+  final int count;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final strip = Container(
+      width: 34,
+      height: 4,
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(ZbTokens.rPill),
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 7, bottom: 3),
+      // A Stack, so the strip stays centred on the slab whether or not there
+      // are dots beside it: the thing you pull must not move because a second
+      // order arrived.
+      child: SizedBox(
+        height: 4,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            strip,
+            if (count > 1)
+              PositionedDirectional(
+                end: 14,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < count; i++) ...[
+                      if (i > 0) const SizedBox(width: 4),
+                      AnimatedContainer(
+                        duration: context.motion(Motion.select),
+                        width: i == index ? 12 : 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: tone.withValues(alpha: i == index ? 0.8 : 0.3),
+                          borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One order's row inside the bar.
+class _Face extends StatelessWidget {
+  const _Face({required this.active, required this.tone, required this.first});
+
+  final ActiveOrder active;
+  final Color tone;
+
+  /// Only the first row carries the keys the widget tests look for — a page
+  /// of identical rows would make `findsOneWidget` a lie.
+  final bool first;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 7, bottom: 3),
-      child: Container(
-        width: 34,
-        height: 4,
-        decoration: BoxDecoration(
-          color: tone.withValues(alpha: 0.45),
-          borderRadius: BorderRadius.circular(ZbTokens.rPill),
-        ),
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
+      child: Row(
+        children: [
+          _Leading(
+            key: first ? LiveOrderBarPreview.leadingKey : null,
+            active: active,
+            tone: tone,
+          ),
+          Gap.w12,
+          Expanded(child: _Lines(active: active)),
+          Gap.w8,
+          _Trailing(active: active, tone: tone),
+        ],
       ),
     );
   }
@@ -453,8 +571,10 @@ class _Sheet extends ConsumerWidget {
 
     // Fresh news about THIS order, or nothing. `initial` is only the opening
     // frame — leaning on it after the feed has moved on would leave a delivered
-    // order reading "on the way" for as long as the sheet stayed open.
-    final fresh = feed?.order.id == orderId ? feed : null;
+    // order reading "on the way" for as long as the sheet stayed open. The
+    // feed carries every live order now, so this picks its own out of them
+    // instead of assuming it is the one on top.
+    final fresh = feed?.where((entry) => entry.order.id == orderId).firstOrNull;
     final finished = feed != null && fresh == null;
     final active = fresh ?? initial;
     final tracking = active.tracking;
@@ -698,13 +818,16 @@ double liveOrderProgress(ActiveOrder active) => switch (active.tracking?.phase) 
 /// up a whole app.
 @visibleForTesting
 class LiveOrderBarPreview extends StatelessWidget {
-  const LiveOrderBarPreview({super.key, required this.active});
+  const LiveOrderBarPreview({super.key, required this.active, this.also = const []});
 
   static const Key grabberKey = Key('zb-live-grabber');
   static const Key leadingKey = Key('zb-live-leading');
 
   final ActiveOrder active;
 
+  /// Further orders sharing the bar, for the two-order layout.
+  final List<ActiveOrder> also;
+
   @override
-  Widget build(BuildContext context) => _Bar(active: active);
+  Widget build(BuildContext context) => _Bar(orders: [active, ...also]);
 }

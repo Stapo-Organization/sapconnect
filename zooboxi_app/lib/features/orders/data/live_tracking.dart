@@ -223,4 +223,23 @@ class ActiveOrder {
       tracking: LiveTracking.maybe(map['tracking']),
     );
   }
+
+  /// Everything the customer is waiting on, most urgent first.
+  ///
+  /// Two express orders at once is ordinary — a second household, a forgotten
+  /// item ordered again — and the app used to show whichever the store ranked
+  /// first and silently drop the rest. A store too old to send the list still
+  /// answers with the single top-level order, which is read as a list of one.
+  static List<ActiveOrder> listFrom(dynamic value) {
+    final map = asMap(value);
+    if (map.isEmpty) return const [];
+
+    final rows = asMapList(map['orders']);
+    if (rows.isNotEmpty) {
+      return [for (final row in rows) ?ActiveOrder.maybe(row)];
+    }
+
+    final single = ActiveOrder.maybe(map);
+    return single == null ? const [] : [single];
+  }
 }

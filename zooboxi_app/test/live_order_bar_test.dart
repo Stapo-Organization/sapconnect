@@ -16,11 +16,12 @@ import 'package:zooboxi_app/features/orders/data/live_tracking.dart';
 ActiveOrder? _active({
   String status = 'processing',
   Map<String, dynamic>? tracking,
+  int id = 32700,
 }) =>
     ActiveOrder.maybe({
       'order': {
-        'id': 32700,
-        'number': '32700',
+        'id': id,
+        'number': '$id',
         'status': status,
         'status_label': 'قيد التجهيز',
         'total': 128.5,
@@ -34,7 +35,11 @@ ActiveOrder? _active({
     });
 
 /// Pumps the bar exactly as the shell does: in the bottom slot, in Arabic.
-Future<void> _pumpBar(WidgetTester tester, ActiveOrder active) async {
+Future<void> _pumpBar(
+  WidgetTester tester,
+  ActiveOrder active, {
+  List<ActiveOrder> also = const [],
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       child: MaterialApp(
@@ -44,7 +49,7 @@ Future<void> _pumpBar(WidgetTester tester, ActiveOrder active) async {
         supportedLocales: L.supportedLocales,
         home: Scaffold(
           body: const SizedBox.expand(),
-          bottomNavigationBar: LiveOrderBarPreview(active: active),
+          bottomNavigationBar: LiveOrderBarPreview(active: active, also: also),
         ),
       ),
     ),
@@ -180,6 +185,53 @@ void main() {
       // Failure is an ending too — a lip left half full would read as "still
       // coming" for an order that is not.
       expect(at(phase: 'failed'), 1);
+    });
+  });
+
+  group('more than one order at a time', () {
+    test('the whole list is read, most urgent first', () {
+      final orders = ActiveOrder.listFrom({
+        'order': {'id': 1, 'number': '1', 'status': 'zb-out-for-delivery'},
+        'tracking': null,
+        'orders': [
+          {'order': {'id': 1, 'number': '1', 'status': 'zb-out-for-delivery'}},
+          {'order': {'id': 2, 'number': '2', 'status': 'processing'}},
+        ],
+      });
+      expect(orders.map((o) => o.order.id), [1, 2]);
+    });
+
+    test('a store too old to send a list still gives its one order', () {
+      final orders = ActiveOrder.listFrom({
+        'order': {'id': 7, 'number': '7', 'status': 'processing'},
+        'tracking': null,
+      });
+      expect(orders.single.order.id, 7);
+    });
+
+    test('nothing waiting is an empty list, not a list of nothing', () {
+      expect(ActiveOrder.listFrom(null), isEmpty);
+      expect(ActiveOrder.listFrom(const <String, dynamic>{}), isEmpty);
+      expect(ActiveOrder.listFrom(const {'orders': <dynamic>[]}), isEmpty);
+    });
+
+    testWidgets('two orders share one slab and say so', (tester) async {
+      await _pumpBar(
+        tester,
+        _active(id: 32700)!,
+        also: [_active(id: 32701, status: 'zb-ready')!],
+      );
+
+      // One bar, not two stacked over the menu.
+      expect(find.byType(LiveOrderBarPreview), findsOneWidget);
+      expect(find.byKey(LiveOrderBarPreview.grabberKey), findsOneWidget);
+      // The second order is a swipe away, so it is built but off screen.
+      expect(find.byType(PageView), findsOneWidget);
+    });
+
+    testWidgets('one order draws no pager at all', (tester) async {
+      await _pumpBar(tester, _active()!);
+      expect(find.byType(PageView), findsNothing);
     });
   });
 }

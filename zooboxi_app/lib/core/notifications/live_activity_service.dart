@@ -59,7 +59,7 @@ class LiveActivityService {
 
   StreamSubscription<ActivityUpdate>? _updates;
   StreamSubscription<UrlSchemeData>? _taps;
-  ProviderSubscription<AsyncValue<ActiveOrder?>>? _feed;
+  ProviderSubscription<ActiveOrder?>? _feed;
 
   Future<void> start() async {
     if (_ready || !Platform.isIOS) return;
@@ -99,9 +99,11 @@ class LiveActivityService {
       }
     });
 
-    // Follow the feed the bar already polls: no second poller.
-    _feed = _ref.listen<AsyncValue<ActiveOrder?>>(activeOrderProvider, (_, next) {
-      final active = next.value;
+    // Follow the feed the bar already polls: no second poller. The lock
+    // screen carries ONE card, so it follows the order that outranks the
+    // rest — a second box being packed does not displace a courier at the
+    // door, and two cards for one customer would be noise, not help.
+    _feed = _ref.listen<ActiveOrder?>(topActiveOrderProvider, (_, active) {
       _chain = _chain.then((_) => active == null ? _endIfAny() : _mirror(active));
     }, fireImmediately: true);
   }

@@ -5221,6 +5221,36 @@ abstract class L {
   /// **'{count, plural, =1{في السلة قطعة واحدة} =2{في السلة قطعتان} few{في السلة {count} قطع} many{في السلة {count} قطعة} other{في السلة {count} قطعة}}'**
   String shelfBasketCount(num count);
 
+  /// No description provided for @checkoutAddressOutOfZone.
+  ///
+  /// In ar, this message translates to:
+  /// **'خارج نطاق فرع التوصيل السريع'**
+  String get checkoutAddressOutOfZone;
+
+  /// No description provided for @checkoutAddressNoPin.
+  ///
+  /// In ar, this message translates to:
+  /// **'بدون موقع على الخريطة'**
+  String get checkoutAddressNoPin;
+
+  /// No description provided for @checkoutAddressOutOfZoneTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عناوين لا يصلها هذا الفرع'**
+  String get checkoutAddressOutOfZoneTitle;
+
+  /// No description provided for @checkoutAddressZoneHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك السريع من فرع واحد، فلا يصل إلا للعناوين داخل نطاقه.'**
+  String get checkoutAddressZoneHint;
+
+  /// No description provided for @checkoutAddressNoneInZone.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.'**
+  String get checkoutAddressNoneInZone;
+
   /// No description provided for @reorderDueShort.
   ///
   /// In ar, this message translates to:

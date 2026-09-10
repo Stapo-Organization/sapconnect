@@ -216,7 +216,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
     // The order the customer is waiting on, from the same poll the bar above
     // the tab bar already runs — the list adds no traffic of its own.
-    final active = ref.watch(activeOrderProvider).value;
+    final active = ref.watch(topActiveOrderProvider);
 
     return Scaffold(
       appBar: AppBar(
