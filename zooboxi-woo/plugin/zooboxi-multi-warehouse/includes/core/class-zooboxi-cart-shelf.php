@@ -14,10 +14,18 @@
  * aside is **stashed**, and the one being stepped into is restored. Two
  * baskets, one at a time, and nothing typed twice.
  *
- * Gift lines are not stashed. A reward that is claimed into a basket is
- * released back to the customer's grants when its line goes, which is what
- * removing it through WooCommerce's own path does — so it returns to the
- * rewards screen rather than being duplicated into both baskets.
+ * A gift line does not travel as a line — it travels as its GRANT. Putting a
+ * basket away releases the reward back to the customer (WooCommerce's own
+ * removal path does that), and bringing the basket back claims it again, so
+ * the gift is never in two baskets at once and never lost by stepping into
+ * the other shop for a moment. A reward the restored storefront cannot reach
+ * simply stays on the rewards screen.
+ *
+ * The basket also FOLLOWS the customer: `align()` puts it on whichever shelf
+ * is being browsed, so the two storefronts each keep their own basket and the
+ * one on screen is always the one the tab belongs to. That is a real move —
+ * lines are stashed and restored — so it is deliberately cheap to skip: an
+ * alignment with nothing on either side does nothing at all.
  *
  * The rule is enforced in ONE place — WooCommerce's own add-to-cart
  * validation — because a basket has many doors: the app, the website, «اطلب
@@ -389,13 +397,18 @@ class Zooboxi_Cart_Shelf
 
         // Put the current basket away — real lines only.
         $lines = [];
+        $grants = [];
         if ($from !== '') {
             foreach ($cart->get_cart() as $key => $item) {
                 if (class_exists('Zooboxi_Loyalty_Rewards')
-                    && Zooboxi_Loyalty_Rewards::line_grant_id($item) > 0) {
+                    && ($grant_id = Zooboxi_Loyalty_Rewards::line_grant_id($item)) > 0) {
                     // Through WooCommerce's own path, so the reward is
-                    // unclaimed and waits on the rewards screen instead of
-                    // vanishing with the basket.
+                    // unclaimed and returns to the customer's grants rather
+                    // than vanishing with the basket. Its id rides along in
+                    // the stash so switching back RE-claims it: a basket that
+                    // steps aside for a moment must not cost someone the gift
+                    // they had already chosen.
+                    $grants[] = $grant_id;
                     $cart->remove_cart_item($key);
                     continue;
                 }
@@ -410,6 +423,9 @@ class Zooboxi_Cart_Shelf
                 'lines'   => $lines,
                 // «كما هي» has to include the code they typed.
                 'coupons' => array_values($cart->get_applied_coupons()),
+                // Rewards claimed into this basket, to be claimed again when
+                // it comes back.
+                'grants'  => $grants,
                 // When it was put down. Nothing expires on this stamp — a
                 // basket is never deleted behind the customer's back — but a
                 // basket that returns after three days should say so rather
@@ -422,10 +438,11 @@ class Zooboxi_Cart_Shelf
 
         $restore = self::lines_of($stash[$target] ?? []);
         $coupons = self::coupons_of($stash[$target] ?? []);
+        $grants_back = self::grants_of($stash[$target] ?? []);
         $target_since = self::since_of($stash[$target] ?? []);
         self::remember($target);
 
-        $result = self::restore_lines($restore, $coupons);
+        $result = self::restore_lines($restore, $coupons, $grants_back);
 
         // Only what actually came back leaves the stash. A product that went
         // out of stock while it waited stays waiting instead of vanishing
@@ -436,6 +453,10 @@ class Zooboxi_Cart_Shelf
             $stash[$target] = [
                 'lines'      => $result['left'],
                 'coupons'    => [],
+                // No grants: one that could not be re-claimed is already back
+                // on the rewards screen, where the customer can see it.
+                // Keeping the id here would claim it a second time later.
+                'grants'     => [],
                 // The original stamp: these lines have been waiting since the
                 // basket was put down, not since we failed to bring them back.
                 'stashed_at' => $target_since ?? time(),
@@ -454,11 +475,71 @@ class Zooboxi_Cart_Shelf
     }
 
     /**
+     * Puts the basket on the shelf the customer is actually browsing.
+     *
+     * إكسبريس and زوبكسي are two shops with two baskets, and the basket on
+     * screen must be the one belonging to the shop on screen — otherwise a
+     * customer browsing زوبكسي is carrying the branch's bag, and every line
+     * they add is a question instead of an add.
+     *
+     * The target is [requested()], never the raw header: after closing time
+     * an إكسبريس tab IS زوبكسي, so aligning to it correctly does nothing
+     * rather than moving someone into a basket checkout would refuse.
+     *
+     * Cheap when there is nothing to move — the overwhelmingly common case is
+     * a tap between two empty baskets, and emptying an empty cart to relabel
+     * it would fire every WooCommerce cart hook for no reason.
+     *
+     * @return array{moved:bool, to:string, restored:int, stashed:int, lost:int, since:?int}
+     */
+    public static function align(): array
+    {
+        $idle = [
+            'moved'    => false,
+            'to'       => '',
+            'restored' => 0,
+            'stashed'  => 0,
+            'lost'     => 0,
+            'since'    => null,
+        ];
+
+        $target = self::requested();
+        // No tab named (the website), or a storefront that cannot deliver
+        // right now: the basket stays exactly where it is.
+        if (!self::valid($target) || !self::serves($target)) {
+            return $idle;
+        }
+
+        $from = self::current();
+        if ($from === $target) {
+            return $idle;
+        }
+
+        // Nothing here, nothing waiting there: there is no basket to move.
+        // The label is left alone too — an empty basket belongs to nobody,
+        // and the first line added will name it.
+        if ($from === '' && self::stashed_count($target) === 0) {
+            return $idle;
+        }
+
+        $moved = self::switch_to($target);
+
+        return [
+            'moved'    => true,
+            'to'       => $target,
+            'restored' => (int) ($moved['restored'] ?? 0),
+            'stashed'  => (int) ($moved['stashed'] ?? 0),
+            'lost'     => (int) ($moved['lost'] ?? 0),
+            'since'    => $moved['since'] ?? null,
+        ];
+    }
+
+    /**
      * Puts a stashed basket back into the cart.
      *
      * @return array{restored:int, left:array} what returned, and what could not.
      */
-    private static function restore_lines(array $lines, array $coupons): array
+    private static function restore_lines(array $lines, array $coupons, array $grants = []): array
     {
         $cart = self::cart();
         if ($cart === null) {
@@ -492,6 +573,27 @@ class Zooboxi_Cart_Shelf
 
         self::$restoring = false;
 
+        // The rewards this basket was carrying, claimed again. claim() adds
+        // the gift line itself and guards its own add, so this is the same
+        // door the rewards screen uses — and a gift that cannot reach the
+        // storefront being restored simply stays on that screen, which is the
+        // honest answer rather than a silent line.
+        $uid = self::user_id();
+        if ($uid > 0 && class_exists('Zooboxi_Loyalty_Rewards')) {
+            foreach ($grants as $grant_id) {
+                $grant_id = (int) $grant_id;
+                if ($grant_id <= 0) {
+                    continue;
+                }
+                try {
+                    Zooboxi_Loyalty_Rewards::claim($uid, $grant_id);
+                } catch (\Throwable $e) {
+                    // A reward that expired while the basket waited stays
+                    // where it is; nothing else in the basket depends on it.
+                }
+            }
+        }
+
         foreach ($coupons as $code) {
             try {
                 $cart->apply_coupon((string) $code);
@@ -522,13 +624,18 @@ class Zooboxi_Cart_Shelf
             return 0;
         }
 
-        $result = self::restore_lines(self::lines_of($stash[$shelf]), self::coupons_of($stash[$shelf]));
+        $result = self::restore_lines(
+            self::lines_of($stash[$shelf]),
+            self::coupons_of($stash[$shelf]),
+            self::grants_of($stash[$shelf])
+        );
         if (empty($result['left'])) {
             unset($stash[$shelf]);
         } else {
             $stash[$shelf] = [
                 'lines'      => $result['left'],
                 'coupons'    => [],
+                'grants'     => [],
                 'stashed_at' => self::since_of($stash[$shelf] ?? []) ?? time(),
             ];
         }
@@ -544,6 +651,14 @@ class Zooboxi_Cart_Shelf
         }
         // A stash written before coupons were kept is a bare list of lines.
         return is_array($entry) ? $entry : [];
+    }
+
+    /** Reward grants claimed into a stashed basket; none for an older stash. */
+    private static function grants_of($entry): array
+    {
+        return isset($entry['grants']) && is_array($entry['grants'])
+            ? array_values(array_filter(array_map('intval', $entry['grants'])))
+            : [];
     }
 
     private static function coupons_of($entry): array

@@ -505,10 +505,24 @@ class Zooboxi_V2_Cart_Controller
     }
 
     /**
-     * Moves the customer to the other storefront's basket.
+     * Puts the customer in the right storefront's basket.
      *
-     * Nothing is destroyed: the basket being left is stashed under its own
-     * shelf and comes back whole the next time they switch to it.
+     * Two modes, one operation:
+     *
+     *   • **named** (`shelf` given) — the deliberate move, from the cart
+     *     screen's banner or the sheet an add raises. A storefront that
+     *     cannot deliver right now is refused out loud, because the customer
+     *     pressed a button and deserves to know why it did nothing.
+     *
+     *   • **automatic** (`shelf` omitted) — the basket following the tab. The
+     *     target is the shelf this very request says it is browsing, so a
+     *     closed إكسبريس resolves to زوبكسي on its own and there is nothing
+     *     to refuse. Anything unmovable is a quiet no-op returning the cart
+     *     unchanged: a tab tap must never raise an error.
+     *
+     * Nothing is destroyed either way: the basket being left is stashed under
+     * its own shelf — lines, coupons and claimed rewards — and comes back
+     * whole the next time the customer is on that shelf.
      */
     public function switch_basket(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -517,8 +531,7 @@ class Zooboxi_V2_Cart_Controller
             return $boot;
         }
 
-        $shelf = (string) $request->get_param('shelf');
-        if (!class_exists('Zooboxi_Cart_Shelf') || !Zooboxi_Cart_Shelf::valid($shelf)) {
+        if (!class_exists('Zooboxi_Cart_Shelf')) {
             return Zooboxi_V2_Bootstrap::fail(
                 'shelf_required',
                 __('متجر غير معروف', 'zooboxi'),
@@ -527,21 +540,54 @@ class Zooboxi_V2_Cart_Controller
             );
         }
 
-        // A basket on a shelf that cannot deliver is a basket the checkout
-        // will refuse. Say so plainly instead of quietly moving the customer
-        // somewhere they did not ask for — a button that silently does
-        // something else is worse than one that explains why it can't.
-        if (!Zooboxi_Cart_Shelf::serves($shelf)) {
-            return Zooboxi_V2_Bootstrap::fail(
-                'shelf_closed',
-                __('إكسبريس مغلق الآن، وسلته بانتظارك حين يفتح.', 'zooboxi'),
-                'Express is closed right now; its basket is waiting for you.',
-                409,
-                Zooboxi_Cart_Shelf::payload()
-            );
-        }
+        $shelf = (string) $request->get_param('shelf');
+        $auto  = $shelf === '';
+        $from  = Zooboxi_Cart_Shelf::current();
 
-        $moved = Zooboxi_Cart_Shelf::switch_to($shelf);
+        if ($auto) {
+            $moved = Zooboxi_Cart_Shelf::align();
+            $shelf = (string) $moved['to'];
+            if (empty($moved['moved'])) {
+                // Already in the right basket, or nothing to move. Hand back
+                // the cart exactly as it stands — no notice, no movement.
+                return Zooboxi_V2_Bootstrap::ok(self::cart_dto([
+                    'switched' => [
+                        'to'       => Zooboxi_Cart_Shelf::current(),
+                        'from'     => $from,
+                        'auto'     => true,
+                        'moved'    => false,
+                        'restored' => 0,
+                        'stashed'  => 0,
+                        'lost'     => 0,
+                    ],
+                ]));
+            }
+        } else {
+            if (!Zooboxi_Cart_Shelf::valid($shelf)) {
+                return Zooboxi_V2_Bootstrap::fail(
+                    'shelf_required',
+                    __('متجر غير معروف', 'zooboxi'),
+                    'Unknown storefront.',
+                    422
+                );
+            }
+
+            // A basket on a shelf that cannot deliver is a basket the checkout
+            // will refuse. Say so plainly instead of quietly moving the customer
+            // somewhere they did not ask for — a button that silently does
+            // something else is worse than one that explains why it can't.
+            if (!Zooboxi_Cart_Shelf::serves($shelf)) {
+                return Zooboxi_V2_Bootstrap::fail(
+                    'shelf_closed',
+                    __('إكسبريس مغلق الآن، وسلته بانتظارك حين يفتح.', 'zooboxi'),
+                    'Express is closed right now; its basket is waiting for you.',
+                    409,
+                    Zooboxi_Cart_Shelf::payload()
+                );
+            }
+
+            $moved = Zooboxi_Cart_Shelf::switch_to($shelf);
+        }
 
         // Never restore in silence. A basket that comes back unannounced is
         // exactly what «فجأة السلة تظهر لي منتجات» describes, so the response
@@ -579,6 +625,29 @@ class Zooboxi_V2_Cart_Controller
                 wc_add_notice($text, 'notice');
             }
 
+            // The automatic move is the one nobody asked for out loud: the
+            // customer tapped a shop sign and their basket went quiet. Say
+            // where it went, or the badge dropping to zero reads as loss.
+            $stashed = (int) $moved['stashed'];
+            if ($auto && $stashed > 0 && $from !== '') {
+                wc_add_notice(
+                    Zooboxi_V2_Bootstrap::pick(
+                        sprintf(
+                            'حفظنا %1$s في سلة %2$s.',
+                            self::ar_items($stashed),
+                            Zooboxi_Cart_Shelf::label($from)
+                        ),
+                        sprintf(
+                            '%1$d item%2$s saved in your %3$s basket.',
+                            $stashed,
+                            $stashed === 1 ? '' : 's',
+                            $from === 'express' ? 'Express' : 'Zooboxi'
+                        )
+                    ),
+                    'notice'
+                );
+            }
+
             if ($lost > 0) {
                 wc_add_notice(
                     Zooboxi_V2_Bootstrap::pick(
@@ -607,6 +676,9 @@ class Zooboxi_V2_Cart_Controller
         return Zooboxi_V2_Bootstrap::ok(self::cart_dto([
             'switched' => [
                 'to'       => $shelf,
+                'from'     => $from,
+                'auto'     => $auto,
+                'moved'    => true,
                 'restored' => $moved['restored'],
                 'stashed'  => $moved['stashed'],
                 'lost'     => $moved['lost'] ?? 0,
