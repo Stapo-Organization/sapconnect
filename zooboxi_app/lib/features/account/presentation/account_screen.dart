@@ -214,13 +214,22 @@ class AccountScreen extends ConsumerWidget {
                         trailingLabel: l.accountVersion(Env.appVersion),
                         onTap: null,
                       ),
-                      if (session.isAuthenticated)
+                      if (session.isAuthenticated) ...[
                         SettingsTile(
                           icon: Icons.logout_rounded,
                           label: l.accountLogout,
                           destructive: true,
                           onTap: () => _confirmLogout(context, ref),
                         ),
+                        // App Store rule 5.1.1(v): an app that creates accounts
+                        // must let the person delete one from inside it.
+                        SettingsTile(
+                          icon: Icons.person_off_outlined,
+                          label: l.accountDelete,
+                          destructive: true,
+                          onTap: () => _confirmDelete(context, ref),
+                        ),
+                      ],
                     ],
                   ),
                 ],
@@ -317,6 +326,39 @@ class AccountScreen extends ConsumerWidget {
     if (chosen == null) return;
     Haptics.selection();
     await ref.read(appSettingsProvider.notifier).setThemeMode(chosen);
+  }
+
+  /// Two honest sentences and a red button. No "are you really sure" cascade:
+  /// the person read the words, and the words say exactly what goes and what
+  /// stays.
+  static Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l = L.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l.accountDeleteConfirmTitle),
+        content: Text(l.accountDeleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: context.cs.error),
+            child: Text(l.accountDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    Haptics.light();
+    try {
+      await ref.read(sessionProvider.notifier).deleteAccount();
+      if (context.mounted) AppToast.info(context, l.accountDeleted);
+    } catch (_) {
+      if (context.mounted) AppToast.error(context, l.accountDeleteFailed);
+    }
   }
 
   static Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {

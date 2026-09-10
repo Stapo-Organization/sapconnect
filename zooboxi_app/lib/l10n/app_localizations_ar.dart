@@ -1384,6 +1384,25 @@ class LAr extends L {
   String get accountLogoutConfirm => 'هل تريد تسجيل الخروج؟';
 
   @override
+  String get accountMemberFallback => 'عميل زوبوكسي';
+
+  @override
+  String get accountDelete => 'حذف الحساب';
+
+  @override
+  String get accountDeleteConfirmTitle => 'حذف حسابك نهائيًا؟';
+
+  @override
+  String get accountDeleteConfirmBody =>
+      'سنمسح رقمك واسمك وعناوينك وحيواناتك ومفضّلتك، ونُخفي اسمك عن طلباتك السابقة. لا يمكن التراجع. تقدر تسجّل من جديد بنفس الرقم كعميل جديد.';
+
+  @override
+  String get accountDeleted => 'حُذف حسابك. نتمنى أن نراك مجددًا.';
+
+  @override
+  String get accountDeleteFailed => 'تعذّر حذف الحساب الآن — حاول بعد قليل';
+
+  @override
   String get accountOrders => 'طلباتي';
 
   @override

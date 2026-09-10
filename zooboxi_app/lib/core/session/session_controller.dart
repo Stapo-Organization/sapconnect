@@ -130,6 +130,15 @@ class SessionController extends Notifier<SessionState> {
     await _tearDown();
   }
 
+  /// Closes the account for good. The server scrubs every piece of personal
+  /// data and anonymises the orders; the phone is free to sign up again as a
+  /// stranger. Unlike [logout], a failure here is surfaced — a customer who
+  /// asked for deletion must not be told it happened when it did not.
+  Future<void> deleteAccount() async {
+    await ref.read(apiClientProvider).delete('/me');
+    await _tearDown();
+  }
+
   /// The server rejected our bearer token (revoked, expired, or the account
   /// was deleted). Drop it and fall back to guest — never to a wall.
   Future<void> onServerRejectedToken() async {

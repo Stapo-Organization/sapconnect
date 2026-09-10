@@ -1368,6 +1368,27 @@ class LEn extends L {
   String get accountLogoutConfirm => 'Sign out of your account?';
 
   @override
+  String get accountMemberFallback => 'Zooboxi customer';
+
+  @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get accountDeleteConfirmTitle => 'Delete your account for good?';
+
+  @override
+  String get accountDeleteConfirmBody =>
+      'We will erase your phone number, name, addresses, pets and favourites, and remove your name from past orders. This cannot be undone. You can sign up again with the same number as a new customer.';
+
+  @override
+  String get accountDeleted =>
+      'Your account has been deleted. We hope to see you again.';
+
+  @override
+  String get accountDeleteFailed =>
+      'Could not delete the account right now — try again shortly';
+
+  @override
   String get accountOrders => 'My orders';
 
   @override

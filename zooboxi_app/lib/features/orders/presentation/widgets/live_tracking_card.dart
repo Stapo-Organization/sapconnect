@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/maps/map_tiles.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/zb_image.dart';
@@ -443,7 +444,6 @@ const Key courierDotKey = Key('zb-courier-dot');
 List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
   final l = L.of(context);
   final tone = livePhaseColor(context, t.phase);
-  final dark = Theme.of(context).brightness == Brightness.dark;
 
   // Only a position we still believe becomes a dot. For most of a ride Mrsool
   // has not moved the courier since he confirmed pickup, and drawing him there
@@ -464,13 +464,8 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
   final to = courier != null ? target : dropoff;
 
   return [
-    TileLayer(
-      urlTemplate: dark
-          ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-          : 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-      userAgentPackageName: 'com.zooboxi.app',
-      maxNativeZoom: 18,
-    ),
+    // Same source as the delivery pin — see ZbTiles for why CARTO went.
+    ZbTiles.streets(context),
     if (from != null && to != null)
       PolylineLayer(
         polylines: [
@@ -514,13 +509,13 @@ List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
       alignment: AttributionAlignment.bottomLeft,
       showFlutterMapAttribution: false,
       attributions: [
+        const TextSourceAttribution('Esri, HERE', prependCopyright: false),
         TextSourceAttribution('OpenStreetMap', onTap: () {
           launchUrl(
             Uri.parse('https://www.openstreetmap.org/copyright'),
             mode: LaunchMode.externalApplication,
           );
         }),
-        const TextSourceAttribution('CARTO', prependCopyright: false),
       ],
     ),
   ];

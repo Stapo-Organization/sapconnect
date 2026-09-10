@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/maps/map_tiles.dart';
 import '../../../../core/utils/debouncer.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -19,9 +20,9 @@ const LatLng _fallbackCentre = LatLng(24.7136, 46.6753);
 /// stop shouted in the same weight. On a screen whose only question is "which
 /// door is yours", that noise competes with the one thing that matters. So:
 ///
-///  * [streets] is CARTO's muted basemap — the same OpenStreetMap data, drawn
-///    quiet, in near-greys, with a real dark twin instead of an inverted
-///    filter — the teal pin is then the only saturated thing on the screen;
+///  * [streets] is a quiet drawn map with Arabic street names (see
+///    [ZbTiles] for the provider and why) — the teal pin is the only
+///    saturated thing on the screen;
 ///  * [satellite] is the imagery, because a Riyadh compound is recognised by
 ///    its roof and its walls long before it is recognised by a street name.
 enum MapStyle { streets, satellite }
@@ -185,31 +186,9 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final dark = context.isDark;
 
     final satellite = _style == MapStyle.satellite;
-    // Imagery is imagery in both themes; only the drawn map has a night face.
-    final streetsUrl = dark
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-
-    final tiles = satellite
-        ? TileLayer(
-            urlTemplate:
-                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            userAgentPackageName: 'com.zooboxi.app',
-            maxNativeZoom: 18,
-          )
-        : TileLayer(
-            urlTemplate: streetsUrl,
-            subdomains: const ['a', 'b', 'c', 'd'],
-            userAgentPackageName: 'com.zooboxi.app',
-            maxNativeZoom: 20,
-            // The {r} in the URL: a phone screen asks for the @2x tile, so
-            // street names are crisp instead of the soft upscale the customer
-            // reads as "cheap map".
-            retinaMode: RetinaMode.isHighDensity(context),
-          );
+    final tiles = satellite ? ZbTiles.satellite() : ZbTiles.streets(context);
 
     final map = FlutterMap(
       mapController: _map,
@@ -376,9 +355,7 @@ class _Attribution extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final credit = style == MapStyle.satellite
-        ? 'Esri · Maxar'
-        : '© OpenStreetMap · CARTO';
+    final credit = ZbTiles.creditFor(satellite: style == MapStyle.satellite);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(

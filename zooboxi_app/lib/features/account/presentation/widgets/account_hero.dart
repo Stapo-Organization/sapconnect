@@ -185,7 +185,11 @@ class _Identity extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final signedIn = user != null;
-    final name = signedIn && user!.name.trim().isNotEmpty ? user!.name : l.accountGuest;
+    // A customer who never typed a name is still a customer — the screenshot
+    // that called a signed-in account «زائر» is how this line got written.
+    final name = !signedIn
+        ? l.accountGuest
+        : (user!.name.trim().isNotEmpty ? user!.name : l.accountMemberFallback);
     final standing = tier;
 
     return Row(

@@ -2359,6 +2359,42 @@ abstract class L {
   /// **'هل تريد تسجيل الخروج؟'**
   String get accountLogoutConfirm;
 
+  /// No description provided for @accountMemberFallback.
+  ///
+  /// In ar, this message translates to:
+  /// **'عميل زوبوكسي'**
+  String get accountMemberFallback;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الحساب'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteConfirmTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف حسابك نهائيًا؟'**
+  String get accountDeleteConfirmTitle;
+
+  /// No description provided for @accountDeleteConfirmBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنمسح رقمك واسمك وعناوينك وحيواناتك ومفضّلتك، ونُخفي اسمك عن طلباتك السابقة. لا يمكن التراجع. تقدر تسجّل من جديد بنفس الرقم كعميل جديد.'**
+  String get accountDeleteConfirmBody;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'حُذف حسابك. نتمنى أن نراك مجددًا.'**
+  String get accountDeleted;
+
+  /// No description provided for @accountDeleteFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حذف الحساب الآن — حاول بعد قليل'**
+  String get accountDeleteFailed;
+
   /// No description provided for @accountOrders.
   ///
   /// In ar, this message translates to:
