@@ -41,23 +41,29 @@ ENTITLEMENTS=$(mktemp -t zb-entitlements)
 trap 'rm -f "$ENTITLEMENTS"' EXIT
 codesign -d --entitlements - --xml "$APP" > "$ENTITLEMENTS" 2>/dev/null
 
-resealed=0
 for framework in "$APP"/Frameworks/*.framework; do
-  if codesign -dvv "$framework" 2>&1 | grep -q '^Signature=adhoc'; then
-    echo "▸ signing $(basename "$framework") (ad-hoc from the native-assets pipeline)"
-    codesign --force --sign "$IDENTITY" --timestamp=none "$framework"
-    resealed=1
-  fi
+  # Captured, not piped into `grep -q`: with `pipefail` a matching -q closes
+  # the pipe early, codesign dies of SIGPIPE, and the pipeline reports 141 —
+  # so the one framework that DOES need signing is the one the test misses.
+  signature=$(codesign -dvv "$framework" 2>&1 || true)
+  case "$signature" in
+    *"Signature=adhoc"*)
+      echo "▸ signing $(basename "$framework") (ad-hoc from the native-assets pipeline)"
+      codesign --force --sign "$IDENTITY" --timestamp=none "$framework"
+      ;;
+  esac
 done
 
-if [ "$resealed" = 1 ]; then
-  echo "▸ re-sealing the bundle"
-  codesign --force --sign "$IDENTITY" --timestamp=none \
-    --entitlements "$ENTITLEMENTS" --generate-entitlement-der "$APP"
-fi
+# Always, not only when a framework was just signed. An incremental build
+# rewrites files inside a bundle this script has already re-sealed, and the
+# seal then describes the previous contents — "a sealed resource is missing or
+# invalid". Re-sealing a bundle that did not need it costs a second.
+echo "▸ re-sealing the bundle"
+codesign --force --sign "$IDENTITY" --timestamp=none \
+  --entitlements "$ENTITLEMENTS" --generate-entitlement-der "$APP"
 
 codesign --verify --deep --strict "$APP"
 
-echo "▸ installing on $DEVICE…"
+echo "▸ installing on ${DEVICE}…"
 xcrun devicectl device install app --device "$DEVICE" "$APP" | grep -E "bundleID|App installed"
 xcrun devicectl device info apps --device "$DEVICE" 2>/dev/null | grep -i zooboxi
