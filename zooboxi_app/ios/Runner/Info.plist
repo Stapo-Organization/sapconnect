@@ -108,6 +108,12 @@
 		     customer opens it) is dropped without this one. -->
 		<string>remote-notification</string>
 	</array>
+	<!-- Never requested — the app asks for "while in use" only. geolocator's
+	     binary references the always-authorisation API, and App Store Connect
+	     warns (ITMS-90683) unless a purpose string exists for it. Same words,
+	     so a reviewer reading both sees one honest sentence. -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>نستخدم موقعك لعرض المنتجات المتوفّرة فعليًا قربك ووقت التوصيل الحقيقي.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نستخدم موقعك لعرض المنتجات المتوفّرة فعليًا قربك ووقت التوصيل الحقيقي.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
