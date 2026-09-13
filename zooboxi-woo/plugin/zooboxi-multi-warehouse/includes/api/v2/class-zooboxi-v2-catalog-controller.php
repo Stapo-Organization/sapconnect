@@ -702,9 +702,24 @@ class Zooboxi_V2_Catalog_Controller
         $base = preg_replace('#/api/woo$#', '', $api);
         $resp = wp_remote_get($base . '/storage/hero-art/manifest.json', ['timeout' => 8]);
 
-        $art = [];
+        $art   = [];
+        $needs = [];
         if (!is_wp_error($resp) && (int) wp_remote_retrieve_response_code($resp) === 200) {
             $decoded = json_decode((string) wp_remote_retrieve_body($resp), true);
+            foreach ((array) ($decoded['needs'] ?? []) as $species => $byNeed) {
+                foreach ((array) $byNeed as $need => $row) {
+                    $cut = [];
+                    foreach ((array) ($row['products'] ?? []) as $one) {
+                        $one = esc_url_raw((string) $one);
+                        if ($one !== '') {
+                            $cut[] = $one;
+                        }
+                    }
+                    if ($cut !== []) {
+                        $needs[(string) $species][(string) $need] = $cut;
+                    }
+                }
+            }
             foreach ((array) ($decoded['art'] ?? []) as $theme => $row) {
                 $products = [];
                 foreach ((array) ($row['products'] ?? []) as $one) {
@@ -726,6 +741,7 @@ class Zooboxi_V2_Catalog_Controller
         // Six hours whether or not it answered: a slider is not worth an
         // outbound request per home load, and art changes weekly at most.
         set_transient('zb_hero_art', $art, 6 * HOUR_IN_SECONDS);
+        set_transient('zb_need_art', $needs, 6 * HOUR_IN_SECONDS);
 
         return $memo = $art;
     }
@@ -1062,25 +1078,29 @@ class Zooboxi_V2_Catalog_Controller
      * @return array<string, array<int, array{key:string,id:int,name:string,icon:string}>>
      */
     /**
-     * The photo of the most wanted in-stock product under a need's category.
+     * The photos of the most wanted in-stock products under a need's category,
+     * best first — up to six, which is what sapconnect's cut-out pass picks
+     * its two or three from.
      *
      * Location-aware through the same request seeding every catalogue query
      * gets, so a Riyadh phone never sees a Jeddah-only pack. Cached an hour
      * per warehouse; the tile it decorates is cached with the home payload.
+     *
+     * @return string[]
      */
-    private static function need_image(int $term_id): ?string
+    private static function need_images(int $term_id, int $limit = 6): array
     {
         $wh   = Zooboxi_V2_Scope::warehouse_code();
-        $tkey = 'zb_v2_need_img_' . $term_id . '_' . ($wh !== '' ? $wh : 'all');
+        $tkey = 'zb_v2_need_imgs_' . $term_id . '_' . ($wh !== '' ? $wh : 'all');
         $hit  = get_transient($tkey);
-        if (is_string($hit)) {
-            return $hit === '' ? null : $hit;
+        if (is_array($hit)) {
+            return $hit;
         }
 
-        $url = null;
-        $ids = wc_get_products([
+        $urls = [];
+        $ids  = wc_get_products([
             'status'       => 'publish',
-            'limit'        => 3,
+            'limit'        => $limit + 2,
             'stock_status' => 'instock',
             'orderby'      => 'popularity',
             'order'        => 'DESC',
@@ -1097,14 +1117,37 @@ class Zooboxi_V2_Catalog_Controller
             if (!$product) {
                 continue;
             }
-            $url = Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail');
-            if ($url) {
+            // The full-size photo: the cut-out pass trims it, and a 300px
+            // thumbnail cut and blown up on a tile looks exactly that.
+            $url = Zooboxi_Product_DTO::image_url($product, 'woocommerce_single');
+            if ($url && !in_array($url, $urls, true)) {
+                $urls[] = $url;
+            }
+            if (count($urls) >= $limit) {
                 break;
             }
         }
 
-        set_transient($tkey, (string) $url, HOUR_IN_SECONDS);
-        return $url;
+        set_transient($tkey, $urls, HOUR_IN_SECONDS);
+        return $urls;
+    }
+
+    /**
+     * The need tiles' cut-out products from sapconnect's manifest —
+     * species → need → floating PNGs, best first. Fetched with the slide art
+     * and cached beside it.
+     *
+     * @return array<string,array<string,string[]>>
+     */
+    private function need_art(): array
+    {
+        $cached = get_transient('zb_need_art');
+        if (is_array($cached)) {
+            return $cached;
+        }
+        $this->hero_art(); // fills both transients from one manifest read
+        $cached = get_transient('zb_need_art');
+        return is_array($cached) ? $cached : [];
     }
 
     private function need_nav(): array
@@ -1141,7 +1184,8 @@ class Zooboxi_V2_Catalog_Controller
 
         // Only what the serving branch actually stocks — an empty shelf behind
         // a tile is worse than no tile.
-        $counts = Zooboxi_V2_Scope::warehouse_code() !== '' ? Zooboxi_V2_Scope::category_counts() : null;
+        $counts  = Zooboxi_V2_Scope::warehouse_code() !== '' ? Zooboxi_V2_Scope::category_counts() : null;
+        $needArt = $this->need_art();
 
         $out = [];
         foreach ($curated as $species => $rows) {
@@ -1154,15 +1198,20 @@ class Zooboxi_V2_Catalog_Controller
                 if ($counts !== null && !self::stocked_in_tree((int) $id, $counts)) {
                     continue;
                 }
+                $images  = self::need_images((int) $term->term_id);
                 $tiles[] = [
                     'key'   => $key,
                     'id'    => (int) $term->term_id,
                     'slug'  => (string) $term->slug,
                     'name'  => $name,
                     'icon'  => $icon,
-                    // A real product on the tile, not a glyph: the need's most
-                    // wanted item that this shelf actually has in stock.
-                    'image' => self::need_image((int) $term->term_id),
+                    // Real products on the tile, not a glyph: the need's most
+                    // wanted items that this shelf actually has in stock —
+                    // as floating cut-outs when sapconnect has made them, as
+                    // the best seller's photo until it has.
+                    'image'   => $images[0] ?? null,
+                    'images'  => $images,
+                    'cutouts' => $needArt[$species][$key] ?? [],
                 ];
             }
             if ($tiles) {
