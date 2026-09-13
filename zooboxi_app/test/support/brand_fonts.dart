@@ -51,6 +51,6 @@ Future<void> loadBrandFonts() async {
   // The one-glyph Riyal face, so ﷼ draws in a sheet exactly as it does in the
   // app instead of falling through to a blank.
   await (FontLoader('SaudiRiyal')
-        ..addFont(read('assets/fonts/SaudiRiyal.otf')))
+        ..addFont(read('assets/fonts/SaudiRiyal.ttf')))
       .load();
 }

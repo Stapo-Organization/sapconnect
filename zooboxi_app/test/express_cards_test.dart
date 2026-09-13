@@ -175,7 +175,7 @@ void main() {
     expect(find.text('الأعلى طلباً اليوم'), findsOneWidget);
   });
 
-  testWidgets('a wall tile with no photo still shows its sticker and price', (tester) async {
+  testWidgets('a wall with no photos still shows its sticker and prices', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -191,7 +191,9 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('New'), findsNWidgets(3));
+    // One sticker on the wall, on the first polaroid — a sticker on every
+    // tile is wallpaper.
+    expect(find.textContaining('✦'), findsOneWidget);
     expect(find.byType(ArrivalTile), findsNWidgets(3));
   });
 }

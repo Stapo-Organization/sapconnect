@@ -3557,4 +3557,57 @@ class LAr extends L {
 
   @override
   String get replenishCtaPlain => 'أعد الطلب';
+
+  @override
+  String get promiseOpenNow => 'الفرع مفتوح · يوصلك اليوم الساعة';
+
+  @override
+  String get promiseTomorrow => 'غدًا';
+
+  @override
+  String get promiseClosesIn => 'يغلق الطلب بعد';
+
+  @override
+  String get promiseOpensLabel => 'يفتح';
+
+  @override
+  String get promiseRouteYou => 'إليك';
+
+  @override
+  String get promiseBranchFallback => 'فرعك';
+
+  @override
+  String get needsOnShelf => 'على رفّ فرعك الآن';
+
+  @override
+  String get podiumAddAll => 'أضف الثلاثة';
+
+  @override
+  String get ticketKicker => 'كميات محدودة';
+
+  @override
+  String get ticketSubtitle => 'أصناف مختارة · بكميات فرعك فقط';
+
+  @override
+  String get ticketCta => 'اكتشف العروض';
+
+  @override
+  String get ticketClosesIn => 'الفرع يغلق بعد';
+
+  @override
+  String get ticketUnits => 'ساعة : دقيقة';
+
+  @override
+  String get ticketUpTo => 'حتى';
+
+  @override
+  String replenishBowl(String pet) {
+    return 'وعاء $pet';
+  }
+
+  @override
+  String get replenishBowlNoPet => 'الوعاء';
+
+  @override
+  String get replenishCtaShort => 'اطلبه الآن';
 }

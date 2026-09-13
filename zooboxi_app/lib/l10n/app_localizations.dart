@@ -5538,6 +5538,108 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'أعد الطلب'**
   String get replenishCtaPlain;
+
+  /// No description provided for @promiseOpenNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفرع مفتوح · يوصلك اليوم الساعة'**
+  String get promiseOpenNow;
+
+  /// No description provided for @promiseTomorrow.
+  ///
+  /// In ar, this message translates to:
+  /// **'غدًا'**
+  String get promiseTomorrow;
+
+  /// No description provided for @promiseClosesIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'يغلق الطلب بعد'**
+  String get promiseClosesIn;
+
+  /// No description provided for @promiseOpensLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'يفتح'**
+  String get promiseOpensLabel;
+
+  /// No description provided for @promiseRouteYou.
+  ///
+  /// In ar, this message translates to:
+  /// **'إليك'**
+  String get promiseRouteYou;
+
+  /// No description provided for @promiseBranchFallback.
+  ///
+  /// In ar, this message translates to:
+  /// **'فرعك'**
+  String get promiseBranchFallback;
+
+  /// No description provided for @needsOnShelf.
+  ///
+  /// In ar, this message translates to:
+  /// **'على رفّ فرعك الآن'**
+  String get needsOnShelf;
+
+  /// No description provided for @podiumAddAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف الثلاثة'**
+  String get podiumAddAll;
+
+  /// No description provided for @ticketKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'كميات محدودة'**
+  String get ticketKicker;
+
+  /// No description provided for @ticketSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصناف مختارة · بكميات فرعك فقط'**
+  String get ticketSubtitle;
+
+  /// No description provided for @ticketCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتشف العروض'**
+  String get ticketCta;
+
+  /// No description provided for @ticketClosesIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفرع يغلق بعد'**
+  String get ticketClosesIn;
+
+  /// No description provided for @ticketUnits.
+  ///
+  /// In ar, this message translates to:
+  /// **'ساعة : دقيقة'**
+  String get ticketUnits;
+
+  /// No description provided for @ticketUpTo.
+  ///
+  /// In ar, this message translates to:
+  /// **'حتى'**
+  String get ticketUpTo;
+
+  /// The kicker over the express replenish tile, naming whose bowl is running low.
+  ///
+  /// In ar, this message translates to:
+  /// **'وعاء {pet}'**
+  String replenishBowl(String pet);
+
+  /// No description provided for @replenishBowlNoPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوعاء'**
+  String get replenishBowlNoPet;
+
+  /// No description provided for @replenishCtaShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلبه الآن'**
+  String get replenishCtaShort;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

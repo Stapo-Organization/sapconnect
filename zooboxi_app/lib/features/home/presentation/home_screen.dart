@@ -36,7 +36,11 @@ import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
 import 'widgets/express_band.dart';
+import 'widgets/express_cards/animal_pills.dart';
 import 'widgets/express_cards/arrivals_wall.dart';
+import 'widgets/express_cards/clearance_ticket.dart';
+import 'widgets/express_cards/need_pockets.dart';
+import 'widgets/express_cards/podium.dart';
 import 'widgets/express_cards/picks_rail.dart';
 import 'widgets/express_cards/ranked_list.dart';
 import 'widgets/express_cards/reorder_strip.dart';
@@ -48,6 +52,7 @@ import 'widgets/hero_carousel.dart';
 import 'widgets/home_header.dart';
 import 'widgets/missions_strip.dart';
 import 'widgets/need_nav.dart';
+import 'widgets/promise_header.dart';
 import 'widgets/replenish_tile.dart';
 import 'widgets/trust_strip.dart';
 
@@ -361,6 +366,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         HeroCarousel.hasContent(payload) &&
         payload.slots.any((slot) => slot.type == 'hero');
 
+    // «الوعد»: إكسبريس leads with its own header — the clock is the hero —
+    // which, like the canvas, runs behind the status bar. Its slot's arrival
+    // band folds into it.
+    final promise = !canvas &&
+        payload != null &&
+        !payload.isEmpty &&
+        payload.scope != null &&
+        payload.scope!.shelf == 'express';
+    final tall = canvas || promise;
+
     final statusTop = MediaQuery.paddingOf(context).top;
 
     final shelf = ref.watch(shelfProvider);
@@ -368,7 +383,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final scroll = NotificationListener<ScrollNotification>(
       onNotification: _onScroll,
       child: RefreshIndicator.adaptive(
-        edgeOffset: canvas ? statusTop + 4 : 0,
+        edgeOffset: tall ? statusTop + 4 : 0,
         onRefresh: () async {
           Haptics.light();
           ref.invalidate(homeProvider);
@@ -391,12 +406,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            ] else
+            ] else if (promise)
+              SliverToBoxAdapter(
+                child: RepaintBoundary(child: PromiseHeader(scope: payload.scope!)),
+              )
+            else
               SliverToBoxAdapter(
                 child: RepaintBoundary(child: HomeHeader(scope: payload?.scope)),
               ),
             if (payload != null && !payload.isEmpty)
-              ..._slots(context, ref, payload)
+              ..._slots(context, ref, payload, promise: promise)
             else if (payload != null)
               SliverFillRemaining(
                 hasScrollBody: false,
@@ -433,7 +452,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // The canvas runs behind the status bar, so the clock goes light while it
     // is there; the moment the address bar takes over, its surface backs the
     // status bar and the clock flips with it.
-    final statusStyle = (canvas && !_navVisible) || context.isDark
+    final statusStyle = (tall && !_navVisible) || context.isDark
         ? SystemUiOverlayStyle.light
         : SystemUiOverlayStyle.dark;
 
@@ -464,7 +483,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: statusStyle,
       child: Scaffold(
-        body: canvas
+        body: tall
             ? Stack(
                 children: [
                   storefront,
@@ -500,7 +519,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  List<Widget> _slots(BuildContext context, WidgetRef ref, HomePayload payload) {
+  List<Widget> _slots(BuildContext context, WidgetRef ref, HomePayload payload, {required bool promise}) {
     final l = L.of(context);
 
     final feed = ref.watch(homeFeedProvider);
@@ -570,6 +589,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // إكسبريس leads with when it arrives, not with what it sells — the
         // whole difference between a store and a delivery app, in one band.
         case 'eta_band':
+          // Folded into the promise header when that is what leads.
+          if (promise) break;
           final scope = payload.scope;
           if (scope == null) break;
           emit(ExpressEtaBand(scope: scope), bottom: 16);
@@ -608,13 +629,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               onSeeAll: seeAll,
             ));
           } else if (express && slot.key == 'bestsellers') {
-            emit(RankedList(
-              title: rail.title,
-              products: products,
-              zone: rail.key,
-              onAdd: add,
-              onSeeAll: seeAll,
-            ));
+            // The top three on a podium; a chart when there are not three.
+            emit(Podium.fits(products)
+                ? Podium(
+                    title: rail.title,
+                    products: products,
+                    zone: rail.key,
+                    onAdd: add,
+                    onSeeAll: seeAll,
+                  )
+                : RankedList(
+                    title: rail.title,
+                    products: products,
+                    zone: rail.key,
+                    onAdd: add,
+                    onSeeAll: seeAll,
+                  ));
             break;
           } else if (express && slot.key == 'new') {
             slivers.addAll(ArrivalsWall.slivers(
@@ -636,6 +666,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
         case 'animal_nav':
           if (payload.animalNav.isEmpty) break;
+          // On إكسبريس the tiles are spent on the needs, so the species
+          // become a filter line with the customer's own animal lit.
+          if (express) {
+            emit(
+              AnimalPills(
+                items: payload.animalNav,
+                species: (feedData?.needs ?? NeedsHint.none).species,
+              ),
+              bottom: 20,
+            );
+            break;
+          }
           emit(AnimalNav(items: payload.animalNav));
 
         // The needs under the animals. The cacheable payload carries every
@@ -645,7 +687,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         case 'need_nav':
           final needs = NeedNav.resolve(payload.needNav, feedData?.needs ?? NeedsHint.none);
           if (needs.isEmpty) break;
-          emit(NeedNav(items: needs));
+          emit(express ? NeedPockets(items: needs) : NeedNav(items: needs));
 
         // «يخلص طعام أوريو» — draws itself only when the gauge says so.
         case 'replenish':
@@ -797,6 +839,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (rail == null) break;
           final products = claim(rail.products);
           if (products == null) break;
+          if (express) {
+            emit(
+              ClearanceTicket(
+                title: rail.title,
+                products: products,
+                onAdd: add,
+                hours: payload.scope?.expressHours,
+                spill: [
+                  for (final slide in payload.hero)
+                    if (slide.theme == 'clearance') ...slide.productImages,
+                ],
+                onSeeAll: () => context.push(
+                  Uri(
+                    path: '/listing',
+                    queryParameters: {'rail': 'clearance', 'title': rail.title},
+                  ).toString(),
+                ),
+              ),
+            );
+            break;
+          }
           emit(ClearanceBand(title: rail.title, products: products, onAdd: add, tags: express));
 
         // Saved items, sale first — the reason someone saved a product is

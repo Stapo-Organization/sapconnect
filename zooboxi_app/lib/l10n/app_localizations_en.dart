@@ -3486,4 +3486,57 @@ class LEn extends L {
 
   @override
   String get replenishCtaPlain => 'Reorder';
+
+  @override
+  String get promiseOpenNow => 'Branch open · arrives today at';
+
+  @override
+  String get promiseTomorrow => 'tomorrow';
+
+  @override
+  String get promiseClosesIn => 'Ordering closes in';
+
+  @override
+  String get promiseOpensLabel => 'Opens';
+
+  @override
+  String get promiseRouteYou => 'To you';
+
+  @override
+  String get promiseBranchFallback => 'Your branch';
+
+  @override
+  String get needsOnShelf => 'On your branch\'s shelf now';
+
+  @override
+  String get podiumAddAll => 'Add all three';
+
+  @override
+  String get ticketKicker => 'Limited stock';
+
+  @override
+  String get ticketSubtitle => 'Selected items · only what your branch holds';
+
+  @override
+  String get ticketCta => 'See the offers';
+
+  @override
+  String get ticketClosesIn => 'Branch closes in';
+
+  @override
+  String get ticketUnits => 'hours : minutes';
+
+  @override
+  String get ticketUpTo => 'up to';
+
+  @override
+  String replenishBowl(String pet) {
+    return '$pet\'s bowl';
+  }
+
+  @override
+  String get replenishBowlNoPet => 'The bowl';
+
+  @override
+  String get replenishCtaShort => 'Order now';
 }
