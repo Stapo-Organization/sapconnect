@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import '../../../../../core/widgets/press_scale.dart';
 import '../../../../../core/widgets/zb_image.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/catalog_models.dart';
+import 'card_form.dart';
 
 /// «تحتاج الآن؟» as four coloured pockets.
 ///
@@ -293,51 +293,11 @@ class _Floating extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           if (urls.length > 2)
-            PositionedDirectional(end: 44, top: 4, child: _Cut(url: urls[2], width: 48, height: 48, degrees: rtl ? -12 : 12)),
+            PositionedDirectional(end: 44, top: 4, child: FloatingProduct(url: urls[2], width: 48, height: 48, degrees: rtl ? -12 : 12)),
           if (urls.length > 1)
-            PositionedDirectional(end: 58, bottom: 10, child: _Cut(url: urls[1], width: 58, height: 64, degrees: rtl ? 10 : -10)),
-          PositionedDirectional(end: 4, bottom: 0, child: _Cut(url: urls[0], width: 82, height: 90, degrees: rtl ? -5 : 5)),
+            PositionedDirectional(end: 58, bottom: 10, child: FloatingProduct(url: urls[1], width: 58, height: 64, degrees: rtl ? 10 : -10)),
+          PositionedDirectional(end: 4, bottom: 0, child: FloatingProduct(url: urls[0], width: 82, height: 90, degrees: rtl ? -5 : 5)),
         ],
-      ),
-    );
-  }
-}
-
-/// One cut-out with a real shadow: the same picture, turned to a dark
-/// silhouette and blurred, sits a few points below it.
-class _Cut extends StatelessWidget {
-  const _Cut({required this.url, required this.width, required this.height, required this.degrees});
-
-  final String url;
-  final double width;
-  final double height;
-  final double degrees;
-
-  @override
-  Widget build(BuildContext context) {
-    final picture = ZbImage(url: url, backgroundColor: Colors.transparent);
-    return Transform.rotate(
-      angle: degrees * math.pi / 180,
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: Stack(
-          clipBehavior: Clip.none,
-          fit: StackFit.expand,
-          children: [
-            Transform.translate(
-              offset: const Offset(0, 8),
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                child: ColorFiltered(
-                  colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.38), BlendMode.srcIn),
-                  child: picture,
-                ),
-              ),
-            ),
-            picture,
-          ],
-        ),
       ),
     );
   }

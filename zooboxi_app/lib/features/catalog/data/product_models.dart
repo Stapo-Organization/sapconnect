@@ -181,6 +181,7 @@ class ProductCard {
     this.deliveryChip,
     this.wishlisted = false,
     this.bundle,
+    this.cutout,
   });
 
   final int id;
@@ -188,6 +189,11 @@ class ProductCard {
   final String? itemCode;
   final BrandRef? brand;
   final String? image;
+
+  /// The same product cut off its white card and trimmed, when sapconnect
+  /// has made one — home rails only. Forms that float products use it and
+  /// fall back to [image] on a plate.
+  final String? cutout;
 
   /// The price the customer pays now.
   final double price;
@@ -226,6 +232,7 @@ class ProductCard {
         itemCode: asStringOrNull(json['item_code']),
         brand: BrandRef.maybe(json['brand']),
         image: asStringOrNull(json['image']),
+        cutout: asStringOrNull(json['cutout']),
         price: asDouble(json['price']),
         regularPrice: asDoubleOrNull(json['regular_price']),
         salePrice: asDoubleOrNull(json['sale_price']),
@@ -251,6 +258,7 @@ class ProductCard {
         itemCode: itemCode,
         brand: brand,
         image: image,
+        cutout: cutout,
         price: price,
         regularPrice: regularPrice,
         salePrice: salePrice,

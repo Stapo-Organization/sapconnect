@@ -129,7 +129,7 @@ Widget _page(Brightness brightness) {
                   const SliverToBoxAdapter(child: NeedPockets(items: _needs)),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
                   SliverToBoxAdapter(
-                    child: Podium(title: 'الأكثر طلبًا في فرعك', products: _products.take(3).toList(), onAdd: _add, onSeeAll: () {}),
+                    child: Podium(title: 'الأكثر طلبًا على إكسبريس', products: _products.take(3).toList(), onAdd: _add, onSeeAll: () {}),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
                   SliverToBoxAdapter(
@@ -143,7 +143,7 @@ Widget _page(Brightness brightness) {
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                  ...ArrivalsWall.slivers(context, title: 'وصل حديثًا إلى فرعك', products: _products.skip(6).toList(), onAdd: _add, onSeeAll: () {}),
+                  ...ArrivalsWall.slivers(context, title: 'وصل حديثًا إلى إكسبريس', products: _products.skip(6).toList(), onAdd: _add, onSeeAll: () {}),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 ],
               ),

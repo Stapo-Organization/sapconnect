@@ -6,19 +6,22 @@ import '../../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/utils/haptics.dart';
 import '../../../../../core/widgets/press_scale.dart';
+import '../../../../../core/widgets/product_card_metrics.dart';
 import '../../../../../core/widgets/section_header.dart';
+import '../../../../../core/widgets/sparkles.dart';
 import '../../../../../core/widgets/zb_image.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/product_models.dart';
 import 'card_form.dart';
 
-/// «الأكثر طلبًا على إكسبريس» as a podium.
+/// «الأكثر طلبًا على إكسبريس» as a stage.
 ///
 /// A ranking read down is a chart; a ranking read across, with the winner
-/// raised on the tallest block and wearing the gold ring, is a ceremony. The
-/// branch's top three stand on gold, silver and bronze, and the one button
-/// under them adds all three — the basket a new customer of this branch is
-/// most likely to want, in one tap.
+/// raised on the tallest block under the brightest light, is a ceremony. The
+/// three stand on a night-teal stage — three spotlight cones from above, a
+/// glossy floor, a few sparkles over the winner — each product floating free
+/// of its white card, with a real shadow under it, on a gold, silver or
+/// bronze block. One gold button under them adds all three.
 class Podium extends ConsumerStatefulWidget {
   const Podium({
     super.key,
@@ -39,6 +42,13 @@ class Podium extends ConsumerStatefulWidget {
 
   /// Whether there are enough products for a podium at all.
   static bool fits(List<ProductCard> products) => products.length >= 3;
+
+  static const Color stageTop = Color(0xFF0F4457);
+  static const Color stageMid = Color(0xFF07344A);
+  static const Color stageDeep = Color(0xFF041B24);
+  static const Color gold = Color(0xFFFBD268);
+  static const Color goldDeep = Color(0xFFF4BE2C);
+  static const Color goldInk = Color(0xFF3A2600);
 
   @override
   ConsumerState<Podium> createState() => _PodiumState();
@@ -67,7 +77,6 @@ class _PodiumState extends ConsumerState<Podium> {
   Widget build(BuildContext context) {
     if (!Podium.fits(widget.products)) return const SizedBox.shrink();
     final l = L.of(context);
-    final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
     final top = widget.products.take(3).toList();
     final total = top.where((p) => p.inStock).fold<double>(0, (sum, p) => sum + p.price);
@@ -84,106 +93,124 @@ class _PodiumState extends ConsumerState<Podium> {
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: cs.surface,
-              borderRadius: BorderRadius.circular(ZbTokens.rXl),
-              border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.7)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.08),
-                  blurRadius: 28,
-                  spreadRadius: -12,
-                  offset: const Offset(0, 16),
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: ProductCardMetrics.maxTextScale,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(ZbTokens.rXl),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Podium.stageTop, Podium.stageMid, Podium.stageDeep],
+                  stops: [0, 0.45, 1],
                 ),
-              ],
-            ),
-            padding: const EdgeInsets.fromLTRB(12, 22, 12, 12),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(flex: 10, child: _Step(rank: 2, product: top[1], onAdd: widget.onAdd, zone: widget.zone)),
-                    Gap.w8,
-                    Expanded(flex: 12, child: _Step(rank: 1, product: top[0], onAdd: widget.onAdd, zone: widget.zone)),
-                    Gap.w8,
-                    Expanded(flex: 10, child: _Step(rank: 3, product: top[2], onAdd: widget.onAdd, zone: widget.zone)),
-                  ],
-                ),
-                // The floor the three blocks stand on.
-                Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: context.isDark
-                          ? [cs.surfaceContainerHighest, cs.surfaceContainerHigh]
-                          : const [Color(0xFFD9DEDC), Color(0xFFC6CDCA)],
-                    ),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10, spreadRadius: -6, offset: const Offset(0, 6)),
-                    ],
+                boxShadow: [
+                  BoxShadow(
+                    color: Podium.stageDeep.withValues(alpha: 0.5),
+                    blurRadius: 32,
+                    spreadRadius: -10,
+                    offset: const Offset(0, 18),
                   ),
-                ),
-                if (canAdd) ...[
-                  const SizedBox(height: 12),
-                  Semantics(
-                    button: true,
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(ZbTokens.rPill),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(ZbTokens.rPill),
-                        onTap: _adding ? null : () => _addAll(top),
-                        child: Ink(
-                          height: 40,
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  const Positioned.fill(child: CustomPaint(painter: _StagePainter())),
+                  const Positioned.fill(child: SparkleField(sparkles: _stageSparkles, twinkle: true)),
+                  // The lit top edge every object on the page has.
+                  Positioned(top: 0, left: 0, right: 0, height: 1, child: ColoredBox(color: Colors.white.withValues(alpha: 0.18))),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 30, 12, 14),
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(flex: 10, child: _Step(rank: 2, product: top[1], zone: widget.zone)),
+                            Gap.w8,
+                            Expanded(flex: 12, child: _Step(rank: 1, product: top[0], zone: widget.zone)),
+                            Gap.w8,
+                            Expanded(flex: 10, child: _Step(rank: 3, product: top[2], zone: widget.zone)),
+                          ],
+                        ),
+                        // The floor: glossy, lit from above, dark at the edges.
+                        Container(
+                          height: 10,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                            borderRadius: BorderRadius.circular(5),
                             gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [ZbTokens.tealDark, ZbTokens.tealDeep],
+                              colors: [Color(0xFF123A47), Color(0xFF2C6273), Color(0xFF123A47)],
                             ),
                             boxShadow: [
-                              BoxShadow(
-                                color: ZbTokens.tealDeep.withValues(alpha: 0.55),
-                                blurRadius: 16,
-                                spreadRadius: -6,
-                                offset: const Offset(0, 8),
-                              ),
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 14, offset: const Offset(0, 8)),
                             ],
                           ),
-                          child: Center(
-                            child: _adding
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.add_rounded, size: 18, color: Colors.white),
-                                      Gap.w6,
-                                      Text(
-                                        '${l.podiumAddAll} · ${Fmt.number(total, locale: locale)} $riyalSymbol',
-                                        style: context.tt.labelLarge?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w900,
-                                        ),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Container(height: 1, color: Colors.white.withValues(alpha: 0.35)),
+                          ),
+                        ),
+                        if (canAdd) ...[
+                          const SizedBox(height: 16),
+                          Semantics(
+                            button: true,
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                                onTap: _adding ? null : () => _addAll(top),
+                                child: Ink(
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [Color(0xFFFFE9A8), Podium.goldDeep],
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Podium.goldDeep.withValues(alpha: 0.55),
+                                        blurRadius: 18,
+                                        spreadRadius: -6,
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
+                                  child: Center(
+                                    child: _adding
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Podium.goldInk),
+                                          )
+                                        : Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.add_rounded, size: 18, color: Podium.goldInk),
+                                              Gap.w6,
+                                              Text(
+                                                '${l.podiumAddAll} · ${Fmt.number(total, locale: locale)} $riyalSymbol',
+                                                style: context.tt.labelLarge?.copyWith(
+                                                  color: Podium.goldInk,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -192,21 +219,57 @@ class _PodiumState extends ConsumerState<Podium> {
   }
 }
 
-/// One product on its block: the ring, the medal, the name, the price, the
-/// step it stands on.
+/// A few points of light over the winner — gold and white, drifting.
+const List<SparkleSpec> _stageSparkles = [
+  SparkleSpec(dx: 0.50, dy: 0.05, size: 10, color: Podium.gold),
+  SparkleSpec(dx: 0.40, dy: 0.13, size: 6, color: Colors.white, delay: Duration(milliseconds: 300)),
+  SparkleSpec(dx: 0.61, dy: 0.10, size: 7, color: Podium.gold, delay: Duration(milliseconds: 650), rotation: 0.5),
+  SparkleSpec(dx: 0.16, dy: 0.24, size: 5, color: Colors.white, delay: Duration(milliseconds: 900)),
+  SparkleSpec(dx: 0.86, dy: 0.20, size: 6, color: Colors.white, delay: Duration(milliseconds: 450)),
+];
+
+/// Three spotlight cones from above the stage, the middle one brightest.
+class _StagePainter extends CustomPainter {
+  const _StagePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    for (final (x, alpha, r) in [(0.17, 0.09, 150.0), (0.50, 0.16, 190.0), (0.83, 0.09, 150.0)]) {
+      final center = Offset(w * x, -40);
+      final paint = Paint()
+        ..shader = RadialGradient(
+          colors: [Colors.white.withValues(alpha: alpha), Colors.white.withValues(alpha: 0)],
+          stops: const [0, 1],
+        ).createShader(Rect.fromCircle(center: center, radius: r));
+      canvas.drawCircle(center, r, paint);
+    }
+    // A warm glow low on the floor, under the gold block.
+    final glow = Paint()
+      ..shader = RadialGradient(
+        colors: [Podium.gold.withValues(alpha: 0.18), Podium.gold.withValues(alpha: 0)],
+      ).createShader(Rect.fromCenter(center: Offset(w / 2, size.height - 70), width: 260, height: 120));
+    canvas.drawRect(Offset.zero & size, glow);
+  }
+
+  @override
+  bool shouldRepaint(_StagePainter old) => false;
+}
+
+/// One product on its block: the art floating under its light, the name,
+/// the price on a white chip, the block it stands on.
 class _Step extends ConsumerWidget {
-  const _Step({required this.rank, required this.product, required this.onAdd, required this.zone});
+  const _Step({required this.rank, required this.product, required this.zone});
 
   final int rank;
   final ProductCard product;
-  final Future<bool> Function(ProductCard product)? onAdd;
   final String? zone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final first = rank == 1;
     final metal = _Metal.of(rank);
-    final ring = first ? 96.0 : 74.0;
+    final tt = context.tt;
 
     return Semantics(
       button: true,
@@ -218,7 +281,7 @@ class _Step extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _Ring(product: product, size: ring, metal: metal, crown: first),
+            _Art(product: product, metal: metal, height: first ? 116 : 90),
             const SizedBox(height: 8),
             SizedBox(
               height: context.nameLine * 2,
@@ -227,47 +290,33 @@ class _Step extends ConsumerWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: first ? null : 12.5),
-              ),
-            ),
-            const SizedBox(height: 4),
-            SizedBox(
-              height: first ? context.priceLargeLine : context.priceLine,
-              child: Center(
-                child: InlinePrice(
-                  product: product,
-                  compare: false,
-                  style: first ? context.tt.titleLarge : context.tt.titleMedium,
+                style: tt.titleSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: first ? null : 12.5,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 4, offset: const Offset(0, 1))],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Container(
-              height: switch (rank) { 1 => 52.0, 2 => 34.0, _ => 26.0 },
-              width: double.infinity,
+              height: 26,
+              padding: const EdgeInsets.symmetric(horizontal: 9),
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [metal.stepLight, metal.stepDark],
-                ),
-                boxShadow: [
-                  BoxShadow(color: Colors.white.withValues(alpha: 0.9), offset: const Offset(0, 1), blurRadius: 0, spreadRadius: -1),
-                ],
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(ZbTokens.rPill),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 4))],
               ),
               alignment: Alignment.center,
-              child: Text(
-                '$rank',
-                style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontWeight: FontWeight.w800,
-                  fontSize: switch (rank) { 1 => 22.0, 2 => 16.0, _ => 14.0 },
-                  height: 1,
-                  color: metal.stepInk,
-                ),
+              child: InlinePrice(
+                product: product,
+                compare: false,
+                color: ZbTokens.ink,
+                style: first ? tt.titleSmall : tt.labelLarge,
               ),
             ),
+            const SizedBox(height: 10),
+            _Block(rank: rank, metal: metal),
           ],
         ),
       ),
@@ -275,98 +324,194 @@ class _Step extends ConsumerWidget {
   }
 }
 
-/// The photo on a white disc inside a conic metal ring, the medal on its
-/// shoulder, the crown over the winner.
+/// The product under its light: floating and free when the store cut it
+/// out, mounted on a white disc in a metal ring when it did not. The winner
+/// wears the crown and stands in a gold halo.
+class _Art extends StatelessWidget {
+  const _Art({required this.product, required this.metal, required this.height});
+
+  final ProductCard product;
+  final _Metal metal;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final first = metal.rank == 1;
+    final cut = product.cutout;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        return SizedBox(
+          height: height,
+          width: w,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
+            children: [
+              if (first)
+                Positioned(
+                  bottom: -20,
+                  child: Container(
+                    width: w + 20,
+                    height: w + 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [Podium.gold.withValues(alpha: 0.30), Podium.gold.withValues(alpha: 0)],
+                        stops: const [0, 0.75],
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned(
+                bottom: 0,
+                child: Container(
+                  width: w * 0.7,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: RadialGradient(colors: [Colors.black.withValues(alpha: 0.55), Colors.black.withValues(alpha: 0)]),
+                  ),
+                ),
+              ),
+              if (cut != null && cut.isNotEmpty)
+                Positioned(
+                  bottom: 6,
+                  child: FloatingProduct(url: cut, width: w - 6, height: height - 12, shadow: 0.45, drop: 6),
+                )
+              else
+                Positioned(bottom: 4, child: _Ring(product: product, size: height - 12, metal: metal)),
+              PositionedDirectional(top: 0, end: 2, child: _Medal(metal: metal, size: first ? 28 : 24)),
+              if (first)
+                Positioned(
+                  top: -16,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: CustomPaint(size: const Size(28, 22), painter: _CrownPainter())),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The photo on a white disc inside a conic metal ring — the fallback for a
+/// product the store has no cut-out of yet.
 class _Ring extends StatelessWidget {
-  const _Ring({required this.product, required this.size, required this.metal, required this.crown});
+  const _Ring({required this.product, required this.size, required this.metal});
 
   final ProductCard product;
   final double size;
   final _Metal metal;
-  final bool crown;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: size,
       height: size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: SweepGradient(
-                  startAngle: 3.5,
-                  colors: metal.ring,
-                ),
-                boxShadow: crown
-                    ? [BoxShadow(color: metal.ring[1].withValues(alpha: 0.8), blurRadius: 24, spreadRadius: -10, offset: const Offset(0, 12))]
-                    : null,
-              ),
-              padding: const EdgeInsets.all(3),
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    center: Alignment(0, -0.4),
-                    colors: [Colors.white, Color(0xFFF1F4F1)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(color: Color(0x14000000), blurRadius: 12, spreadRadius: -6, offset: Offset(0, -6)),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Padding(
-                  padding: EdgeInsets.all(size * 0.08),
-                  child: ZbImage(url: product.image, backgroundColor: Colors.transparent),
-                ),
-              ),
-            ),
-          ),
-          PositionedDirectional(
-            top: -6,
-            end: -4,
-            child: Container(
-              width: crown ? 28 : 24,
-              height: crown ? 28 : 24,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [metal.medalLight, metal.medalDark],
-                ),
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 3)),
-                ],
-              ),
-              child: Text(
-                '${metal.rank}',
-                style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontWeight: FontWeight.w800,
-                  fontSize: crown ? 13 : 12,
-                  height: 1,
-                  color: metal.medalInk,
-                ),
-              ),
-            ),
-          ),
-          if (crown)
-            Positioned(
-              top: -19,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: CustomPaint(size: const Size(26, 20), painter: _CrownPainter()),
-              ),
-            ),
-        ],
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: SweepGradient(startAngle: 3.5, colors: metal.ring),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 14, offset: const Offset(0, 8))],
       ),
+      padding: const EdgeInsets.all(3),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(center: Alignment(0, -0.4), colors: [Colors.white, Color(0xFFF1F4F1)]),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: EdgeInsets.all(size * 0.08),
+          child: ZbImage(url: product.image, backgroundColor: Colors.transparent),
+        ),
+      ),
+    );
+  }
+}
+
+class _Medal extends StatelessWidget {
+  const _Medal({required this.metal, required this.size});
+
+  final _Metal metal;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [metal.medalLight, metal.medalDark],
+        ),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 8, offset: const Offset(0, 3))],
+      ),
+      child: Text(
+        '${metal.rank}',
+        style: TextStyle(
+          fontFamily: 'Manrope',
+          fontWeight: FontWeight.w800,
+          fontSize: size * 0.46,
+          height: 1,
+          color: metal.medalInk,
+        ),
+      ),
+    );
+  }
+}
+
+/// The block: a lit top face and a metal front carrying the rank.
+class _Block extends StatelessWidget {
+  const _Block({required this.rank, required this.metal});
+
+  final int rank;
+  final _Metal metal;
+
+  @override
+  Widget build(BuildContext context) {
+    final front = switch (rank) { 1 => 46.0, 2 => 30.0, _ => 22.0 };
+    return Column(
+      children: [
+        Container(
+          height: 7,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+            gradient: LinearGradient(colors: [metal.topLight, metal.topDark]),
+          ),
+        ),
+        Container(
+          height: front,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [metal.frontLight, metal.frontDark],
+            ),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 6))],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '$rank',
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.w800,
+              fontSize: switch (rank) { 1 => 24.0, 2 => 16.0, _ => 13.0 },
+              height: 1,
+              color: metal.frontInk,
+              shadows: [Shadow(color: Colors.white.withValues(alpha: 0.35), offset: const Offset(0, 1))],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -385,7 +530,8 @@ class _CrownPainter extends CustomPainter {
       ..lineTo(w * 0.85, h * 0.3)
       ..lineTo(w * 0.92, h * 0.85)
       ..close();
-    canvas.drawPath(body, Paint()..color = const Color(0xFFFBD268));
+    canvas.drawShadow(body, Colors.black, 4, true);
+    canvas.drawPath(body, Paint()..color = Podium.gold);
     canvas.drawPath(
       body,
       Paint()
@@ -398,13 +544,17 @@ class _CrownPainter extends CustomPainter {
       RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.08, h * 0.8, w * 0.84, h * 0.15), const Radius.circular(1)),
       Paint()..color = const Color(0xFFD9A441),
     );
+    // Three jewels.
+    for (final (x, c) in [(0.27, const Color(0xFFE5484D)), (0.5, const Color(0xFF23DEBB)), (0.73, const Color(0xFFE5484D))]) {
+      canvas.drawCircle(Offset(w * x, h * 0.66), 1.6, Paint()..color = c);
+    }
   }
 
   @override
   bool shouldRepaint(_CrownPainter old) => false;
 }
 
-/// Gold, silver, bronze — a ring, a medal and a step each.
+/// Gold, silver, bronze — a ring, a medal, and a block with a lit top face.
 class _Metal {
   const _Metal({
     required this.rank,
@@ -412,9 +562,11 @@ class _Metal {
     required this.medalLight,
     required this.medalDark,
     required this.medalInk,
-    required this.stepLight,
-    required this.stepDark,
-    required this.stepInk,
+    required this.topLight,
+    required this.topDark,
+    required this.frontLight,
+    required this.frontDark,
+    required this.frontInk,
   });
 
   final int rank;
@@ -422,9 +574,11 @@ class _Metal {
   final Color medalLight;
   final Color medalDark;
   final Color medalInk;
-  final Color stepLight;
-  final Color stepDark;
-  final Color stepInk;
+  final Color topLight;
+  final Color topDark;
+  final Color frontLight;
+  final Color frontDark;
+  final Color frontInk;
 
   static _Metal of(int rank) => switch (rank) {
         1 => const _Metal(
@@ -433,29 +587,35 @@ class _Metal {
             medalLight: Color(0xFFFBD268),
             medalDark: Color(0xFFD9A441),
             medalInk: Color(0xFF5A3A00),
-            stepLight: Color(0xFFFFE9A8),
-            stepDark: Color(0xFFF4C752),
-            stepInk: Color(0xFF8A5510),
+            topLight: Color(0xFFFFF1C4),
+            topDark: Color(0xFFFBD268),
+            frontLight: Color(0xFFF4C752),
+            frontDark: Color(0xFFC98A25),
+            frontInk: Color(0xFF5A3A00),
           ),
         2 => const _Metal(
             rank: 2,
             ring: [Color(0xFFD9DEDC), Color(0xFFAEB6B3), Color(0xFFF3F5F4), Color(0xFFB9C0BD), Color(0xFFD9DEDC)],
-            medalLight: Color(0xFFC9D0CD),
+            medalLight: Color(0xFFDDE2E0),
             medalDark: Color(0xFF8F9995),
-            medalInk: Colors.white,
-            stepLight: Color(0xFFEDF0EF),
-            stepDark: Color(0xFFDDE2E0),
-            stepInk: Color(0xFF7C8783),
+            medalInk: Color(0xFF2C3E2D),
+            topLight: Color(0xFFF3F5F4),
+            topDark: Color(0xFFC9D0CD),
+            frontLight: Color(0xFFB9C0BD),
+            frontDark: Color(0xFF7C8783),
+            frontInk: Color(0xFF1F2A28),
           ),
         _ => const _Metal(
             rank: 3,
             ring: [Color(0xFFE49859), Color(0xFFB8743B), Color(0xFFF4C9A0), Color(0xFFC58348), Color(0xFFE49859)],
-            medalLight: Color(0xFFE49859),
+            medalLight: Color(0xFFE9B08A),
             medalDark: Color(0xFFB8743B),
             medalInk: Colors.white,
-            stepLight: Color(0xFFF7DDC7),
-            stepDark: Color(0xFFE9BE9C),
-            stepInk: Color(0xFF8A5510),
+            topLight: Color(0xFFF4C9A0),
+            topDark: Color(0xFFD9A06A),
+            frontLight: Color(0xFFC58348),
+            frontDark: Color(0xFF8A5510),
+            frontInk: Color(0xFF3A2200),
           ),
       };
 }

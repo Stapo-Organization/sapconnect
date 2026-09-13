@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -156,6 +159,61 @@ class PhotoPlate extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// A cut-out product floating on colour, with the shadow a real object
+/// throws: the same picture turned to a dark silhouette, blurred, and set a
+/// few points below. Rotated by [degrees] the way a thing lands, not the way
+/// a card is laid.
+class FloatingProduct extends StatelessWidget {
+  const FloatingProduct({
+    super.key,
+    required this.url,
+    required this.width,
+    required this.height,
+    this.degrees = 0,
+    this.shadow = 0.38,
+    this.drop = 8,
+  });
+
+  final String url;
+  final double width;
+  final double height;
+  final double degrees;
+
+  /// How dark the silhouette is.
+  final double shadow;
+
+  /// How far below the product its shadow lands.
+  final double drop;
+
+  @override
+  Widget build(BuildContext context) {
+    final picture = ZbImage(url: url, backgroundColor: Colors.transparent);
+    final body = SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.expand,
+        children: [
+          Transform.translate(
+            offset: Offset(0, drop),
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: shadow), BlendMode.srcIn),
+                child: picture,
+              ),
+            ),
+          ),
+          picture,
+        ],
+      ),
+    );
+    if (degrees == 0) return body;
+    return Transform.rotate(angle: degrees * math.pi / 180, child: body);
   }
 }
 
