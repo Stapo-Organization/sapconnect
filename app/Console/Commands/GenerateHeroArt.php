@@ -17,7 +17,7 @@ class GenerateHeroArt extends Command
     protected $signature = 'marketing:hero-art
         {--theme=* : Only these themes (express_clock, express_top, express_new, cutoff, bundles, clearance)}
         {--refresh-manifest : Rewrite the manifest from the images already on disk — generates nothing, costs nothing}
-        {--needs : Only the need tiles\' floating products (the slides are left alone)}';
+        {--needs : Only the need tiles\' and the home products\' cut-outs (the slides are left alone)}';
 
     protected $description = 'Generate the AI artwork behind the app home slider';
 
@@ -42,6 +42,8 @@ class GenerateHeroArt extends Command
         if ($this->option('needs') || $themes === []) {
             $this->info('Cutting the need tiles\' products…');
             $needs = $art->needs(fn (string $line) => $this->line("  {$line}"));
+            $this->info('Cutting the home\'s own products…');
+            $art->products(fn (string $line) => $this->line("  {$line}"));
         }
 
         if ($made === [] && $needs === []) {

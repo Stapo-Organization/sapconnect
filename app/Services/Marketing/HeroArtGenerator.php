@@ -154,6 +154,54 @@ class HeroArtGenerator
     }
 
     /**
+     * The home's own products, cut and trimmed, keyed by the photo the store
+     * serves for them — so any card on the express home (the podium's top
+     * three first of all) can float instead of sitting on its white card.
+     *
+     * Six per rail from the express home, deduplicated; the store looks a
+     * card's `image` up in this map and hands the app a `cutout` beside it.
+     *
+     * @return array<string,string> source photo → cut-out
+     */
+    public function products(?callable $report = null): array
+    {
+        $home = $this->home('express');
+        $stamp = (string) time();
+        $cuts = [];
+        $seen = [];
+
+        foreach ((array) ($home['rails'] ?? []) as $rail) {
+            $key = (string) ($rail['key'] ?? '');
+            $n = 0;
+            foreach ((array) ($rail['products'] ?? []) as $card) {
+                if ($n >= 6) {
+                    break;
+                }
+                $src = (string) ($card['image'] ?? '');
+                if ($src === '' || isset($seen[$src]) || str_contains($src, 'bundle-')) {
+                    continue;
+                }
+                $seen[$src] = true;
+                $n++;
+                $name = 'hero-art/cut/p-' . md5($src) . '.png';
+                if ($this->collage->cutoutTrimmed($src, Storage::disk('public')->path($name)) !== null) {
+                    $cuts[$src] = Storage::disk('public')->url($name) . '?v=' . $stamp;
+                }
+            }
+            $report && $report("products {$key} → " . count(array_intersect_key($cuts, $seen)) . ' cut so far');
+        }
+
+        // Laid over what earlier runs cut: a product that has left the rails
+        // keeps its cut-out until the next full sweep replaces the map.
+        $existing = (array) ($this->manifest()['cuts'] ?? []);
+        $merged = $cuts + $existing;
+        $this->mergeManifest(['cuts' => $merged]);
+        $report && $report('cuts: ' . count($cuts) . ' fresh, ' . count($merged) . ' in the manifest');
+
+        return $merged;
+    }
+
+    /**
      * Rewrite the manifest from the images already on disk — no generation, no
      * cost. For when the manifest gains a field (a tint, say) and the artwork
      * itself is still good.
@@ -225,6 +273,7 @@ class HeroArtGenerator
             'generated_at' => now()->toIso8601String(),
             'art' => is_array($current['art'] ?? null) ? $current['art'] : [],
             'needs' => is_array($current['needs'] ?? null) ? $current['needs'] : [],
+            'cuts' => is_array($current['cuts'] ?? null) ? $current['cuts'] : [],
         ];
         foreach ($patch as $key => $value) {
             $out[$key] = $value;
