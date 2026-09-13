@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -181,10 +182,13 @@ class _Pocket extends StatelessWidget {
                   ),
                 ),
               ),
-              // The need's most wanted product, on a white plate leaning out
-              // of the pocket — a real thing to reach for. The glyph stands in
-              // only for a store that sent no photo.
-              if ((item.image ?? '').isNotEmpty)
+              // The need's most wanted products, floating out of the pocket
+              // — real things to reach for. A white plate with the best
+              // seller's photo stands in until the cut-outs exist, the glyph
+              // only for a store that sent no photo at all.
+              if (item.cutouts.isNotEmpty)
+                PositionedDirectional(end: 0, bottom: 0, child: _Floating(urls: item.cutouts))
+              else if ((item.image ?? '').isNotEmpty)
                 PositionedDirectional(
                   end: 10,
                   bottom: -6,
@@ -231,7 +235,7 @@ class _Pocket extends StatelessWidget {
               PositionedDirectional(
                 start: 14,
                 top: 12,
-                end: 86,
+                end: item.cutouts.isNotEmpty ? 96 : 86,
                 child: Text(
                   item.name,
                   maxLines: 2,
@@ -265,6 +269,74 @@ class _Pocket extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Two or three cut-out products tumbling out of the pocket: the best
+/// seller in front and largest, the others leaning behind it, each with the
+/// soft shadow a real object throws on a shelf.
+class _Floating extends StatelessWidget {
+  const _Floating({required this.urls});
+
+  final List<String> urls;
+
+  @override
+  Widget build(BuildContext context) {
+    final rtl = context.isRtl;
+    return SizedBox(
+      width: 112,
+      height: NeedPockets.tileHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (urls.length > 2)
+            PositionedDirectional(end: 44, top: 4, child: _Cut(url: urls[2], width: 48, height: 48, degrees: rtl ? -12 : 12)),
+          if (urls.length > 1)
+            PositionedDirectional(end: 58, bottom: 10, child: _Cut(url: urls[1], width: 58, height: 64, degrees: rtl ? 10 : -10)),
+          PositionedDirectional(end: 4, bottom: 0, child: _Cut(url: urls[0], width: 82, height: 90, degrees: rtl ? -5 : 5)),
+        ],
+      ),
+    );
+  }
+}
+
+/// One cut-out with a real shadow: the same picture, turned to a dark
+/// silhouette and blurred, sits a few points below it.
+class _Cut extends StatelessWidget {
+  const _Cut({required this.url, required this.width, required this.height, required this.degrees});
+
+  final String url;
+  final double width;
+  final double height;
+  final double degrees;
+
+  @override
+  Widget build(BuildContext context) {
+    final picture = ZbImage(url: url, backgroundColor: Colors.transparent);
+    return Transform.rotate(
+      angle: degrees * math.pi / 180,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Stack(
+          clipBehavior: Clip.none,
+          fit: StackFit.expand,
+          children: [
+            Transform.translate(
+              offset: const Offset(0, 8),
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: ColorFiltered(
+                  colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.38), BlendMode.srcIn),
+                  child: picture,
+                ),
+              ),
+            ),
+            picture,
+          ],
         ),
       ),
     );

@@ -362,6 +362,7 @@ class NeedNavItem {
     required this.name,
     required this.icon,
     this.image,
+    this.cutouts = const [],
   });
 
   /// `dry` | `wet` | `litter` | `treats` | `health` | `toys` | `clean` |
@@ -376,6 +377,10 @@ class NeedNavItem {
   /// shows a real thing rather than a glyph. Null from an older store.
   final String? image;
 
+  /// Two or three of the need's most wanted products cut off their white
+  /// cards, best first — the tile floats these when it has them.
+  final List<String> cutouts;
+
   factory NeedNavItem.fromJson(Map<String, dynamic> json) => NeedNavItem(
         key: asString(json['key']),
         id: asInt(json['id']),
@@ -383,6 +388,7 @@ class NeedNavItem {
         name: asString(json['name']),
         icon: asString(json['icon'], fallback: asString(json['key'])),
         image: asStringOrNull(json['image']),
+        cutouts: asStringList(json['cutouts']),
       );
 
   /// species → tiles, as the cacheable payload ships them.
