@@ -346,7 +346,7 @@ void main() {
       )));
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('مندوبك في طريقه للفرع'), findsOneWidget);
+      expect(find.text('مندوبك في طريقه لاستلام طلبك'), findsOneWidget);
       expect(find.textContaining('يبعد عنك'), findsNothing);
       expect(find.textContaining('تقريباً'), findsNothing);
     });
@@ -378,7 +378,7 @@ void main() {
 
       expect(find.text('طلبنا مندوباً'), findsOneWidget);
       expect(find.text('تم تعيين المندوب'), findsOneWidget);
-      expect(find.text('استلم طلبك من الفرع'), findsOneWidget);
+      expect(find.text('استلم طلبك'), findsOneWidget);
       expect(find.text('وصل إليك'), findsOneWidget);
     });
   });

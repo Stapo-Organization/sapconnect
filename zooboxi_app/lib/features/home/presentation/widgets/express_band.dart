@@ -51,9 +51,7 @@ class ExpressEtaBand extends StatelessWidget {
             Fmt.clockShort(timeOfDayToday(hours!.openMinutes, now: at), locale),
           );
     final String under = open
-        ? [scope.expressBranch, l.heroExpressWindow]
-            .where((part) => part.isNotEmpty)
-            .join(' · ')
+        ? l.heroExpressWindow
         : (eta.tomorrow ? l.etaTomorrowAt(clock) : l.etaAt(clock));
 
     return Padding(

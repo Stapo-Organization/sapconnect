@@ -144,13 +144,13 @@ class LAr extends L {
 
   @override
   String get onbLocBody =>
-      'ثبّت دبوسك على الخريطة ونوصّل لبابك — مخزون أقرب فرع ووعد توصيل صادق لحيّك';
+      'ثبّت دبوسك على الخريطة ونوصّل لبابك — مخزون إكسبريس الحقيقي ووعد توصيل صادق لحيّك';
 
   @override
   String get onbLocPerk1 => 'أسرع توصيل ممكن لحيّك';
 
   @override
-  String get onbLocPerk2 => 'مخزون حقيقي من أقرب فرع لك';
+  String get onbLocPerk2 => 'مخزون إكسبريس حقيقي قريب منك';
 
   @override
   String get onbLocPerk3 => 'عروض مدينتك أول بأول';
@@ -1229,7 +1229,7 @@ class LAr extends L {
   String get orderRateTitle => 'كيف كانت توصيلتك؟';
 
   @override
-  String get orderRateHint => 'تقييمك يصل للفرع الذي جهّز طلبك.';
+  String get orderRateHint => 'تقييمك يصل لفريق إكسبريس الذي جهّز طلبك.';
 
   @override
   String get orderRateComment => 'ملاحظة (اختياري)';
@@ -3256,13 +3256,13 @@ class LAr extends L {
   String get liveTrackSearching => 'جارٍ تحديد مندوب توصيل لطلبك';
 
   @override
-  String get liveTrackAssigned => 'مندوبك في طريقه للفرع';
+  String get liveTrackAssigned => 'مندوبك في طريقه لاستلام طلبك';
 
   @override
   String get liveTrackReassigned => 'تم تغيير المندوب';
 
   @override
-  String get liveTrackAtBranch => 'مندوبك وصل الفرع';
+  String get liveTrackAtBranch => 'مندوبك يستلم طلبك الآن';
 
   @override
   String get liveTrackCollecting => 'جارٍ تسليم طلبك للمندوب';
@@ -3283,7 +3283,7 @@ class LAr extends L {
   String get liveTrackDelivered => 'تم تسليم طلبك';
 
   @override
-  String get liveTrackReturned => 'رجع الطلب للفرع';
+  String get liveTrackReturned => 'رجع الطلب إلى إكسبريس';
 
   @override
   String get liveTrackCanceled => 'أُلغيت مهمة المندوب';
@@ -3298,7 +3298,7 @@ class LAr extends L {
   String get liveTrackStepAssigned => 'تم تعيين المندوب';
 
   @override
-  String get liveTrackStepPickedUp => 'استلم طلبك من الفرع';
+  String get liveTrackStepPickedUp => 'استلم طلبك';
 
   @override
   String get liveTrackStepDelivered => 'وصل إليك';
@@ -3346,7 +3346,7 @@ class LAr extends L {
   String get liveTrackYou => 'موقعك';
 
   @override
-  String get liveTrackBranch => 'الفرع';
+  String get liveTrackBranch => 'إكسبريس';
 
   @override
   String liveTrackUpdatedAt(String time) {
@@ -3468,21 +3468,21 @@ class LAr extends L {
   }
 
   @override
-  String get checkoutAddressOutOfZone => 'خارج نطاق فرع التوصيل السريع';
+  String get checkoutAddressOutOfZone => 'خارج نطاق إكسبريس';
 
   @override
   String get checkoutAddressNoPin => 'بدون موقع على الخريطة';
 
   @override
-  String get checkoutAddressOutOfZoneTitle => 'عناوين لا يصلها هذا الفرع';
+  String get checkoutAddressOutOfZoneTitle => 'عناوين لا يصلها إكسبريس';
 
   @override
   String get checkoutAddressZoneHint =>
-      'طلبك السريع من فرع واحد، فلا يصل إلا للعناوين داخل نطاقه.';
+      'طلب إكسبريس يصل للعناوين داخل نطاقه فقط.';
 
   @override
   String get checkoutAddressNoneInZone =>
-      'لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.';
+      'لا يوجد عنوان داخل نطاق إكسبريس. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.';
 
   @override
   String liveTrackLastSeen(num count) {
@@ -3559,7 +3559,7 @@ class LAr extends L {
   String get replenishCtaPlain => 'أعد الطلب';
 
   @override
-  String get promiseOpenNow => 'الفرع مفتوح · يوصلك اليوم الساعة';
+  String get promiseOpenNow => 'إكسبريس يعمل الآن · يوصلك اليوم الساعة';
 
   @override
   String get promiseTomorrow => 'غدًا';
@@ -3574,10 +3574,7 @@ class LAr extends L {
   String get promiseRouteYou => 'إليك';
 
   @override
-  String get promiseBranchFallback => 'فرعك';
-
-  @override
-  String get needsOnShelf => 'على رفّ فرعك الآن';
+  String get needsOnShelf => 'على رفّ إكسبريس الآن';
 
   @override
   String get podiumAddAll => 'أضف الثلاثة';
@@ -3586,13 +3583,13 @@ class LAr extends L {
   String get ticketKicker => 'كميات محدودة';
 
   @override
-  String get ticketSubtitle => 'أصناف مختارة · بكميات فرعك فقط';
+  String get ticketSubtitle => 'أصناف مختارة · كميات إكسبريس محدودة';
 
   @override
   String get ticketCta => 'اكتشف العروض';
 
   @override
-  String get ticketClosesIn => 'الفرع يغلق بعد';
+  String get ticketClosesIn => 'إكسبريس يغلق بعد';
 
   @override
   String get ticketUnits => 'ساعة : دقيقة';

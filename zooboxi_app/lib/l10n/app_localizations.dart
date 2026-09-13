@@ -358,7 +358,7 @@ abstract class L {
   /// No description provided for @onbLocBody.
   ///
   /// In ar, this message translates to:
-  /// **'ثبّت دبوسك على الخريطة ونوصّل لبابك — مخزون أقرب فرع ووعد توصيل صادق لحيّك'**
+  /// **'ثبّت دبوسك على الخريطة ونوصّل لبابك — مخزون إكسبريس الحقيقي ووعد توصيل صادق لحيّك'**
   String get onbLocBody;
 
   /// No description provided for @onbLocPerk1.
@@ -370,7 +370,7 @@ abstract class L {
   /// No description provided for @onbLocPerk2.
   ///
   /// In ar, this message translates to:
-  /// **'مخزون حقيقي من أقرب فرع لك'**
+  /// **'مخزون إكسبريس حقيقي قريب منك'**
   String get onbLocPerk2;
 
   /// No description provided for @onbLocPerk3.
@@ -2056,7 +2056,7 @@ abstract class L {
   /// No description provided for @orderRateHint.
   ///
   /// In ar, this message translates to:
-  /// **'تقييمك يصل للفرع الذي جهّز طلبك.'**
+  /// **'تقييمك يصل لفريق إكسبريس الذي جهّز طلبك.'**
   String get orderRateHint;
 
   /// No description provided for @orderRateComment.
@@ -5110,7 +5110,7 @@ abstract class L {
   /// No description provided for @liveTrackAssigned.
   ///
   /// In ar, this message translates to:
-  /// **'مندوبك في طريقه للفرع'**
+  /// **'مندوبك في طريقه لاستلام طلبك'**
   String get liveTrackAssigned;
 
   /// No description provided for @liveTrackReassigned.
@@ -5122,7 +5122,7 @@ abstract class L {
   /// No description provided for @liveTrackAtBranch.
   ///
   /// In ar, this message translates to:
-  /// **'مندوبك وصل الفرع'**
+  /// **'مندوبك يستلم طلبك الآن'**
   String get liveTrackAtBranch;
 
   /// No description provided for @liveTrackCollecting.
@@ -5164,7 +5164,7 @@ abstract class L {
   /// No description provided for @liveTrackReturned.
   ///
   /// In ar, this message translates to:
-  /// **'رجع الطلب للفرع'**
+  /// **'رجع الطلب إلى إكسبريس'**
   String get liveTrackReturned;
 
   /// No description provided for @liveTrackCanceled.
@@ -5194,7 +5194,7 @@ abstract class L {
   /// No description provided for @liveTrackStepPickedUp.
   ///
   /// In ar, this message translates to:
-  /// **'استلم طلبك من الفرع'**
+  /// **'استلم طلبك'**
   String get liveTrackStepPickedUp;
 
   /// No description provided for @liveTrackStepDelivered.
@@ -5278,7 +5278,7 @@ abstract class L {
   /// No description provided for @liveTrackBranch.
   ///
   /// In ar, this message translates to:
-  /// **'الفرع'**
+  /// **'إكسبريس'**
   String get liveTrackBranch;
 
   /// No description provided for @liveTrackUpdatedAt.
@@ -5428,7 +5428,7 @@ abstract class L {
   /// No description provided for @checkoutAddressOutOfZone.
   ///
   /// In ar, this message translates to:
-  /// **'خارج نطاق فرع التوصيل السريع'**
+  /// **'خارج نطاق إكسبريس'**
   String get checkoutAddressOutOfZone;
 
   /// No description provided for @checkoutAddressNoPin.
@@ -5440,19 +5440,19 @@ abstract class L {
   /// No description provided for @checkoutAddressOutOfZoneTitle.
   ///
   /// In ar, this message translates to:
-  /// **'عناوين لا يصلها هذا الفرع'**
+  /// **'عناوين لا يصلها إكسبريس'**
   String get checkoutAddressOutOfZoneTitle;
 
   /// No description provided for @checkoutAddressZoneHint.
   ///
   /// In ar, this message translates to:
-  /// **'طلبك السريع من فرع واحد، فلا يصل إلا للعناوين داخل نطاقه.'**
+  /// **'طلب إكسبريس يصل للعناوين داخل نطاقه فقط.'**
   String get checkoutAddressZoneHint;
 
   /// No description provided for @checkoutAddressNoneInZone.
   ///
   /// In ar, this message translates to:
-  /// **'لا يوجد عنوان داخل نطاق هذا الفرع. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.'**
+  /// **'لا يوجد عنوان داخل نطاق إكسبريس. أضف عنواناً قريباً، أو حوّل سلتك إلى زوبكسي.'**
   String get checkoutAddressNoneInZone;
 
   /// No description provided for @liveTrackLastSeen.
@@ -5542,7 +5542,7 @@ abstract class L {
   /// No description provided for @promiseOpenNow.
   ///
   /// In ar, this message translates to:
-  /// **'الفرع مفتوح · يوصلك اليوم الساعة'**
+  /// **'إكسبريس يعمل الآن · يوصلك اليوم الساعة'**
   String get promiseOpenNow;
 
   /// No description provided for @promiseTomorrow.
@@ -5569,16 +5569,10 @@ abstract class L {
   /// **'إليك'**
   String get promiseRouteYou;
 
-  /// No description provided for @promiseBranchFallback.
-  ///
-  /// In ar, this message translates to:
-  /// **'فرعك'**
-  String get promiseBranchFallback;
-
   /// No description provided for @needsOnShelf.
   ///
   /// In ar, this message translates to:
-  /// **'على رفّ فرعك الآن'**
+  /// **'على رفّ إكسبريس الآن'**
   String get needsOnShelf;
 
   /// No description provided for @podiumAddAll.
@@ -5596,7 +5590,7 @@ abstract class L {
   /// No description provided for @ticketSubtitle.
   ///
   /// In ar, this message translates to:
-  /// **'أصناف مختارة · بكميات فرعك فقط'**
+  /// **'أصناف مختارة · كميات إكسبريس محدودة'**
   String get ticketSubtitle;
 
   /// No description provided for @ticketCta.
@@ -5608,7 +5602,7 @@ abstract class L {
   /// No description provided for @ticketClosesIn.
   ///
   /// In ar, this message translates to:
-  /// **'الفرع يغلق بعد'**
+  /// **'إكسبريس يغلق بعد'**
   String get ticketClosesIn;
 
   /// No description provided for @ticketUnits.

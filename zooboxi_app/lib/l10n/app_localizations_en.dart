@@ -144,13 +144,13 @@ class LEn extends L {
 
   @override
   String get onbLocBody =>
-      'Drop your pin and we deliver to your door — real stock from your nearest branch and an honest promise for your district';
+      'Drop your pin and we deliver to your door — real Express stock and an honest promise for your district';
 
   @override
   String get onbLocPerk1 => 'The fastest delivery for your district';
 
   @override
-  String get onbLocPerk2 => 'Real stock from your nearest branch';
+  String get onbLocPerk2 => 'Real Express stock near you';
 
   @override
   String get onbLocPerk3 => 'Your city\'s offers, first';
@@ -1212,7 +1212,7 @@ class LEn extends L {
 
   @override
   String get orderRateHint =>
-      'Your rating goes straight to the branch that packed it.';
+      'Your rating goes straight to the Express team that packed it.';
 
   @override
   String get orderRateComment => 'Add a note (optional)';
@@ -3198,13 +3198,14 @@ class LEn extends L {
   String get liveTrackSearching => 'Finding a courier for your order';
 
   @override
-  String get liveTrackAssigned => 'Your courier is heading to the branch';
+  String get liveTrackAssigned =>
+      'Your courier is heading to pick up your order';
 
   @override
   String get liveTrackReassigned => 'The courier was changed';
 
   @override
-  String get liveTrackAtBranch => 'Your courier reached the branch';
+  String get liveTrackAtBranch => 'Your courier is picking up your order';
 
   @override
   String get liveTrackCollecting => 'Handing your order to the courier';
@@ -3225,7 +3226,7 @@ class LEn extends L {
   String get liveTrackDelivered => 'Your order was delivered';
 
   @override
-  String get liveTrackReturned => 'The order went back to the branch';
+  String get liveTrackReturned => 'The order went back to Express';
 
   @override
   String get liveTrackCanceled => 'The courier task was cancelled';
@@ -3240,7 +3241,7 @@ class LEn extends L {
   String get liveTrackStepAssigned => 'Courier assigned';
 
   @override
-  String get liveTrackStepPickedUp => 'Picked up from the branch';
+  String get liveTrackStepPickedUp => 'Picked up your order';
 
   @override
   String get liveTrackStepDelivered => 'Delivered to you';
@@ -3288,7 +3289,7 @@ class LEn extends L {
   String get liveTrackYou => 'You';
 
   @override
-  String get liveTrackBranch => 'Branch';
+  String get liveTrackBranch => 'Express';
 
   @override
   String liveTrackUpdatedAt(String time) {
@@ -3401,22 +3402,21 @@ class LEn extends L {
   }
 
   @override
-  String get checkoutAddressOutOfZone => 'Outside the express branch\'s area';
+  String get checkoutAddressOutOfZone => 'Outside the Express area';
 
   @override
   String get checkoutAddressNoPin => 'No map location';
 
   @override
-  String get checkoutAddressOutOfZoneTitle =>
-      'Addresses this branch cannot reach';
+  String get checkoutAddressOutOfZoneTitle => 'Addresses Express cannot reach';
 
   @override
   String get checkoutAddressZoneHint =>
-      'An express order comes from one branch, so it only reaches addresses inside its area.';
+      'An Express order only reaches addresses inside its area.';
 
   @override
   String get checkoutAddressNoneInZone =>
-      'No address falls inside this branch\'s area. Add one nearby, or move your basket to Zooboxi.';
+      'No address falls inside the Express area. Add one nearby, or move your basket to Zooboxi.';
 
   @override
   String liveTrackLastSeen(num count) {
@@ -3488,7 +3488,7 @@ class LEn extends L {
   String get replenishCtaPlain => 'Reorder';
 
   @override
-  String get promiseOpenNow => 'Branch open · arrives today at';
+  String get promiseOpenNow => 'Express is on · arrives today at';
 
   @override
   String get promiseTomorrow => 'tomorrow';
@@ -3503,10 +3503,7 @@ class LEn extends L {
   String get promiseRouteYou => 'To you';
 
   @override
-  String get promiseBranchFallback => 'Your branch';
-
-  @override
-  String get needsOnShelf => 'On your branch\'s shelf now';
+  String get needsOnShelf => 'On the Express shelf now';
 
   @override
   String get podiumAddAll => 'Add all three';
@@ -3515,13 +3512,13 @@ class LEn extends L {
   String get ticketKicker => 'Limited stock';
 
   @override
-  String get ticketSubtitle => 'Selected items · only what your branch holds';
+  String get ticketSubtitle => 'Selected items · limited Express stock';
 
   @override
   String get ticketCta => 'See the offers';
 
   @override
-  String get ticketClosesIn => 'Branch closes in';
+  String get ticketClosesIn => 'Express closes in';
 
   @override
   String get ticketUnits => 'hours : minutes';

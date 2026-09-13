@@ -96,9 +96,9 @@ class _PromiseHeaderState extends State<PromiseHeader> {
               locale,
             ),
           );
-    final branch = scope.expressBranch.isEmpty
-        ? l.promiseBranchFallback
-        : scope.expressBranch;
+    // The route starts at إكسبريس, never at a named branch: which shop packs
+    // the order is ours to know, not the customer's to read.
+    final branch = l.shelfExpressTab;
 
     // Its own transparent Material: the tabs and the chip splash ink, and a
     // sheet that draws this header alone has no Scaffold to lend them one.
