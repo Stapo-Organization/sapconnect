@@ -10,6 +10,7 @@ import '../../../../core/delivery/delivery_eta.dart';
 import '../../../../core/icons/zb_icons.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/haptics.dart';
+import '../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
@@ -117,6 +118,7 @@ class _PromiseHeaderState extends State<PromiseHeader> {
           child: Stack(
             children: [
               const Positioned.fill(child: _Blooms()),
+              const Positioned.fill(child: PawWallpaper()),
               Positioned.fill(
                 child: CustomPaint(painter: _DialPainter(rtl: context.isRtl)),
               ),

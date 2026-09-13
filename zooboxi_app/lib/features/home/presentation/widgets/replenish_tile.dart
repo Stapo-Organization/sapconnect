@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/utils/haptics.dart';
+import '../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../loyalty/data/loyalty_models.dart';
@@ -260,6 +261,7 @@ class _ExpressForm extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               child: Stack(
                 children: [
+                  const Positioned.fill(child: PawWallpaper()),
                   PositionedDirectional(
                     start: -30,
                     top: -40,

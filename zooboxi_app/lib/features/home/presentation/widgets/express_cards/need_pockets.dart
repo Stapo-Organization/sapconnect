@@ -7,6 +7,7 @@ import '../../../../../app/theme/zb_colors.dart';
 import '../../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../../core/widgets/press_scale.dart';
 import '../../../../../core/widgets/zb_image.dart';
+import '../../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/catalog_models.dart';
 import 'card_form.dart';
@@ -169,6 +170,7 @@ class _Pocket extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: Stack(
             children: [
+              const Positioned.fill(child: PawWallpaper()),
               // The lit pocket, and the thing that lives in it.
               PositionedDirectional(
                 end: -34,

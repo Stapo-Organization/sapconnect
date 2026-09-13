@@ -9,6 +9,7 @@ import '../../../../../core/delivery/delivery_eta.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/utils/haptics.dart';
 import '../../../../../core/widgets/zb_image.dart';
+import '../../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/catalog_models.dart';
 import '../../../../catalog/data/product_models.dart';
@@ -189,6 +190,7 @@ class _Main extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
+                const Positioned.fill(child: PawWallpaper()),
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(

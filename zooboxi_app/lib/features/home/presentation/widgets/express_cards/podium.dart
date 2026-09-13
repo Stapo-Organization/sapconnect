@@ -10,6 +10,7 @@ import '../../../../../core/widgets/product_card_metrics.dart';
 import '../../../../../core/widgets/section_header.dart';
 import '../../../../../core/widgets/sparkles.dart';
 import '../../../../../core/widgets/zb_image.dart';
+import '../../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/product_models.dart';
 import 'card_form.dart';
@@ -116,6 +117,7 @@ class _PodiumState extends ConsumerState<Podium> {
               clipBehavior: Clip.antiAlias,
               child: Stack(
                 children: [
+                  const Positioned.fill(child: PawWallpaper(opacity: 0.06)),
                   const Positioned.fill(child: CustomPaint(painter: _StagePainter())),
                   const Positioned.fill(child: SparkleField(sparkles: _stageSparkles, twinkle: true)),
                   // The lit top edge every object on the page has.
