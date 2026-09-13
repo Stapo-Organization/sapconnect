@@ -383,9 +383,8 @@ class Zooboxi_V2_Catalog_Controller
         $out[] = $this->auto_slide(
             'express_clock',
             Zooboxi_V2_Bootstrap::pick('يوصلك خلال ساعتين', 'At your door within two hours'),
-            $branch !== ''
-                ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s — أقرب فرع إليك', 'From %s, the branch nearest you'), $branch)
-                : Zooboxi_V2_Bootstrap::pick('من أقرب فرع إليك', 'From the branch nearest you'),
+            // The customer hears «إكسبريس», never which branch packs it.
+            Zooboxi_V2_Bootstrap::pick('من إكسبريس — الأقرب إليك', 'From Express, the one nearest you'),
             Zooboxi_V2_Bootstrap::pick('اطلب الآن', 'Order now'),
             $shop
         );
@@ -397,10 +396,8 @@ class Zooboxi_V2_Catalog_Controller
         if (!empty($best)) {
             $out[] = $this->auto_slide(
                 'express_top',
-                Zooboxi_V2_Bootstrap::pick('الأكثر طلباً في فرعك', 'Most wanted at your branch'),
-                $branch !== ''
-                    ? sprintf(Zooboxi_V2_Bootstrap::pick('موجود الآن على رفوف %s', 'On the shelves at %s right now'), $branch)
-                    : Zooboxi_V2_Bootstrap::pick('موجود الآن على رفوف فرعك', 'On your branch shelves right now'),
+                Zooboxi_V2_Bootstrap::pick('الأكثر طلباً على إكسبريس', 'Most wanted on Express'),
+                Zooboxi_V2_Bootstrap::pick('موجود الآن على رفّ إكسبريس', 'On the Express shelf right now'),
                 Zooboxi_V2_Bootstrap::pick('تصفّح القائمة', 'Browse the list'),
                 $shop,
                 null,
@@ -412,7 +409,7 @@ class Zooboxi_V2_Catalog_Controller
         if (!empty($fresh)) {
             $out[] = $this->auto_slide(
                 'express_new',
-                Zooboxi_V2_Bootstrap::pick('وصل حديثاً إلى فرعك', 'Just in at your branch'),
+                Zooboxi_V2_Bootstrap::pick('وصل حديثاً إلى إكسبريس', 'Just in on Express'),
                 Zooboxi_V2_Bootstrap::pick('جديد على الرف، ويوصلك خلال ساعتين', 'New on the shelf, at your door in two hours'),
                 Zooboxi_V2_Bootstrap::pick('شاهد الجديد', 'See what is new'),
                 $shop,
@@ -517,7 +514,7 @@ class Zooboxi_V2_Catalog_Controller
                         Zooboxi_Fulfillment::standard_day_label()
                     ),
                 $express && $scope !== null && ($scope['express_branch'] ?? '') !== ''
-                    ? sprintf(Zooboxi_V2_Bootstrap::pick('من %s مباشرة إلى بابك', 'Straight to your door from %s'), $scope['express_branch'])
+                    ? Zooboxi_V2_Bootstrap::pick('من إكسبريس مباشرة إلى بابك', 'Straight to your door from Express')
                     : Zooboxi_V2_Bootstrap::pick('من مستودعنا الرئيسي مباشرة إلى بابك', 'From our main warehouse straight to your door'),
                 Zooboxi_V2_Bootstrap::pick('تسوّق الآن', 'Shop now'),
                 $shop
@@ -1064,6 +1061,52 @@ class Zooboxi_V2_Catalog_Controller
      *
      * @return array<string, array<int, array{key:string,id:int,name:string,icon:string}>>
      */
+    /**
+     * The photo of the most wanted in-stock product under a need's category.
+     *
+     * Location-aware through the same request seeding every catalogue query
+     * gets, so a Riyadh phone never sees a Jeddah-only pack. Cached an hour
+     * per warehouse; the tile it decorates is cached with the home payload.
+     */
+    private static function need_image(int $term_id): ?string
+    {
+        $wh   = Zooboxi_V2_Scope::warehouse_code();
+        $tkey = 'zb_v2_need_img_' . $term_id . '_' . ($wh !== '' ? $wh : 'all');
+        $hit  = get_transient($tkey);
+        if (is_string($hit)) {
+            return $hit === '' ? null : $hit;
+        }
+
+        $url = null;
+        $ids = wc_get_products([
+            'status'       => 'publish',
+            'limit'        => 3,
+            'stock_status' => 'instock',
+            'orderby'      => 'popularity',
+            'order'        => 'DESC',
+            'return'       => 'ids',
+            'tax_query'    => [[
+                'taxonomy'         => 'product_cat',
+                'field'            => 'term_id',
+                'terms'            => [$term_id],
+                'include_children' => true,
+            ]],
+        ]);
+        foreach ((array) $ids as $pid) {
+            $product = wc_get_product((int) $pid);
+            if (!$product) {
+                continue;
+            }
+            $url = Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail');
+            if ($url) {
+                break;
+            }
+        }
+
+        set_transient($tkey, (string) $url, HOUR_IN_SECONDS);
+        return $url;
+    }
+
     private function need_nav(): array
     {
         $ar = static fn(string $ar, string $en) => Zooboxi_V2_Bootstrap::pick($ar, $en);
@@ -1112,11 +1155,14 @@ class Zooboxi_V2_Catalog_Controller
                     continue;
                 }
                 $tiles[] = [
-                    'key'  => $key,
-                    'id'   => (int) $term->term_id,
-                    'slug' => (string) $term->slug,
-                    'name' => $name,
-                    'icon' => $icon,
+                    'key'   => $key,
+                    'id'    => (int) $term->term_id,
+                    'slug'  => (string) $term->slug,
+                    'name'  => $name,
+                    'icon'  => $icon,
+                    // A real product on the tile, not a glyph: the need's most
+                    // wanted item that this shelf actually has in stock.
+                    'image' => self::need_image((int) $term->term_id),
                 ];
             }
             if ($tiles) {

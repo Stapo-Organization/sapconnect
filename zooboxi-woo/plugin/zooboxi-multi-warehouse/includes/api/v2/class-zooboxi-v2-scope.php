@@ -449,9 +449,10 @@ class Zooboxi_V2_Scope
         // One line on a phone-width ribbon: every word earns its place.
         switch ($scope['tier']) {
             case Zooboxi_Delivery_Engine::TYPE_EXPRESS:
+                // Never the branch's name: the customer buys إكسبريس, not a shop.
                 return $en
-                    ? sprintf('Everything here in 2 hours — %s', $scope['warehouse_name'])
-                    : sprintf('كل ما هنا يصلك خلال ساعتين — %s', $scope['warehouse_name']);
+                    ? 'Everything here in 2 hours — Express'
+                    : 'كل ما هنا يصلك خلال ساعتين — إكسبريس';
             case Zooboxi_Delivery_Engine::TYPE_STANDARD:
                 // Deliberately dayless: this sentence is cached for five
                 // minutes, and a note still saying «اليوم» at 13:03 would
