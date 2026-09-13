@@ -704,8 +704,15 @@ class Zooboxi_V2_Catalog_Controller
 
         $art   = [];
         $needs = [];
+        $cuts  = [];
         if (!is_wp_error($resp) && (int) wp_remote_retrieve_response_code($resp) === 200) {
             $decoded = json_decode((string) wp_remote_retrieve_body($resp), true);
+            foreach ((array) ($decoded['cuts'] ?? []) as $src => $cut) {
+                $cut = esc_url_raw((string) $cut);
+                if ($cut !== '' && is_string($src) && $src !== '') {
+                    $cuts[$src] = $cut;
+                }
+            }
             foreach ((array) ($decoded['needs'] ?? []) as $species => $byNeed) {
                 foreach ((array) $byNeed as $need => $row) {
                     $cut = [];
@@ -742,6 +749,7 @@ class Zooboxi_V2_Catalog_Controller
         // outbound request per home load, and art changes weekly at most.
         set_transient('zb_hero_art', $art, 6 * HOUR_IN_SECONDS);
         set_transient('zb_need_art', $needs, 6 * HOUR_IN_SECONDS);
+        set_transient('zb_cut_map', $cuts, 6 * HOUR_IN_SECONDS);
 
         return $memo = $art;
     }
@@ -1150,6 +1158,34 @@ class Zooboxi_V2_Catalog_Controller
         return is_array($cached) ? $cached : [];
     }
 
+    /**
+     * Home cards with sapconnect's cut-out beside the photo, where one exists —
+     * so the app can float the product (the podium's top three first of all)
+     * instead of mounting its white card.
+     *
+     * @param array<int,array<string,mixed>> $cards
+     * @return array<int,array<string,mixed>>
+     */
+    private function with_cutouts(array $cards): array
+    {
+        $map = get_transient('zb_cut_map');
+        if (!is_array($map)) {
+            $this->hero_art();
+            $map = get_transient('zb_cut_map');
+        }
+        if (!is_array($map) || $map === []) {
+            return $cards;
+        }
+        foreach ($cards as &$card) {
+            $src = (string) ($card['image'] ?? '');
+            if ($src !== '' && isset($map[$src])) {
+                $card['cutout'] = $map[$src];
+            }
+        }
+        unset($card);
+        return $cards;
+    }
+
     private function need_nav(): array
     {
         $ar = static fn(string $ar, string $en) => Zooboxi_V2_Bootstrap::pick($ar, $en);
@@ -1297,7 +1333,7 @@ class Zooboxi_V2_Catalog_Controller
         return [
             'key'      => $key,
             'title'    => $title,
-            'products' => Zooboxi_Product_DTO::cards($ids),
+            'products' => $this->with_cutouts(Zooboxi_Product_DTO::cards($ids)),
         ];
     }
 
