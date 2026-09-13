@@ -267,8 +267,8 @@ class Zooboxi_Push_Events
 
             $number = $order->get_order_number();
             self::order_push($order, [
-                'ar' => ['طلبك يتأخّر قليلًا', 'نتابع طلبك ' . $number . ' مع الفرع والمندوب — نعتذر عن التأخير.'],
-                'en' => ['Running a little late', 'We are following up on order ' . $number . ' with the branch and the courier. Sorry for the delay.'],
+                'ar' => ['طلبك يتأخّر قليلًا', 'نتابع طلبك ' . $number . ' مع فريق إكسبريس والمندوب — نعتذر عن التأخير.'],
+                'en' => ['Running a little late', 'We are following up on order ' . $number . ' with the Express team and the courier. Sorry for the delay.'],
             ], 'order_late', 'late', ['status' => 'late']);
             $pushed++;
         }

@@ -162,8 +162,8 @@ class Zooboxi_Push_Waitlist
                     'topic'        => 'offers',
                     'tier'         => Zooboxi_Push_Gate::TIER_SERVICE,
                     'copy'         => [
-                        'ar' => ['رجع ' . $name, 'متوفر الآن لفرعك — الكمية محدودة.'],
-                        'en' => [$name . ' is back', 'In stock again for your branch — limited quantity.'],
+                        'ar' => ['رجع ' . $name, 'متوفر الآن على إكسبريس — الكمية محدودة.'],
+                        'en' => [$name . ' is back', 'In stock again on Express — limited quantity.'],
                     ],
                     'route'        => '/product/' . $pid,
                     'data'         => ['product_id' => (string) $pid],
