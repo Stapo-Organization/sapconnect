@@ -28,11 +28,18 @@ import '../theme/zooboxi_tokens.dart';
 /// light actually falls on a curved glass lip), and a soft shadow that lifts it
 /// off the page.
 class GlassNavBar extends ConsumerWidget {
-  const GlassNavBar({super.key, required this.index, required this.onSelect});
+  const GlassNavBar({super.key, required this.index, required this.onSelect, this.anchor = true});
 
   /// The active branch.
   final int index;
   final ValueChanged<int> onSelect;
+
+  /// Whether this bar's cart glyph is THE cart — the one the add-to-cart
+  /// flight lands on. Two bars can be mounted at once (the tab shell's under
+  /// a pushed page's), and a `GlobalKey` can live in only one of them: the
+  /// bar that lost it used to lose its cart icon with it. Only the bar on the
+  /// route that is current may anchor.
+  final bool anchor;
 
   /// The pill's own height, before the safe-area margin under it.
   static const double barHeight = 64;
@@ -147,6 +154,7 @@ class GlassNavBar extends ConsumerWidget {
                                 child: _NavItem(
                                   destination: destinations[i],
                                   selected: i == index,
+                                  anchor: anchor,
                                   onTap: () => onSelect(i),
                                 ),
                               ),
@@ -179,11 +187,13 @@ class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.destination,
     required this.selected,
+    required this.anchor,
     required this.onTap,
   });
 
   final _Destination destination;
   final bool selected;
+  final bool anchor;
   final VoidCallback onTap;
 
   @override
@@ -205,7 +215,7 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _Glyph(destination: destination, selected: selected, color: color),
+            _Glyph(destination: destination, selected: selected, color: color, anchor: anchor),
             const SizedBox(height: 3),
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 4, end: 4),
@@ -239,11 +249,13 @@ class _Glyph extends StatefulWidget {
     required this.destination,
     required this.selected,
     required this.color,
+    required this.anchor,
   });
 
   final _Destination destination;
   final bool selected;
   final Color color;
+  final bool anchor;
 
   @override
   State<_Glyph> createState() => _GlyphState();
@@ -269,7 +281,7 @@ class _GlyphState extends State<_Glyph> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        _TabGlyph(kind: destination.kind, selected: selected, quiet: color),
+        _TabGlyph(kind: destination.kind, selected: selected, quiet: color, anchor: widget.anchor),
         if (count > 0)
           PositionedDirectional(
             top: -5,
@@ -316,10 +328,12 @@ class _TabGlyph extends StatefulWidget {
     required this.kind,
     required this.selected,
     required this.quiet,
+    required this.anchor,
   });
 
   final ZbIconKind kind;
   final bool selected;
+  final bool anchor;
 
   /// The unselected outline colour — the glyph walks from this to the logo's
   /// own ink as it fills.
@@ -371,7 +385,7 @@ class _TabGlyphState extends State<_TabGlyph>
         final ink = Color.lerp(widget.quiet, resolveZbInk(context), fill)!;
         final glyph = widget.kind == ZbIconKind.cart
             ? CartBoxIcon(
-                key: cartTabAnchorKey,
+                key: widget.anchor ? cartTabAnchorKey : null,
                 size: _TabGlyph.size,
                 fill: fill,
                 ink: ink,

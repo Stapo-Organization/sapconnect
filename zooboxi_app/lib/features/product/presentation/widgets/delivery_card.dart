@@ -125,7 +125,9 @@ class _TierRow extends StatelessWidget {
               Gap.h4,
               Text(
                 [
-                  if (tier.warehouseName != null) tier.warehouseName!,
+                  // Never the branch's name on the express row — the customer
+                  // buys إكسبريس, not a shop.
+                  if (tier.tier != 'express' && tier.warehouseName != null) tier.warehouseName!,
                   l.pdpStockUnits(tier.stock),
                   if (tier.dateLabel != null && tier.relativeLabel != null) tier.dateLabel!,
                 ].join(' · '),

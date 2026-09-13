@@ -266,7 +266,7 @@ class LAr extends L {
   String get tierShipping => 'شحن';
 
   @override
-  String get tierPickup => 'استلام من الفرع';
+  String get tierPickup => 'استلام ذاتي';
 
   @override
   String get homeAnimalNav => 'تسوّق حسب حيوانك';
@@ -3565,7 +3565,7 @@ class LAr extends L {
   String get promiseTomorrow => 'غدًا';
 
   @override
-  String get promiseClosesIn => 'يغلق الطلب بعد';
+  String get promiseClosesIn => 'إكسبريس يغلق بعد';
 
   @override
   String get promiseOpensLabel => 'يفتح';

@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../app/theme/zb_colors.dart';
 import '../../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../../core/widgets/press_scale.dart';
+import '../../../../../core/widgets/zb_image.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/catalog_models.dart';
 
@@ -178,18 +181,44 @@ class _Pocket extends StatelessWidget {
                   ),
                 ),
               ),
-              PositionedDirectional(
-                end: 12,
-                bottom: 8,
-                child: Icon(
-                  NeedPockets.icon(item.key),
-                  size: 54,
-                  color: ink.withValues(alpha: onLight ? 0.8 : 0.95),
-                  shadows: [
-                    Shadow(color: Colors.black.withValues(alpha: 0.22), blurRadius: 12, offset: const Offset(0, 8)),
-                  ],
+              // The need's most wanted product, on a white plate leaning out
+              // of the pocket — a real thing to reach for. The glyph stands in
+              // only for a store that sent no photo.
+              if ((item.image ?? '').isNotEmpty)
+                PositionedDirectional(
+                  end: 10,
+                  bottom: -6,
+                  child: Transform.rotate(
+                    angle: (context.isRtl ? 8 : -8) * math.pi / 180,
+                    child: Container(
+                      width: 78,
+                      height: 78,
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.28), blurRadius: 16, offset: const Offset(0, 10)),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 2, offset: const Offset(0, 1)),
+                        ],
+                      ),
+                      child: ZbImage(url: item.image, backgroundColor: Colors.white, radius: BorderRadius.circular(9)),
+                    ),
+                  ),
+                )
+              else
+                PositionedDirectional(
+                  end: 12,
+                  bottom: 8,
+                  child: Icon(
+                    NeedPockets.icon(item.key),
+                    size: 54,
+                    color: ink.withValues(alpha: onLight ? 0.8 : 0.95),
+                    shadows: [
+                      Shadow(color: Colors.black.withValues(alpha: 0.22), blurRadius: 12, offset: const Offset(0, 8)),
+                    ],
+                  ),
                 ),
-              ),
               // The lit top edge every tile has, so it reads as a thing and
               // not as a flat fill.
               Positioned(
@@ -202,7 +231,7 @@ class _Pocket extends StatelessWidget {
               PositionedDirectional(
                 start: 14,
                 top: 12,
-                end: 64,
+                end: 86,
                 child: Text(
                   item.name,
                   maxLines: 2,
@@ -242,7 +271,7 @@ class _Pocket extends StatelessWidget {
   }
 }
 
-/// «على رفّ فرعك الآن» — a live dot and the reason these four are here.
+/// «على رفّ إكسبريس الآن» — a live dot and the reason these four are here.
 class _ShelfPill extends StatelessWidget {
   const _ShelfPill();
 

@@ -54,7 +54,7 @@ class WarehousePanel extends StatelessWidget {
                     Gap.w8,
                     Expanded(
                       child: Text(
-                        row.warehouseName,
+                        row.tier == 'express' ? l.shelfExpressTab : row.warehouseName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: context.tt.bodyMedium,

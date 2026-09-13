@@ -361,6 +361,7 @@ class NeedNavItem {
     required this.slug,
     required this.name,
     required this.icon,
+    this.image,
   });
 
   /// `dry` | `wet` | `litter` | `treats` | `health` | `toys` | `clean` |
@@ -371,12 +372,17 @@ class NeedNavItem {
   final String name;
   final String icon;
 
+  /// The photo of the need's most wanted product on this shelf, so the tile
+  /// shows a real thing rather than a glyph. Null from an older store.
+  final String? image;
+
   factory NeedNavItem.fromJson(Map<String, dynamic> json) => NeedNavItem(
         key: asString(json['key']),
         id: asInt(json['id']),
         slug: asString(json['slug']),
         name: asString(json['name']),
         icon: asString(json['icon'], fallback: asString(json['key'])),
+        image: asStringOrNull(json['image']),
       );
 
   /// species → tiles, as the cacheable payload ships them.

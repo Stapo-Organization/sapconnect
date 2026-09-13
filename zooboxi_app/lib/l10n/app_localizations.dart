@@ -592,7 +592,7 @@ abstract class L {
   /// No description provided for @tierPickup.
   ///
   /// In ar, this message translates to:
-  /// **'استلام من الفرع'**
+  /// **'استلام ذاتي'**
   String get tierPickup;
 
   /// No description provided for @homeAnimalNav.
@@ -5554,7 +5554,7 @@ abstract class L {
   /// No description provided for @promiseClosesIn.
   ///
   /// In ar, this message translates to:
-  /// **'يغلق الطلب بعد'**
+  /// **'إكسبريس يغلق بعد'**
   String get promiseClosesIn;
 
   /// No description provided for @promiseOpensLabel.

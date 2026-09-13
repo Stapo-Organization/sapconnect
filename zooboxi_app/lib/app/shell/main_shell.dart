@@ -86,6 +86,10 @@ class _MainShellState extends ConsumerState<MainShell> {
           const ExpressCartBar(),
           GlassNavBar(
             index: index,
+            // The bar under a pushed page hands the cart anchor to the bar on
+            // that page; `ModalRoute.of` rebuilds us when the route's turn
+            // comes back.
+            anchor: ModalRoute.of(context)?.isCurrent ?? true,
             onSelect: (target) {
               Haptics.light();
               // Tapping the active tab pops that branch to its root — the
@@ -157,6 +161,7 @@ class NavChrome extends ConsumerWidget {
                 const LiveOrderBar(),
                 GlassNavBar(
                   index: index,
+                  anchor: ModalRoute.of(context)?.isCurrent ?? true,
                   onSelect: (target) {
                     Haptics.light();
                     // `go`, not `push`: the tab is a destination, and leaving a

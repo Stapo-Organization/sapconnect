@@ -268,7 +268,7 @@ class LEn extends L {
   String get tierShipping => 'Shipping';
 
   @override
-  String get tierPickup => 'Store pickup';
+  String get tierPickup => 'Self pickup';
 
   @override
   String get homeAnimalNav => 'Shop by pet';
@@ -3494,7 +3494,7 @@ class LEn extends L {
   String get promiseTomorrow => 'tomorrow';
 
   @override
-  String get promiseClosesIn => 'Ordering closes in';
+  String get promiseClosesIn => 'Express closes in';
 
   @override
   String get promiseOpensLabel => 'Opens';

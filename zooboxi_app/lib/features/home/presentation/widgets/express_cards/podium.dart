@@ -12,7 +12,7 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../catalog/data/product_models.dart';
 import 'card_form.dart';
 
-/// «الأكثر طلبًا في فرعك» as a podium.
+/// «الأكثر طلبًا على إكسبريس» as a podium.
 ///
 /// A ranking read down is a chart; a ranking read across, with the winner
 /// raised on the tallest block and wearing the gold ring, is a ceremony. The

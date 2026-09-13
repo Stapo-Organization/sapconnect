@@ -397,7 +397,7 @@ class _DialPainter extends CustomPainter {
 
 /* ── 2. the shelf: three numbered tiles ─────────────────────────────── */
 
-/// «الأكثر طلباً في فرعك» is a shelf, so it is drawn as one: the products in a
+/// «الأكثر طلباً على إكسبريس» is a shelf, so it is drawn as one: the products in a
 /// row, numbered, taking most of the panel. The words are a caption above
 /// them, not a headline they orbit.
 class _ShelfBody extends StatelessWidget {

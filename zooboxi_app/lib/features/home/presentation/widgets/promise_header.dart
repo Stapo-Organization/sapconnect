@@ -173,7 +173,7 @@ class _PromiseHeaderState extends State<PromiseHeader> {
                           ),
                         ),
                         Gap.w12,
-                        _ClosingCard(now: _now, hours: hours, open: open),
+                        ClosingCountdown(now: widget.now, hours: hours, open: open),
                       ],
                     ),
                     Gap.h16,
@@ -367,37 +367,68 @@ class _Pulse extends StatelessWidget {
   }
 }
 
-/// «يغلق الطلب بعد 02:48» on flip tiles; «يفتح 09:00» once it has shut.
-class _ClosingCard extends StatelessWidget {
-  const _ClosingCard({
-    required this.now,
-    required this.hours,
-    required this.open,
-  });
+/// «إكسبريس يغلق بعد 02:48:15» on flip tiles, the seconds running; «يفتح
+/// 09:00» once it has shut.
+///
+/// Its own clock, one second, in a leaf of its own: the header above it is
+/// a big painted panel and must not repaint sixty times a minute for the
+/// sake of one digit.
+class ClosingCountdown extends StatefulWidget {
+  const ClosingCountdown({super.key, required this.now, required this.hours, required this.open});
 
-  final DateTime now;
+  /// Fixed by the sheet tests; the wall clock (ticking) when null.
+  final DateTime? now;
   final ExpressHours? hours;
   final bool open;
+
+  @override
+  State<ClosingCountdown> createState() => _ClosingCountdownState();
+}
+
+class _ClosingCountdownState extends State<ClosingCountdown> {
+  Timer? _tick;
+  late DateTime _now;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = widget.now ?? DateTime.now();
+    if (widget.now == null && widget.open) {
+      _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) setState(() => _now = DateTime.now());
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final tt = context.tt;
     final ink = context.isDark ? ZbTokens.inkDark : Colors.white;
+    final hours = widget.hours;
     if (hours == null) return const SizedBox.shrink();
 
-    final left = open ? timeUntilExpressClose(now, hours) : null;
+    final left = widget.open ? timeUntilExpressClose(_now, hours) : null;
     final String label;
     final int h;
     final int m;
+    final int? s;
     if (left != null) {
       label = l.promiseClosesIn;
       h = left.inHours.clamp(0, 99);
       m = left.inMinutes.remainder(60);
+      s = left.inSeconds.remainder(60);
     } else {
       label = l.promiseOpensLabel;
-      h = hours!.openMinutes ~/ 60;
-      m = hours!.openMinutes % 60;
+      h = hours.openMinutes ~/ 60;
+      m = hours.openMinutes % 60;
+      s = null;
     }
 
     return _Glass(
@@ -409,23 +440,16 @@ class _ClosingCard extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.schedule_rounded,
-                size: 12,
-                color: PromiseHeader.gold,
-              ),
+              const Icon(Icons.schedule_rounded, size: 12, color: PromiseHeader.gold),
               Gap.w4,
               Text(
                 label,
-                style: tt.labelSmall?.copyWith(
-                  color: ink.withValues(alpha: 0.88),
-                  fontWeight: FontWeight.w800,
-                ),
+                style: tt.labelSmall?.copyWith(color: ink.withValues(alpha: 0.88), fontWeight: FontWeight.w800),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          FlipClock(hours: h, minutes: m),
+          FlipClock(hours: h, minutes: m, seconds: s),
         ],
       ),
     );
@@ -435,46 +459,50 @@ class _ClosingCard extends StatelessWidget {
 /// Two pairs of split-flap tiles — always drawn left to right, the way a
 /// clock reads in either language.
 class FlipClock extends StatelessWidget {
-  const FlipClock({
-    super.key,
-    required this.hours,
-    required this.minutes,
-    this.small = false,
-  });
+  const FlipClock({super.key, required this.hours, required this.minutes, this.seconds, this.small = false});
 
   final int hours;
   final int minutes;
+
+  /// A third pair, when the clock is close enough to watch.
+  final int? seconds;
   final bool small;
 
   @override
   Widget build(BuildContext context) {
-    final hh = hours.toString().padLeft(2, '0');
-    final mm = minutes.toString().padLeft(2, '0');
+    // Seconds are the pair that moves, so every pair shrinks a step to make
+    // room for them without the card growing.
+    final tiny = small || seconds != null;
+    final colon = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      child: Text(
+        ':',
+        style: TextStyle(
+          fontFamily: 'Manrope',
+          fontWeight: FontWeight.w800,
+          fontSize: tiny ? 12 : 14,
+          height: 1,
+          color: (context.isDark ? ZbTokens.inkDark : Colors.white).withValues(alpha: 0.75),
+        ),
+      ),
+    );
+    Widget pair(int value) {
+      final text = value.toString().padLeft(2, '0');
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [_Tile(text[0], small: tiny), const SizedBox(width: 3), _Tile(text[1], small: tiny)],
+      );
+    }
+
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _Tile(hh[0], small: small),
-          const SizedBox(width: 3),
-          _Tile(hh[1], small: small),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3),
-            child: Text(
-              ':',
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                fontWeight: FontWeight.w800,
-                fontSize: small ? 12 : 14,
-                height: 1,
-                color: (context.isDark ? ZbTokens.inkDark : Colors.white)
-                    .withValues(alpha: 0.75),
-              ),
-            ),
-          ),
-          _Tile(mm[0], small: small),
-          const SizedBox(width: 3),
-          _Tile(mm[1], small: small),
+          pair(hours),
+          colon,
+          pair(minutes),
+          if (seconds != null) ...[colon, pair(seconds!)],
         ],
       ),
     );
