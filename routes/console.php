@@ -37,6 +37,7 @@ Schedule::command('intelligence:build-associations')->weeklyOn(0, '04:00')->with
 Schedule::command('marketing:suggest-campaigns --per-type=60 --limit=300')->dailyAt('05:15')->withoutOverlapping(); // suggest-only; owner approves in app
 Schedule::command('marketing:lifecycle')->everyThirtyMinutes(); // activate scheduled / expire ended
 Schedule::command('marketing:suggest-bundles')->dailyAt('05:40')->withoutOverlapping(); // حزم زوبوكسي — suggest-only; owner approves in app
+Schedule::command('marketing:hero-art')->dailyAt('04:50')->withoutOverlapping(); // slide + need-tile cut-outs; the store caches the manifest 6h
 
 // ── Showroom Pulse (نبض المعرض) — per-branch decision intelligence ──
 // After the intelligence pipeline (build-products 02:30). build-branch-pulse depends on build-branch-products.
