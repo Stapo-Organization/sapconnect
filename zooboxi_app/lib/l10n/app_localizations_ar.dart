@@ -168,6 +168,9 @@ class LAr extends L {
   String get onbLocFailed => 'ما قدرنا نحدد موقعك — تقدر تختار مدينتك بنفسك';
 
   @override
+  String get onbLocSettings => 'افتح الإعدادات';
+
+  @override
   String get onbNotifTitle => 'خلّك أول من يعرف';
 
   @override

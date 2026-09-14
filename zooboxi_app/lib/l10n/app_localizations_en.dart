@@ -169,6 +169,9 @@ class LEn extends L {
       'We couldn\'t get your location — you can pick your city instead';
 
   @override
+  String get onbLocSettings => 'Open Settings';
+
+  @override
   String get onbNotifTitle => 'Be the first to know';
 
   @override

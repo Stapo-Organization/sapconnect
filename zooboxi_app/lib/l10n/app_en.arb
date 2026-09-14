@@ -51,6 +51,7 @@
   "onbLocCity": "Choose my city",
   "onbLocSetTitle": "Got you!",
   "onbLocFailed": "We couldn't get your location — you can pick your city instead",
+  "onbLocSettings": "Open Settings",
   "onbNotifTitle": "Be the first to know",
   "onbNotifBody": "Turn on notifications for live order updates and the best offers before anyone else",
   "onbNotifPerk1": "Track your order step by step",

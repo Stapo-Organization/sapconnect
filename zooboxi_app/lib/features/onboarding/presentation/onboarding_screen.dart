@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/settings/app_settings.dart';
@@ -42,7 +43,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with WidgetsBindingObserver {
   static const int _stepCount = 3;
 
   /// How long the "وصلناك!" card stays on screen before the flow moves on —
@@ -56,11 +57,86 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _asking = false;
   bool _finishing = false;
 
+  /// Whether the OS has the customer's answer on location — a dialog they
+  /// answered here, or one they answered before. A custom message that
+  /// precedes a permission request must always lead to that request (App
+  /// Review's reading of guideline 5.1.1(iv)), so until the OS has an answer
+  /// the step's one way forward is the button that asks; «اختر مدينتي» and
+  /// «لاحقًا» wait behind the dialog rather than beside it.
+  bool _locAnswered = false;
+  bool _locDenied = false;
+
+  /// Denied for good: the dialog will not show again, so the way back in is
+  /// the Settings app, and the step says so instead of offering a dead button.
+  bool _locForever = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_readLocationPermission());
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _advanceTimer?.cancel();
     _pager.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Back from Settings with the switch flipped: the step should know.
+    if (state == AppLifecycleState.resumed) unawaited(_readLocationPermission());
+  }
+
+  Future<void> _readLocationPermission() async {
+    try {
+      _noteLocationPermission(await Geolocator.checkPermission(), asked: false);
+    } catch (_) {
+      // A platform that cannot say has no dialog to show either.
+      if (mounted) setState(() => _locAnswered = true);
+    }
+  }
+
+  /// Records what the OS holds. Before any dialog, iOS reports «not yet
+  /// determined» as [LocationPermission.denied]; that one is the unanswered
+  /// case, every other value is an answer.
+  void _noteLocationPermission(LocationPermission perm, {required bool asked}) {
+    if (!mounted) return;
+    final granted = perm == LocationPermission.always || perm == LocationPermission.whileInUse;
+    setState(() {
+      _locAnswered = asked || perm != LocationPermission.denied;
+      _locDenied = _locAnswered && !granted;
+      _locForever = perm == LocationPermission.deniedForever;
+    });
+  }
+
+  /// Puts the OS location dialog to the customer — or, when the OS already
+  /// has an answer, simply reads it. Returns whether we may locate.
+  Future<bool> _askLocation() async {
+    try {
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      _noteLocationPermission(perm, asked: true);
+      return perm == LocationPermission.always || perm == LocationPermission.whileInUse;
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _locAnswered = true;
+          _locDenied = true;
+        });
+      }
+      return false;
+    }
+  }
+
+  Future<void> _openSettings() async {
+    Haptics.light();
+    await Geolocator.openAppSettings();
   }
 
   void _next() {
@@ -127,6 +203,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // them off whichever step they moved to.
     final from = _step;
     final loggedIn = ref.read(sessionProvider).isAuthenticated;
+
+    // The OS dialog comes first, and a refusal ends here: the step then
+    // offers the city instead, and nothing else was promised.
+    final granted = await _askLocation();
+    if (!granted || !mounted || _step != from) return;
 
     final draft = await showAddressEditor(
       context,
@@ -238,8 +319,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         onNext: _next,
       ),
       _LocationStep(
+        answered: _locAnswered,
+        denied: _locDenied,
+        forever: _locForever,
         onPinAddress: () => unawaited(_pinAddress()),
         onChooseCity: () => unawaited(_openCities()),
+        onOpenSettings: () => unawaited(_openSettings()),
         onNext: _next,
       ),
       _NotificationsStep(
@@ -884,13 +969,23 @@ class _Paw extends StatelessWidget {
 
 class _LocationStep extends ConsumerWidget {
   const _LocationStep({
+    required this.answered,
+    required this.denied,
+    required this.forever,
     required this.onPinAddress,
     required this.onChooseCity,
+    required this.onOpenSettings,
     required this.onNext,
   });
 
+  /// The OS has the customer's answer on location — see the screen's
+  /// `_locAnswered`. Until it does, the only control is the one that asks.
+  final bool answered;
+  final bool denied;
+  final bool forever;
   final VoidCallback onPinAddress;
   final VoidCallback onChooseCity;
+  final VoidCallback onOpenSettings;
   final VoidCallback onNext;
 
   @override
@@ -900,15 +995,24 @@ class _LocationStep extends ConsumerWidget {
     final state = ref.watch(locationProvider);
     final isSet = state.location.isSet;
     final stalled =
-        state.phase == LocationPhase.denied || state.phase == LocationPhase.failed;
+        denied || state.phase == LocationPhase.denied || state.phase == LocationPhase.failed;
 
-    final pin = _CanvasButton(
-      label: l.onbLocCta,
-      icon: Icons.pin_drop_rounded,
-      busy: state.isBusy,
-      filled: !stalled,
-      onPressed: onPinAddress,
-    );
+    // Denied for good, the pin button would ask nothing; the Settings app
+    // is where the answer now lives.
+    final pin = forever
+        ? _CanvasButton(
+            label: l.onbLocSettings,
+            icon: Icons.settings_rounded,
+            filled: false,
+            onPressed: onOpenSettings,
+          )
+        : _CanvasButton(
+            label: l.onbLocCta,
+            icon: Icons.pin_drop_rounded,
+            busy: state.isBusy,
+            filled: !stalled,
+            onPressed: onPinAddress,
+          );
     final city = _CanvasButton(
       label: l.onbLocCity,
       icon: Icons.location_city_rounded,
@@ -944,13 +1048,16 @@ class _LocationStep extends ConsumerWidget {
       ],
       footer: [
         if (stalled && !isSet) ...[
-          _InlineNote(text: l.onbLocFailed),
+          _InlineNote(text: denied ? l.onboardLocationDenied : l.onbLocFailed),
           Gap.h12,
         ],
         if (isSet) ...[
           _CanvasButton(label: l.onbContinue, onPressed: onNext),
           Gap.h8,
           city,
+        ] else if (!answered) ...[
+          // The message leads to the dialog and nowhere else.
+          pin,
         ] else ...[
           if (stalled) ...[city, Gap.h8, pin] else ...[pin, Gap.h8, city],
           _CanvasTextAction(label: l.onbLater, onPressed: onNext),

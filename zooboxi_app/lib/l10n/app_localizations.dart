@@ -403,6 +403,12 @@ abstract class L {
   /// **'ما قدرنا نحدد موقعك — تقدر تختار مدينتك بنفسك'**
   String get onbLocFailed;
 
+  /// No description provided for @onbLocSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتح الإعدادات'**
+  String get onbLocSettings;
+
   /// No description provided for @onbNotifTitle.
   ///
   /// In ar, this message translates to:

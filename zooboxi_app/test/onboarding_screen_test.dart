@@ -67,12 +67,39 @@ class _Host extends ConsumerWidget {
   }
 }
 
+/// Stands in for the OS side of geolocator. [held] is what the OS already has
+/// on file (geolocator's `LocationPermission` index: 0 denied — on iOS also
+/// «not yet determined» — 1 denied forever, 2 while in use, 3 always) and
+/// [answer] what its dialog would return; the calls are recorded so a test
+/// can prove the dialog was put to the customer.
+List<String> _mockLocationChannel({int held = 2, int answer = 0}) {
+  const channel = MethodChannel('flutter.baseflow.com/geolocator');
+  final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  final asked = <String>[];
+
+  messenger.setMockMethodCallHandler(channel, (call) async {
+    asked.add(call.method);
+    return switch (call.method) {
+      'checkPermission' => held,
+      'requestPermission' => answer,
+      'isLocationServiceEnabled' => true,
+      _ => null,
+    };
+  });
+  addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+  return asked;
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   bool locationKnown = false,
   Size size = const Size(900, 2000),
   double textScale = 1,
+  bool locationAnswered = true,
 }) async {
+  // A customer who answered the OS before sees the whole step; the one who
+  // has not yet is walked to the dialog first.
+  if (locationAnswered) _mockLocationChannel();
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -175,6 +202,44 @@ void main() {
     expect(find.text('فعّل الإشعارات'), findsOneWidget);
     expect(find.text('طلبك في الطريق 🚚'), findsOneWidget, reason: 'the ask is shown, not described');
     expect(_store.hasSeenWelcome, isFalse, reason: 'nothing is marked until the last step');
+    expect(tester.takeException(), isNull);
+  });
+
+  // App Review's rule for a custom message that precedes a permission request
+  // (5.1.1(iv)): the message must always lead to the request. So before the
+  // OS has an answer the step offers the one button that asks, and the city
+  // and «لاحقًا» appear only once it does — here, after a refusal.
+  testWidgets('the location step leads to the OS dialog before it offers anything else',
+      (tester) async {
+    final asked = _mockLocationChannel(held: 0, answer: 0);
+
+    await _pump(tester, locationAnswered: false);
+    await _tap(tester, 'يلا نبدأ');
+
+    expect(find.text('حدد موقعي على الخريطة'), findsOneWidget);
+    expect(find.text('لاحقًا'), findsNothing, reason: 'no way past the message but the dialog');
+    expect(find.text('أختار مدينتي بنفسي'), findsNothing);
+
+    await _tap(tester, 'حدد موقعي على الخريطة');
+
+    expect(asked, contains('requestPermission'), reason: 'the OS dialog was put to them');
+    expect(find.text('لم نحصل على إذن الموقع. يمكنك اختيار مدينتك يدويًا.'), findsOneWidget);
+    expect(find.text('أختار مدينتي بنفسي'), findsOneWidget);
+    expect(find.text('لاحقًا'), findsOneWidget, reason: 'answered, so the step may be left');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a permanent refusal points at Settings instead of a button that asks nothing',
+      (tester) async {
+    _mockLocationChannel(held: 1);
+
+    await _pump(tester, locationAnswered: false);
+    await _tap(tester, 'يلا نبدأ');
+
+    expect(find.text('افتح الإعدادات'), findsOneWidget);
+    expect(find.text('حدد موقعي على الخريطة'), findsNothing);
+    expect(find.text('أختار مدينتي بنفسي'), findsOneWidget);
+    expect(find.text('لاحقًا'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
