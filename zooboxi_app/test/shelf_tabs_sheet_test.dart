@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,6 +82,9 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
+    // The signs say what today promises, so the day is pinned: a Thursday
+    // morning before the cutoff.
+    await withClock(Clock.fixed(DateTime(2026, 9, 10, 10, 30)), () async {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ar'),
@@ -143,5 +147,6 @@ void main() {
       find.byType(MaterialApp),
       matchesGoldenFile('goldens/shelf_tabs_sheet.png'),
     );
+    });
   });
 }

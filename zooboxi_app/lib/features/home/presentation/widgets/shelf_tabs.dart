@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -113,7 +114,8 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
   /// placed before one o'clock the same day, and Friday pushes to Saturday.
   String _allLine(BuildContext context, L l) {
     final eta = resolveStandardEta(
-      now: DateTime.now(),
+      // The test clock, so a golden taken at night matches one taken at noon.
+      now: clock.now(),
       cutoffMinutes: widget.standardCutoffMinutes ?? standardCutoffMinutes,
     );
     return switch (eta.kind) {

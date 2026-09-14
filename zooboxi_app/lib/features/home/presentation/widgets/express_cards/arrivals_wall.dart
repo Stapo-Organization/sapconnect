@@ -136,13 +136,15 @@ class ArrivalTile extends ConsumerWidget {
                         SizedBox(
                           width: side,
                           height: side,
-                          child: PhotoPlate(
-                            product: product,
-                            radius: 4,
-                            inset: 6,
-                            border: true,
-                            color: Colors.white,
-                          ),
+                          child: (product.cutout ?? '').isNotEmpty
+                              ? _Backdrop(product: product, index: index, side: side)
+                              : PhotoPlate(
+                                  product: product,
+                                  radius: 4,
+                                  inset: 6,
+                                  border: true,
+                                  color: Colors.white,
+                                ),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -204,6 +206,64 @@ class ArrivalTile extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The photograph itself: the product cut out and floating on a studio
+/// sweep — a soft wash of colour, lighter where the lamp is, with the
+/// object's own shadow under it. Four washes take turns down the wall so
+/// three polaroids in a row read as three photographs, not one template.
+/// A product the store could not cut (a bundle's composed art) keeps the
+/// white plate.
+class _Backdrop extends StatelessWidget {
+  const _Backdrop({required this.product, required this.index, required this.side});
+
+  final ProductCard product;
+  final int index;
+  final double side;
+
+  static const List<(Color, Color)> _washes = [
+    (Color(0xFFF3EADB), Color(0xFF3A3225)),
+    (Color(0xFFE3EFE7), Color(0xFF24332A)),
+    (Color(0xFFF9E6E1), Color(0xFF3B2A27)),
+    (Color(0xFFE4EDF6), Color(0xFF25313C)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    final wash = _washes[index % _washes.length];
+    final ground = context.isDark ? wash.$2 : wash.$1;
+    final lamp = context.isDark ? Colors.white.withValues(alpha: 0.10) : Colors.white.withValues(alpha: 0.75);
+    final art = FloatingProduct(
+      url: product.cutout!,
+      width: side - 14,
+      height: side - 14,
+      shadow: context.isDark ? 0.55 : 0.30,
+      drop: 5,
+    );
+
+    // The wash is the ground and the lamp a gradient over it — one
+    // decoration cannot carry both, a gradient silences its colour.
+    return Container(
+      decoration: BoxDecoration(
+        color: ground,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.9),
+            radius: 1.1,
+            colors: [lamp, lamp.withValues(alpha: 0)],
+            stops: const [0, 0.85],
+          ),
+        ),
+        child: Center(child: product.inStock ? art : Opacity(opacity: 0.4, child: art)),
       ),
     );
   }
