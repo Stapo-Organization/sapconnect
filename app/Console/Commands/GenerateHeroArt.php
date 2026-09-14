@@ -17,7 +17,8 @@ class GenerateHeroArt extends Command
     protected $signature = 'marketing:hero-art
         {--theme=* : Only these themes (express_clock, express_top, express_new, cutoff, bundles, clearance)}
         {--refresh-manifest : Rewrite the manifest from the images already on disk — generates nothing, costs nothing}
-        {--needs : Only the need tiles\' and the home products\' cut-outs (the slides are left alone)}';
+        {--needs : Only the need tiles\' and the home products\' cut-outs (the slides are left alone)}
+        {--catalog : Only the shelf-wide catalogue cut-outs, keyed by SAP code (incremental)}';
 
     protected $description = 'Generate the AI artwork behind the app home slider';
 
@@ -35,7 +36,7 @@ class GenerateHeroArt extends Command
 
         $themes = array_values(array_filter((array) $this->option('theme')));
         $made = [];
-        if (! $this->option('needs')) {
+        if (! $this->option('needs') && ! $this->option('catalog')) {
             $this->info($themes === [] ? 'Generating every slide…' : 'Generating: ' . implode(', ', $themes));
             $made = $art->run($themes, fn (string $line) => $this->line("  {$line}"));
         }
@@ -43,14 +44,22 @@ class GenerateHeroArt extends Command
         // The need tiles ride along with a full run, or alone on --needs;
         // a run pinned to particular slides leaves them be.
         $needs = [];
-        if ($this->option('needs') || $themes === []) {
+        $codes = [];
+        if ($this->option('catalog')) {
+            $this->info('Cutting every product on the express shelves…');
+            $codes = $art->catalog(fn (string $line) => $this->line("  {$line}"));
+        } elseif ($this->option('needs') || $themes === []) {
             $this->info('Cutting the need tiles\' products…');
             $needs = $art->needs(fn (string $line) => $this->line("  {$line}"));
             $this->info('Cutting the home\'s own products…');
             $art->products(fn (string $line) => $this->line("  {$line}"));
+            if ($themes === []) {
+                $this->info('Cutting every product on the express shelves…');
+                $codes = $art->catalog(fn (string $line) => $this->line("  {$line}"));
+            }
         }
 
-        if ($made === [] && $needs === []) {
+        if ($made === [] && $needs === [] && $codes === []) {
             $this->warn('nothing was generated');
             return self::FAILURE;
         }

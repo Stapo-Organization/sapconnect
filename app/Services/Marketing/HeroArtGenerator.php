@@ -2,7 +2,10 @@
 
 namespace App\Services\Marketing;
 
+use App\Models\Product;
 use App\Models\ProductBundle;
+use App\Models\WarehouseItemStock;
+use App\Models\ZooboxiWarehouse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -214,6 +217,84 @@ class HeroArtGenerator
     }
 
     /**
+     * Every product stocked on any express shelf, cut and trimmed, keyed by
+     * its SAP code. The rails rotate hourly and a cut keyed by a card's image
+     * only ever covered the products of one moment; keyed by code, whatever
+     * the store puts on a rail tonight already has its cut-out waiting.
+     *
+     * Incremental: the file name carries a hash of the source photo, so an
+     * unchanged product costs nothing on the second night and a re-shot one
+     * is cut again. A few thousand products the first time, minutes after.
+     *
+     * @return array<string,string> item code => url
+     */
+    public function catalog(?callable $report = null): array
+    {
+        $shelves = ZooboxiWarehouse::active()->where('express_radius_km', '>', 0)->pluck('warehouse_code');
+        $codes = WarehouseItemStock::whereIn('warehouse_code', $shelves)
+            ->where('in_stock', '>', 0)
+            ->distinct()
+            ->pluck('item_code');
+
+        $stamp = (string) time();
+        $existing = (array) ($this->manifest()['codes'] ?? []);
+        $out = [];
+        $fresh = 0;
+        $failed = 0;
+        $done = 0;
+
+        foreach ($codes->chunk(200) as $chunk) {
+            $products = Product::whereIn('item_code', $chunk)->get(['item_code', 'zb_images']);
+            foreach ($products as $product) {
+                $code = (string) $product->item_code;
+                $src = $this->photoOf($product);
+                if ($src === null) {
+                    continue;
+                }
+                $name = 'hero-art/cut/i-' . $code . '-' . substr(md5($src), 0, 8) . '.png';
+                $disk = Storage::disk('public');
+                if ($disk->exists($name)) {
+                    $out[$code] = $existing[$code] ?? ($disk->url($name) . '?v=' . $stamp);
+                } elseif ($this->collage->cutoutTrimmed($src, $disk->path($name)) !== null) {
+                    $out[$code] = $disk->url($name) . '?v=' . $stamp;
+                    $fresh++;
+                } else {
+                    $failed++;
+                }
+            }
+            $done += $chunk->count();
+            $report && $report("catalog {$done}/{$codes->count()} → " . count($out) . " cut, {$fresh} fresh, {$failed} refused");
+        }
+
+        // A product that left every shelf keeps its cut until the next full
+        // sweep; nothing here is worth losing over a stock blip.
+        $merged = $out + $existing;
+        $this->mergeManifest(['codes' => $merged]);
+        $report && $report('codes: ' . count($out) . ' on the shelves, ' . count($merged) . ' in the manifest');
+
+        return $merged;
+    }
+
+    /** The product's first catalog photo: the store's, else the gallery host. */
+    private function photoOf(Product $product): ?string
+    {
+        $imgs = $product->zb_images;
+        if (is_string($imgs)) {
+            $imgs = json_decode($imgs, true);
+        }
+        if (is_array($imgs) && ! empty($imgs[0])) {
+            $first = $imgs[0];
+            $url = is_array($first) ? ($first['src'] ?? $first['url'] ?? null) : $first;
+            if (is_string($url) && $url !== '') {
+                return $url;
+            }
+        }
+        $code = (string) $product->item_code;
+
+        return $code !== '' ? "https://gal.holeno.com/imghd/{$code}.png" : null;
+    }
+
+    /**
      * Rewrite the manifest from the images already on disk — no generation, no
      * cost. For when the manifest gains a field (a tint, say) and the artwork
      * itself is still good.
@@ -286,6 +367,7 @@ class HeroArtGenerator
             'art' => is_array($current['art'] ?? null) ? $current['art'] : [],
             'needs' => is_array($current['needs'] ?? null) ? $current['needs'] : [],
             'cuts' => is_array($current['cuts'] ?? null) ? $current['cuts'] : [],
+            'codes' => is_array($current['codes'] ?? null) ? $current['codes'] : [],
         ];
         foreach ($patch as $key => $value) {
             $out[$key] = $value;
