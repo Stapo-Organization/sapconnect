@@ -3568,7 +3568,7 @@ class LAr extends L {
   String get replenishCtaPlain => 'أعد الطلب';
 
   @override
-  String get promiseOpenNow => 'إكسبريس يعمل الآن · يوصلك اليوم الساعة';
+  String get promiseOpenNow => 'يعمل الآن · يوصلك اليوم الساعة';
 
   @override
   String get promiseTomorrow => 'غدًا';

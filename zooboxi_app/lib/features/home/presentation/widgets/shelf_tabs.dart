@@ -172,8 +172,8 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
       container: true,
       label: l.shelfTabsLabel,
       child: Container(
-        height: 56,
-        padding: const EdgeInsets.all(4),
+        height: 48,
+        padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: track,
           borderRadius: BorderRadius.circular(ZbTokens.rLg),
@@ -182,10 +182,13 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
           children: [
             AnimatedAlign(
               alignment: align,
+              // A decelerating slide, not the emphasized S-curve: the thumb
+              // has to be already moving when the finger lifts, or the tap
+              // feels late. Quicker than the page swap that follows it.
               duration: still
                   ? Duration.zero
-                  : const Duration(milliseconds: 340),
-              curve: Motion.emphasized,
+                  : const Duration(milliseconds: 260),
+              curve: Motion.decelerate,
               child: FractionallySizedBox(
                 widthFactor: 0.5,
                 heightFactor: 1,
@@ -317,7 +320,7 @@ class _Sign extends StatelessWidget {
                       scale: selected ? 1.0 : 0.9,
                       child: Icon(
                         identity.icon,
-                        size: 20,
+                        size: 18,
                         // On the deep canvas an identity-coloured resting icon
                         // can melt into it (teal on teal); rest in the same
                         // quiet white as the text and let selection bring the
@@ -341,6 +344,7 @@ class _Sign extends StatelessWidget {
                             duration: duration,
                             style: (context.tt.titleSmall ?? const TextStyle())
                                 .copyWith(
+                                  fontSize: 13,
                                   color: fg,
                                   fontWeight: FontWeight.w800,
                                   height: 1.1,
@@ -355,8 +359,8 @@ class _Sign extends StatelessWidget {
                             duration: duration,
                             style: (context.tt.labelSmall ?? const TextStyle())
                                 .copyWith(
-                                  fontSize: 10,
-                                  height: 1.2,
+                                  fontSize: 9.5,
+                                  height: 1.15,
                                   fontWeight: FontWeight.w600,
                                   color: fg.withValues(
                                     alpha: selected ? 0.85 : 0.65,

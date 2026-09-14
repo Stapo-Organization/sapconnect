@@ -1584,7 +1584,7 @@
   "replenishCta": "Reorder on Express",
   "replenishArrives": "arrives within two hours",
   "replenishCtaPlain": "Reorder",
-  "promiseOpenNow": "Express is on · arrives today at",
+  "promiseOpenNow": "On now · arrives today at",
   "promiseTomorrow": "tomorrow",
   "promiseClosesIn": "Express closes in",
   "promiseOpensLabel": "Opens",

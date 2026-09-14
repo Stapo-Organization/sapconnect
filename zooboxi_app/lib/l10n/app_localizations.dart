@@ -5560,7 +5560,7 @@ abstract class L {
   /// No description provided for @promiseOpenNow.
   ///
   /// In ar, this message translates to:
-  /// **'إكسبريس يعمل الآن · يوصلك اليوم الساعة'**
+  /// **'يعمل الآن · يوصلك اليوم الساعة'**
   String get promiseOpenNow;
 
   /// No description provided for @promiseTomorrow.

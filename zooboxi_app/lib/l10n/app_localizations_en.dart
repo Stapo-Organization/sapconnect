@@ -3497,7 +3497,7 @@ class LEn extends L {
   String get replenishCtaPlain => 'Reorder';
 
   @override
-  String get promiseOpenNow => 'Express is on · arrives today at';
+  String get promiseOpenNow => 'On now · arrives today at';
 
   @override
   String get promiseTomorrow => 'tomorrow';

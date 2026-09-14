@@ -125,9 +125,9 @@ class _PromiseHeaderState extends State<PromiseHeader> {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(
                   16,
-                  statusTop + 8,
+                  statusTop + 4,
                   16,
-                  42,
+                  34,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,16 +154,16 @@ class _PromiseHeaderState extends State<PromiseHeader> {
                         ),
                       ],
                     ),
-                    Gap.h12,
+                    Gap.h8,
                     ShelfTabs(
                       onCanvas: true,
                       hours: hours,
                       expressAvailable: scope.expressAvailable,
                       standardCutoffMinutes: scope.standardCutoffMinutes,
                     ),
-                    Gap.h16,
+                    const SizedBox(height: 10),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           child: _Promise(
@@ -178,7 +178,7 @@ class _PromiseHeaderState extends State<PromiseHeader> {
                         ClosingCountdown(now: widget.now, hours: hours, open: open),
                       ],
                     ),
-                    Gap.h16,
+                    Gap.h8,
                     _Route(branch: branch),
                   ],
                 ),
@@ -260,20 +260,25 @@ class _Promise extends StatelessWidget {
           children: [
             _Pulse(color: open ? ZbTokens.successOnDark : ZbTokens.amberOnDark),
             Gap.w6,
+            // Shrinks a step before it ellipsises: a lead line that ends in
+            // «الساعة» and then a cut is worse than one a hair smaller.
             Flexible(
-              child: Text(
-                lead,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: tt.labelMedium?.copyWith(
-                  color: ink.withValues(alpha: 0.86),
-                  fontWeight: FontWeight.w700,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  lead,
+                  maxLines: 1,
+                  style: tt.labelMedium?.copyWith(
+                    color: ink.withValues(alpha: 0.86),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        Gap.h4,
+        const SizedBox(height: 2),
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: AlignmentDirectional.centerStart,
@@ -286,17 +291,17 @@ class _Promise extends StatelessWidget {
                 digits,
                 style: TextStyle(
                   fontFamily: 'Manrope',
-                  fontSize: 62,
+                  fontSize: 46,
                   height: 1,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -2.5,
+                  letterSpacing: -1.8,
                   color: ink,
                   fontFeatures: const [FontFeature.tabularFigures()],
                   shadows: [
                     Shadow(
                       color: Colors.black.withValues(alpha: 0.28),
-                      blurRadius: 18,
-                      offset: const Offset(0, 4),
+                      blurRadius: 14,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -305,7 +310,7 @@ class _Promise extends StatelessWidget {
                 Gap.w8,
                 Text(
                   suffix,
-                  style: tt.headlineSmall?.copyWith(
+                  style: tt.titleLarge?.copyWith(
                     color: ink,
                     fontWeight: FontWeight.w900,
                     shadows: [
@@ -434,8 +439,8 @@ class _ClosingCountdownState extends State<ClosingCountdown> {
     }
 
     return _Glass(
-      radius: 16,
-      padding: const EdgeInsets.fromLTRB(11, 9, 11, 10),
+      radius: 14,
+      padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -450,7 +455,7 @@ class _ClosingCountdownState extends State<ClosingCountdown> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           FlipClock(hours: h, minutes: m, seconds: s),
         ],
       ),
@@ -574,8 +579,11 @@ class _Tile extends StatelessWidget {
   }
 }
 
-/// Branch → courier → door, with the lit half of the route reaching the
-/// courier: the order is on its way the moment it is placed.
+/// Branch → courier → door on one line, with the lit half of the route
+/// reaching the courier: the order is on its way the moment it is placed.
+///
+/// The labels sit beside their nodes rather than under them, so the whole
+/// route is one row of type — it used to spend two rows on it.
 class _Route extends StatelessWidget {
   const _Route({required this.branch});
 
@@ -594,153 +602,139 @@ class _Route extends StatelessWidget {
     );
 
     return SizedBox(
-      height: 54,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final w = constraints.maxWidth;
-          final track = w - 28;
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              PositionedDirectional(
-                top: 13,
-                start: 14,
-                end: 14,
-                child: CustomPaint(
-                  size: Size(track, 2),
-                  painter: DashPainter(color: ink.withValues(alpha: 0.45)),
+      height: 30,
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: PromiseHeader.gold,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: PromiseHeader.gold.withValues(alpha: 0.25),
+                  spreadRadius: 3,
                 ),
-              ),
-              PositionedDirectional(
-                top: 13,
-                start: 14,
-                width: track * _progress,
-                child: Container(
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: PromiseHeader.gold,
-                    boxShadow: [
-                      BoxShadow(
-                        color: PromiseHeader.gold.withValues(alpha: 0.8),
-                        blurRadius: 12,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              PositionedDirectional(
-                start: 0,
-                top: 0,
-                child: _Node(
-                  circle: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: PromiseHeader.gold,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: PromiseHeader.gold.withValues(alpha: 0.25),
-                          spreadRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.storefront_rounded,
-                      size: 15,
-                      color: PromiseHeader.deep,
-                    ),
-                  ),
-                  label: Text(
-                    branch,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: label,
-                  ),
-                ),
-              ),
-              PositionedDirectional(
-                start: 14 + track * _progress - 18,
-                top: -4,
-                child: Column(
+              ],
+            ),
+            child: const Icon(
+              Icons.storefront_rounded,
+              size: 13,
+              color: PromiseHeader.deep,
+            ),
+          ),
+          Gap.w6,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 96),
+            child: Text(
+              branch,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: label,
+            ),
+          ),
+          Gap.w8,
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final track = constraints.maxWidth;
+                return Stack(
+                  alignment: AlignmentDirectional.centerStart,
+                  clipBehavior: Clip.none,
                   children: [
+                    CustomPaint(
+                      size: Size(track, 2),
+                      painter: DashPainter(color: ink.withValues(alpha: 0.45)),
+                    ),
                     Container(
-                      width: 36,
-                      height: 36,
+                      width: track * _progress,
+                      height: 2,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
+                        color: PromiseHeader.gold,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
+                            color: PromiseHeader.gold.withValues(alpha: 0.8),
+                            blurRadius: 12,
                           ),
                         ],
                       ),
-                      child: Transform.flip(
-                        flipX: context.isRtl,
-                        child: const Icon(
-                          Icons.moped_rounded,
-                          size: 22,
-                          color: PromiseHeader.deep,
-                        ),
-                      ),
                     ),
-                    const SizedBox(height: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.28),
-                        borderRadius: BorderRadius.circular(ZbTokens.rPill),
-                      ),
-                      child: Text(l.heroExpressWindow, style: label),
+                    // The courier rides the end of the lit stretch, the
+                    // window pinned to its side.
+                    PositionedDirectional(
+                      start: (track * _progress - 14).clamp(0.0, track),
+                      child: _Courier(window: l.heroExpressWindow, label: label),
                     ),
                   ],
-                ),
-              ),
-              PositionedDirectional(
-                end: 0,
-                top: 0,
-                child: _Node(
-                  circle: _Glass(
-                    radius: 14,
-                    padding: EdgeInsets.zero,
-                    child: SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: Icon(Icons.home_rounded, size: 15, color: ink),
-                    ),
-                  ),
-                  label: Text(l.promiseRouteYou, style: label),
-                ),
-              ),
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ),
+          Gap.w8,
+          Text(l.promiseRouteYou, style: label),
+          Gap.w6,
+          _Glass(
+            radius: 12,
+            padding: EdgeInsets.zero,
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.home_rounded, size: 13, color: ink),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Node extends StatelessWidget {
-  const _Node({required this.circle, required this.label});
+/// The moped in its white disc with the delivery window as a pill beside it
+/// — one object on the track, not a stack of two.
+class _Courier extends StatelessWidget {
+  const _Courier({required this.window, required this.label});
 
-  final Widget circle;
-  final Widget label;
+  final String window;
+  final TextStyle? label;
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 120),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [circle, const SizedBox(height: 4), label],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Transform.flip(
+            flipX: context.isRtl,
+            child: const Icon(
+              Icons.moped_rounded,
+              size: 17,
+              color: PromiseHeader.deep,
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.32),
+            borderRadius: BorderRadius.circular(ZbTokens.rPill),
+          ),
+          child: Text(window, style: label, maxLines: 1),
+        ),
+      ],
     );
   }
 }
@@ -928,12 +922,12 @@ class _GlassButton extends StatelessWidget {
             onTap();
           },
           child: _Glass(
-            radius: 20,
+            radius: 18,
             padding: EdgeInsets.zero,
             child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Center(child: ZbIcon(kind, size: 20, ink: ink)),
+              width: 36,
+              height: 36,
+              child: Center(child: ZbIcon(kind, size: 19, ink: ink)),
             ),
           ),
         ),
