@@ -65,6 +65,8 @@ class _SearchHeroFieldState extends State<SearchHeroField> {
       l.expressSearchHint2,
       l.expressSearchHint3,
       l.expressSearchHint4,
+      l.expressSearchHint5,
+      l.expressSearchHint6,
     ];
 
     return HeroMode(

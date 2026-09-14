@@ -5374,26 +5374,38 @@ abstract class L {
   /// No description provided for @expressSearchHint1.
   ///
   /// In ar, this message translates to:
-  /// **'رويال كانين'**
+  /// **'كيت كات'**
   String get expressSearchHint1;
 
   /// No description provided for @expressSearchHint2.
   ///
   /// In ar, this message translates to:
-  /// **'رمل قطط'**
+  /// **'فيلاين قو'**
   String get expressSearchHint2;
 
   /// No description provided for @expressSearchHint3.
   ///
   /// In ar, this message translates to:
-  /// **'ويسكاس'**
+  /// **'أبلاوز'**
   String get expressSearchHint3;
 
   /// No description provided for @expressSearchHint4.
   ///
   /// In ar, this message translates to:
-  /// **'مكافآت'**
+  /// **'جوسيرا'**
   String get expressSearchHint4;
+
+  /// No description provided for @expressSearchHint5.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمل قطط'**
+  String get expressSearchHint5;
+
+  /// No description provided for @expressSearchHint6.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافآت'**
+  String get expressSearchHint6;
 
   /// No description provided for @expressSearchPrefix.
   ///

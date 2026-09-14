@@ -1535,10 +1535,12 @@
   "liveTrackStillSearching": "Still looking for a courier",
   "liveTrackAssignHint": "We are asking the riders nearby. We will tell you the moment one takes it.",
   "liveBarSearching": "Finding a courier",
-  "expressSearchHint1": "Royal Canin",
-  "expressSearchHint2": "cat litter",
-  "expressSearchHint3": "Whiskas",
-  "expressSearchHint4": "treats",
+  "expressSearchHint1": "Kit Cat",
+  "expressSearchHint2": "Felyn Go",
+  "expressSearchHint3": "Applaws",
+  "expressSearchHint4": "Josera",
+  "expressSearchHint5": "cat litter",
+  "expressSearchHint6": "treats",
   "expressSearchPrefix": "Search: {example}",
   "@expressSearchPrefix": {
     "placeholders": { "example": { "type": "String" } }

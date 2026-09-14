@@ -3412,16 +3412,22 @@ class LAr extends L {
   String get liveBarSearching => 'جارٍ تحديد مندوب';
 
   @override
-  String get expressSearchHint1 => 'رويال كانين';
+  String get expressSearchHint1 => 'كيت كات';
 
   @override
-  String get expressSearchHint2 => 'رمل قطط';
+  String get expressSearchHint2 => 'فيلاين قو';
 
   @override
-  String get expressSearchHint3 => 'ويسكاس';
+  String get expressSearchHint3 => 'أبلاوز';
 
   @override
-  String get expressSearchHint4 => 'مكافآت';
+  String get expressSearchHint4 => 'جوسيرا';
+
+  @override
+  String get expressSearchHint5 => 'رمل قطط';
+
+  @override
+  String get expressSearchHint6 => 'مكافآت';
 
   @override
   String expressSearchPrefix(String example) {

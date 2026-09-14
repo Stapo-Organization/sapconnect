@@ -1800,10 +1800,12 @@
   "liveTrackStillSearching": "نواصل البحث عن مندوب لك",
   "liveTrackAssignHint": "نبحث بين المندوبين القريبين. ننبّهك فور تحديد المندوب.",
   "liveBarSearching": "جارٍ تحديد مندوب",
-  "expressSearchHint1": "رويال كانين",
-  "expressSearchHint2": "رمل قطط",
-  "expressSearchHint3": "ويسكاس",
-  "expressSearchHint4": "مكافآت",
+  "expressSearchHint1": "كيت كات",
+  "expressSearchHint2": "فيلاين قو",
+  "expressSearchHint3": "أبلاوز",
+  "expressSearchHint4": "جوسيرا",
+  "expressSearchHint5": "رمل قطط",
+  "expressSearchHint6": "مكافآت",
   "expressSearchPrefix": "ابحث: {example}",
   "@expressSearchPrefix": {
     "placeholders": { "example": { "type": "String" } }

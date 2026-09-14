@@ -3352,16 +3352,22 @@ class LEn extends L {
   String get liveBarSearching => 'Finding a courier';
 
   @override
-  String get expressSearchHint1 => 'Royal Canin';
+  String get expressSearchHint1 => 'Kit Cat';
 
   @override
-  String get expressSearchHint2 => 'cat litter';
+  String get expressSearchHint2 => 'Felyn Go';
 
   @override
-  String get expressSearchHint3 => 'Whiskas';
+  String get expressSearchHint3 => 'Applaws';
 
   @override
-  String get expressSearchHint4 => 'treats';
+  String get expressSearchHint4 => 'Josera';
+
+  @override
+  String get expressSearchHint5 => 'cat litter';
+
+  @override
+  String get expressSearchHint6 => 'treats';
 
   @override
   String expressSearchPrefix(String example) {
