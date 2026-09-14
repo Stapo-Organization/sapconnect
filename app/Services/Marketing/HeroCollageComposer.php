@@ -104,7 +104,21 @@ class HeroCollageComposer
         if ($cut === null) {
             return null;
         }
-        $img = @imagecreatefromstring($cut);
+
+        return $this->trimAlpha($cut, $outPath);
+    }
+
+    /**
+     * Crop a transparent PNG to the thing in it — a 4% margin round the
+     * opaque bounding box, at most 600px on the long side — and write it to
+     * [$outPath]. Refuses an image that is nearly empty or nearly all
+     * canvas, since neither is a product.
+     *
+     * @return array{w:int,h:int}|null
+     */
+    public function trimAlpha(string $png, string $outPath): ?array
+    {
+        $img = @imagecreatefromstring($png);
         if ($img === false) {
             return null;
         }
@@ -514,16 +528,34 @@ SVG;
 
         $w = imagesx($src);
         $h = imagesy($src);
-        if ($w < 8 || $h < 8 || $w * $h > 1_500_000) {
+        if ($w < 8 || $h < 8 || $w * $h > 4_000_000) {
             imagedestroy($src);
             return null;
         }
 
-        $img = imagecreatetruecolor($w, $h);
+        // The cut-out never leaves at more than 600px, so a packshot is
+        // brought down to 800 on its long side before the fill: the queue
+        // below grows with the pixel count, and a 1200px sweep of white was
+        // enough to exhaust the command's memory.
+        $long = max($w, $h);
+        $tw = $w;
+        $th = $h;
+        if ($long > 800) {
+            $tw = (int) round($w * 800 / $long);
+            $th = (int) round($h * 800 / $long);
+        }
+
+        $img = imagecreatetruecolor($tw, $th);
         imagealphablending($img, false);
         imagesavealpha($img, true);
-        imagecopy($img, $src, 0, 0, 0, 0, $w, $h);
+        if ($tw === $w && $th === $h) {
+            imagecopy($img, $src, 0, 0, 0, 0, $w, $h);
+        } else {
+            imagecopyresampled($img, $src, 0, 0, 0, 0, $tw, $th, $w, $h);
+        }
         imagedestroy($src);
+        $w = $tw;
+        $h = $th;
 
         $white = static function (int $rgb): bool {
             if ((($rgb >> 24) & 0x7F) > 100) {

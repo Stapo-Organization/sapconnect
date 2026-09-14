@@ -23,6 +23,10 @@ class GenerateHeroArt extends Command
 
     public function handle(HeroArtGenerator $art): int
     {
+        // Dozens of packshots decoded and flood-filled in one process: the
+        // web default is too tight for an image job, and this is a cron.
+        ini_set('memory_limit', '512M');
+
         if ($this->option('refresh-manifest')) {
             $urls = $art->refreshManifest(fn (string $line) => $this->line("  {$line}"));
             $this->info(count($urls) . ' image(s) re-listed');

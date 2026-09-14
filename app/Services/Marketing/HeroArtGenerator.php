@@ -2,6 +2,7 @@
 
 namespace App\Services\Marketing;
 
+use App\Models\ProductBundle;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -45,7 +46,7 @@ class HeroArtGenerator
         ];
     }
 
-    public function __construct(private HeroCollageComposer $collage)
+    public function __construct(private HeroCollageComposer $collage, private BundleCardComposer $bundles)
     {
     }
 
@@ -172,17 +173,28 @@ class HeroArtGenerator
 
         foreach ((array) ($home['rails'] ?? []) as $rail) {
             $key = (string) ($rail['key'] ?? '');
-            $n = 0;
+            // Every product on the rail, not the first few: the app dedupes
+            // each rail against the slots above it, so the podium's top three
+            // or the wall's first row can come from anywhere in the twelve.
             foreach ((array) ($rail['products'] ?? []) as $card) {
-                if ($n >= 6) {
-                    break;
-                }
                 $src = (string) ($card['image'] ?? '');
-                if ($src === '' || isset($seen[$src]) || str_contains($src, 'bundle-')) {
+                if ($src === '' || isset($seen[$src])) {
                     continue;
                 }
                 $seen[$src] = true;
-                $n++;
+
+                // A bundle's card is composed art on a painted ground; no
+                // knock-out cuts it cleanly. The composer renders it again
+                // with nothing behind the products instead.
+                if (preg_match('/bundle-(\d+)/', $src, $m)) {
+                    $bundle = ProductBundle::find((int) $m[1]);
+                    $url = $bundle ? $this->bundles->renderCutout($bundle) : null;
+                    if ($url !== null) {
+                        $cuts[$src] = $url;
+                    }
+                    continue;
+                }
+
                 $name = 'hero-art/cut/p-' . md5($src) . '.png';
                 if ($this->collage->cutoutTrimmed($src, Storage::disk('public')->path($name)) !== null) {
                     $cuts[$src] = Storage::disk('public')->url($name) . '?v=' . $stamp;

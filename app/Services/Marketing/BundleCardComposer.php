@@ -34,6 +34,10 @@ class BundleCardComposer
     private const CORAL = '#D46856';
     private const CORAL_DEEP = '#B24E3D';
 
+    public function __construct(private readonly HeroCollageComposer $collage)
+    {
+    }
+
     /** Render the card; returns the public URL (?v=mtime) or null. */
     public function render(ProductBundle $bundle): ?string
     {
@@ -44,12 +48,53 @@ class BundleCardComposer
             return null;
         }
 
+        $pngPath = $this->rasterise($svg, "bundle-{$bundle->id}.png");
+        if ($pngPath === null) {
+            return null;
+        }
+
+        return asset('storage/creatives/bundles/' . basename($pngPath)) . '?v=' . filemtime($pngPath);
+    }
+
+    /**
+     * The same products with nothing behind them: no ground, no aura, no
+     * floor shadow — a transparent PNG trimmed to the stack, for the home
+     * forms that float a product on their own colour and draw its shadow
+     * themselves. The seal stays; it is part of the object.
+     */
+    public function renderCutout(ProductBundle $bundle): ?string
+    {
+        $bundle->loadMissing('items');
+
+        $svg = $this->buildSvg($bundle, flat: true);
+        if ($svg === null) {
+            return null;
+        }
+
+        $raw = $this->rasterise($svg, "bundle-{$bundle->id}-raw.png");
+        if ($raw === null) {
+            return null;
+        }
+        $png = (string) file_get_contents($raw);
+        @unlink($raw);
+
+        $out = storage_path("app/public/creatives/bundles/bundle-{$bundle->id}-cut.png");
+        if ($this->collage->trimAlpha($png, $out) === null) {
+            return null;
+        }
+
+        return asset('storage/creatives/bundles/' . basename($out)) . '?v=' . filemtime($out);
+    }
+
+    /** SVG → PNG through the ad engine's resvg script; the PNG's path. */
+    private function rasterise(string $svg, string $name): ?string
+    {
         $dir = storage_path('app/public/creatives/bundles');
         if (! is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
-        $svgPath = $dir . "/bundle-{$bundle->id}.svg";
-        $pngPath = $dir . "/bundle-{$bundle->id}.png";
+        $svgPath = $dir . '/' . preg_replace('/\.png$/', '.svg', $name);
+        $pngPath = $dir . '/' . $name;
         file_put_contents($svgPath, $svg);
 
         $node = (string) config('services.creative.node_binary', 'node');
@@ -62,12 +107,12 @@ class BundleCardComposer
             return null;
         }
 
-        return asset('storage/creatives/bundles/' . basename($pngPath)) . '?v=' . filemtime($pngPath);
+        return $pngPath;
     }
 
     /* ═══════════════════════════ composition ═══════════════════════════ */
 
-    private function buildSvg(ProductBundle $bundle): ?string
+    private function buildSvg(ProductBundle $bundle, bool $flat = false): ?string
     {
         $items = $bundle->items;
         $anchor = $items->firstWhere('role', 'anchor') ?? $items->first();
@@ -94,7 +139,13 @@ class BundleCardComposer
 
         $w = self::W;
         $h = self::H;
-        $atmosphere = $this->atmosphere();
+        $atmosphere = $flat ? '' : $this->atmosphere();
+        $ground = $flat ? '' : "<rect width=\"{$w}\" height=\"{$h}\" fill=\"url(#ground)\"/>";
+        if ($flat) {
+            // The floor shadows are painted on the ground; without one they
+            // would hang under the stack as grey smudges.
+            $stage = (string) preg_replace('/<ellipse[^>]*softshadow[^>]*\/>/', '', $stage);
+        }
 
         return <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" width="{$w}" height="{$h}" viewBox="0 0 {$w} {$h}">
@@ -114,7 +165,7 @@ class BundleCardComposer
     </radialGradient>
   </defs>
 
-  <rect width="{$w}" height="{$h}" fill="url(#ground)"/>
+  {$ground}
   {$atmosphere}
   {$stage}
   {$seal}
