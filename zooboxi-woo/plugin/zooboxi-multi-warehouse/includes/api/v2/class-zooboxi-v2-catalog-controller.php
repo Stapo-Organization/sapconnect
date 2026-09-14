@@ -705,12 +705,21 @@ class Zooboxi_V2_Catalog_Controller
         $art   = [];
         $needs = [];
         $cuts  = [];
+        $codes = [];
         if (!is_wp_error($resp) && (int) wp_remote_retrieve_response_code($resp) === 200) {
             $decoded = json_decode((string) wp_remote_retrieve_body($resp), true);
             foreach ((array) ($decoded['cuts'] ?? []) as $src => $cut) {
                 $cut = esc_url_raw((string) $cut);
                 if ($cut !== '' && is_string($src) && $src !== '') {
                     $cuts[$src] = $cut;
+                }
+            }
+            // Every product stocked on an express shelf, cut and keyed by its
+            // SAP code: whatever a rail rotates in tonight already has one.
+            foreach ((array) ($decoded['codes'] ?? []) as $code => $cut) {
+                $cut = esc_url_raw((string) $cut);
+                if ($cut !== '' && is_string($code) && $code !== '') {
+                    $codes[$code] = $cut;
                 }
             }
             foreach ((array) ($decoded['needs'] ?? []) as $species => $byNeed) {
@@ -750,6 +759,7 @@ class Zooboxi_V2_Catalog_Controller
         set_transient('zb_hero_art', $art, 6 * HOUR_IN_SECONDS);
         set_transient('zb_need_art', $needs, 6 * HOUR_IN_SECONDS);
         set_transient('zb_cut_map', $cuts, 6 * HOUR_IN_SECONDS);
+        set_transient('zb_cut_codes', $codes, 6 * HOUR_IN_SECONDS);
 
         return $memo = $art;
     }
@@ -1173,12 +1183,25 @@ class Zooboxi_V2_Catalog_Controller
             $this->hero_art();
             $map = get_transient('zb_cut_map');
         }
-        if (!is_array($map) || $map === []) {
+        $codes = get_transient('zb_cut_codes');
+        if (!is_array($map)) {
+            $map = [];
+        }
+        if (!is_array($codes)) {
+            $codes = [];
+        }
+        if ($map === [] && $codes === []) {
             return $cards;
         }
         foreach ($cards as &$card) {
-            $src = (string) ($card['image'] ?? '');
-            if ($src !== '' && isset($map[$src])) {
+            // The SAP code first — it covers the whole express shelf — then
+            // the card's own image, which is how a bundle's composed art
+            // (no SAP code) finds its cut.
+            $code = (string) ($card['item_code'] ?? '');
+            $src  = (string) ($card['image'] ?? '');
+            if ($code !== '' && isset($codes[$code])) {
+                $card['cutout'] = $codes[$code];
+            } elseif ($src !== '' && isset($map[$src])) {
                 $card['cutout'] = $map[$src];
             }
         }
