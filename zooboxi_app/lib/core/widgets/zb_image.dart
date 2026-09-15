@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/zb_colors.dart';
@@ -103,6 +104,13 @@ class ZbImage extends StatelessWidget {
         fadeOutDuration: const Duration(milliseconds: 120),
         placeholder: (_, _) => _Placeholder(background: background, faded: true),
         errorWidget: (_, _, _) => missing(),
+        // The paw is a polite fallback for the customer and a silent one for
+        // us; a build attached to the terminal should still say WHY a picture
+        // fell back — the host, the status, the decode — or a phone with no
+        // photos is undiagnosable.
+        errorListener: kReleaseMode
+            ? null
+            : (error) => debugPrint('[img] $source ✗ $error'),
       );
     }
 
