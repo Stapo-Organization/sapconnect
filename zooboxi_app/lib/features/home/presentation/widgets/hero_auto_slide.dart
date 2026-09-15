@@ -236,6 +236,7 @@ class HeroAutoCard extends StatelessWidget {
             Positioned.fill(
               child: CachedNetworkImage(
                 imageUrl: slide.art!,
+                cacheManager: zbImageCache,
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
