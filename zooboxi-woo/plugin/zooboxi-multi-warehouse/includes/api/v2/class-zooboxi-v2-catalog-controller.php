@@ -134,6 +134,7 @@ class Zooboxi_V2_Catalog_Controller
         Zooboxi_V2_Bootstrap::route('/catalog/products/(?P<id>\d+)', 'GET', [$this, 'product']);
         Zooboxi_V2_Bootstrap::route('/catalog/search/suggest', 'GET', [$this, 'suggest']);
         Zooboxi_V2_Bootstrap::route('/catalog/barcode/(?P<code>[A-Za-z0-9_\-\.]+)', 'GET', [$this, 'barcode']);
+        Zooboxi_V2_Bootstrap::route('/catalog/aisle/(?P<slug>[^/]+)', 'GET', [$this, 'aisle']);
         Zooboxi_V2_Bootstrap::route('/brands', 'GET', [$this, 'brands']);
         Zooboxi_V2_Bootstrap::route('/brands/(?P<slug>[^/]+)', 'GET', [$this, 'brand']);
         Zooboxi_V2_Bootstrap::route('/clearance', 'GET', [$this, 'clearance']);
@@ -1965,6 +1966,194 @@ class Zooboxi_V2_Catalog_Controller
         }
         $term = get_term_by('name', rawurldecode($value), 'product_cat');
         return ($term && !is_wp_error($term)) ? $term : null;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       GET /catalog/aisle/{slug}  — «الممرّ» / «الطبقات»
+       ══════════════════════════════════════════════════════════════ */
+
+    /** Products per aisle row / per shelf. */
+    private const AISLE_ROW = 3;
+
+    /** The species' (or the department's) own top sellers above the rows. */
+    private const AISLE_BEST = 3;
+
+    /**
+     * One category as a walkable aisle: the node itself, its bestsellers,
+     * and every child as a row of three products already chosen.
+     *
+     * The app draws a species root as «الممرّ» (a supermarket aisle: sign,
+     * department strip, one row per department) and a department as
+     * «الطبقات» (one shelf per sub-need). Both are the same payload — a node
+     * and its children with three products each — so one endpoint serves
+     * both, and a deeper child that has children of its own says so
+     * (`has_children`) so the app can walk into it rather than listing it.
+     *
+     * Ranking: rows use the website's «موصى به» score, the bestsellers strip
+     * uses sales. Every pool is scoped to the served warehouse and cached
+     * for an hour like the home rails; the cards themselves are built per
+     * request so stock and price stay live.
+     */
+    public function aisle(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $term = $this->resolve_category($request->get_param('slug'));
+        if (!$term instanceof WP_Term) {
+            return Zooboxi_V2_Bootstrap::fail('category_not_found', __('القسم غير موجود', 'zooboxi'), 'Category not found.', 404);
+        }
+
+        $animals = [];
+        foreach ($this->animal_nav() as $animal) {
+            $animals[(int) $animal['id']] = $animal;
+        }
+
+        $node = $this->term_dto($term, true);
+        $node = $this->aisle_dress($node, $animals);
+
+        // Where this aisle hangs: its parent, and the species it belongs to.
+        $parent = null;
+        if ((int) $term->parent > 0) {
+            $p = get_term((int) $term->parent, 'product_cat');
+            if ($p instanceof WP_Term) {
+                $parent = $this->aisle_dress($this->term_dto($p, false), $animals);
+                unset($parent['children']);
+            }
+        }
+        $root = $term;
+        while ((int) $root->parent > 0) {
+            $up = get_term((int) $root->parent, 'product_cat');
+            if (!$up instanceof WP_Term) {
+                break;
+            }
+            $root = $up;
+        }
+        $root_dto = null;
+        if ((int) $root->term_id !== (int) $term->term_id) {
+            $root_dto = $this->aisle_dress($this->term_dto($root, false), $animals);
+            unset($root_dto['children']);
+        }
+
+        $rows = [];
+        foreach ($node['children'] as $child) {
+            $ids = $this->aisle_ids('row', (int) $child['id'], 'recommended', self::AISLE_ROW);
+            if (empty($ids)) {
+                continue;
+            }
+            $child['products']     = $this->with_cutouts(Zooboxi_Product_DTO::cards($ids));
+            $child['has_children'] = $this->aisle_has_children((int) $child['id']);
+            $rows[] = $child;
+        }
+        unset($node['children']);
+
+        $best = $this->with_cutouts(
+            Zooboxi_Product_DTO::cards($this->aisle_ids('best', (int) $term->term_id, 'popularity', self::AISLE_BEST))
+        );
+
+        return Zooboxi_V2_Bootstrap::ok([
+            'node'          => $node,
+            'parent'        => $parent,
+            'root'          => $root_dto,
+            'bestsellers'   => $best,
+            'rows'          => $rows,
+            'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
+        ], Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /**
+     * A species root wears the same curated art and emoji the home's animal
+     * strip uses — the taxonomy term itself carries neither.
+     */
+    private function aisle_dress(array $dto, array $animals): array
+    {
+        $animal = $animals[(int) ($dto['id'] ?? 0)] ?? null;
+        if ($animal === null) {
+            return $dto;
+        }
+        $dto['image'] = $animal['image'] ?: ($dto['image'] ?? null);
+        if (($dto['icon'] ?? '') === '') {
+            $dto['icon'] = (string) $animal['icon'];
+        }
+        return $dto;
+    }
+
+    private function aisle_has_children(int $term_id): bool
+    {
+        $term = get_term($term_id, 'product_cat');
+        if (!$term instanceof WP_Term) {
+            return false;
+        }
+        $kids = get_terms([
+            'taxonomy'   => 'product_cat',
+            'parent'     => $term_id,
+            'hide_empty' => true,
+            'fields'     => 'ids',
+            'number'     => 1,
+            'lang'       => self::term_lang($term),
+        ]);
+        return is_array($kids) && !empty($kids);
+    }
+
+    /**
+     * The ranked product ids under a category (children included), scoped to
+     * the served warehouse, sold-out last — cached an hour per warehouse and
+     * language like the home rails. The raw pool is what is cached, never a
+     * request-specific slice.
+     *
+     * @return int[]
+     */
+    private function aisle_ids(string $kind, int $term_id, string $orderby, int $limit): array
+    {
+        $tkey = 'zb_aisle_' . $kind . '_' . $term_id . '_' . $orderby . '_' . get_locale() . Zooboxi_V2_Scope::cache_suffix();
+        $ids  = get_transient($tkey);
+        if (is_array($ids)) {
+            return array_map('intval', $ids);
+        }
+
+        $args = [
+            'post_type'           => 'product',
+            'post_status'         => 'publish',
+            'posts_per_page'      => $limit,
+            'fields'              => 'ids',
+            'no_found_rows'       => true,
+            'ignore_sticky_posts' => true,
+            'tax_query'           => [
+                'relation' => 'AND',
+                [
+                    'taxonomy' => 'product_visibility',
+                    'field'    => 'name',
+                    'terms'    => 'exclude-from-catalog',
+                    'operator' => 'NOT IN',
+                ],
+                [
+                    'taxonomy'         => 'product_cat',
+                    'field'            => 'term_id',
+                    'terms'            => $term_id,
+                    'include_children' => true,
+                ],
+            ],
+            // The flag the stock-first posts_clauses filter looks for.
+            'zooboxi_v2_listing'  => 1,
+        ];
+        $scope_clause = Zooboxi_V2_Scope::meta_clause();
+        if ($scope_clause) {
+            $args['meta_query'] = ['relation' => 'AND', $scope_clause];
+        }
+        $args = array_merge($args, $this->orderby_args($orderby));
+
+        $plugin     = class_exists('Zooboxi_Plugin') ? Zooboxi_Plugin::instance() : null;
+        $added_sort = false;
+        if ($plugin && !has_filter('posts_clauses', [$plugin, 'sort_products_by_stock'])) {
+            add_filter('posts_clauses', [$plugin, 'sort_products_by_stock'], 999, 2);
+            $added_sort = true;
+        }
+        $q   = new WP_Query($args);
+        $ids = is_array($q->posts) ? array_map('intval', $q->posts) : [];
+        wp_reset_postdata();
+        if ($added_sort && $plugin) {
+            remove_filter('posts_clauses', [$plugin, 'sort_products_by_stock'], 999);
+        }
+
+        set_transient($tkey, $ids, HOUR_IN_SECONDS);
+        return $ids;
     }
 
     /* ══════════════════════════════════════════════════════════════
