@@ -3545,4 +3545,41 @@ class LEn extends L {
 
   @override
   String get replenishCtaShort => 'Order now';
+
+  @override
+  String get aisleKicker => 'Aisle';
+
+  @override
+  String aisleSections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sections',
+      one: '1 section',
+      zero: 'no sections',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aisleSeeAll => 'All';
+
+  @override
+  String get aisleBestsellers => 'Bestsellers';
+
+  @override
+  String aisleBestsellersIn(String name) {
+    return 'Bestsellers in $name';
+  }
+
+  @override
+  String aisleSearchHint(String name) {
+    return 'Search in $name';
+  }
+
+  @override
+  String get aisleEmpty => 'Nothing on this shelf yet';
+
+  @override
+  String get aisleEmptyHint => 'We are stocking it — try another section';
 }

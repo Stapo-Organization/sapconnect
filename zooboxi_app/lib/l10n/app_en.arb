@@ -1600,5 +1600,16 @@
   "replenishBowl": "{pet}'s bowl",
   "@replenishBowl": {"description": "The kicker over the express replenish tile, naming whose bowl is running low.", "placeholders": {"pet": {"type": "String"}}},
   "replenishBowlNoPet": "The bowl",
-  "replenishCtaShort": "Order now"
+  "replenishCtaShort": "Order now",
+  "aisleKicker": "Aisle",
+  "aisleSections": "{count, plural, =0{no sections} =1{1 section} other{{count} sections}}",
+  "@aisleSections": {"placeholders": {"count": {"type": "int"}}},
+  "aisleSeeAll": "All",
+  "aisleBestsellers": "Bestsellers",
+  "aisleBestsellersIn": "Bestsellers in {name}",
+  "@aisleBestsellersIn": {"placeholders": {"name": {"type": "String"}}},
+  "aisleSearchHint": "Search in {name}",
+  "@aisleSearchHint": {"placeholders": {"name": {"type": "String"}}},
+  "aisleEmpty": "Nothing on this shelf yet",
+  "aisleEmptyHint": "We are stocking it — try another section"
 }

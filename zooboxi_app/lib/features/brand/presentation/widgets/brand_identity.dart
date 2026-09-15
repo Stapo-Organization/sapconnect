@@ -5,6 +5,7 @@ import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
+import '../../../home/presentation/widgets/express_cards/card_form.dart';
 
 // The brand page's identity layer: the stage the name sits on, and the block
 // that carries it.
@@ -81,6 +82,10 @@ class BrandStage extends StatelessWidget {
   Widget build(BuildContext context) {
     final hero = page.hero;
     final statusTop = MediaQuery.paddingOf(context).top;
+    // The first pick the store has cut out — never a plate on the stage.
+    final art = hero == null
+        ? page.products.map((p) => p.cutout ?? '').where((c) => c.isNotEmpty).firstOrNull
+        : null;
 
     return Stack(
       fit: StackFit.expand,
@@ -112,31 +117,55 @@ class BrandStage extends StatelessWidget {
 
         // The crest lives ON the stage — a pinned app bar paints over whatever
         // follows it, so nothing may straddle its bottom edge from outside.
-        // Inside, the logo fills the color instead of leaving it a void, and
-        // it parallax-fades away with the stage on collapse.
+        // The boutique's composition («البوتيك», the owner's pick of three):
+        // the logo tile, name and tagline at the start of the reading
+        // direction; the brand's own best seller floating at the other end
+        // when the store has cut it, so the stage shows a product before a
+        // word is read. It parallax-fades away with the stage on collapse.
         Padding(
-          padding: EdgeInsetsDirectional.only(top: statusTop + 26, bottom: 18),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+          padding: EdgeInsetsDirectional.fromSTEB(20, statusTop + 60, 20, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _LogoTile(page: page, accent: brandAccent(context, page)),
-              Gap.h12,
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 24, end: 24),
-                child: Text(
-                  page.name,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.tt.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    shadows: const [
-                      Shadow(color: Color(0x59000000), blurRadius: 12, offset: Offset(0, 2)),
-                    ],
-                  ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _LogoTile(page: page, accent: brandAccent(context, page)),
+                    Gap.h8,
+                    Text(
+                      page.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.tt.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        shadows: const [
+                          Shadow(color: Color(0x59000000), blurRadius: 12, offset: Offset(0, 2)),
+                        ],
+                      ),
+                    ),
+                    if ((page.tagline ?? '').isNotEmpty)
+                      Text(
+                        page.tagline!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.tt.labelMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.88),
+                          fontWeight: FontWeight.w600,
+                          shadows: const [
+                            Shadow(color: Color(0x59000000), blurRadius: 8, offset: Offset(0, 1)),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
+              if (art != null) ...[
+                Gap.w12,
+                FloatingProduct(url: art, width: 118, height: 132, degrees: -6, drop: 8, shadow: 0.45),
+              ],
             ],
           ),
         ),
@@ -222,50 +251,58 @@ class BrandIdentity extends StatelessWidget {
     final l = L.of(context);
     final cs = context.cs;
     final accent = brandAccent(context, page);
-    final tagline = page.tagline ?? '';
     final story = page.story ?? '';
 
     final facts = <Widget>[
-      if (page.country != null)
-        _FactChip(icon: Icons.public_rounded, label: page.country!, accent: accent),
-      if (page.founded != null)
-        _FactChip(
-          icon: Icons.calendar_today_rounded,
-          label: l.brandSince(page.founded!),
-          accent: accent,
-        ),
       if (page.productCount > 0)
-        _FactChip(
+        _Fact(
           icon: Icons.inventory_2_rounded,
           label: l.brandProductCount(page.productCount),
           accent: accent,
         ),
+      if (page.country != null)
+        _Fact(icon: Icons.public_rounded, label: page.country!, accent: accent),
+      if (page.founded != null)
+        _Fact(
+          icon: Icons.calendar_today_rounded,
+          label: l.brandSince(page.founded!),
+          accent: accent,
+        ),
     ];
 
-    // The logo and the name live on the stage above; this block carries what
-    // the stage can't say — the words and the facts — on the same center axis.
+    // The logo, the name and the tagline live on the stage above; this block
+    // carries the facts as one strip — the boutique's plaque — and the story.
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (tagline.isNotEmpty)
-          Text(
-            tagline,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+        if (facts.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(ZbTokens.rLg),
+              border: Border.all(color: cs.outlineVariant),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: context.isDark ? 0.35 : 0.10),
+                  blurRadius: 26,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  for (var i = 0; i < facts.length; i++) ...[
+                    if (i > 0) VerticalDivider(width: 1, thickness: 1, color: cs.outlineVariant),
+                    Expanded(child: facts[i]),
+                  ],
+                ],
+              ),
+            ),
           ),
-        if (facts.isNotEmpty) ...[
-          if (tagline.isNotEmpty) Gap.h12,
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: facts,
-          ),
-        ],
         if (story.isNotEmpty) ...[
-          Gap.h12,
+          Gap.h16,
           Text(
             story,
             maxLines: 3,
@@ -297,7 +334,7 @@ class _LogoTile extends StatelessWidget {
 
     return Container(
       width: BrandIdentity.tile,
-      height: BrandIdentity.tile,
+      height: BrandIdentity.tile * 0.62,
       decoration: BoxDecoration(
         color: context.isDark ? cs.surfaceContainerHighest : Colors.white,
         borderRadius: BorderRadius.circular(ZbTokens.rLg),
@@ -311,7 +348,7 @@ class _LogoTile extends StatelessWidget {
       ),
       child: ZbImage(
         url: page.brand.logo,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         backgroundColor: Colors.transparent,
         // A brand with no logo gets its own initial rather than the generic
         // paw: on an identity tile, the paw reads as "some pet product".
@@ -329,11 +366,10 @@ class _LogoTile extends StatelessWidget {
   }
 }
 
-/// One stated fact — country, founding year, catalogue size. Tinted with the
-/// brand's accent so the row belongs to *this* brand, at the alpha the app uses
-/// for every quiet chip.
-class _FactChip extends StatelessWidget {
-  const _FactChip({required this.icon, required this.label, required this.accent});
+/// One stated fact on the plaque — catalogue size, country, founding year:
+/// the glyph in the brand's accent, the fact under it.
+class _Fact extends StatelessWidget {
+  const _Fact({required this.icon, required this.label, required this.accent});
 
   final IconData icon;
   final String label;
@@ -341,23 +377,19 @@ class _FactChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsetsDirectional.only(start: 10, end: 12, top: 6, bottom: 6),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: context.isDark ? 0.18 : 0.10),
-        borderRadius: BorderRadius.circular(ZbTokens.rPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: accent),
-          Gap.w6,
-          Text(
-            label,
-            style: context.tt.labelMedium?.copyWith(color: accent, fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: accent),
+        Gap.h4,
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: context.tt.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+      ],
     );
   }
 }

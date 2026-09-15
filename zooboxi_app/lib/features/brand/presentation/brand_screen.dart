@@ -194,12 +194,12 @@ class _BrandScreenState extends ConsumerState<BrandScreen> {
                     _facets.isEmpty && _priceBounds == null ? null : _openFilters,
               ),
 
-              // The crest (logo + name) is painted inside the stage above — a
-              // pinned app bar paints over later slivers, so nothing straddles
-              // its edge. Down here: the words and the facts.
+              // The crest (logo, name, tagline) is painted inside the stage
+              // above — a pinned app bar paints over later slivers, so nothing
+              // straddles its edge. Down here: the plaque of facts and the story.
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 16),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 14),
                   child: BrandIdentity(page: brand),
                 ),
               ),

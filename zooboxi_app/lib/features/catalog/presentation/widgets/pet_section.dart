@@ -35,7 +35,7 @@ class PetSection extends StatelessWidget {
   final bool revealed;
 
   /// Called with the slug and the title to show on the listing screen.
-  final void Function(String slug, String title) onOpen;
+  final void Function(CategoryNode node) onOpen;
 
   /// Card text is sized from this ceiling; the layout must not be asked to
   /// absorb a larger one.
@@ -72,7 +72,7 @@ class PetSection extends StatelessWidget {
             pet: pet,
             palette: palette,
             revealed: revealed,
-            onTap: () => onOpen(pet.slug, pet.name),
+            onTap: () => onOpen(pet),
           ),
           if (departments.isNotEmpty) ...[
             Gap.h12,
@@ -81,7 +81,7 @@ class PetSection extends StatelessWidget {
                 _WideCard(
                   node: node,
                   palette: palette,
-                  onTap: () => onOpen(node.slug, node.name),
+                  onTap: () => onOpen(node),
                 ),
               ),
               Gap.h8,
@@ -94,7 +94,7 @@ class PetSection extends StatelessWidget {
                       _Card(
                         node: node,
                         palette: palette,
-                        onTap: () => onOpen(node.slug, node.name),
+                        onTap: () => onOpen(node),
                       ),
                     ),
                 ],

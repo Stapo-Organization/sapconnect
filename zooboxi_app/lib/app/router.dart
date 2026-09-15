@@ -13,6 +13,7 @@ import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/data/catalog_models.dart';
 import '../features/catalog/data/product_models.dart';
 import '../features/catalog/presentation/categories_screen.dart';
+import '../features/catalog/presentation/aisle_screen.dart';
 import '../features/catalog/presentation/bundles_screen.dart';
 import '../features/catalog/presentation/listing_screen.dart';
 import '../features/checkout/data/checkout_models.dart';
@@ -118,6 +119,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             query: state.extra is ListingQuery
                 ? state.extra! as ListingQuery
                 : ListingQuery.fromJson(state.uri.queryParameters),
+          ),
+        ),
+      ),
+      // A category walked as an aisle: a species is «الممرّ», a department
+      // with sub-needs is «الطبقات». Keyed by id or slug — both resolve.
+      GoRoute(
+        path: '/aisle/:key',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => shellPage(
+          state.pageKey,
+          AisleScreen(
+            aisleKey: state.pathParameters['key'] ?? '',
+            title: state.uri.queryParameters['title'] ?? '',
           ),
         ),
       ),

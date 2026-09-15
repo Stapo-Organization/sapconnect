@@ -63,12 +63,19 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     super.dispose();
   }
 
-  void _open(String slug, String title) {
+  /// A pet or a department with departments of its own is walked as an
+  /// aisle; a leaf is a plain listing — there is nothing under it to walk.
+  void _open(CategoryNode node) {
     context.push(
-      Uri(
-        path: '/listing',
-        queryParameters: {'category': slug, 'title': title},
-      ).toString(),
+      node.children.isNotEmpty
+          ? Uri(
+              path: '/aisle/${node.id}',
+              queryParameters: {'title': node.name},
+            ).toString()
+          : Uri(
+              path: '/listing',
+              queryParameters: {'category': node.slug, 'title': node.name},
+            ).toString(),
     );
   }
 

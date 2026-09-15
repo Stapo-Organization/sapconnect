@@ -77,8 +77,8 @@ class _AnimalTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: () => context.push(
           Uri(
-            path: '/listing',
-            queryParameters: {'category': item.slug, 'title': item.name},
+            path: '/aisle/${item.id}',
+            queryParameters: {'title': item.name},
           ).toString(),
         ),
         child: Column(

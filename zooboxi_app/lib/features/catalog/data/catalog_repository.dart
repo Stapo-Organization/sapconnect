@@ -165,6 +165,11 @@ class CatalogRepository {
   Future<BrandPage> brand(String slug) async =>
       BrandPage.fromJson(slug, asMap(await _api.get('/brands/$slug')));
 
+  /// `GET /catalog/aisle/{key}` — [key] is the category's id when the caller
+  /// has it (the tree, the animal strip) and its slug when only a link does.
+  Future<Aisle> aisle(String key) async =>
+      Aisle.fromJson(asMap(await _api.get('/catalog/aisle/$key')));
+
   Future<ListingResult> clearance(int page) async {
     final data = await _api.get('/clearance', query: {'page': page});
     return ListingResult.fromJson(asMap(data));
@@ -280,4 +285,12 @@ final brandPageProvider =
   ref.watch(catalogRevisionProvider);
   ref.watch(shelfRevisionProvider);
   return ref.watch(catalogRepositoryProvider).brand(slug);
+});
+
+/// One aisle, keyed by category id or slug. Auto-disposed like a brand page:
+/// a customer walking four animals should not hold four payloads of cards.
+final aisleProvider = FutureProvider.autoDispose.family<Aisle, String>((ref, key) {
+  ref.watch(catalogRevisionProvider);
+  ref.watch(shelfRevisionProvider);
+  return ref.watch(catalogRepositoryProvider).aisle(key);
 });

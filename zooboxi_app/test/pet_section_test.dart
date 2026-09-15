@@ -48,7 +48,7 @@ void main() {
         pet: _pet(),
         palette: PetPalette.resolve(context, icon: '🐱', index: 0),
         revealed: true,
-        onOpen: (_, _) {},
+        onOpen: (_) {},
       ),
     )));
     await tester.pump(const Duration(seconds: 2));

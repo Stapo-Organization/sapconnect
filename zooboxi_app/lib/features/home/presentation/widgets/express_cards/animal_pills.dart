@@ -59,8 +59,8 @@ class _Pill extends StatelessWidget {
         borderRadius: BorderRadius.circular(ZbTokens.rPill),
         onTap: () => context.push(
           Uri(
-            path: '/listing',
-            queryParameters: {'category': item.slug, 'title': item.name},
+            path: '/aisle/${item.id}',
+            queryParameters: {'title': item.name},
           ).toString(),
         ),
         child: Container(

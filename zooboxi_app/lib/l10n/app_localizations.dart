@@ -5652,6 +5652,54 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'اطلبه الآن'**
   String get replenishCtaShort;
+
+  /// No description provided for @aisleKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'ممرّ'**
+  String get aisleKicker;
+
+  /// No description provided for @aisleSections.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{بلا أقسام} =1{قسم واحد} =2{قسمان} few{{count} أقسام} many{{count} قسمًا} other{{count} قسم}}'**
+  String aisleSections(int count);
+
+  /// No description provided for @aisleSeeAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get aisleSeeAll;
+
+  /// No description provided for @aisleBestsellers.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأكثر مبيعًا'**
+  String get aisleBestsellers;
+
+  /// No description provided for @aisleBestsellersIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأكثر مبيعًا في {name}'**
+  String aisleBestsellersIn(String name);
+
+  /// No description provided for @aisleSearchHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابحث في {name}'**
+  String aisleSearchHint(String name);
+
+  /// No description provided for @aisleEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرفّ فارغ الآن'**
+  String get aisleEmpty;
+
+  /// No description provided for @aisleEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنملؤه قريبًا — جرّب قسمًا آخر'**
+  String get aisleEmptyHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

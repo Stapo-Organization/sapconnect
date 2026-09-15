@@ -3616,4 +3616,44 @@ class LAr extends L {
 
   @override
   String get replenishCtaShort => 'اطلبه الآن';
+
+  @override
+  String get aisleKicker => 'ممرّ';
+
+  @override
+  String aisleSections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قسم',
+      many: '$count قسمًا',
+      few: '$count أقسام',
+      two: 'قسمان',
+      one: 'قسم واحد',
+      zero: 'بلا أقسام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aisleSeeAll => 'الكل';
+
+  @override
+  String get aisleBestsellers => 'الأكثر مبيعًا';
+
+  @override
+  String aisleBestsellersIn(String name) {
+    return 'الأكثر مبيعًا في $name';
+  }
+
+  @override
+  String aisleSearchHint(String name) {
+    return 'ابحث في $name';
+  }
+
+  @override
+  String get aisleEmpty => 'الرفّ فارغ الآن';
+
+  @override
+  String get aisleEmptyHint => 'سنملؤه قريبًا — جرّب قسمًا آخر';
 }

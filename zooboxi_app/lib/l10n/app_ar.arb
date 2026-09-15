@@ -1871,5 +1871,16 @@
   "replenishBowl": "وعاء {pet}",
   "@replenishBowl": {"description": "The kicker over the express replenish tile, naming whose bowl is running low.", "placeholders": {"pet": {"type": "String"}}},
   "replenishBowlNoPet": "الوعاء",
-  "replenishCtaShort": "اطلبه الآن"
+  "replenishCtaShort": "اطلبه الآن",
+  "aisleKicker": "ممرّ",
+  "aisleSections": "{count, plural, =0{بلا أقسام} =1{قسم واحد} =2{قسمان} few{{count} أقسام} many{{count} قسمًا} other{{count} قسم}}",
+  "@aisleSections": {"placeholders": {"count": {"type": "int"}}},
+  "aisleSeeAll": "الكل",
+  "aisleBestsellers": "الأكثر مبيعًا",
+  "aisleBestsellersIn": "الأكثر مبيعًا في {name}",
+  "@aisleBestsellersIn": {"placeholders": {"name": {"type": "String"}}},
+  "aisleSearchHint": "ابحث في {name}",
+  "@aisleSearchHint": {"placeholders": {"name": {"type": "String"}}},
+  "aisleEmpty": "الرفّ فارغ الآن",
+  "aisleEmptyHint": "سنملؤه قريبًا — جرّب قسمًا آخر"
 }

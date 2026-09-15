@@ -1208,3 +1208,74 @@ class BrandPage {
     );
   }
 }
+
+/// One category walked as an aisle — `GET /catalog/aisle/{id|slug}`.
+///
+/// The same payload draws two pages. A species root is «الممرّ»: a sign, a
+/// strip of its departments, one row of three products per department. A
+/// department is «الطبقات»: one shelf per sub-need. What separates them is
+/// only whether the node has a parent.
+@immutable
+class Aisle {
+  const Aisle({
+    required this.node,
+    this.parent,
+    this.root,
+    this.bestsellers = const [],
+    this.rows = const [],
+  });
+
+  factory Aisle.fromJson(Map<String, dynamic> json) {
+    final parent = asMap(json['parent']);
+    final root = asMap(json['root']);
+    return Aisle(
+      node: CategoryNode.fromJson(asMap(json['node'])),
+      parent: parent.isEmpty ? null : CategoryNode.fromJson(parent),
+      root: root.isEmpty ? null : CategoryNode.fromJson(root),
+      bestsellers: ProductCard.listFrom(json['bestsellers']),
+      rows: asMapList(json['rows']).map(AisleRow.fromJson).toList(),
+    );
+  }
+
+  final CategoryNode node;
+
+  /// The department this one hangs under; null for a species root.
+  final CategoryNode? parent;
+
+  /// The species this aisle belongs to; null when [node] is the species.
+  final CategoryNode? root;
+
+  /// The node's own top sellers, children included.
+  final List<ProductCard> bestsellers;
+
+  /// Every child that has something on it, three products each.
+  final List<AisleRow> rows;
+
+  /// A species root walks as an aisle; anything below it stacks as shelves.
+  bool get isSpecies => parent == null;
+
+  /// The animal this aisle belongs to — itself, or the root above it.
+  CategoryNode get species => root ?? node;
+}
+
+@immutable
+class AisleRow {
+  const AisleRow({
+    required this.node,
+    this.hasChildren = false,
+    this.products = const [],
+  });
+
+  factory AisleRow.fromJson(Map<String, dynamic> json) => AisleRow(
+        node: CategoryNode.fromJson(json),
+        hasChildren: asBool(json['has_children']),
+        products: ProductCard.listFrom(json['products']),
+      );
+
+  final CategoryNode node;
+
+  /// True when this row is itself an aisle worth walking into; a leaf opens
+  /// as a listing.
+  final bool hasChildren;
+  final List<ProductCard> products;
+}
