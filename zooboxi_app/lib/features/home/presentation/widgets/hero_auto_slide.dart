@@ -1,8 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/widgets/picture_store.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
@@ -234,18 +234,29 @@ class HeroAutoCard extends StatelessWidget {
             // `cover` into a `contain` — the banner then sits as a small card
             // in the middle of a coloured field, which is exactly what it did.
             Positioned.fill(
-              child: CachedNetworkImage(
-                imageUrl: slide.art!,
-                cacheManager: zbImageCache,
+              child: Image(
+                image: ZbPicture(slide.art!),
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
-                fadeInDuration: const Duration(milliseconds: 240),
+                gaplessPlayback: true,
                 // Until it lands (and if it never does) the slide keeps the
                 // field it was always drawn on.
-                placeholder: (_, _) =>
-                    DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
-                errorWidget: (_, _, _) =>
+                frameBuilder: (_, child, frame, sync) => sync
+                    ? child
+                    : Stack(
+                        fit: StackFit.passthrough,
+                        children: [
+                          if (frame == null)
+                            DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
+                          AnimatedOpacity(
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(milliseconds: 240),
+                            child: child,
+                          ),
+                        ],
+                      ),
+                errorBuilder: (_, _, _) =>
                     DecoratedBox(decoration: BoxDecoration(gradient: skin.gradient)),
               ),
             ),

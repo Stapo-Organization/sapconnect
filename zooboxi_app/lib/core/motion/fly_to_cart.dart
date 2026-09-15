@@ -1,12 +1,11 @@
 import 'dart:math' as math;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/zooboxi_tokens.dart';
 import '../icons/zb_icons.dart';
 import 'anchors.dart';
-import '../widgets/zb_image.dart';
+import '../widgets/picture_store.dart';
 
 /// The product that was just added, thrown to the cart tab.
 ///
@@ -43,7 +42,7 @@ void flyToCart(
 /// The artwork for a thrown thumbnail. Null for a product with no photo — the
 /// flight falls back to the box glyph rather than to a broken image.
 ImageProvider? productThumbnail(String? url) =>
-    url == null || url.isEmpty ? null : CachedNetworkImageProvider(url, cacheManager: zbImageCache);
+    url == null || url.isEmpty ? null : ZbPicture(url);
 
 class _FlyingItem extends StatefulWidget {
   const _FlyingItem({

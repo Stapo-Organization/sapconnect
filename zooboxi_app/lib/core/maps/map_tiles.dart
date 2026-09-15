@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/io_client.dart';
+import 'package:http/retry.dart';
 
 /// The one place the app says where its map tiles come from.
 ///
@@ -31,12 +35,28 @@ abstract final class ZbTiles {
     0, 0, 0, 1, 0, //
   ]);
 
+  /// Tiles travel on a client of our own, with a timeout on every step and
+  /// no long-lived idle sockets — the tiles went the way the product photos
+  /// did on the owner's phone (see `PictureStore`), and the package default
+  /// waits forever on a request that never answers.
+  static TileProvider _provider() => NetworkTileProvider(
+        httpClient: RetryClient(
+          IOClient(
+            HttpClient()
+              ..connectionTimeout = const Duration(seconds: 10)
+              ..idleTimeout = const Duration(seconds: 5),
+          ),
+        ),
+        silenceExceptions: true,
+      );
+
   /// The drawn map, dark-aware.
   static Widget streets(BuildContext context) {
     final layer = TileLayer(
       urlTemplate: _streets,
       userAgentPackageName: _agent,
       maxNativeZoom: 19,
+      tileProvider: _provider(),
     );
     final dark = Theme.of(context).brightness == Brightness.dark;
     return dark ? ColorFiltered(colorFilter: _night, child: layer) : layer;
@@ -47,6 +67,7 @@ abstract final class ZbTiles {
         urlTemplate: _imagery,
         userAgentPackageName: _agent,
         maxNativeZoom: 19,
+        tileProvider: _provider(),
       );
 
   static String creditFor({required bool satellite}) =>
