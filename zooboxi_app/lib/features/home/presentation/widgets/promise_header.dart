@@ -189,12 +189,19 @@ class _PromiseHeaderState extends State<PromiseHeader> {
       ),
     );
 
-    return Stack(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: PromiseHeader.searchOverlap),
-          child: panel,
-        ),
+    // The header is a composition with fixed geometry — a clock, two signs,
+    // a route, a well — and it has to be the same height on every phone.
+    // Android phones commonly run a larger system font, and the clock and
+    // the signs grew with it, so the panel stood taller there than on the
+    // iPhone it was drawn for. The type in here is fixed; the page below it
+    // still scales.
+    return MediaQuery.withNoTextScaling(
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: PromiseHeader.searchOverlap),
+            child: panel,
+          ),
         // The well is inside the stack's bounds — a child hanging past the
         // edge would draw but never take a tap.
         PositionedDirectional(
@@ -224,7 +231,8 @@ class _PromiseHeaderState extends State<PromiseHeader> {
             ),
           ),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

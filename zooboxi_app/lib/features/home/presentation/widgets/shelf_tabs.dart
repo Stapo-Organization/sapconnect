@@ -168,7 +168,11 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
         ? AlignmentDirectional.centerStart
         : AlignmentDirectional.centerEnd;
 
-    return Semantics(
+    // Fixed type: the signs are 48 points tall on every phone, whatever the
+    // system font size, so the two headers that carry them match the iPhone
+    // they were drawn on.
+    return MediaQuery.withNoTextScaling(
+      child: Semantics(
       container: true,
       label: l.shelfTabsLabel,
       child: Container(
@@ -248,6 +252,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
