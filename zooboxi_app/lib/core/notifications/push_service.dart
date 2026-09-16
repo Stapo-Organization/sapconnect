@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +12,7 @@ import '../../features/notifications/data/push_repository.dart';
 import '../config/env.dart';
 import '../providers.dart';
 import '../session/session_controller.dart';
+import 'android_notifier.dart';
 import 'notify_permission.dart';
 
 /// Push, and the one rule it lives by: **the app must be perfect without it.**
@@ -32,6 +34,7 @@ class PushService {
   FirebaseMessaging? _messaging;
   StreamSubscription<String>? _tokenRefresh;
   StreamSubscription<RemoteMessage>? _opened;
+  StreamSubscription<RemoteMessage>? _foreground;
   String? _token;
 
   /// Whether Firebase answered at all. False on a build with no plist, on a
@@ -81,6 +84,19 @@ class PushService {
       _opened = FirebaseMessaging.onMessageOpenedApp.listen(
         (message) => _onTapped(message, cold: false),
       );
+
+      if (Platform.isAndroid) {
+        // Android's banners are ours to draw — see AndroidNotifier. A data
+        // message while the app is on screen, one while it is in the
+        // background (its own isolate), and the tap on either.
+        FirebaseMessaging.onBackgroundMessage(zooboxiBackgroundMessage);
+        await AndroidNotifier.init(onTap: (payload) => _onLocalTap(payload, cold: false));
+        final launch = await AndroidNotifier.launchPayload();
+        if (launch != null) _onLocalTap(launch, cold: true);
+        _foreground = FirebaseMessaging.onMessage.listen(
+          (message) => unawaited(AndroidNotifier.show(message)),
+        );
+      }
 
       _tokenRefresh = messaging.onTokenRefresh.listen((token) {
         _token = token;
@@ -183,6 +199,18 @@ class PushService {
     }
   }
 
+  /// A banner Android drew for us was tapped; its payload carries what the
+  /// store's message carried.
+  void _onLocalTap(String payload, {required bool cold}) {
+    Map<String, dynamic> data;
+    try {
+      data = Map<String, dynamic>.from(jsonDecode(payload) as Map);
+    } catch (_) {
+      return;
+    }
+    _onTapped(RemoteMessage(data: data.map((k, v) => MapEntry(k, v?.toString() ?? ''))), cold: cold);
+  }
+
   Future<void> _reportOpened(int msg) async {
     try {
       await _ref.read(pushRepositoryProvider).opened(msg);
@@ -200,6 +228,7 @@ class PushService {
   void dispose() {
     unawaited(_tokenRefresh?.cancel());
     unawaited(_opened?.cancel());
+    unawaited(_foreground?.cancel());
   }
 }
 
