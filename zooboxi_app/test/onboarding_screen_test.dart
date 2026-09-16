@@ -221,6 +221,10 @@ void main() {
     expect(find.text('أختار مدينتي بنفسي'), findsNothing);
 
     await _tap(tester, 'حدد موقعي على الخريطة');
+    // The dialog's dismissal resumes the app, which re-reads the permission;
+    // on Android a single refusal still reads as «denied».
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
 
     expect(asked, contains('requestPermission'), reason: 'the OS dialog was put to them');
     expect(find.text('لم نحصل على إذن الموقع. يمكنك اختيار مدينتك يدويًا.'), findsOneWidget);

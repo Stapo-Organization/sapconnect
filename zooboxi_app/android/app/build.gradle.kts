@@ -21,8 +21,11 @@ val hasUploadKey = keystoreProperties.getProperty("storeFile") != null
 // git-ignored). The plugin that reads it fails the build when the file is
 // missing, so it is applied only once the file is there; without it the app
 // builds and runs, with push quietly off.
-if (file("google-services.json").exists()) {
-    apply(plugin = "com.google.gms.google-services")
+if (project.file("google-services.json").exists()) {
+    project.apply(plugin = "com.google.gms.google-services")
+    logger.lifecycle("google-services: config found, plugin applied")
+} else {
+    logger.lifecycle("google-services: no config, push off")
 }
 
 android {

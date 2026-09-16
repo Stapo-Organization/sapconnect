@@ -107,7 +107,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
     if (!mounted) return;
     final granted = perm == LocationPermission.always || perm == LocationPermission.whileInUse;
     setState(() {
-      _locAnswered = asked || perm != LocationPermission.denied;
+      // Once answered, always answered: the dialog's own dismissal resumes
+      // the app, and that read must not undo the answer just given.
+      _locAnswered = _locAnswered || asked || perm != LocationPermission.denied;
       _locDenied = _locAnswered && !granted;
       _locForever = perm == LocationPermission.deniedForever;
     });
@@ -290,6 +292,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
     await NotifyPermission.request();
     if (!mounted) return;
     setState(() => _asking = false);
+    // iOS registers itself when APNs hands over its token; Android's token
+    // existed before the question and nothing else would re-send it.
+    unawaited(ref.read(pushServiceProvider).refreshRegistration());
     await _finish();
   }
 
@@ -304,7 +309,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
   /// channel is a step that looks broken.
   void _laterNotifications() {
     _next();
-    unawaited(NotifyPermission.request(provisional: true));
+    unawaited(
+      NotifyPermission.request(provisional: true).then(
+        (_) => mounted ? ref.read(pushServiceProvider).refreshRegistration() : null,
+      ),
+    );
   }
 
   @override
