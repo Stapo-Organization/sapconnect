@@ -411,6 +411,22 @@ class Zooboxi_Push
             ],
         ];
 
+        // Android draws its own banner (the app's AndroidNotifier): a data
+        // message, with the words in the data, so the OS does not draw a
+        // second one with a grey disc for a logo. iOS keeps the alert.
+        $device = self::find($token);
+        if (($device['platform'] ?? '') === 'android') {
+            unset($payload['message']['notification'], $payload['message']['apns'], $payload['message']['android']['notification']);
+            $payload['message']['data'] += ['title' => $title, 'body' => $body];
+            if ($collapse !== '') {
+                $payload['message']['data']['collapse'] = $collapse;
+            }
+            $payload['message']['data'] = array_map('strval', $payload['message']['data']);
+            // A data message at normal priority can wait for the next
+            // doze window; a customer waiting for a courier cannot.
+            $payload['message']['android']['priority'] = 'high';
+        }
+
         $response = wp_remote_post(
             'https://fcm.googleapis.com/v1/projects/' . rawurlencode($project) . '/messages:send',
             [
