@@ -6,6 +6,19 @@
 - SHA-256: `92:85:D4:09:6B:92:F8:FC:47:3E:08:98:43:00:40:2E:02:8F:F9:60:61:13:DC:D2:82:7D:2A:6D:69:EF:EB:31`
 - **انسخ الملفين إلى مكان آمن خارج الجهاز.** مع Play App Signing (الافتراضي) ضياع مفتاح الرفع قابل للاستبدال عبر الدعم، لكن ببطء.
 
+## الرفع من الطرفية (`tool/play.rb`)
+حساب الخدمة `id-play-publisher@zooboxi-play.iam.gserviceaccount.com` (مشروع Cloud `zooboxi-play`، مدعوّ Admin على التطبيق)،
+مفتاحه في `~/.zooboxi/play-service-account.json`. الأوامر: `token | get | post | put | patch | upload | delete`.
+```sh
+E=$(ruby tool/play.rb post applications/com.zooboxi.app/edits /dev/null | grep -o '[0-9]\{10,\}' | head -1)
+ruby tool/play.rb upload "applications/com.zooboxi.app/edits/${E}/bundles?uploadType=media" build/app/outputs/bundle/release/app-release.aab application/octet-stream
+ruby tool/play.rb put "applications/com.zooboxi.app/edits/${E}/tracks/internal" track.json   # {"track":"internal","releases":[{"versionCodes":["N"],"status":"completed"}]}
+ruby tool/play.rb post "applications/com.zooboxi.app/edits/${E}:commit" /dev/null
+```
+- **اكتب `${E}:commit` بالأقواس**: zsh يقرأ `$E:c` كمعدِّل تاريخ ويشوّه الرابط (HTML 404 مضلل).
+- ما لا تصل إليه الواجهة (يدويًا من Console فقط): App content — الخصوصية، الإعلانات، App access، التصنيف، الجمهور، Data safety.
+- أول رفع: 2026-09-16، versionCode 34 على Internal testing، مع صفحتي المتجر ar/en-US والصور.
+
 ## البناء
 1. ارفع `version: 1.0.0+N` في `pubspec.yaml` (Play يرفض versionCode مستعملًا).
 2. `flutter build appbundle --release` → `build/app/outputs/bundle/release/app-release.aab`
