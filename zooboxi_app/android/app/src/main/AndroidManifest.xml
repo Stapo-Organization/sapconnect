@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
+    <!-- Order updates. Android 13+ also asks at runtime (NotifyPermission). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <!-- CAMERA is declared by the mobile_scanner plugin's own manifest. -->
 
     <application

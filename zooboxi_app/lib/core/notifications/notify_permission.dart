@@ -1,3 +1,7 @@
+import 'dart:io' show Platform;
+
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
 /// The notification permission, asked for natively.
@@ -20,6 +24,7 @@ abstract final class NotifyPermission {
   /// welcome journey now asks it that way and keeps the real prompt for the
   /// moment there is an order to follow.
   static Future<bool> request({bool provisional = false}) async {
+    if (_android) return _androidRequest();
     try {
       return await _channel.invokeMethod<bool>(
             'request',
@@ -35,11 +40,42 @@ abstract final class NotifyPermission {
 
   /// `granted` | `provisional` | `denied` | `undetermined`.
   static Future<String> status() async {
+    if (_android) return _androidStatus();
     try {
       return await _channel.invokeMethod<String>('status') ?? 'undetermined';
     } on MissingPluginException {
       return 'undetermined';
     } on PlatformException {
+      return 'undetermined';
+    }
+  }
+
+  static bool get _android => !kIsWeb && Platform.isAndroid;
+
+  /// Android has no provisional grant and no native handler of ours: the
+  /// runtime permission (Android 13 and up; older versions are always
+  /// granted) is asked through firebase_messaging, which owns the channel
+  /// the notifications arrive on. A build without a Firebase configuration
+  /// resolves to «denied» rather than throwing, like every other gap here.
+  static Future<bool> _androidRequest() async {
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission();
+      return settings.authorizationStatus == AuthorizationStatus.authorized;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<String> _androidStatus() async {
+    try {
+      final settings = await FirebaseMessaging.instance.getNotificationSettings();
+      return switch (settings.authorizationStatus) {
+        AuthorizationStatus.authorized => 'granted',
+        AuthorizationStatus.provisional => 'provisional',
+        AuthorizationStatus.denied || AuthorizationStatus.deniedPermanently => 'denied',
+        AuthorizationStatus.notDetermined => 'undetermined',
+      };
+    } catch (_) {
       return 'undetermined';
     }
   }

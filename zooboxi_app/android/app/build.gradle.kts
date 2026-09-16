@@ -17,6 +17,14 @@ val keystoreProperties = Properties().apply {
 }
 val hasUploadKey = keystoreProperties.getProperty("storeFile") != null
 
+// Push on Android needs the Firebase config (android/app/google-services.json,
+// git-ignored). The plugin that reads it fails the build when the file is
+// missing, so it is applied only once the file is there; without it the app
+// builds and runs, with push quietly off.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.zooboxi.zooboxi_app"
     compileSdk = flutter.compileSdkVersion
