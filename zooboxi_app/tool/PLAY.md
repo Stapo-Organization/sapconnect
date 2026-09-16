@@ -13,7 +13,8 @@
 3. ارفع الملف في Play Console → Production (أو Internal testing أولًا) → Create release.
 
 ## أول مرة (يدويًا من Play Console)
-- الحساب: https://play.google.com/console — حساب مؤسسة (يحتاج D-U-N-S وتحقق هوية، 25$ مرة واحدة).
+- الحساب: play.google.com/console — حساب المالك الشخصي (ID 8823757611215841782، فيه Stapo Mobile). اسم المطوّر الظاهر يُغيَّر من Developer account → Account details.
+- App access للمراجع: رقم `0500000000` ورمز `4471` (خيارا المتجر `zooboxi_review_phone` / `zooboxi_review_otp`).
 - إنشاء التطبيق: الاسم «Zooboxi زوبوكسي»، اللغة الافتراضية العربية (ar)، App، Free.
 - Store listing: النصوص أدناه + الرسومات من `~/.zooboxi/releases/play-listing/`
   (icon-512.png · feature-graphic.png 1024×500 · screenshot-1..5.png 1242×2208).
