@@ -1,7 +1,7 @@
 name: zooboxi_app
 description: "Zooboxi — زوبوكسي · متجر مستلزمات الحيوانات الأليفة"
 publish_to: 'none'
-version: 1.0.1+38
+version: 1.0.2+39
 
 environment:
   sdk: ^3.11.5
@@ -85,6 +85,7 @@ flutter:
   assets:
     - assets/brand/
     - assets/fonts/OFL.txt
+    - shorebird.yaml
 
   fonts:
     # Single-glyph font carrying the official Saudi Riyal symbol at U+E900.
