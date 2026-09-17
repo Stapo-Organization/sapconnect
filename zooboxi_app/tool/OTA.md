@@ -23,8 +23,8 @@ export SHOREBIRD_TOKEN=$(cat ~/.zooboxi/shorebird-token.txt)
 
 ## رقعة (بعد كل تعديل)
 ```sh
-shorebird patch android --flutter-version 3.41.7 --release-version X.Y.Z+N --no-confirm
-shorebird patch ios     --flutter-version 3.41.7 --release-version X.Y.Z+N --no-confirm
+shorebird patch --platforms android --release-version X.Y.Z+N --no-confirm   # نسخة Flutter تؤخذ من الإصدار نفسه
+shorebird patch --platforms ios --release-version X.Y.Z+N --no-confirm
 ```
 - الرقعة تُبنى من نفس الإصدار؛ إن تغيّر شيء أصلي يرفض الأمر ويطلب إصدارًا.
 - التحقق: `shorebird releases list` و`shorebird patches list --release-version X.Y.Z+N`.
