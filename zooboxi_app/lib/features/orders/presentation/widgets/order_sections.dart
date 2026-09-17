@@ -132,9 +132,8 @@ class OrderAddressBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final line = [address.addressLine, address.summary]
-        .where((e) => e.isNotEmpty)
-        .join('، ');
+    final locale = Localizations.localeOf(context).languageCode;
+    final line = Fmt.list([address.addressLine, address.summaryFor(locale)], locale);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

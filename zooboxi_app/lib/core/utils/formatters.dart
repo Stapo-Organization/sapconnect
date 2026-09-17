@@ -16,6 +16,14 @@ const String riyalSymbol = '\u{E900}';
 abstract final class Fmt {
   static bool _ar(String locale) => locale.startsWith('ar');
 
+  /// The list separator — «، » in Arabic, ", " in English. An Arabic comma
+  /// between two English words is the small tell of a translated screen.
+  static String comma(String locale) => _ar(locale) ? '، ' : ', ';
+
+  /// Joins the non-empty parts with the locale's comma.
+  static String list(Iterable<String?> parts, String locale) =>
+      parts.where((e) => e != null && e.isNotEmpty).cast<String>().join(comma(locale));
+
   static String _thousands(String locale) => _ar(locale) ? '٬' : ',';
   static String _decimal(String locale) => _ar(locale) ? '٫' : '.';
 

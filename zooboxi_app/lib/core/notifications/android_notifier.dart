@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app/theme/zooboxi_tokens.dart';
 
@@ -25,29 +26,55 @@ abstract final class AndroidNotifier {
   static bool get _android => !kIsWeb && Platform.isAndroid;
 
   /// Channels are what a customer sees under «الإشعارات» in Android's own
-  /// settings, so they are named for what they carry, not for us.
-  static const AndroidNotificationChannel _orders = AndroidNotificationChannel(
-    'orders',
-    'تحديثات الطلبات',
-    description: 'حالة طلبك: التجهيز، الانطلاق، الوصول',
-    importance: Importance.high,
-  );
-  static const AndroidNotificationChannel _offers = AndroidNotificationChannel(
-    'offers',
-    'العروض والمكافآت',
-    description: 'عروض، بكجات، ونقاط عائلة زوبوكسي',
-    importance: Importance.defaultImportance,
-  );
-  static const AndroidNotificationChannel _general = AndroidNotificationChannel(
-    'general',
-    'عام',
-    description: 'تنبيهات أخرى من زوبوكسي',
-    importance: Importance.defaultImportance,
-  );
+  /// settings, so they are named for what they carry, not for us — in the
+  /// language the app is set to. Re-creating a channel with a new name is
+  /// how Android renames it, so a language change reaches the settings
+  /// screen on the next [init].
+  static AndroidNotificationChannel _orders = _channel('orders', 'ar');
+  static AndroidNotificationChannel _offers = _channel('offers', 'ar');
+  static AndroidNotificationChannel _general = _channel('general', 'ar');
+
+  static AndroidNotificationChannel _channel(String id, String lang) {
+    final en = lang == 'en';
+    return switch (id) {
+      'orders' => AndroidNotificationChannel(
+          'orders',
+          en ? 'Order updates' : 'تحديثات الطلبات',
+          description: en ? 'Your order: being prepared, on its way, delivered' : 'حالة طلبك: التجهيز، الانطلاق، الوصول',
+          importance: Importance.high,
+        ),
+      'offers' => AndroidNotificationChannel(
+          'offers',
+          en ? 'Offers & rewards' : 'العروض والمكافآت',
+          description: en ? 'Offers, bundles and Zooboxi Family paws' : 'عروض، بكجات، ونقاط عائلة زوبوكسي',
+          importance: Importance.defaultImportance,
+        ),
+      _ => AndroidNotificationChannel(
+          'general',
+          en ? 'General' : 'عام',
+          description: en ? 'Other notices from Zooboxi' : 'تنبيهات أخرى من زوبوكسي',
+          importance: Importance.defaultImportance,
+        ),
+    };
+  }
+
+  /// The app's own language setting, read straight from preferences so the
+  /// background isolate — which has no providers — names channels the same
+  /// way the running app does. Unset means Arabic, as everywhere else.
+  static Future<String> _languageCode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final code = prefs.getString('settings.locale');
+      return code == 'en' ? 'en' : 'ar';
+    } catch (_) {
+      return 'ar';
+    }
+  }
 
   /// Brings the plugin up once; safe to call from the background isolate,
-  /// where nothing else of the app exists.
-  static Future<void> init({void Function(String payload)? onTap}) async {
+  /// where nothing else of the app exists. [languageCode] names the
+  /// channels; omitted, it is read from preferences.
+  static Future<void> init({void Function(String payload)? onTap, String? languageCode}) async {
     if (!_android || _ready) return;
     await _plugin.initialize(
       settings: const InitializationSettings(
@@ -58,11 +85,27 @@ abstract final class AndroidNotifier {
         if (payload != null && payload.isNotEmpty) onTap?.call(payload);
       },
     );
+    final lang = languageCode ?? await _languageCode();
+    _orders = _channel('orders', lang);
+    _offers = _channel('offers', lang);
+    _general = _channel('general', lang);
     final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     for (final channel in [_orders, _offers, _general]) {
       await android?.createNotificationChannel(channel);
     }
     _ready = true;
+  }
+
+  /// Renames the channels after a language change; a no-op until [init].
+  static Future<void> relabel(String languageCode) async {
+    if (!_android || !_ready) return;
+    _orders = _channel('orders', languageCode);
+    _offers = _channel('offers', languageCode);
+    _general = _channel('general', languageCode);
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    for (final channel in [_orders, _offers, _general]) {
+      await android?.createNotificationChannel(channel);
+    }
   }
 
   /// The payload of the notification that started the app, if one did.

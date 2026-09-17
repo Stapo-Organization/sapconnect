@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
+import '../../../core/utils/formatters.dart';
 
 /// A saved delivery address. Coordinates are part of the identity, not a
 /// nicety: the store resolves the delivery tier from the pin, not the text.
@@ -64,9 +65,11 @@ class Address {
   /// True once this entry exists server-side and can be referenced by id.
   bool get isSaved => id.isNotEmpty;
 
-  /// One-line summary for a list row.
-  String get summary =>
-      [district, city].where((e) => e != null && e.isNotEmpty).join('، ');
+  /// One-line summary for a list row (Arabic comma; see [summaryFor]).
+  String get summary => summaryFor('ar');
+
+  /// The same summary with the locale's own comma between district and city.
+  String summaryFor(String locale) => Fmt.list([district, city], locale);
 
   factory Address.fromJson(Map<String, dynamic> json) => Address(
         id: asString(json['id']),

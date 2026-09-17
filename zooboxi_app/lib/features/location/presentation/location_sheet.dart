@@ -453,10 +453,10 @@ class _AddressRow extends StatelessWidget {
     final l = L.of(context);
     final cs = context.cs;
     final locale = Localizations.localeOf(context).languageCode;
-    final title = address.label?.isNotEmpty == true ? address.label! : address.summary;
+    final title = address.label?.isNotEmpty == true ? address.label! : address.summaryFor(locale);
     final detail = [
       address.addressLine,
-      if (address.label?.isNotEmpty == true) address.summary,
+      if (address.label?.isNotEmpty == true) address.summaryFor(locale),
     ].where((e) => e.trim().isNotEmpty).join(locale == 'ar' ? '، ' : ', ');
 
     return Material(

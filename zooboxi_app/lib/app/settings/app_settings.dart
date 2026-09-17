@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/notifications/android_notifier.dart';
 import '../../core/providers.dart';
 
 /// Language + appearance, persisted. Both are *user* choices; neither is
@@ -67,6 +69,8 @@ class AppSettingsController extends Notifier<AppSettings> {
     await ref.read(localStoreProvider).setLocaleCode(code);
     await ref.read(apiClientProvider).clearCache();
     ref.invalidate(catalogRevisionProvider);
+    // Android's notification channels are named in the app's language.
+    unawaited(AndroidNotifier.relabel(code == 'en' ? 'en' : 'ar'));
   }
 }
 

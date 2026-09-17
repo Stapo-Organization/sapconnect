@@ -90,7 +90,10 @@ class PushService {
         // message while the app is on screen, one while it is in the
         // background (its own isolate), and the tap on either.
         FirebaseMessaging.onBackgroundMessage(zooboxiBackgroundMessage);
-        await AndroidNotifier.init(onTap: (payload) => _onLocalTap(payload, cold: false));
+        await AndroidNotifier.init(
+          onTap: (payload) => _onLocalTap(payload, cold: false),
+          languageCode: _ref.read(localStoreProvider).localeCode == 'en' ? 'en' : 'ar',
+        );
         final launch = await AndroidNotifier.launchPayload();
         if (launch != null) _onLocalTap(launch, cold: true);
         _foreground = FirebaseMessaging.onMessage.listen(

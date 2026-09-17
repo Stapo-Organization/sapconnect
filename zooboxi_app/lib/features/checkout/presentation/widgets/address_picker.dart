@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../account/data/account_models.dart';
 import '../../../account/presentation/widgets/address_card.dart';
 import 'review_step.dart' show addressBlockedReason;
+import '../../../../core/utils/formatters.dart';
 
 /// Where the order is going — a sheet, not a page.
 ///
@@ -151,9 +152,7 @@ class _Blocked extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          [address.addressLine, address.summary]
-                              .where((e) => e.isNotEmpty)
-                              .join('، '),
+                          Fmt.list([address.addressLine, address.summaryFor(Localizations.localeOf(context).languageCode)], Localizations.localeOf(context).languageCode),
                           style: context.tt.bodySmall
                               ?.copyWith(color: cs.onSurfaceVariant),
                           maxLines: 2,

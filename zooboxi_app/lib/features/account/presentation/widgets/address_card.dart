@@ -94,9 +94,7 @@ class AddressCard extends StatelessWidget {
                     ),
                     Gap.h4,
                     Text(
-                      [address.addressLine, address.summary]
-                          .where((e) => e.isNotEmpty)
-                          .join('، '),
+                      Fmt.list([address.addressLine, address.summaryFor(Localizations.localeOf(context).languageCode)], Localizations.localeOf(context).languageCode),
                       style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
