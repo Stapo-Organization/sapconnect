@@ -76,12 +76,32 @@ android {
     buildTypes {
         release {
             signingConfig = if (hasUploadKey) signingConfigs.getByName("upload") else signingConfigs.getByName("debug")
+            // R8: shrink, optimise and obfuscate the Java/Kotlin side (Play's
+            // "DEX code optimization" check). Dart lives in libapp.so and is
+            // untouched, so Shorebird patches are unaffected. Plugin keep rules
+            // come from each plugin's consumer file; ours are in
+            // proguard-rules.pro, kept resources in res/raw/keep.xml.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+// myfatoorah_flutter ships a consumer rule `-keep class * { *; }` that would
+// switch R8 off for the whole app (Play then flags "DEX code optimization:
+// Low"). Plugins evaluate after :app, so this drops that file before AGP
+// reads it; the keeps MyFatoorah genuinely needs are in proguard-rules.pro.
+rootProject.findProject(":myfatoorah_flutter")?.afterEvaluate {
+    extensions.findByType(com.android.build.gradle.LibraryExtension::class.java)
+        ?.defaultConfig?.consumerProguardFiles?.clear()
 }
 
 dependencies {

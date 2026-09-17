@@ -24,6 +24,12 @@ ruby tool/play.rb post "applications/com.zooboxi.app/edits/${E}:commit" /dev/nul
 2. `flutter build appbundle --release` → `build/app/outputs/bundle/release/app-release.aab`
    - تحذير «failed to strip debug symbols» = نقص cmdline-tools على الجهاز فقط؛ الحزمة سليمة (تحقق: `jarsigner -verify -certs`).
 3. ارفع الملف في Play Console → Production (أو Internal testing أولًا) → Create release.
+4. R8 مفعّل في `release` (تصغير + حذف الموارد غير المستعملة + تشويش الجافا/كوتلن) — وهو ما يقيسه
+   Play تحت «DEX code optimization». ملف الخريطة `proguard.map` يُضمَّن تلقائيًا داخل الـAAB فتُفكّ
+   الأعطال في Play Console بلا رفع يدوي. القواعد في `android/app/proguard-rules.pro`، والموارد
+   المحفوظة (أيقونات الإشعار) في `res/raw/keep.xml`. إضافة MyFatoorah تحمل قاعدة `-keep class * { *; }`
+   تعطّل R8 كله؛ `build.gradle.kts` يمسح ملف قواعدها ويبقي ما تحتاجه فقط. Dart في `libapp.so` لا
+   يتأثر، فترقيعات Shorebird تعمل كما هي.
 
 ## أول مرة (يدويًا من Play Console)
 - الحساب: play.google.com/console — حساب المالك الشخصي (ID 8823757611215841782، فيه Stapo Mobile). اسم المطوّر الظاهر يُغيَّر من Developer account → Account details.
