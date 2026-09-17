@@ -175,7 +175,7 @@ class Zooboxi_Loyalty_Tiers
 
         return [
             'key'        => (string) $current['key'],
-            'name'       => (string) $current['name'],
+            'name'       => Zooboxi_Loyalty::pick((string) $current['name'], (string) $current['name_en']),
             'name_en'    => (string) $current['name_en'],
             'icon'       => (string) $current['icon'],
             'c1'         => (string) $current['c1'],
@@ -184,7 +184,7 @@ class Zooboxi_Loyalty_Tiers
             'min'        => (int) $current['min'],
             'next'       => $next ? [
                 'key'           => (string) $next['key'],
-                'name'          => (string) $next['name'],
+                'name'          => Zooboxi_Loyalty::pick((string) $next['name'], (string) $next['name_en']),
                 'name_en'       => (string) $next['name_en'],
                 'icon'          => (string) $next['icon'],
                 'min'           => (int) $next['min'],
@@ -461,7 +461,7 @@ class Zooboxi_Loyalty_Tiers
             $out[] = [
                 'min'  => (int) $tier['min'],
                 'key'  => (string) $tier['key'],
-                'name' => (string) $tier['name'],
+                'name' => Zooboxi_Loyalty::pick((string) $tier['name'], (string) ($tier['name_en'] ?? '')),
                 'icon' => (string) $tier['icon'],
                 'c1'   => (string) $tier['c1'],
                 'c2'   => (string) $tier['c2'],

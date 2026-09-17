@@ -737,7 +737,7 @@ class Zooboxi_Loyalty_Subscriptions
         if ((int) $row['variation_id'] > 0) {
             $v = wc_get_product((int) $row['variation_id']);
             if ($v instanceof \WC_Product_Variation) {
-                $variation_label = wp_strip_all_tags(wc_get_formatted_variation($v, true, false, false));
+                $variation_label = Zooboxi_V2_Bootstrap::variation_label($v);
             }
         }
 

@@ -347,7 +347,7 @@ class Zooboxi_V2_Checkout_Controller
                 $out[] = [
                     'product_id' => $pid,
                     'name'       => $product instanceof \WC_Product
-                        ? wp_strip_all_tags($product->get_name())
+                        ? Zooboxi_V2_Bootstrap::product_name($product)
                         : '',
                 ];
             }

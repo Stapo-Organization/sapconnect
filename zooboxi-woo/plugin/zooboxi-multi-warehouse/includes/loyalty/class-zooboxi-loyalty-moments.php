@@ -411,7 +411,7 @@ class Zooboxi_Loyalty_Moments
         foreach (array_slice($supply_rows, 0, 6) as $row) {
             $state = Zooboxi_Loyalty_Supply::state_of($row);
             $name  = $pets[(int) $row['pet_id']] ?? $someone;
-            $title = (string) get_the_title((int) $row['product_id']);
+            $title = self::product_title((int) $row['product_id']);
             $runs  = (int) $row['runs_out_ts'];
             $pid   = (int) $row['product_id'];
 
@@ -454,7 +454,7 @@ class Zooboxi_Loyalty_Moments
             $next  = (int) strtotime((string) $sub['next_at'] . ' 09:00:00 UTC');
             $at    = $next - $ahead * DAY_IN_SECONDS;
             $name  = $pets[(int) ($sub['pet_id'] ?? 0)] ?? $someone;
-            $title = (string) get_the_title((int) $sub['product_id']);
+            $title = self::product_title((int) $sub['product_id']);
             $out[] = [
                 'kind'            => 'subscription',
                 'title'           => sprintf(Zooboxi_Loyalty::pick('توصيلة %s بعد %d أيام', '%s\'s delivery in %d days'), $name, $ahead),
@@ -532,5 +532,15 @@ class Zooboxi_Loyalty_Moments
         }
         update_option('zooboxi_loyalty_habit_ran_at', Zooboxi_Loyalty::now(), false);
         return $out;
+    }
+
+    /** The product's title in the requested language (falls back to Arabic). */
+    private static function product_title(int $product_id): string
+    {
+        $product = wc_get_product($product_id);
+        if ($product instanceof \WC_Product && class_exists('Zooboxi_V2_Bootstrap')) {
+            return Zooboxi_V2_Bootstrap::product_name($product);
+        }
+        return (string) get_the_title($product_id);
     }
 }

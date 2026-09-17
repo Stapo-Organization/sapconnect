@@ -79,7 +79,7 @@ class Zooboxi_Product_DTO
             'id'            => $id,
             'item_code'     => (string) get_post_meta($id, '_zooboxi_item_code', true),
             'sku'           => (string) $product->get_sku(),
-            'name'          => wp_strip_all_tags($product->get_name()),
+            'name'          => Zooboxi_V2_Bootstrap::product_name($product),
             'slug'          => $product->get_slug(),
             'brand'         => self::brand($id),
             'image'         => self::image_url($product, 'woocommerce_single'),
@@ -169,7 +169,9 @@ class Zooboxi_Product_DTO
 
                     return [
                         'id'    => $pid,
-                        'name'  => (string) ($c['name'] ?? $product->get_name()),
+                        'name'  => Zooboxi_V2_Bootstrap::lang() === 'en'
+                            ? Zooboxi_V2_Bootstrap::product_name($product)
+                            : (string) ($c['name'] ?? $product->get_name()),
                         'qty'   => max(1, (int) ($c['qty'] ?? 1)),
                         'role'  => (string) ($c['role'] ?? 'member'),
                         'image' => self::image_url($product, 'woocommerce_thumbnail'),
@@ -188,10 +190,8 @@ class Zooboxi_Product_DTO
         return $card + [
             'bundle'             => $bundle,
             'gallery'            => self::gallery($product),
-            'description_html'   => $post ? wp_kses_post(do_shortcode(wpautop($post->post_content))) : '',
-            'short_description'  => $product->get_short_description() !== ''
-                ? wp_kses_post(wpautop($product->get_short_description()))
-                : '',
+            'description_html'   => self::description_html($id, $post ? (string) $post->post_content : ''),
+            'short_description'  => self::short_description($id, (string) $product->get_short_description()),
             'brand_detail'       => self::brand_detail($id),
             'categories'         => self::categories($id),
             'attributes'         => self::flat_attributes($product),
@@ -209,6 +209,39 @@ class Zooboxi_Product_DTO
     /* ══════════════════════════════════════════════════════════════
        PIECES
        ══════════════════════════════════════════════════════════════ */
+
+    /**
+     * The long description in the requested language. sapconnect's English
+     * copy is kept as `_zooboxi_description_en` meta by the sync; an English
+     * request without it gets the Arabic text and the fallback flag.
+     */
+    private static function description_html(int $id, string $arabic): string
+    {
+        $text = $arabic;
+        if (Zooboxi_V2_Bootstrap::lang() === 'en') {
+            $en = trim((string) get_post_meta($id, '_zooboxi_description_en', true));
+            if ($en !== '') {
+                $text = $en;
+            } elseif ($arabic !== '') {
+                Zooboxi_V2_Bootstrap::note_fallback();
+            }
+        }
+        return $text === '' ? '' : wp_kses_post(do_shortcode(wpautop($text)));
+    }
+
+    private static function short_description(int $id, string $arabic): string
+    {
+        $text = $arabic;
+        if (Zooboxi_V2_Bootstrap::lang() === 'en') {
+            $en = trim((string) get_post_meta($id, '_zooboxi_short_description_en', true));
+            if ($en !== '') {
+                $text = $en;
+            } elseif ($arabic !== '') {
+                Zooboxi_V2_Bootstrap::note_fallback();
+            }
+        }
+        return $text === '' ? '' : wp_kses_post(wpautop($text));
+    }
 
     /** @param \WC_Product|int $product */
     public static function resolve($product): ?\WC_Product
@@ -345,7 +378,7 @@ class Zooboxi_Product_DTO
         }
         $out = [];
         foreach ($terms as $t) {
-            $out[] = ['id' => (int) $t->term_id, 'name' => $t->name, 'slug' => $t->slug];
+            $out[] = ['id' => (int) $t->term_id, 'name' => Zooboxi_V2_Bootstrap::term_name($t), 'slug' => $t->slug];
         }
         return $out;
     }
@@ -678,8 +711,8 @@ class Zooboxi_Product_DTO
             }
             $name  = wc_attribute_label($attribute->get_name(), $product);
             $value = $attribute->is_taxonomy()
-                ? implode('، ', wp_list_pluck(get_terms(['taxonomy' => $attribute->get_name(), 'include' => $attribute->get_options(), 'hide_empty' => false]) ?: [], 'name'))
-                : implode('، ', (array) $attribute->get_options());
+                ? implode(Zooboxi_V2_Bootstrap::comma(), array_map([Zooboxi_V2_Bootstrap::class, 'term_name'], get_terms(['taxonomy' => $attribute->get_name(), 'include' => $attribute->get_options(), 'hide_empty' => false]) ?: []))
+                : implode(Zooboxi_V2_Bootstrap::comma(), (array) $attribute->get_options());
             if ($value !== '') {
                 $out[] = ['label' => $name, 'value' => $value];
             }
@@ -704,7 +737,7 @@ class Zooboxi_Product_DTO
             ];
             foreach ((array) $options as $option) {
                 $term  = taxonomy_exists($taxonomy) ? get_term_by('slug', $option, $taxonomy) : null;
-                $label = ($term && !is_wp_error($term)) ? $term->name : (string) $option;
+                $label = ($term && !is_wp_error($term)) ? Zooboxi_V2_Bootstrap::term_name($term) : (string) $option;
                 $group['options'][] = [
                     'slug'  => (string) $option,
                     'label' => $label,

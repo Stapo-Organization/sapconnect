@@ -1065,7 +1065,7 @@ class Zooboxi_V2_Catalog_Controller
             $out[] = [
                 'id'    => (int) $term->term_id,
                 'slug'  => (string) $term->slug,
-                'name'  => $name,
+                'name'  => Zooboxi_V2_Bootstrap::lang() === 'en' ? Zooboxi_V2_Bootstrap::term_name($term) : $name,
                 'image' => home_url($image),
                 'icon'  => $emoji,
             ];
@@ -1449,14 +1449,10 @@ class Zooboxi_V2_Catalog_Controller
     /** @param \WP_Term $term */
     private function term_dto($term, bool $with_children): array
     {
-        $id  = Zooboxi_V2_Bootstrap::map_term((int) $term->term_id);
+        // The Arabic term is the only one products hang off; an English
+        // request changes the NAME, never the id, the count or the children
+        // (the Polylang twin used to be swapped in here, and it is empty).
         $t   = $term;
-        if ($id !== (int) $term->term_id) {
-            $translated = get_term($id, 'product_cat');
-            if ($translated instanceof WP_Term) {
-                $t = $translated;
-            }
-        }
         $img = null;
 
         $thumb = (int) get_term_meta((int) $t->term_id, 'thumbnail_id', true);
@@ -1486,7 +1482,7 @@ class Zooboxi_V2_Catalog_Controller
         $dto = [
             'id'       => (int) $t->term_id,
             'slug'     => (string) $t->slug,
-            'name'     => (string) $t->name,
+            'name'     => Zooboxi_V2_Bootstrap::term_name($t),
             'image'    => $img ?: ($icon_art !== '' ? esc_url_raw($icon_art) : null),
             'icon'     => $emoji,
             'count'    => $count,
@@ -1860,7 +1856,7 @@ class Zooboxi_V2_Catalog_Controller
             }
             $list = [];
             foreach ($terms as $t) {
-                $list[] = ['slug' => (string) $t->slug, 'name' => (string) $t->name, 'count' => (int) $t->count];
+                $list[] = ['slug' => (string) $t->slug, 'name' => Zooboxi_V2_Bootstrap::term_name($t), 'count' => (int) $t->count];
             }
             $groups[] = [
                 'taxonomy' => $taxonomy,
@@ -1889,7 +1885,9 @@ class Zooboxi_V2_Catalog_Controller
 
     private function filter_labels(): array
     {
-        if (function_exists('zooboxi_get_filter_labels')) {
+        // The theme's labels are Arabic only; an English request keeps the
+        // plugin's own list, which the en_US catalogue translates.
+        if (function_exists('zooboxi_get_filter_labels') && Zooboxi_V2_Bootstrap::lang() !== 'en') {
             $labels = zooboxi_get_filter_labels();
             if (is_array($labels)) {
                 return $labels;

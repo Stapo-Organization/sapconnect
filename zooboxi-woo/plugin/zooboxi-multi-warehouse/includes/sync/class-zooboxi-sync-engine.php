@@ -457,6 +457,7 @@ class Zooboxi_Sync_Engine
             update_post_meta($existingId, '_zooboxi_uom', $data['uom'] ?? '');
             update_post_meta($existingId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
             update_post_meta($existingId, '_zooboxi_last_sync', current_time('mysql'));
+            $this->store_english($existingId, $data);
 
             // Store ZID keywords for SEO
             if (!empty($data['keywords'])) {
@@ -564,6 +565,7 @@ class Zooboxi_Sync_Engine
             }
             update_post_meta($productId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
             update_post_meta($productId, '_zooboxi_last_sync', current_time('mysql'));
+            $this->store_english($productId, $data);
 
             // Keywords
             if (!empty($data['keywords'])) {
@@ -590,6 +592,26 @@ class Zooboxi_Sync_Engine
             }
             if (!empty($data['brand_name'])) {
                 wp_set_object_terms($productId, $data['brand_name'], 'product_cat', true);
+            }
+        }
+    }
+
+    /**
+     * The English copy travels next to the Arabic product as meta — the app
+     * reads it under `lang=en`. A Polylang twin would double the catalogue
+     * for names nobody edits by hand. Empty values are ignored so a partial
+     * sync payload never erases a name that already exists.
+     */
+    private function store_english(int $productId, array $data): void
+    {
+        foreach ([
+            '_zooboxi_name_en'              => 'name_en',
+            '_zooboxi_description_en'       => 'description_en',
+            '_zooboxi_short_description_en' => 'short_description_en',
+        ] as $meta => $key) {
+            $value = trim((string) ($data[$key] ?? ''));
+            if ($value !== '') {
+                update_post_meta($productId, $meta, $value);
             }
         }
     }

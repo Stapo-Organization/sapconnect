@@ -378,6 +378,7 @@ class Zooboxi_Push_Journeys
                 self::enroll('winback', $uid, '', 'winback:' . gmdate('Y-m', $expected), [
                     'expected' => $expected,
                     'product'  => self::last_product_name($uid),
+                    'product_en' => self::last_product_name($uid, 'en'),
                     'pet'      => class_exists('Zooboxi_Loyalty_Pets') ? Zooboxi_Loyalty_Pets::first_name($uid, '', '') : '',
                 ], time());
             } catch (\Throwable $e) {
@@ -522,11 +523,12 @@ class Zooboxi_Push_Journeys
             ] : null;
             return ['message' => $msg, 'next' => $now + 8 * DAY_IN_SECONDS];
         }
-        $product = self::last_product_name($uid);
+        $product    = self::last_product_name($uid);
+        $product_en = self::last_product_name($uid, 'en');
         return ['message' => [
             'copy'  => [
                 'ar' => ['اطلب مجددًا بضغطة', $product !== '' ? $product . ' وما اشتريته معه — جاهز لإعادة الطلب.' : 'مشترياتك السابقة جاهزة لإعادة الطلب بنفس الكميات.'],
-                'en' => ['Reorder in one tap', $product !== '' ? $product . ' and what you bought with it — ready to reorder.' : 'Your past purchases are ready to reorder.'],
+                'en' => ['Reorder in one tap', $product_en !== '' ? $product_en . ' and what you bought with it — ready to reorder.' : 'Your past purchases are ready to reorder.'],
             ],
             'route' => '/buy-again', 'relevance' => 0.6,
         ]];
@@ -540,13 +542,14 @@ class Zooboxi_Push_Journeys
             return ['exit' => 'converted'];
         }
         $pet = (string) ($ctx['pet'] ?? '');
-        $product = (string) ($ctx['product'] ?? '');
+        $product    = (string) ($ctx['product'] ?? '');
+        $product_en = (string) ($ctx['product_en'] ?? $product);
         switch ($step) {
             case 0:
                 return ['message' => [
                     'copy' => [
                         'ar' => [$pet !== '' ? $pet . ' عادةً يحتاج طعامه الآن' : 'حان وقت التموين المعتاد', $product !== '' ? $product . ' — نجهّزه لك بنفس الكمية؟' : 'مشترياتك السابقة جاهزة بضغطة واحدة.'],
-                        'en' => [$pet !== '' ? $pet . ' usually needs food about now' : 'Time for the usual restock', $product !== '' ? $product . ' — shall we get it ready in the same quantity?' : 'Your past purchases are one tap away.'],
+                        'en' => [$pet !== '' ? $pet . ' usually needs food about now' : 'Time for the usual restock', $product_en !== '' ? $product_en . ' — shall we get it ready in the same quantity?' : 'Your past purchases are one tap away.'],
                     ],
                     'route' => '/buy-again', 'relevance' => 0.7,
                 ], 'next' => $now + 35 * DAY_IN_SECONDS];
@@ -585,7 +588,7 @@ class Zooboxi_Push_Journeys
             $p = Zooboxi_Loyalty_Pets::find((int) $ctx['pet_id'], $uid);
             $pet = $p ? (string) $p['name'] : '';
         }
-        $name    = wp_strip_all_tags($product->get_name());
+        [$name, $name_en] = Zooboxi_Push_Engine::product_names($product);
         $express = !empty($ctx['express']);
         $runs_out = (int) ($ctx['runs_out_ts'] ?? 0);
         $days = $runs_out > 0 ? max(0, (int) ceil(($runs_out - $now) / DAY_IN_SECONDS)) : 4;
@@ -599,7 +602,7 @@ class Zooboxi_Push_Journeys
                         'اطلبه في وقته واكسب +20% بصمات' . ($express ? ' — إكسبريس يوصله خلال ساعتين.' : '.'),
                     ],
                     'en' => [
-                        $days > 0 ? ($pet !== '' ? $pet . "'s food lasts " . $days . ' more days' : 'Running out in ' . $days . ' days: ' . $name) : ($pet !== '' ? $pet . "'s food has run out" : 'Run out: ' . $name),
+                        $days > 0 ? ($pet !== '' ? $pet . "'s food lasts " . $days . ' more days' : 'Running out in ' . $days . ' days: ' . $name_en) : ($pet !== '' ? $pet . "'s food has run out" : 'Run out: ' . $name_en),
                         'Order it on time and earn +20% paws' . ($express ? ' — Express brings it within two hours.' : '.'),
                     ],
                 ],
@@ -610,7 +613,7 @@ class Zooboxi_Push_Journeys
         return ['message' => [
             'copy' => [
                 'ar' => [$pet !== '' ? 'طعام ' . $pet . ' يخلص بكرة' : 'يخلص بكرة: ' . $name, $express ? 'اطلبه الآن إكسبريس ويوصلك خلال ساعتين.' : 'اطلبه الآن قبل أن ينفد.'],
-                'en' => [$pet !== '' ? $pet . "'s food runs out tomorrow" : 'Runs out tomorrow: ' . $name, $express ? 'Order it on Express now and it arrives within two hours.' : 'Order it now before it runs out.'],
+                'en' => [$pet !== '' ? $pet . "'s food runs out tomorrow" : 'Runs out tomorrow: ' . $name_en, $express ? 'Order it on Express now and it arrives within two hours.' : 'Order it now before it runs out.'],
             ],
             'route' => '/family/supply', 'data' => ['product_id' => (string) $pid], 'collapse_key' => 'supply-' . $pid,
             'thread_id' => 'family', 'relevance' => 0.9, 'express' => $express, 'sto' => false,
@@ -744,7 +747,7 @@ class Zooboxi_Push_Journeys
     }
 
     /** The first line of the last completed order, for copy. */
-    public static function last_product_name(int $uid): string
+    public static function last_product_name(int $uid, string $lang = 'ar'): string
     {
         $orders = wc_get_orders(['customer_id' => $uid, 'status' => ['completed'], 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC']);
         $o = $orders[0] ?? null;
@@ -753,6 +756,10 @@ class Zooboxi_Push_Journeys
         }
         foreach ($o->get_items() as $item) {
             if ($item instanceof \WC_Order_Item_Product && (string) $item->get_meta(class_exists('Zooboxi_Loyalty') ? Zooboxi_Loyalty::ORDER_GRANT_META : '_zb_grant') === '') {
+                $product = $item->get_product();
+                if ($lang === 'en' && $product instanceof \WC_Product) {
+                    return Zooboxi_Push_Engine::product_names($product)[1];
+                }
                 return wp_strip_all_tags($item->get_name());
             }
         }

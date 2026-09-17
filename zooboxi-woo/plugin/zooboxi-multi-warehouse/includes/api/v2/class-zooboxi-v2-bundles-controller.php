@@ -57,6 +57,88 @@ class Zooboxi_V2_Bundles_Controller
         return $url . (str_contains($url, '?') ? '&' : '?') . 'v=' . $stamp;
     }
 
+    /**
+     * A bundle's name in English, composed from its parts.
+     *
+     * The generator writes name_ar only (three patterns, see sapconnect's
+     * BundleGenerator), so English is rebuilt from the same ingredients: the
+     * template, the free label and the components' own English names. Null
+     * when a part has no English — the caller then keeps the Arabic title.
+     */
+    public static function english_name(int $id): ?string
+    {
+        $raw = get_post_meta($id, '_zb_bundle_components', true);
+        $components = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
+        if (!is_array($components) || $components === []) {
+            return null;
+        }
+        $template = (string) get_post_meta($id, '_zb_bundle_template', true);
+        $label    = (string) get_post_meta($id, '_zb_bundle_free_label', true);
+        $anchor   = null;
+        $gift     = null;
+        foreach ($components as $c) {
+            $role = (string) ($c['role'] ?? 'member');
+            if ($role === 'anchor' && $anchor === null) {
+                $anchor = $c;
+            } elseif ($role === 'gift' && $gift === null) {
+                $gift = $c;
+            }
+        }
+        $anchor = $anchor ?? $components[0];
+        $anchor_en = self::component_name($anchor, false);
+        if ($anchor_en === null) {
+            return null;
+        }
+
+        $deal = preg_match('/^(\d+)\+(\d+)$/', $label, $m) ? sprintf('%d + %d free', (int) $m[1], (int) $m[2]) : '';
+        switch ($template) {
+            case 'stacking':
+                return $deal !== '' ? $deal . ' · ' . $anchor_en : $anchor_en;
+
+            case 'variety':
+                $anchor_pid = (int) ($anchor['product_id'] ?? 0);
+                $brand   = Zooboxi_Product_DTO::brand((int) wp_get_post_parent_id($anchor_pid) ?: $anchor_pid);
+                $species = match ((string) get_post_meta($id, '_zb_bundle_species', true)) {
+                    'cat' => 'for cats', 'dog' => 'for dogs', 'bird' => 'for birds', 'small_pet' => 'for small pets', default => '',
+                };
+                $mix = trim(($brand['name'] ?? '') . ' mix ' . $species);
+                return $deal !== '' ? $deal . ' · ' . $mix : $mix;
+
+            default:
+                if ($gift === null) {
+                    return $anchor_en;
+                }
+                $gift_en = self::component_name($gift, false);
+                if ($gift_en === null) {
+                    return null;
+                }
+                $qty   = max(1, (int) ($gift['qty'] ?? 1));
+                $words = preg_split('/\s+/', $gift_en) ?: [];
+                $short = count($words) > 6 ? implode(' ', array_slice($words, 0, 6)) : $gift_en;
+                return sprintf('%s + %s%s gift', $anchor_en, $qty > 1 ? $qty . ' × ' : '', $short);
+        }
+    }
+
+    /**
+     * One component's name in English — its product's `_zooboxi_name_en`.
+     * With $fallback the Arabic component name is returned instead of null.
+     */
+    private static function component_name(array $c, bool $fallback = true): ?string
+    {
+        $pid = (int) ($c['product_id'] ?? 0);
+        // A component may point at a pack variation; the name lives on its parent.
+        $parent = $pid ? (int) wp_get_post_parent_id($pid) : 0;
+        $en  = $pid ? trim((string) get_post_meta($parent ?: $pid, '_zooboxi_name_en', true)) : '';
+        if ($en !== '') {
+            return $en;
+        }
+        if (!$fallback) {
+            return null;
+        }
+        Zooboxi_V2_Bootstrap::note_fallback();
+        return (string) ($c['name'] ?? '');
+    }
+
     /** Bolt the bundle-specific keys onto a standard product card. */
     public static function extend(array $card): array
     {
@@ -66,11 +148,12 @@ class Zooboxi_V2_Bundles_Controller
         $components = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
         $components = is_array($components) ? $components : [];
 
+        $en   = Zooboxi_V2_Bootstrap::lang() === 'en';
         $gift = null;
         foreach ($components as $c) {
             if (($c['role'] ?? '') === 'gift') {
                 $qty = max(1, (int) ($c['qty'] ?? 1));
-                $name = (string) ($c['name'] ?? '');
+                $name = $en ? self::component_name($c) : (string) ($c['name'] ?? '');
                 $gift = $qty > 1 ? "{$qty} × {$name}" : $name;
                 break;
             }
@@ -88,8 +171,13 @@ class Zooboxi_V2_Bundles_Controller
             }
         }
 
+        $free_label = (string) get_post_meta($id, '_zb_bundle_free_label', true);
+        if ($en && $free_label === 'هدية') {
+            $free_label = 'Gift';
+        }
+
         $card['bundle'] = [
-            'free_label'  => (string) get_post_meta($id, '_zb_bundle_free_label', true),
+            'free_label'  => $free_label,
             'template'    => (string) get_post_meta($id, '_zb_bundle_template', true),
             'species'     => (string) get_post_meta($id, '_zb_bundle_species', true),
             'stock_class' => (string) get_post_meta($id, '_zb_bundle_class', true),

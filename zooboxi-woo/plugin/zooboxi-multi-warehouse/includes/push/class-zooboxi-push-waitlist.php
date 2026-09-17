@@ -155,7 +155,7 @@ class Zooboxi_Push_Waitlist
                         continue;
                     }
                 }
-                $name = wp_strip_all_tags($product->get_name());
+                [$name, $name_en] = Zooboxi_Push_Engine::product_names($product);
                 $r2 = Zooboxi_Push_Engine::submit([
                     'user_id'      => (int) $r['user_id'],
                     'guest_id'     => (string) $r['guest_id'],
@@ -163,7 +163,7 @@ class Zooboxi_Push_Waitlist
                     'tier'         => Zooboxi_Push_Gate::TIER_SERVICE,
                     'copy'         => [
                         'ar' => ['رجع ' . $name, 'متوفر الآن على إكسبريس — الكمية محدودة.'],
-                        'en' => [$name . ' is back', 'In stock again on Express — limited quantity.'],
+                        'en' => [$name_en . ' is back', 'In stock again on Express — limited quantity.'],
                     ],
                     'route'        => '/product/' . $pid,
                     'data'         => ['product_id' => (string) $pid],
@@ -210,7 +210,7 @@ class Zooboxi_Push_Waitlist
                 if ($ref <= 0 || $now_price <= 0 || $now_price > $ref * self::DROP_RATIO) {
                     continue;
                 }
-                $name = wp_strip_all_tags($product->get_name());
+                [$name, $name_en] = Zooboxi_Push_Engine::product_names($product);
                 $r2 = Zooboxi_Push_Engine::submit([
                     'user_id'      => (int) $r['user_id'],
                     'guest_id'     => (string) $r['guest_id'],
@@ -218,7 +218,7 @@ class Zooboxi_Push_Waitlist
                     'tier'         => Zooboxi_Push_Gate::TIER_SERVICE,
                     'copy'         => [
                         'ar' => ['صار بـ ' . number_format($now_price, 0) . ' ﷼ بدل ' . number_format($ref, 0), $name . ' — من مفضلتك، لفترة محدودة.'],
-                        'en' => ['Now ' . number_format($now_price, 0) . ' SAR, was ' . number_format($ref, 0), $name . ' — from your wishlist, for a limited time.'],
+                        'en' => ['Now ' . number_format($now_price, 0) . ' SAR, was ' . number_format($ref, 0), $name_en . ' — from your wishlist, for a limited time.'],
                     ],
                     'route'        => '/product/' . $pid,
                     'data'         => ['product_id' => (string) $pid],

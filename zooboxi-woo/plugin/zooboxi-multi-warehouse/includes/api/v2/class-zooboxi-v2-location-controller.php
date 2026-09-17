@@ -23,12 +23,17 @@ class Zooboxi_V2_Location_Controller
 
     public function cities(\WP_REST_Request $request): \WP_REST_Response
     {
-        $out = [];
+        $out  = [];
+        $seen = [];
+        $lang = Zooboxi_V2_Bootstrap::lang();
         foreach (Zooboxi_Location_Detector::get_available_cities() as $city) {
-            $city = (string) $city;
-            if ($city === '') {
+            // One row per city in the requested language: the table spells
+            // some cities twice («الدمام» and "Dammam"), and both matched.
+            $city = Zooboxi_Warehouse_Manager::city_label((string) $city, $lang);
+            if ($city === '' || isset($seen[$city])) {
                 continue;
             }
+            $seen[$city] = true;
             $central = Zooboxi_Warehouse_Manager::find_central($city);
             $out[] = [
                 'city'        => $city,
@@ -78,6 +83,8 @@ class Zooboxi_V2_Location_Controller
         }
 
         return Zooboxi_V2_Bootstrap::ok([
+            // Kept as the store spells it: the app echoes this value back as
+            // the scope's city key, so it must match the warehouse rows.
             'city'     => $city,
             'district' => $district,
             'options'  => [
@@ -122,7 +129,7 @@ class Zooboxi_V2_Location_Controller
                 'warehouse_code' => (string) ($wh['warehouse_code'] ?? ''),
                 'warehouse_name' => self::wh_name($wh),
                 'address'        => Zooboxi_V2_Bootstrap::pick((string) ($wh['address_ar'] ?? ''), (string) ($wh['address_en'] ?? '')),
-                'city'           => (string) ($wh['city'] ?? ''),
+                'city'           => Zooboxi_Warehouse_Manager::city_label((string) ($wh['city'] ?? ''), Zooboxi_V2_Bootstrap::lang()),
                 'lat'            => (float) ($wh['latitude'] ?? 0),
                 'lng'            => (float) ($wh['longitude'] ?? 0),
                 'distance_km'    => (float) ($p['distance'] ?? 0),

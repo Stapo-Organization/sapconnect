@@ -373,7 +373,115 @@ class Zooboxi_V2_Bootstrap
         self::$lang_fallback = false;
         if (self::lang($request) === 'en') {
             switch_to_locale('en_US');
+            // The plugin's own strings are written in Arabic and never
+            // registered a text domain, so switching the locale alone left
+            // every __() Arabic. languages/app-en_US.mo carries the English
+            // of everything on the app's paths; anything it lacks falls
+            // through to the Arabic source, as before. The file is NOT named
+            // zooboxi-en_US.mo on purpose: the site's own locale is en_US,
+            // and WordPress would pick a file by that name up for every
+            // request — Arabic ones included.
+            $mo = ZOOBOXI_PLUGIN_DIR . 'languages/app-en_US.mo';
+            if (is_readable($mo)) {
+                load_textdomain('zooboxi', $mo);
+            }
         }
+    }
+
+    /**
+     * The product's name in the requested language.
+     *
+     * Products live in the store once, in Arabic; the English name arrives
+     * with the sync (sapconnect's zb_name_en) and is kept as meta rather than
+     * as a Polylang twin, which would double the catalogue. Falls back to the
+     * Arabic title and marks the fallback, like map_post does.
+     */
+    public static function product_name(\WC_Product $product): string
+    {
+        $name = wp_strip_all_tags($product->get_name());
+        if (self::lang() !== 'en') {
+            return $name;
+        }
+        $id = $product->get_parent_id() ?: $product->get_id();
+        $en = trim((string) get_post_meta($id, '_zooboxi_name_en', true));
+        if ($en === '' && get_post_meta($id, '_zb_bundle_id', true) !== '' && class_exists('Zooboxi_V2_Bundles_Controller')) {
+            $en = (string) Zooboxi_V2_Bundles_Controller::english_name($id);
+        }
+        if ($en === '') {
+            self::$lang_fallback = true;
+            return $name;
+        }
+        if ($product instanceof \WC_Product_Variation) {
+            // A variation's title carries its attributes after the parent
+            // name («… - كرتون»); rebuild that tail from the terms so it can
+            // answer in English too ("… - Carton").
+            $suffix = self::variation_label($product);
+            return $suffix !== '' ? $en . ' - ' . $suffix : $en;
+        }
+        return $en;
+    }
+
+    /**
+     * A term's name in the requested language.
+     *
+     * The catalogue is ONE Arabic tree: products hang off Arabic terms only,
+     * so a Polylang twin is an empty shell whose id must never reach the app.
+     * The twin is good for one thing — its name — and `_zooboxi_name_en` term
+     * meta covers the terms that never got a twin. Falls back to Arabic and
+     * marks the fallback.
+     *
+     * @param \WP_Term|int $term
+     */
+    public static function term_name($term): string
+    {
+        $term = $term instanceof \WP_Term ? $term : get_term((int) $term);
+        if (!$term instanceof \WP_Term) {
+            return '';
+        }
+        $name = html_entity_decode((string) $term->name, ENT_QUOTES, 'UTF-8');
+        if (self::lang() !== 'en') {
+            return $name;
+        }
+        $en = trim((string) get_term_meta((int) $term->term_id, '_zooboxi_name_en', true));
+        if ($en === '' && function_exists('pll_get_term')) {
+            $twin = pll_get_term((int) $term->term_id, 'en');
+            if ($twin && (int) $twin !== (int) $term->term_id) {
+                $twin = get_term((int) $twin, $term->taxonomy);
+                if ($twin instanceof \WP_Term) {
+                    $en = html_entity_decode((string) $twin->name, ENT_QUOTES, 'UTF-8');
+                }
+            }
+        }
+        if ($en === '') {
+            self::$lang_fallback = true;
+            return $name;
+        }
+        return $en;
+    }
+
+    /**
+     * «كرتون (24 حبة)» / "Carton (24 pcs)" — a variation's attribute values,
+     * each term in the requested language, joined with the locale's comma.
+     */
+    public static function variation_label(\WC_Product_Variation $variation): string
+    {
+        $parts = [];
+        foreach ($variation->get_variation_attributes() as $key => $slug) {
+            $slug = (string) $slug;
+            if ($slug === '') {
+                continue;
+            }
+            $taxonomy = str_replace('attribute_', '', (string) $key);
+            $term     = taxonomy_exists($taxonomy) ? get_term_by('slug', $slug, $taxonomy) : false;
+            $parts[]  = ($term && !is_wp_error($term)) ? self::term_name($term) : rawurldecode($slug);
+        }
+        return implode(self::comma(), array_filter($parts));
+    }
+
+    /** The locale's list separator — «، » in Arabic, ", " in English. */
+    public static function comma(): string
+    {
+        return self::lang() === 'en' ? ', ' : '، ';
     }
 
     /** 'ar' (default) or 'en'. */
@@ -387,6 +495,12 @@ class Zooboxi_V2_Bootstrap
     public static function lang_fallback(): bool
     {
         return self::$lang_fallback;
+    }
+
+    /** Something on this response had no English and was served in Arabic. */
+    public static function note_fallback(): void
+    {
+        self::$lang_fallback = true;
     }
 
     /** Translate a post id to the requested language; falls back to the original. */

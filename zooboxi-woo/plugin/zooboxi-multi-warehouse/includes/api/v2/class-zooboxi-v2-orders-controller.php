@@ -14,6 +14,21 @@ if (!defined('ABSPATH')) {
 
 class Zooboxi_V2_Orders_Controller
 {
+    /**
+     * An order line's name in the requested language. The line stores the
+     * Arabic title it was sold under; while the product still exists its
+     * English name is used, and a deleted product keeps the stored title.
+     */
+    private static function line_name(\WC_Order_Item_Product $item): string
+    {
+        $stored = wp_strip_all_tags($item->get_name());
+        if (Zooboxi_V2_Bootstrap::lang() !== 'en') {
+            return $stored;
+        }
+        $product = $item->get_product();
+        return $product instanceof \WC_Product ? Zooboxi_V2_Bootstrap::product_name($product) : $stored;
+    }
+
     private const PER_PAGE = 10;
 
     /** ShipGo connector order meta (shipgo-connect → ShipGo_Statuses). */
@@ -107,7 +122,7 @@ class Zooboxi_V2_Orders_Controller
             $items[] = [
                 'product_id'   => (int) $item->get_product_id(),
                 'variation_id' => (int) $item->get_variation_id(),
-                'name'         => wp_strip_all_tags($item->get_name()),
+                'name'         => self::line_name($item),
                 'image'        => $product ? Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail') : null,
                 'qty'          => (int) $item->get_quantity(),
                 'line_total'   => (float) $item->get_total(),
@@ -164,7 +179,7 @@ class Zooboxi_V2_Orders_Controller
             foreach ($order->get_items() as $item) {
                 if ($item instanceof \WC_Order_Item_Product
                     && (string) $item->get_meta(Zooboxi_Loyalty::ORDER_GRANT_META) !== '') {
-                    $gifts[] = wp_strip_all_tags($item->get_name());
+                    $gifts[] = self::line_name($item);
                 }
             }
 
@@ -203,7 +218,7 @@ class Zooboxi_V2_Orders_Controller
             }
             $product = $item->get_product();
             if (!$product || !$product->is_purchasable() || !$product->is_in_stock()) {
-                $missing[] = wp_strip_all_tags($item->get_name());
+                $missing[] = self::line_name($item);
                 continue;
             }
             try {
@@ -218,7 +233,7 @@ class Zooboxi_V2_Orders_Controller
             if ($ok) {
                 $added++;
             } else {
-                $missing[] = wp_strip_all_tags($item->get_name());
+                $missing[] = self::line_name($item);
             }
         }
 
@@ -258,7 +273,7 @@ class Zooboxi_V2_Orders_Controller
             }
             $product   = $item->get_product();
             $preview[] = [
-                'name'  => wp_strip_all_tags($item->get_name()),
+                'name'  => self::line_name($item),
                 'image' => $product ? Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail') : null,
                 'qty'   => (int) $item->get_quantity(),
             ];

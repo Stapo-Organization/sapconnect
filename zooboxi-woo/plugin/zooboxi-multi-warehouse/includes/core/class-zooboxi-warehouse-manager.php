@@ -66,6 +66,24 @@ class Zooboxi_Warehouse_Manager
         'الجوف'           => 'Al Jouf',
     ];
 
+    /**
+     * A city's name in one language, whichever spelling it arrived in —
+     * the warehouse table holds both «الرياض» and "Riyadh" as separate rows.
+     * Unknown names are returned untouched.
+     */
+    public static function city_label(string $city, string $lang = 'ar'): string
+    {
+        $city = trim($city);
+        if ($city === '') {
+            return '';
+        }
+        if ($lang === 'en') {
+            return self::$cityMap[$city] ?? $city;
+        }
+        $ar = array_search($city, self::$cityMap, true);
+        return $ar !== false ? (string) $ar : $city;
+    }
+
     public static function find_central(string $city): ?array
     {
         global $wpdb;

@@ -541,7 +541,7 @@ class Zooboxi_Push_Events
         }
         $who   = $pet ? (string) $pet['name'] : '';
         $days  = max(0, (int) $pick_state['days_left']);
-        $name  = wp_strip_all_tags($product->get_name());
+        [$name, $name_en] = Zooboxi_Push_Engine::product_names($product);
 
         // Promise two hours only to someone the branch has actually reached
         // before: their last order was express. Everyone else is told to
@@ -557,8 +557,8 @@ class Zooboxi_Push_Events
             ],
             'en' => [
                 $days > 0
-                    ? ($who !== '' ? $who . "'s food lasts " . $days . ' more days' : 'Running out in ' . $days . ' days: ' . $name)
-                    : ($who !== '' ? $who . "'s food has run out" : 'Run out: ' . $name),
+                    ? ($who !== '' ? $who . "'s food lasts " . $days . ' more days' : 'Running out in ' . $days . ' days: ' . $name_en)
+                    : ($who !== '' ? $who . "'s food has run out" : 'Run out: ' . $name_en),
                 $express ? 'Order it now on Express and it arrives within two hours.' : 'Order it now on Zooboxi before it runs out.',
             ],
         ];

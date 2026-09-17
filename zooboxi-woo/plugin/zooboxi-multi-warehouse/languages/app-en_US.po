@@ -1,0 +1,625 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: zooboxi\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "تم التجهيز عبر تطبيق مدير المعرض"
+msgstr "Prepared via the store-manager app"
+
+msgid "تحديث حالة التوصيل من مرسول"
+msgstr "Delivery status update from Mrsool"
+
+msgid "مرسول: %1$s (رقم الطلب لدى مرسول: %2$s)"
+msgstr "Mrsool: %1$s (Mrsool order no. %2$s)"
+
+msgid "المندوب: %s"
+msgstr "Courier: %s"
+
+msgid "منتج غير معروف"
+msgstr "Unknown product"
+
+msgid "العنوان غير موجود"
+msgstr "Address not found"
+
+msgid "الاسم مطلوب"
+msgstr "A name is required"
+
+msgid "يرجى إدخال رقم جوال سعودي صالح"
+msgstr "Please enter a valid Saudi mobile number"
+
+msgid "حدّد موقع التوصيل على الخريطة"
+msgstr "Pin the delivery location on the map"
+
+msgid "المدينة مطلوبة"
+msgstr "A city is required"
+
+msgid "تم تجاوز الحد المسموح. حاول مرة أخرى لاحقاً"
+msgstr "Too many attempts. Please try again later"
+
+msgid "حدث خطأ في إرسال الرمز. حاول مرة أخرى"
+msgstr "We could not send the code. Please try again"
+
+msgid "بيانات غير صالحة"
+msgstr "Invalid details"
+
+msgid "تعذر إنشاء الجلسة. حاول مرة أخرى"
+msgstr "We could not start your session. Please try again"
+
+msgid "لا توجد بيانات للتحديث"
+msgstr "Nothing to update"
+
+msgid "البريد الإلكتروني غير صالح"
+msgstr "That email address is not valid"
+
+msgid "البريد الإلكتروني مستخدم بالفعل"
+msgstr "That email address is already in use"
+
+msgid "تعذر حفظ البيانات"
+msgstr "We could not save your details"
+
+msgid "يرجى تسجيل الدخول أولاً"
+msgstr "Please sign in first"
+
+msgid "هذا المنتج من المتجر الآخر"
+msgstr "This product belongs to the other store"
+
+msgid "سلتك من متجر آخر"
+msgstr "Your basket is from another store"
+
+msgid "أضفناه إلى سلة %s — سلتك الحالية من هناك."
+msgstr "Added to your %s basket — that is where your current basket lives."
+
+msgid "تعذّر إضافة المنتج للسلة"
+msgstr "We could not add the product to your basket"
+
+msgid "هذا الصنف لم يعد في سلتك"
+msgstr "That item is no longer in your basket"
+
+msgid "متجر غير معروف"
+msgstr "Unknown store"
+
+msgid "إكسبريس مغلق الآن، وسلته بانتظارك حين يفتح."
+msgstr "Express is closed right now — its basket will be waiting when it opens."
+
+msgid "أدخل كود الخصم"
+msgstr "Enter a coupon code"
+
+msgid "أكواد الخصم غير مفعّلة"
+msgstr "Coupon codes are not enabled"
+
+msgid "كود الخصم غير صالح"
+msgstr "That coupon code is not valid"
+
+msgid "تعذّر تحديد جهازك. أعد فتح التطبيق"
+msgstr "We could not identify your device. Please reopen the app"
+
+msgid "السلة غير متاحة حالياً"
+msgstr "The basket is unavailable right now"
+
+msgid "تعذّر حفظ سلتك. حدّث التطبيق أو حاول لاحقاً"
+msgstr "We could not save your basket. Update the app or try again later"
+
+msgid "رائج الآن"
+msgstr "Trending now"
+
+msgid "الأكثر طلباً"
+msgstr "Best sellers"
+
+msgid "وصل حديثاً"
+msgstr "New arrivals"
+
+msgid "عروض التصفية"
+msgstr "Clearance deals"
+
+msgid "موصى به"
+msgstr "Recommended"
+
+msgid "الأحدث"
+msgstr "Newest"
+
+msgid "الأكثر مبيعاً"
+msgstr "Best selling"
+
+msgid "من الأقل إلى الأعلى"
+msgstr "Price: low to high"
+
+msgid "من الأعلى إلى الأقل"
+msgstr "Price: high to low"
+
+msgid "العلامة التجارية"
+msgstr "Brand"
+
+msgid "المرحلة العمرية"
+msgstr "Life stage"
+
+msgid "النكهة"
+msgstr "Flavour"
+
+msgid "شكل الطعام"
+msgstr "Food form"
+
+msgid "ميزة صحية"
+msgstr "Health benefit"
+
+msgid "نوع الرمل"
+msgstr "Litter type"
+
+msgid "اللون"
+msgstr "Colour"
+
+msgid "المادة"
+msgstr "Material"
+
+msgid "نوع المنتج"
+msgstr "Product type"
+
+msgid "الحجم"
+msgstr "Size"
+
+msgid "الوزن"
+msgstr "Weight"
+
+msgid "القسم غير موجود"
+msgstr "Category not found"
+
+msgid "المنتج غير موجود"
+msgstr "Product not found"
+
+msgid "امسح باركود صالح"
+msgstr "Scan a valid barcode"
+
+msgid "لم نجد منتجاً بهذا الباركود"
+msgstr "No product matches that barcode"
+
+msgid "العلامة غير موجودة"
+msgstr "Brand not found"
+
+msgid "الطلب غير موجود"
+msgstr "Order not found"
+
+msgid "تم دفع هذا الطلب"
+msgstr "This order is already paid"
+
+msgid "بوابة الدفع غير متاحة حالياً"
+msgstr "The payment gateway is unavailable right now"
+
+msgid "بيانات الدفع غير مكتملة"
+msgstr "Payment details are incomplete"
+
+msgid "تعذّر التحقق من الدفع. حاول بعد لحظات"
+msgstr "We could not verify the payment. Try again in a moment"
+
+msgid "بيانات الدفع لا تخص هذا الطلب"
+msgstr "Those payment details do not belong to this order"
+
+msgid "مبلغ الدفع لا يطابق الطلب"
+msgstr "The paid amount does not match the order"
+
+msgid "سلتك فارغة"
+msgstr "Your basket is empty"
+
+msgid "الدفع عند الاستلام"
+msgstr "Cash on delivery"
+
+msgid "ادفع نقداً أو بالشبكة عند وصول طلبك"
+msgstr "Pay in cash or by card when your order arrives"
+
+msgid "البطاقات ومدى و Apple Pay"
+msgstr "Cards, mada and Apple Pay"
+
+msgid "دفع آمن عبر ماي فاتورة"
+msgstr "Secure payment via MyFatoorah"
+
+msgid "تعذّر حفظ سلتك. حاول لاحقاً"
+msgstr "We could not save your basket. Please try again later"
+
+msgid "تغيّرت سلتك بحسب المتاح في عنوان التوصيل — راجعها ثم أكمل"
+msgstr "Your basket changed to what is available at the delivery address — review it, then continue"
+
+msgid "بعض منتجات سلتك غير متاحة من متجرها عند هذا العنوان — راجع سلتك"
+msgstr "Some items in your basket are not available from their store at this address — review your basket"
+
+msgid "طريقة الدفع غير متاحة"
+msgstr "That payment method is unavailable"
+
+msgid "تعذّر تحديد طريقة توصيل لسلتك الآن — راجع سلتك أو جرّب لاحقًا"
+msgstr "We could not find a delivery option for your basket right now — review it or try again later"
+
+msgid "تعذّر إنشاء الطلب. حاول مرة أخرى"
+msgstr "We could not place the order. Please try again"
+
+msgid "طلب عبر تطبيق زوبوكسي — الدفع عند الاستلام"
+msgstr "Order via the Zooboxi app — cash on delivery"
+
+msgid "تعذّر بدء عملية الدفع. حاول مرة أخرى"
+msgstr "We could not start the payment. Please try again"
+
+msgid "يرجى تسجيل الدخول لاستخدام عنوان محفوظ"
+msgstr "Please sign in to use a saved address"
+
+msgid "تفاصيل العنوان مطلوبة"
+msgstr "Address details are required"
+
+msgid "بيانات العنوان غير مكتملة"
+msgstr "The address is incomplete"
+
+msgid "التتبّع غير متاح"
+msgstr "Tracking is unavailable"
+
+msgid "إحداثيات غير صالحة"
+msgstr "Invalid coordinates"
+
+msgid "برنامج عائلة زوبوكسي غير مفعّل حالياً"
+msgstr "The Zooboxi Family programme is not active right now"
+
+msgid "البطاقة غير موجودة"
+msgstr "Card not found"
+
+msgid "هذا الحيوان غير موجود"
+msgstr "That pet was not found"
+
+msgid "هذا المنتج ليس في عدّادك"
+msgstr "That product is not in your tracker"
+
+msgid "الاشتراك غير موجود"
+msgstr "Subscription not found"
+
+msgid "أدوات الرفيق غير متاحة حالياً"
+msgstr "Companion tools are unavailable right now"
+
+msgid "هذا التذكير لا يناسب نوع الحيوان"
+msgstr "That reminder does not suit this kind of pet"
+
+msgid "الوزن أو التاريخ غير منطقي"
+msgstr "The weight or date does not look right"
+
+msgid "راجع بيانات التذكير"
+msgstr "Check the reminder details"
+
+msgid "تعذّر الحفظ"
+msgstr "We could not save that"
+
+msgid "الحد الأقصى %d حيوانات"
+msgstr "Up to %d pets"
+
+msgid "راجع بيانات الحيوان"
+msgstr "Check the pet details"
+
+msgid "تعذّر حفظ بيانات الحيوان"
+msgstr "We could not save the pet"
+
+msgid "تعذّر العثور على الطلب"
+msgstr "We could not find the order"
+
+msgid "أصناف هذا الطلب غير متوفرة حالياً"
+msgstr "The items in this order are unavailable right now"
+
+msgid "تم استلام الطلب"
+msgstr "Order received"
+
+msgid "تم الدفع"
+msgstr "Paid"
+
+msgid "قيد التجهيز"
+msgstr "Being prepared"
+
+msgid "جاهز للتسليم"
+msgstr "Ready for delivery"
+
+msgid "في الطريق إليك"
+msgstr "On its way to you"
+
+msgid "تم التسليم"
+msgstr "Delivered"
+
+msgid "تعذّر تحديث موقع المندوب الآن"
+msgstr "We could not update the courier location right now"
+
+msgid "يمكن التقييم بعد التسليم"
+msgstr "You can rate after delivery"
+
+msgid "اختر من 1 إلى 5"
+msgstr "Choose from 1 to 5"
+
+msgid "تعذّر التسجيل"
+msgstr "Registration failed"
+
+msgid "رمز النشاط مطلوب"
+msgstr "An activity token is required"
+
+msgid "تم إرسال رمز التحقق"
+msgstr "Verification code sent"
+
+msgid "لا يوجد رمز تحقق. أعد الطلب"
+msgstr "No verification code found. Request a new one"
+
+msgid "تم حظرك مؤقتاً لمدة %d دقيقة"
+msgstr "Temporarily blocked for %d minutes"
+
+msgid "انتهت صلاحية الرمز. اطلب رمزاً جديداً"
+msgstr "The code has expired. Request a new one"
+
+msgid "الرمز غير صحيح. متبقي %d محاولات"
+msgstr "Incorrect code. %d attempts left"
+
+msgid "مرحباً %s! 🎉"
+msgstr "Welcome, %s! 🎉"
+
+msgid "حدث خطأ في إنشاء الحساب"
+msgstr "We could not create the account"
+
+msgid "أهلاً بك في ZooBoxi! 🎉"
+msgstr "Welcome to Zooboxi! 🎉"
+
+msgid "جلسة غير صالحة. أعد تحميل الصفحة"
+msgstr "Invalid session. Reload the page"
+
+msgid "أهلاً %s! 🎉"
+msgstr "Hi %s! 🎉"
+
+msgid "مناطق التوصيل السريع"
+msgstr "Express delivery zones"
+
+msgid "⚡ مناطق التوصيل"
+msgstr "⚡ Delivery zones"
+
+msgid "جاري تحديد موقعك..."
+msgstr "Finding your location…"
+
+msgid "تم تحديد موقعك"
+msgstr "Location set"
+
+msgid "تعذر تحديد الموقع"
+msgstr "We could not find your location"
+
+msgid "اختر مدينتك"
+msgstr "Choose your city"
+
+msgid "توصيل سريع"
+msgstr "Express delivery"
+
+msgid "توصيل عادي"
+msgstr "Standard delivery"
+
+msgid "شحن"
+msgstr "Shipping"
+
+msgid "التنفيذ عبر ShipGo (مستودع الشحن) — لم يُرسل إلى sapconnect."
+msgstr "Fulfilled via ShipGo (shipping warehouse) — not sent to sapconnect."
+
+msgid "سلتك من متجر %s، والطلب الواحد يكون من متجر واحد."
+msgstr "Your basket is from the %s store, and one order comes from one store."
+
+msgid "إكسبريس"
+msgstr "Express"
+
+msgid "زوبكسي"
+msgstr "Zooboxi"
+
+msgid "خلال ساعتين"
+msgstr "within 2 hours"
+
+msgid "4-5 أيام عمل"
+msgstr "4–5 working days"
+
+msgid "🎉 جميع منتجاتك متاحة للتوصيل السريع!"
+msgstr "🎉 Everything in your basket is available for express delivery!"
+
+msgid "⚡ %d منتج متاح للتوصيل السريع، %d منتج يتطلب شحن عادي. سيتم توصيل الطلب كاملاً خلال %s"
+msgstr "⚡ %d items available for express, %d need standard shipping. The whole order arrives within %s"
+
+msgid "📦 سيتم توصيل طلبك خلال %s"
+msgstr "📦 Your order arrives within %s"
+
+msgid "يصلك %s"
+msgstr "Arrives %s"
+
+msgid "غير متوفر للتوصيل في منطقتك"
+msgstr "Not available for delivery in your area"
+
+msgid "المتاح %s فقط في منطقتك"
+msgstr "Only %s available in your area"
+
+msgid "توصيل من المستودع الرئيسي"
+msgstr "Delivery from the main warehouse"
+
+msgid "شحن عادي"
+msgstr "Standard shipping"
+
+msgid "خلال 4-5 أيام عمل"
+msgstr "within 4–5 working days"
+
+msgid "اليوم"
+msgstr "today"
+
+msgid "غدًا"
+msgstr "tomorrow"
+
+msgid "غداً"
+msgstr "tomorrow"
+
+msgid "يرجى اختيار مدينة"
+msgstr "Please choose a city"
+
+msgid "لا يوجد مستودع في هذه المدينة"
+msgstr "No warehouse serves this city"
+
+msgid "«%s» لم يعد متاحًا بالكمية المطلوبة فأزلناه من السلة"
+msgstr "“%s” is no longer available in that quantity, so we removed it from your basket"
+
+msgid "عدّلنا كمية «%1$s» إلى المتاح فعليًا: %2$d"
+msgstr "We adjusted “%1$s” to what is actually available: %2$d"
+
+msgid "لا توجد عروض تصفية حالياً"
+msgstr "No clearance deals right now"
+
+msgid "يُشترى عادةً معاً"
+msgstr "Usually bought together"
+
+msgid "هدية"
+msgstr "Gift"
+
+msgid "عائلة زوبوكسي"
+msgstr "Zooboxi Family"
+
+msgid "كمية الهدية ثابتة — هدية واحدة لكل مكافأة."
+msgstr "Gift quantity is fixed — one gift per reward."
+
+msgid "مجاناً"
+msgstr "Free"
+
+msgid "توصيل سريع Zooboxi"
+msgstr "Zooboxi express delivery"
+
+msgid "توصيل خلال ساعتين من أقرب مستودع — يتطلب توفر جميع المنتجات + ساعات العمل"
+msgstr "Delivery within 2 hours from the nearest warehouse — needs every item in stock and opening hours"
+
+msgid "🚀 توصيل سريع (خلال ساعتين)"
+msgstr "🚀 Express delivery (within 2 hours)"
+
+msgid "شحن وطني Zooboxi"
+msgstr "Zooboxi national shipping"
+
+msgid "شحن خلال 4-5 أيام عمل من المستودع المركزي الرئيسي"
+msgstr "Shipping within 4–5 working days from the main central warehouse"
+
+msgid "🚚 شحن عادي (4-5 أيام عمل)"
+msgstr "🚚 Standard shipping (4–5 working days)"
+
+msgid "استلام من الفرع Zooboxi"
+msgstr "Zooboxi pickup"
+
+msgid "استلام مجاني من أقرب فرع"
+msgstr "Free pickup from the nearest point"
+
+msgid "🏬 استلام من الفرع (مجاناً)"
+msgstr "🏬 Pickup (free)"
+
+msgid "استلام من"
+msgstr "Pickup from"
+
+msgid "توصيل عادي Zooboxi"
+msgstr "Zooboxi standard delivery"
+
+msgid "توصيل خلال 24 ساعة من المستودع المركزي بالمدينة"
+msgstr "Delivery within 24 hours from the city central warehouse"
+
+msgid "📦 توصيل عادي (خلال 24 ساعة)"
+msgstr "📦 Standard delivery (within 24 hours)"
+
+msgid "توصيل خلال ساعتين"
+msgstr "Delivery within 2 hours"
+
+msgid "توصيل خلال 24 ساعة"
+msgstr "Delivery within 24 hours"
+
+msgid "شحن 4-5 أيام"
+msgstr "Ships in 4–5 days"
+
+msgid "حدد موقعك لعرض خيارات التوصيل"
+msgstr "Set your location to see delivery options"
+
+msgid "موقعك"
+msgstr "Your location"
+
+msgid "التوصيل إلى: %s"
+msgstr "Deliver to: %s"
+
+msgid "تغيير"
+msgstr "Change"
+
+msgid "توصيل سريع: خلال ساعتين"
+msgstr "Express: within 2 hours"
+
+msgid "متوفر في %s (%d حبة)"
+msgstr "Available at %s (%d pcs)"
+
+msgid "ر.س"
+msgstr "SAR"
+
+msgid "متاح الآن"
+msgstr "Available now"
+
+msgid "خارج ساعات التوصيل السريع حالياً"
+msgstr "Outside express hours right now"
+
+msgid "متاح غداً"
+msgstr "Available tomorrow"
+
+msgid "توصيل عادي: خلال 24 ساعة"
+msgstr "Standard: within 24 hours"
+
+msgid "من %s"
+msgstr "from %s"
+
+msgid "شحن عادي: 4-5 أيام عمل"
+msgstr "Standard shipping: 4–5 working days"
+
+msgid "استلام من الفرع"
+msgstr "Pickup"
+
+msgid "%s (%.1f كم) — مجاناً"
+msgstr "%s (%.1f km) — free"
+
+msgid "سريع (خارج الدوام)"
+msgstr "Express (after hours)"
+
+msgid "توصيل 24 ساعة"
+msgstr "24-hour delivery"
+
+msgid "استلام"
+msgstr "Pickup"
+
+msgid "متوفر: %d حبة"
+msgstr "In stock: %d pcs"
+
+msgid "حسب موقعك"
+msgstr "By your location"
+
+msgid "بقي قطعة واحدة فقط"
+msgid_plural "بقي %d قطع فقط"
+msgstr[0] "Only 1 left"
+msgstr[1] "Only %d left"
+
+msgid "سريع النفاد — متوفّر الآن"
+msgstr "Sells out fast — in stock now"
+
+msgid "كود الخصم"
+msgstr "Coupon code"
+
+msgid "تطبيق"
+msgstr "Apply"
+
+msgid "🚀 شحنة التوصيل السريع"
+msgstr "🚀 Express shipment"
+
+msgid "🚚 شحنة اليوم التالي"
+msgstr "🚚 Next-day shipment"
+
+msgid "📦 شحنة الشحن العادي"
+msgstr "📦 Standard shipment"
+
+msgid "الشحنة %d"
+msgstr "Shipment %d"
+
+msgid "سيصلك طلبك على دفعات حسب السرعة:"
+msgstr "Your order arrives in parts, fastest first:"
+
+msgid "توصيل طلبك:"
+msgstr "Your delivery:"
+
+msgid "توصيل مجاني ✓"
+msgstr "Free delivery ✓"
+
+msgid "🎉 شحن مجاني على كل شحناتك"
+msgstr "🎉 Free shipping on all your shipments"
+
+msgid "أضف %s ر.س للطلب لتحصل على شحن مجاني على كل الشحنات"
+msgstr "Add SAR %s to get free shipping on every shipment"
+
+msgid "توصيل خلال 2-4 أيام"
+msgstr "Delivery within 2–4 days"

@@ -1017,6 +1017,19 @@ class Zooboxi_Push_Engine
     }
 
     /** A UTC DATETIME string → unix, or 0. */
+    /**
+     * A product's name for both copies: [Arabic title, English name]. The
+     * English name is the sync's `_zooboxi_name_en` meta; a product without
+     * one is named in Arabic on both sides rather than left blank.
+     */
+    public static function product_names(\WC_Product $product): array
+    {
+        $ar = wp_strip_all_tags($product->get_name());
+        $id = $product->get_parent_id() ?: $product->get_id();
+        $en = trim((string) get_post_meta($id, '_zooboxi_name_en', true));
+        return [$ar, $en !== '' ? $en : $ar];
+    }
+
     public static function ts($value): int
     {
         if ($value === null || $value === '' || $value === '0000-00-00 00:00:00') {

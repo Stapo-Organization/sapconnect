@@ -877,7 +877,7 @@ class Zooboxi_V2_Cart_Controller
                 'locked_qty'       => $grant_id > 0,
                 'product_id'       => $pid,
                 'variation_id'     => (int) ($item['variation_id'] ?? 0),
-                'name'             => wp_strip_all_tags($product->get_name()),
+                'name'             => Zooboxi_V2_Bootstrap::product_name($product),
                 'image'            => Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail'),
                 'attributes_label' => self::attributes_label($item),
                 'qty'              => $qty,
@@ -1027,7 +1027,12 @@ class Zooboxi_V2_Cart_Controller
      */
     private static function attributes_label(array $item): string
     {
-        $label = trim(wp_strip_all_tags((string) wc_get_formatted_cart_item_data($item, true)));
+        // WooCommerce formats the line in the store's (Arabic) term names;
+        // an English request rebuilds it from the terms so each one can
+        // answer in English.
+        $label = Zooboxi_V2_Bootstrap::lang() === 'en'
+            ? ''
+            : trim(wp_strip_all_tags((string) wc_get_formatted_cart_item_data($item, true)));
         if ($label !== '' || empty($item['variation']) || !is_array($item['variation'])) {
             return $label;
         }
@@ -1040,9 +1045,9 @@ class Zooboxi_V2_Cart_Controller
             }
             $taxonomy = str_replace('attribute_', '', (string) $key);
             $term     = taxonomy_exists($taxonomy) ? get_term_by('slug', $slug, $taxonomy) : false;
-            $parts[]  = ($term && !is_wp_error($term)) ? $term->name : rawurldecode($slug);
+            $parts[]  = ($term && !is_wp_error($term)) ? Zooboxi_V2_Bootstrap::term_name($term) : rawurldecode($slug);
         }
-        return implode('، ', array_filter($parts));
+        return implode(Zooboxi_V2_Bootstrap::comma(), array_filter($parts));
     }
 
     private static function tier_fee(string $tier): float
