@@ -23,7 +23,8 @@ export SHOREBIRD_TOKEN=$(cat ~/.zooboxi/shorebird-token.txt)
 
 ## رقعة (بعد كل تعديل)
 ```sh
-shorebird patch --platforms android --release-version X.Y.Z+N --no-confirm   # نسخة Flutter تؤخذ من الإصدار نفسه
+ZB_LEGACY_R8=1 shorebird patch --platforms android --release-version 1.0.2+39 --no-confirm   # 39 فقط: يطابق إعداد R8 القديم (انظر PLAY.md)
+shorebird patch --platforms android --release-version X.Y.Z+N --no-confirm   # من 40 فصاعدًا؛ نسخة Flutter تؤخذ من الإصدار نفسه
 shorebird patch --platforms ios --release-version X.Y.Z+N --no-confirm
 ```
 - الرقعة تُبنى من نفس الإصدار؛ إن تغيّر شيء أصلي يرفض الأمر ويطلب إصدارًا.

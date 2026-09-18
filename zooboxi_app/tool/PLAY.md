@@ -24,12 +24,13 @@ ruby tool/play.rb post "applications/com.zooboxi.app/edits/${E}:commit" /dev/nul
 2. `flutter build appbundle --release` → `build/app/outputs/bundle/release/app-release.aab`
    - تحذير «failed to strip debug symbols» = نقص cmdline-tools على الجهاز فقط؛ الحزمة سليمة (تحقق: `jarsigner -verify -certs`).
 3. ارفع الملف في Play Console → Production (أو Internal testing أولًا) → Create release.
-4. R8 مفعّل في `release` (تصغير + حذف الموارد غير المستعملة + تشويش الجافا/كوتلن) — وهو ما يقيسه
-   Play تحت «DEX code optimization». ملف الخريطة `proguard.map` يُضمَّن تلقائيًا داخل الـAAB فتُفكّ
-   الأعطال في Play Console بلا رفع يدوي. القواعد في `android/app/proguard-rules.pro`، والموارد
-   المحفوظة (أيقونات الإشعار) في `res/raw/keep.xml`. إضافة MyFatoorah تحمل قاعدة `-keep class * { *; }`
-   تعطّل R8 كله؛ `build.gradle.kts` يمسح ملف قواعدها ويبقي ما تحتاجه فقط. Dart في `libapp.so` لا
-   يتأثر، فترقيعات Shorebird تعمل كما هي.
+4. R8 كامل في `release` (تصغير + حذف الموارد + تشويش) — وهو ما يقيسه Play تحت «DEX code
+   optimization». Flutter كان يشغّل R8 أصلًا، لكن إضافة MyFatoorah تحمل قاعدة `-keep class * { *; }`
+   تُبطله (هذا سبب «Low» على 39)؛ `build.gradle.kts` يمسح ملف قواعدها ويبقي ما تحتاجه في
+   `android/app/proguard-rules.pro`، والموارد المحفوظة (أيقونات الإشعار) في
+   `src/shrink/res/raw/keep.xml`. ملف الخريطة `proguard.map` يُضمَّن داخل الـAAB تلقائيًا.
+   **ترقيع 39 عبر Shorebird** يجب أن يطابق جافا 39 كما كانت: `ZB_LEGACY_R8=1 shorebird patch …`
+   (يعيد إعداد R8 القديم ويُخفي keep.xml). يُحذف المفتاح حين يصبح أول إصدار مصغّر هو المُرقَّع.
 
 ## أول مرة (يدويًا من Play Console)
 - الحساب: play.google.com/console — حساب المالك الشخصي (ID 8823757611215841782، فيه Stapo Mobile). اسم المطوّر الظاهر يُغيَّر من Developer account → Account details.

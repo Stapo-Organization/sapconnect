@@ -17,6 +17,9 @@ val keystoreProperties = Properties().apply {
 }
 val hasUploadKey = keystoreProperties.getProperty("storeFile") != null
 
+// See the release build type: patches for 1.0.2 (39) must reproduce its Java.
+val legacyR8 = System.getenv("ZB_LEGACY_R8") != null
+
 // Push on Android needs the Firebase config (android/app/google-services.json,
 // git-ignored). The plugin that reads it fails the build when the file is
 // missing, so it is applied only once the file is there; without it the app
@@ -73,6 +76,13 @@ android {
         }
     }
 
+    // The resources the shrinker must keep (res/raw/keep.xml) live in their
+    // own source set: a raw resource adds an `R$raw` class, and a legacy
+    // patch build has to match a release that never had one.
+    if (!legacyR8) {
+        sourceSets.getByName("main").res.srcDir("src/shrink/res")
+    }
+
     buildTypes {
         release {
             signingConfig = if (hasUploadKey) signingConfigs.getByName("upload") else signingConfigs.getByName("debug")
@@ -80,13 +90,22 @@ android {
             // "DEX code optimization" check). Dart lives in libapp.so and is
             // untouched, so Shorebird patches are unaffected. Plugin keep rules
             // come from each plugin's consumer file; ours are in
-            // proguard-rules.pro, kept resources in res/raw/keep.xml.
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            // proguard-rules.pro, kept resources in src/shrink/res/raw/keep.xml.
+            //
+            // A Shorebird patch must carry the SAME Java as the release it
+            // targets. 1.0.2 (39) shipped with Flutter's default R8 pass
+            // neutered by MyFatoorah's keep-all rule (Play: "optimization
+            // low") — so a patch for it builds with `ZB_LEGACY_R8=1`, which
+            // leaves that configuration exactly as it was. Drop the switch
+            // once the first fully-shrunk release is the one being patched.
+            if (!legacyR8) {
+                isMinifyEnabled = true
+                isShrinkResources = true
+                proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro",
+                )
+            }
         }
     }
 }
@@ -99,9 +118,11 @@ flutter {
 // switch R8 off for the whole app (Play then flags "DEX code optimization:
 // Low"). Plugins evaluate after :app, so this drops that file before AGP
 // reads it; the keeps MyFatoorah genuinely needs are in proguard-rules.pro.
-rootProject.findProject(":myfatoorah_flutter")?.afterEvaluate {
-    extensions.findByType(com.android.build.gradle.LibraryExtension::class.java)
-        ?.defaultConfig?.consumerProguardFiles?.clear()
+if (!legacyR8) {
+    rootProject.findProject(":myfatoorah_flutter")?.afterEvaluate {
+        extensions.findByType(com.android.build.gradle.LibraryExtension::class.java)
+            ?.defaultConfig?.consumerProguardFiles?.clear()
+    }
 }
 
 dependencies {
