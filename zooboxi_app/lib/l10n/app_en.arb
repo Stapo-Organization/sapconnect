@@ -143,6 +143,13 @@
   "heroCutoffTomorrow": "Order now, arrives tomorrow",
   "heroCutoffOn": "Order now, arrives {day}",
   "heroBranchClosesIn": "Closes in {time}",
+  "heroCutoffChip": "Today's order cutoff",
+  "heroLeftShort": "{time} left",
+  "@heroLeftShort": {
+    "description": "Short ticking pill on the light cutoff card, HH:MM remaining.",
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "@heroCutoffChip": { "description": "Chip above the hour on the light زوبكسي cutoff card." },
   "heroCutoffIn": "{time} left for today's delivery",
   "shelfExpressHours": "{open} – {close}",
   "@shelfExpressHours": {

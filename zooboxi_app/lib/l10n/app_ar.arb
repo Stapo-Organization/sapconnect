@@ -168,6 +168,13 @@
     "description": "Ticking pill on the branch-hours slide, HH:MM remaining.",
     "placeholders": { "time": { "type": "String" } }
   },
+  "heroCutoffChip": "آخر موعد للطلب اليوم",
+  "heroLeftShort": "باقي {time}",
+  "@heroLeftShort": {
+    "description": "Short ticking pill on the light cutoff card, HH:MM remaining.",
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "@heroCutoffChip": { "description": "Chip above the hour on the light زوبكسي cutoff card." },
   "heroCutoffIn": "باقي {time} على توصيل اليوم",
   "@heroCutoffIn": {
     "description": "Ticking pill on the زوبكسي cutoff slide, HH:MM remaining.",

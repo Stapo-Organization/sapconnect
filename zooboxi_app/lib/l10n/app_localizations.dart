@@ -787,6 +787,18 @@ abstract class L {
   /// **'يغلق بعد {time}'**
   String heroBranchClosesIn(String time);
 
+  /// Chip above the hour on the light زوبكسي cutoff card.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر موعد للطلب اليوم'**
+  String get heroCutoffChip;
+
+  /// Short ticking pill on the light cutoff card, HH:MM remaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'باقي {time}'**
+  String heroLeftShort(String time);
+
   /// Ticking pill on the زوبكسي cutoff slide, HH:MM remaining.
   ///
   /// In ar, this message translates to:

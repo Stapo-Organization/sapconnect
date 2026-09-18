@@ -389,6 +389,14 @@ class LAr extends L {
   }
 
   @override
+  String get heroCutoffChip => 'آخر موعد للطلب اليوم';
+
+  @override
+  String heroLeftShort(String time) {
+    return 'باقي $time';
+  }
+
+  @override
   String heroCutoffIn(String time) {
     return 'باقي $time على توصيل اليوم';
   }

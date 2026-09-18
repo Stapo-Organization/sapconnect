@@ -160,9 +160,13 @@ class HeroLivePill extends StatefulWidget {
     required this.fg,
     required this.accent,
     this.now,
+    this.compact = false,
   });
 
   final HeroLive live;
+
+  /// «باقي 01:20» alone — for a card whose copy column is half a phone wide.
+  final bool compact;
 
   /// The slide's own foreground, so the pill belongs to the panel.
   final Color fg;
@@ -230,7 +234,8 @@ class _HeroLivePillState extends State<HeroLivePill> {
       final clock = CampaignCountdown.format(_left, seconds: false);
       final label = switch (live.deadline) {
         HeroDeadline.branchCloses => l.heroBranchClosesIn(clock),
-        HeroDeadline.todayCutoff => l.heroCutoffIn(clock),
+        HeroDeadline.todayCutoff =>
+          widget.compact ? l.heroLeftShort(clock) : l.heroCutoffIn(clock),
         null => '',
       };
       if (label.isEmpty) return const SizedBox.shrink();

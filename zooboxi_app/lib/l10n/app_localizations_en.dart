@@ -391,6 +391,14 @@ class LEn extends L {
   }
 
   @override
+  String get heroCutoffChip => 'Today\'s order cutoff';
+
+  @override
+  String heroLeftShort(String time) {
+    return '$time left';
+  }
+
+  @override
   String heroCutoffIn(String time) {
     return '$time left for today\'s delivery';
   }
