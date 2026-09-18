@@ -35,3 +35,12 @@ shorebird patch --platforms ios --release-version X.Y.Z+N --no-confirm
 ## ملاحظات
 - أول إصدار مدعوم بالرقع: **1.0.2 (39)**؛ ما قبله (≤38) لا يمكن ترقيعه.
 - `flutter build appbundle` كان يفشل بـ«failed to strip debug symbols» لأن cmdline-tools ناقصة؛ ثُبّتت في `~/Library/Android/sdk/cmdline-tools/latest` مع قبول التراخيص (2026-09-17).
+- **بناء تصحيح على المحاكي يكسر رقعة أندرويد بعده** (2026-09-18): `flutter build apk --debug`
+  يعيد توليد `android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java`
+  بصيغة التصحيح، فيسجّل `integration_test` (اعتماد تطوير). بناء الإصدار يستبعد اعتمادات
+  التطوير من Gradle فيسقط javac بـ«package dev.flutter.plugins.integration_test does not
+  exist». العلاج: `flutter pub get` ثم احذف كتلة `integration_test` من ذلك الملف (مولّد
+  ومستثنى من git)، وأعد الأمر. اختبِر الرقعة بحزمة الإصدار نفسها، لا ببناء تصحيح.
+- عملية مقتولة في منتصف البناء تترك كاشًا فاسدًا: Gradle يسقط بصنف مفقود وXcode بـ«disk I/O
+  error» على `build.db`. العلاج: `(cd android && ./gradlew --stop)` و`rm -rf
+  ~/Library/Developer/Xcode/DerivedData/Runner-*`.
