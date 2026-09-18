@@ -143,6 +143,8 @@
   "heroCutoffTomorrow": "Order now, arrives tomorrow",
   "heroCutoffOn": "Order now, arrives {day}",
   "heroBranchClosesIn": "Closes in {time}",
+  "heroBrandKicker": "Featured brand",
+  "@heroBrandKicker": { "description": "Small teal line above the brand name on the زوبكسي brand plate." },
   "heroCutoffChip": "Today's order cutoff",
   "heroLeftShort": "{time} left",
   "@heroLeftShort": {

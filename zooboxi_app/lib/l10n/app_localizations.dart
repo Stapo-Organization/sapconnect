@@ -787,6 +787,12 @@ abstract class L {
   /// **'يغلق بعد {time}'**
   String heroBranchClosesIn(String time);
 
+  /// Small teal line above the brand name on the زوبكسي brand plate.
+  ///
+  /// In ar, this message translates to:
+  /// **'ماركة مميزة'**
+  String get heroBrandKicker;
+
   /// Chip above the hour on the light زوبكسي cutoff card.
   ///
   /// In ar, this message translates to:

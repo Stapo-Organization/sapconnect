@@ -38,6 +38,7 @@ class ShelfTabs extends ConsumerStatefulWidget {
   const ShelfTabs({
     super.key,
     this.onCanvas = false,
+    this.plainThumb = false,
     this.hours,
     this.expressAvailable,
     this.standardCutoffMinutes,
@@ -45,6 +46,11 @@ class ShelfTabs extends ConsumerStatefulWidget {
 
   /// True when the tabs sit on the hero's deep-coloured canvas.
   final bool onCanvas;
+
+  /// The lit sign as a plain white plate with the storefront's colour as its
+  /// ink, instead of the storefront's own gradient — for a canvas painted in
+  /// that very colour, where the gradient would melt into it.
+  final bool plainThumb;
 
   /// Today's express opening hours, from the shelf payload.
   final ExpressHours? hours;
@@ -152,6 +158,8 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
     final track = widget.onCanvas
         ? Colors.black.withValues(alpha: 0.20)
         : cs.surfaceContainerHigh;
+    // The plain plate: white by day, the raised graphite by night.
+    final plate = context.isDark ? ZbTokens.graphiteHigh : Colors.white;
 
     // A lit sign over a shut shop is a lie. When the server says express is
     // not serving this address right now it is already returning the زوبكسي
@@ -199,11 +207,15 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                 child: AnimatedContainer(
                   duration: still ? Duration.zero : Motion.select,
                   decoration: BoxDecoration(
-                    gradient: identity.thumb,
+                    color: widget.plainThumb ? plate : null,
+                    gradient: widget.plainThumb ? null : identity.thumb,
                     borderRadius: BorderRadius.circular(ZbTokens.rMd + 2),
                     boxShadow: [
                       BoxShadow(
-                        color: identity.accent.withValues(alpha: 0.38),
+                        color: (widget.plainThumb
+                                ? Colors.black
+                                : identity.accent)
+                            .withValues(alpha: widget.plainThumb ? 0.14 : 0.38),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
@@ -223,6 +235,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                     selected: expressSelected,
                     enabled: expressOpen,
                     onCanvas: widget.onCanvas,
+                    plainThumb: widget.plainThumb,
                     celebrating: _celebrating == Shelf.express,
                     onTap: () => _pick(
                       Shelf.express,
@@ -240,6 +253,7 @@ class _ShelfTabsState extends ConsumerState<ShelfTabs> {
                     selected: !expressSelected,
                     enabled: true,
                     onCanvas: widget.onCanvas,
+                    plainThumb: widget.plainThumb,
                     celebrating: _celebrating == Shelf.all,
                     onTap: () => _pick(
                       Shelf.all,
@@ -267,6 +281,7 @@ class _Sign extends StatelessWidget {
     required this.selected,
     required this.enabled,
     required this.onCanvas,
+    required this.plainThumb,
     required this.celebrating,
     required this.onTap,
   });
@@ -285,6 +300,7 @@ class _Sign extends StatelessWidget {
   /// tappable so it can explain itself.
   final bool enabled;
   final bool onCanvas;
+  final bool plainThumb;
 
   /// One-shot sparkles while this sign is being arrived at.
   final bool celebrating;
@@ -297,7 +313,10 @@ class _Sign extends StatelessWidget {
     final resting = onCanvas
         ? Colors.white.withValues(alpha: 0.82)
         : cs.onSurfaceVariant;
-    final fg = selected ? identity.onAccent : resting;
+    // On the plain plate the storefront's colour is the ink, not the ground.
+    final fg = selected
+        ? (plainThumb ? identity.accent : identity.onAccent)
+        : resting;
     final duration = context.motion(Motion.select);
 
     return Semantics(
@@ -390,6 +409,7 @@ class _Sign extends StatelessWidget {
                         identity: identity,
                         selected: selected,
                         onCanvas: onCanvas,
+                        plainThumb: plainThumb,
                       ),
                     ],
                   ],
@@ -436,12 +456,14 @@ class _BasketPill extends StatelessWidget {
     required this.identity,
     required this.selected,
     required this.onCanvas,
+    this.plainThumb = false,
   });
 
   final int count;
   final ShelfIdentity identity;
   final bool selected;
   final bool onCanvas;
+  final bool plainThumb;
 
   @override
   Widget build(BuildContext context) {
@@ -452,7 +474,10 @@ class _BasketPill extends StatelessWidget {
     // it, so there it borrows plain white instead.
     final Color ink;
     final Color fill;
-    if (selected) {
+    if (selected && plainThumb) {
+      ink = identity.accent;
+      fill = identity.accent.withValues(alpha: 0.16);
+    } else if (selected) {
       ink = identity.onAccent;
       fill = identity.onAccent.withValues(alpha: 0.22);
     } else if (onCanvas) {

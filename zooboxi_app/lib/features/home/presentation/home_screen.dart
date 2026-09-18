@@ -453,9 +453,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // is there; the moment the address bar takes over, its surface backs the
     // status bar and the clock flips with it.
     //
-    // The زوبكسي canvas is light now («الحيّ الأبيض»), so only the express
-    // promise header still asks for a light clock by day.
-    final statusStyle = (promise && !_navVisible) || context.isDark
+    // Both the زوبكسي board (teal) and the express promise header are deep,
+    // so either asks for a light clock by day while it is on screen.
+    final statusStyle = ((promise || canvas) && !_navVisible) || context.isDark
         ? SystemUiOverlayStyle.light
         : SystemUiOverlayStyle.dark;
 

@@ -36,11 +36,11 @@ class MascotPeek extends StatefulWidget {
   static const String asset = 'assets/brand/mascots_peek.png';
 
   /// Source aspect of `mascots_peek.png` (1201 × 537).
-  static const double _aspect = 537 / 1201;
+  static const double aspect = 537 / 1201;
 
   /// Fraction of the image height that sits above the card; the rest is
   /// covered by it.
-  static const double _reveal = 0.78;
+  static const double reveal = 0.78;
 
   @override
   State<MascotPeek> createState() => _MascotPeekState();
@@ -90,7 +90,7 @@ class _MascotPeekState extends State<MascotPeek>
             : widget.maxWidth;
         final imageWidth =
             math.min(available * widget.widthFactor, widget.maxWidth);
-        final imageHeight = imageWidth * MascotPeek._aspect;
+        final imageHeight = imageWidth * MascotPeek.aspect;
 
         Widget peek = Image.asset(
           MascotPeek.asset,
@@ -125,7 +125,7 @@ class _MascotPeekState extends State<MascotPeek>
           clipBehavior: Clip.none,
           children: [
             Padding(
-              padding: EdgeInsets.only(top: imageHeight * MascotPeek._reveal),
+              padding: EdgeInsets.only(top: imageHeight * MascotPeek.reveal),
               child: widget.child,
             ),
             PositionedDirectional(

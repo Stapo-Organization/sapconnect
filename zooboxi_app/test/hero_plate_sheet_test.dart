@@ -3,18 +3,20 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:zooboxi_app/app/theme/app_theme.dart';
+import 'package:zooboxi_app/app/theme/zooboxi_tokens.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
-import 'package:zooboxi_app/features/home/presentation/widgets/hero_light_card.dart';
+import 'package:zooboxi_app/features/home/presentation/widgets/hero_plate_card.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
 import 'support/brand_fonts.dart';
 
-/// «الحيّ الأبيض» — the زوبكسي slide cards the owner picked on 2026-09-18,
-/// drawn at production width in both themes, at scale 1.0 and at the 1.3 cap.
+/// «لوحة البراند» — the زوبكسي plates the owner moved to on 2026-09-18, on
+/// the teal board at production width in both themes, at scale 1.0 and at
+/// the 1.3 cap.
 ///
 /// A *design* golden — refresh with
-/// `flutter test test/hero_light_sheet_test.dart --update-goldens`.
+/// `flutter test test/hero_plate_sheet_test.dart --update-goldens`.
 const _storeScope = CatalogScope(
   tier: 'same_day',
   note: '',
@@ -64,7 +66,7 @@ final _store = <HeroSlide>[
     title: 'ماركة Applaws',
     subtitle: 'منتجات أصلية مستوردة مباشرة',
     cta: 'تسوّق الماركة',
-    photos: 0,
+    photos: 1,
     brand: const BrandRef(name: 'Applaws', slug: 'applaws', logo: ''),
   ),
   _slide(
@@ -78,17 +80,29 @@ final _store = <HeroSlide>[
 ];
 
 Widget _card(HeroSlide slide, double scale) {
-  const width = 393.0 - 2 * LightCardMetrics.margin;
+  const width = 393.0 - 2 * PlateMetrics.margin;
   final height =
-      LightCardMetrics.height + (scale - 1) * LightCardMetrics.scaleHeadroom;
+      PlateMetrics.height + (scale - 1) * PlateMetrics.scaleHeadroom;
   return Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, LightCardMetrics.spill + 12),
+    padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
     child: MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(scale)),
       child: SizedBox(
         width: width,
         height: height,
-        child: LightSlideCard(slide: slide, scope: _storeScope, now: _storeAt),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PlateMetrics.radius),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF143C3C).withValues(alpha: 0.28),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
+              ),
+            ],
+          ),
+          child: PlateSlideCard(slide: slide, scope: _storeScope, now: _storeAt),
+        ),
       ),
     ),
   );
@@ -112,7 +126,7 @@ void main() {
     await loadBrandFonts();
   });
 
-  testWidgets('light hero cards sheet', (tester) async {
+  testWidgets('brand board plates sheet', (tester) async {
     tester.view.physicalSize = const Size(1200, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -135,9 +149,9 @@ void main() {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _column(AppTheme.light(const Locale('ar')), const Color(0xFFFFF7EF), 1.0),
-                _column(AppTheme.dark(const Locale('ar')), const Color(0xFF1A201E), 1.0),
-                _column(AppTheme.light(const Locale('ar')), const Color(0xFFFFF7EF), 1.3),
+                _column(AppTheme.light(const Locale('ar')), ZbTokens.teal, 1.0),
+                _column(AppTheme.dark(const Locale('ar')), ZbTokens.tealDeep, 1.0),
+                _column(AppTheme.light(const Locale('ar')), ZbTokens.teal, 1.3),
               ],
             ),
           ),
@@ -148,7 +162,7 @@ void main() {
 
     await expectLater(
       find.byType(SingleChildScrollView),
-      matchesGoldenFile('goldens/hero_light_sheet.png'),
+      matchesGoldenFile('goldens/hero_plate_sheet.png'),
     );
   });
 }

@@ -168,6 +168,8 @@
     "description": "Ticking pill on the branch-hours slide, HH:MM remaining.",
     "placeholders": { "time": { "type": "String" } }
   },
+  "heroBrandKicker": "ماركة مميزة",
+  "@heroBrandKicker": { "description": "Small teal line above the brand name on the زوبكسي brand plate." },
   "heroCutoffChip": "آخر موعد للطلب اليوم",
   "heroLeftShort": "باقي {time}",
   "@heroLeftShort": {

@@ -389,6 +389,9 @@ class LAr extends L {
   }
 
   @override
+  String get heroBrandKicker => 'ماركة مميزة';
+
+  @override
   String get heroCutoffChip => 'آخر موعد للطلب اليوم';
 
   @override

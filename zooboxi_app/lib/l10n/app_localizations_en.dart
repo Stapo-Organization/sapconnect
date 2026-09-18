@@ -391,6 +391,9 @@ class LEn extends L {
   }
 
   @override
+  String get heroBrandKicker => 'Featured brand';
+
+  @override
   String get heroCutoffChip => 'Today\'s order cutoff';
 
   @override

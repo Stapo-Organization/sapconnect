@@ -14,7 +14,8 @@ import '../../../catalog/data/catalog_models.dart';
 import 'campaign_chips.dart';
 import 'campaign_composition.dart';
 import 'campaign_impression.dart';
-import 'hero_light_card.dart';
+import '../../../../core/widgets/mascot_peek.dart';
+import 'hero_plate_card.dart';
 import 'hero_live_copy.dart';
 import 'home_header.dart';
 import 'link_navigation.dart';
@@ -70,19 +71,18 @@ String? autoSlideRoute(HeroSlide slide) {
 
 /// Hero geometry.
 ///
-/// «الحيّ الأبيض» (2026-09-18): the slide is a card of fixed height on a
-/// light canvas, not a band cut from the screen width. The card's height is
-/// computed from the text scale — like a product card — so the number here
-/// and the pixels can't disagree. [aspect] and the band arithmetic are kept
-/// for the express offer strip and its golden, which still draw the old
-/// deep-field slides small.
+/// «لوحة البراند» (2026-09-18): the slide is a white plate of fixed height on
+/// the brand's teal board, not a band cut from the screen width. The plate's
+/// height is computed from the text scale — like a product card — so the
+/// number here and the pixels can't disagree. [aspect] and the band
+/// arithmetic are kept for the express offer strip and its golden, which
+/// still draw the old deep-field slides small.
 abstract final class HeroMetrics {
   static const double aspect = 3.2;
   static const double maxTextScale = 1.3;
   static const double scaleHeadroom = 200;
 
-  /// The old strip under the slides. The dots now sit in the product's spill
-  /// zone, so the unit reserves nothing below the card but that.
+  /// The old strip under the slides; the board reserves its own foot now.
   static const double dotsBand = 0;
 
   static double _factor(BuildContext context) =>
@@ -91,23 +91,25 @@ abstract final class HeroMetrics {
       ).clamp(maxScaleFactor: maxTextScale).scale(16) /
       16;
 
-  /// The card proper.
+  /// The plate proper.
   static double height(BuildContext context, double width) =>
-      LightCardMetrics.height +
-      (_factor(context) - 1) * LightCardMetrics.scaleHeadroom;
+      PlateMetrics.height +
+      (_factor(context) - 1) * PlateMetrics.scaleHeadroom;
 
-  /// The card plus the room its product hangs into — what one page reserves.
+  /// The plate, the air above it where the mascots peek, and the dots under
+  /// it — what the board reserves below the header.
   static double page(BuildContext context, double width) =>
-      height(context, width) + LightCardMetrics.spill;
+      PlateMetrics.peek + height(context, width) + PlateMetrics.foot;
 }
 
-/// The storefront's marquee, on a light canvas that starts behind the status
-/// bar and carries the shelf tabs, the address row and the search button —
-/// and under them the slide, as a pastel card with its product spilling over
-/// the bottom edge into the page.
+/// The storefront's marquee: the brand's teal board, flat, starting behind
+/// the status bar and carrying the shelf tabs, the address row and the search
+/// button — and under them the slide, as a white plate the two mascots peek
+/// over, with the page dots beneath it and the board's corners rounded off
+/// into the page.
 ///
-/// The canvas is one colour, so the header no longer needs a panning twin:
-/// it sits above the pages, and the pages carry only the cards.
+/// The board is one colour, so the header needs no panning twin: it sits
+/// above the pages, and the pages carry only the plates.
 class HeroCarousel extends ConsumerStatefulWidget {
   const HeroCarousel({
     super.key,
@@ -127,10 +129,10 @@ class HeroCarousel extends ConsumerStatefulWidget {
   static bool hasContent(HomePayload payload) =>
       payload.hero.isNotEmpty || heroCampaignsOf(payload.campaigns).isNotEmpty;
 
-  /// The canvas behind the whole unit — cream by day, the raised graphite by
-  /// night. Exposed so the status bar can pick a clock colour to match.
+  /// The board behind the whole unit — the brand's teal by day, the deep one
+  /// by night. Deep either way, so the status bar's clock goes light over it.
   static Color canvasColor(BuildContext context) =>
-      context.isDark ? ZbTokens.graphiteRaised : ZbTokens.cream;
+      context.isDark ? ZbTokens.tealDeep : ZbTokens.teal;
 
   @override
   ConsumerState<HeroCarousel> createState() => _HeroCarouselState();
@@ -276,13 +278,26 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
     final items = _items;
     final statusTop = MediaQuery.paddingOf(context).top;
     final width = MediaQuery.sizeOf(context).width;
-    final canvas = HeroCarousel.canvasColor(context);
+    final board = HeroCarousel.canvasColor(context);
 
     if (items.isEmpty) {
       // Data can only shrink to zero on a refresh gone strange — keep the
-      // header usable on its own canvas rather than vanishing the whole unit.
-      return _CanvasShell(statusTop: statusTop, color: canvas, scope: widget.scope);
+      // header usable on its own board rather than vanishing the whole unit.
+      return _Board(
+        color: board,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: statusTop),
+            HomeHeader(onCanvas: true, plainThumb: true, scope: widget.scope),
+            Gap.h8,
+          ],
+        ),
+      );
     }
+
+    final plateHeight = HeroMetrics.height(context, width);
+    const mascotsHeight = PlateMetrics.mascots * MascotPeek.aspect;
 
     return VisibilityDetector(
       // Keyed to this element, so the two storefronts alive during the 380ms
@@ -291,20 +306,35 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
       onVisibilityChanged: (info) => _onVisibility(info.visibleFraction),
       child: MediaQuery.withClampedTextScaling(
         maxScaleFactor: HeroMetrics.maxTextScale,
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: canvas),
+        child: _Board(
+          color: board,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(height: statusTop),
-              // The ordinary header — ink on a light ground — is exactly what a
-              // light canvas wants; the deep-canvas variant is for the express
-              // promise header alone now.
-              HomeHeader(scope: widget.scope),
+              // Every stroke light on the teal; the lit sign white, so the
+              // زوبكسي tab is not teal on teal.
+              HomeHeader(onCanvas: true, plainThumb: true, scope: widget.scope),
               SizedBox(
                 height: HeroMetrics.page(context, width),
                 child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
+                    // The mascots, over the product side of the plate: their
+                    // faces show above its top edge, the rest hides behind
+                    // it. Same art as the empty states — it is the logo's.
+                    PositionedDirectional(
+                      end: PlateMetrics.margin + 10,
+                      top: PlateMetrics.peek - mascotsHeight * MascotPeek.reveal,
+                      child: IgnorePointer(
+                        child: Image.asset(
+                          MascotPeek.asset,
+                          width: PlateMetrics.mascots,
+                          height: mascotsHeight,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
                     Positioned.fill(
                       child: PageView.builder(
                         controller: _controller,
@@ -316,21 +346,22 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
                         itemBuilder: (context, index) => _Page(
                           item: items[index],
                           scope: widget.scope,
-                          cardHeight: HeroMetrics.height(context, width),
+                          plateHeight: plateHeight,
                           onTap: () => _open(items[index]),
                         ),
                       ),
                     ),
-                    // Under the card, in the spill zone, aligned with the copy
-                    // column: the product hangs on the other side, and the
-                    // card's top corner belongs to whatever sticker the art
-                    // brought («+3 مجانًا» sits exactly there).
+                    // Centred under the plate, on the board itself: the dots
+                    // hold still while the plates move over them.
                     if (items.length > 1)
                       PositionedDirectional(
-                        start: LightCardMetrics.margin + 20,
-                        top: HeroMetrics.height(context, width) + 9,
+                        start: 0,
+                        end: 0,
+                        top: PlateMetrics.peek + plateHeight + 12,
                         child: IgnorePointer(
-                          child: _Dots(count: items.length, index: _index),
+                          child: Center(
+                            child: _Dots(count: items.length, index: _index),
+                          ),
                         ),
                       ),
                   ],
@@ -344,83 +375,77 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
   }
 }
 
-/// One page: the card, with room under it for the product to hang into.
+/// The teal board: flat colour, bottom corners rounded into the page.
+class _Board extends StatelessWidget {
+  const _Board({required this.color, required this.child});
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(
+        bottom: Radius.circular(PlateMetrics.boardRadius),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: color),
+        child: child,
+      ),
+    );
+  }
+}
+
+/// One page: the plate, below the air the mascots peek through.
 class _Page extends StatelessWidget {
   const _Page({
     required this.item,
     required this.scope,
-    required this.cardHeight,
+    required this.plateHeight,
     required this.onTap,
   });
 
   final _HeroItem item;
   final CatalogScope? scope;
-  final double cardHeight;
+  final double plateHeight;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsetsDirectional.only(
-        start: LightCardMetrics.margin,
-        end: LightCardMetrics.margin,
+        start: PlateMetrics.margin,
+        end: PlateMetrics.margin,
+        top: PlateMetrics.peek,
       ),
       child: Align(
         alignment: Alignment.topCenter,
         child: SizedBox(
-          height: cardHeight,
+          height: plateHeight,
           width: double.infinity,
           child: PressScale(
             onTap: onTap,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(LightCardMetrics.radius),
+                borderRadius: BorderRadius.circular(PlateMetrics.radius),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3C2814).withValues(
-                      alpha: context.isDark ? 0.35 : 0.10,
+                    color: const Color(0xFF143C3C).withValues(
+                      alpha: context.isDark ? 0.45 : 0.28,
                     ),
-                    blurRadius: 28,
-                    offset: const Offset(0, 12),
+                    blurRadius: 32,
+                    offset: const Offset(0, 16),
                   ),
                 ],
               ),
               child: switch (item) {
-                _AutoItem(:final slide) => LightSlideCard(slide: slide, scope: scope),
+                _AutoItem(:final slide) => PlateSlideCard(slide: slide, scope: scope),
                 _CampaignItem(:final campaign) => _CampaignSlide(campaign: campaign),
                 _ManualItem(:final slide) => _ManualSlide(slide: slide),
               },
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// The degenerate no-slides shell: canvas + header only.
-class _CanvasShell extends StatelessWidget {
-  const _CanvasShell({
-    required this.statusTop,
-    required this.color,
-    required this.scope,
-  });
-
-  final double statusTop;
-  final Color color;
-  final CatalogScope? scope;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(color: color),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: statusTop),
-          HomeHeader(scope: scope),
-          Gap.h8,
-        ],
       ),
     );
   }
@@ -487,7 +512,7 @@ class _ManualSlide extends StatelessWidget {
         (slide.title ?? '').isNotEmpty || (slide.subtitle ?? '').isNotEmpty;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(LightCardMetrics.radius),
+      borderRadius: BorderRadius.circular(PlateMetrics.radius),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -575,7 +600,7 @@ class _CampaignSlide extends StatelessWidget {
     final cta = campaign.cta;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(LightCardMetrics.radius),
+      borderRadius: BorderRadius.circular(PlateMetrics.radius),
       child: CampaignComposition(
         panel: panel,
         padding: const EdgeInsetsDirectional.only(
@@ -632,9 +657,9 @@ class _CampaignSlide extends StatelessWidget {
   }
 }
 
-/// The page dots, as a small pill just under the card — teal for the page you
-/// are on. It sits over the pages rather than in them, so it holds still while
-/// the cards move under it.
+/// The page dots on the board: white segments, the current page the long
+/// one. They sit over the pages rather than in them, so they hold still while
+/// the plates move under them.
 class _Dots extends StatelessWidget {
   const _Dots({required this.count, required this.index});
 
@@ -643,32 +668,22 @@ class _Dots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = context.isDark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-      decoration: BoxDecoration(
-        color: (dark ? Colors.white : ZbTokens.ink).withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(ZbTokens.rPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(count, (i) {
-          final active = i == index;
-          return AnimatedContainer(
-            duration: Motion.select,
-            curve: Motion.decelerate,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            width: active ? 16 : 5,
-            height: 5,
-            decoration: BoxDecoration(
-              color: active
-                  ? ZbTokens.teal
-                  : context.cs.onSurface.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(ZbTokens.rPill),
-            ),
-          );
-        }),
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(count, (i) {
+        final active = i == index;
+        return AnimatedContainer(
+          duration: Motion.select,
+          curve: Motion.decelerate,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: active ? 28 : 10,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: active ? 1 : 0.45),
+            borderRadius: BorderRadius.circular(ZbTokens.rPill),
+          ),
+        );
+      }),
     );
   }
 }
