@@ -626,6 +626,14 @@ class Zooboxi_V2_Catalog_Controller
             }
         }
 
+        // The bundle card is composed art on a painted ground, and the nightly
+        // knock-out leaves that ground on it. The composer also renders every
+        // bundle with nothing behind the products (the same cut the rails
+        // serve as `cutout`); the slide wants those, so the app can float
+        // them on its own card.
+        $thumbs = self::thumbs($ids, 4);
+        $flat   = $this->flat_cuts($thumbs);
+
         return $this->auto_slide(
             'bundles',
             Zooboxi_V2_Bootstrap::pick('بكجات زوبكسي', 'Zooboxi bundles'),
@@ -633,7 +641,7 @@ class Zooboxi_V2_Catalog_Controller
             Zooboxi_V2_Bootstrap::pick('شاهد البكجات', 'See the bundles'),
             null,
             null,
-            self::thumbs($ids, 4),
+            $flat !== [] ? $flat : $thumbs,
             $save >= 5
                 ? sprintf(Zooboxi_V2_Bootstrap::pick('وفّر حتى %d%%', 'Save up to %d%%'), $save)
                 : null,
@@ -765,6 +773,39 @@ class Zooboxi_V2_Catalog_Controller
         return $memo = $art;
     }
 
+    /**
+     * The flat cut-outs sapconnect rendered for these product photos, in the
+     * same order, skipping any it has none for. Keys in the manifest carry a
+     * size suffix the thumbnail may not, so both sides are compared bare.
+     *
+     * @param array<int,string> $srcs
+     * @return array<int,string>
+     */
+    private function flat_cuts(array $srcs): array
+    {
+        $map = get_transient('zb_cut_map');
+        if (!is_array($map)) {
+            $this->hero_art();
+            $map = get_transient('zb_cut_map');
+        }
+        if (!is_array($map) || $map === []) {
+            return [];
+        }
+        $bare = static fn (string $u): string => (string) preg_replace('#-\d+x\d+(\.\w+)$#', '$1', (string) strtok($u, '?'));
+        $index = [];
+        foreach ($map as $src => $cut) {
+            $index[$bare((string) $src)] = $cut;
+        }
+        $out = [];
+        foreach ($srcs as $src) {
+            $hit = $index[$bare((string) $src)] ?? null;
+            if ($hit) {
+                $out[] = $hit;
+            }
+        }
+        return $out;
+    }
+
     private function auto_slide(
         string $theme,
         string $title,
@@ -779,8 +820,14 @@ class Zooboxi_V2_Catalog_Controller
         // Cut-out photography when sapconnect has prepared it, the ordinary
         // thumbnails when it has not.
         $cut = $this->hero_art()[$theme]['products'] ?? [];
-        if ($cut !== []) {
+        // A slide that already brought flat cut-outs (the bundles) keeps them;
+        // the nightly knock-outs are the fallback for photos shot on white.
+        $flat = $theme === 'bundles' && $images !== [] && str_contains((string) $images[0], '-cut.png');
+        if ($cut !== [] && !$flat) {
             $images = $cut;
+        }
+        if ($flat) {
+            $cut = $images;
         }
 
         return [
