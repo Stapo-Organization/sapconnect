@@ -132,6 +132,10 @@ class _PromiseHeaderState extends State<PromiseHeader> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // The shelf signs' band — the same band the زوبكسي board
+                    // reserves, so the one pair the home screen paints over
+                    // both never moves when the shop changes.
+                    const SizedBox(height: ShelfBand.reserved),
                     Row(
                       children: [
                         Expanded(
@@ -155,13 +159,6 @@ class _PromiseHeaderState extends State<PromiseHeader> {
                       ],
                     ),
                     Gap.h8,
-                    ShelfTabs(
-                      onCanvas: true,
-                      hours: hours,
-                      expressAvailable: scope.expressAvailable,
-                      standardCutoffMinutes: scope.standardCutoffMinutes,
-                    ),
-                    const SizedBox(height: 10),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [

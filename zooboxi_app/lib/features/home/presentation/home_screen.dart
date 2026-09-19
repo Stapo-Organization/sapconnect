@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
@@ -54,6 +56,7 @@ import 'widgets/missions_strip.dart';
 import 'widgets/need_nav.dart';
 import 'widgets/promise_header.dart';
 import 'widgets/replenish_tile.dart';
+import 'widgets/shelf_tabs.dart';
 import 'widgets/trust_strip.dart';
 
 /// Which storefront to paint, given the live answer and the warm snapshot.
@@ -133,11 +136,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOfferDrift());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeOfferDrift();
+      // iOS's ad-identifier sheet, once, on a screen the customer already
+      // recognises — never on the splash.
+      unawaited(ref.analytics.requestTrackingAuthorization());
+    });
   }
 
   @override
   void dispose() {
+    _scrollOffset.dispose();
     _shutterClock?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -167,7 +176,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _adoptExpressHours(HomePayload payload) {
     final bool? serving = payload.scope?.expressAvailable;
     if (serving == null) return;
+    final bool? before = ref.read(servedExpressProvider);
     ref.read(servedExpressProvider.notifier).report(serving);
+    if (before != serving) {
+      final branch = payload.scope?.expressBranch;
+      ref.analytics.logExpressAvailable(
+        inZone: serving,
+        branch: branch == null || branch.isEmpty ? null : branch,
+      );
+    }
 
     final saved = ref.read(locationProvider).location.deliveryType == 'express';
     if (saved != serving) {
@@ -280,12 +297,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   /// compact address bar slides in and the status-bar clock flips back dark.
   bool _navVisible = false;
 
+  /// How far the feed has scrolled, for the shelf signs painted over it: they
+  /// are not in the feed, so they follow it by hand. A notifier, not state —
+  /// only the signs move, the page does not rebuild per frame.
+  final ValueNotifier<double> _scrollOffset = ValueNotifier<double>(0);
+
   /// Where the canvas header (address + search) is judged gone. An estimate
   /// is fine: the swap happens mid-scroll, never at rest.
   static const double _navThreshold = 130;
 
   bool _onScroll(ScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
+    _scrollOffset.value = notification.metrics.pixels;
     final visible = notification.metrics.pixels > _navThreshold;
     if (visible != _navVisible) setState(() => _navVisible = visible);
     return false;
@@ -323,6 +346,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (payload == null) return;
       _adoptServedShelf(payload);
       _seedHearts(payload.rails.expand((rail) => rail.products));
+    });
+
+    // The other storefront enters at the top of its page, and no scroll
+    // notification says so: the shared signs go back to rest and the compact
+    // address bar steps aside by hand.
+    ref.listen<Shelf>(shelfProvider, (_, _) {
+      _scrollOffset.value = 0;
+      if (_navVisible) setState(() => _navVisible = false);
     });
 
     // The same seeding for the personal half, which arrives separately. Both
@@ -483,6 +514,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       child: KeyedSubtree(key: ValueKey(shelf), child: scroll),
     );
 
+    // The two shop signs are the ONE thing both storefronts share, so they are
+    // painted once, here, over whichever page is showing — in the band both
+    // headers reserve for them. They ride the feed by hand (see
+    // [_scrollOffset]) and never take part in the crossing below: when the
+    // shop changes only their thumb slides, and the page moves under them.
+    // Every header puts the band at the same place — [ShelfBand.top] under
+    // the status bar — so the signs land on it exactly in either storefront.
+    final signs = PositionedDirectional(
+      top: statusTop + ShelfBand.top,
+      start: ShelfBand.inset,
+      end: ShelfBand.inset,
+      child: _ShelfSigns(
+        offset: _scrollOffset,
+        onCanvas: tall,
+        // On the زوبكسي board the lit sign is a white plate — its own teal
+        // would melt into the board; on the express panel the ember thumb
+        // stays.
+        plainThumb: canvas,
+        scope: payload?.scope,
+      ),
+    );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: statusStyle,
       child: Scaffold(
@@ -490,6 +543,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ? Stack(
                 children: [
                   storefront,
+                  signs,
                   // Pinned over the feed: the address that scrolled away with
                   // the canvas, back within thumb's reach.
                   PositionedDirectional(
@@ -507,6 +561,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             : Stack(
                 children: [
                   SafeArea(bottom: false, child: storefront),
+                  signs,
                   PositionedDirectional(
                     top: 0,
                     start: 0,
@@ -983,6 +1038,51 @@ class _MissionsSlot extends ConsumerWidget {
         holdout: loyalty.member.holdout,
         awaitingDelivery: loyalty.hasPendingAppOrder,
       ),
+    );
+  }
+}
+
+/// The shelf signs, painted once over both storefronts.
+///
+/// They follow the feed by translating with its offset, so to the eye they
+/// scroll away with the header exactly as if they were in it — and step off
+/// stage once they have passed under the status bar, so nothing is painted
+/// where nothing can be seen. The signs are the `child`, built once: only
+/// the translation is redone per scroll frame.
+class _ShelfSigns extends StatelessWidget {
+  const _ShelfSigns({
+    required this.offset,
+    required this.onCanvas,
+    required this.plainThumb,
+    required this.scope,
+  });
+
+  final ValueListenable<double> offset;
+  final bool onCanvas;
+  final bool plainThumb;
+  final CatalogScope? scope;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusTop = MediaQuery.paddingOf(context).top;
+    return ValueListenableBuilder<double>(
+      valueListenable: offset,
+      child: RepaintBoundary(
+        child: ShelfTabs(
+          onCanvas: onCanvas,
+          plainThumb: plainThumb,
+          hours: scope?.expressHours,
+          expressAvailable: scope?.expressAvailable,
+          standardCutoffMinutes: scope?.standardCutoffMinutes,
+        ),
+      ),
+      builder: (context, pixels, child) {
+        final gone = pixels > statusTop + ShelfBand.top + ShelfBand.height;
+        return Offstage(
+          offstage: gone,
+          child: Transform.translate(offset: Offset(0, -pixels), child: child),
+        );
+      },
     );
   }
 }

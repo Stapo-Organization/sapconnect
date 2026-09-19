@@ -34,6 +34,22 @@ import '../../../catalog/data/catalog_models.dart';
 /// its speed. A shop sign says when the door is open; how fast the shop is
 /// belongs to the order, and the header already answers that with an arrival
 /// time. Out of hours the same line turns into «يفتح 9 ص».
+/// Where the two signs sit on every home, so the ONE pair the screen owns
+/// never moves between storefronts: under the status bar, [inset] in from
+/// each edge, [height] tall, [gap] of air under them. Both headers reserve
+/// exactly this band and draw nothing in it — the signs are painted over
+/// them by the home screen, and only their thumb slides when the shop
+/// changes.
+abstract final class ShelfBand {
+  static const double top = 4;
+  static const double height = 48;
+  static const double gap = 10;
+  static const double inset = 16;
+
+  /// What a header sets aside: the signs and the air under them.
+  static const double reserved = height + gap;
+}
+
 class ShelfTabs extends ConsumerStatefulWidget {
   const ShelfTabs({
     super.key,

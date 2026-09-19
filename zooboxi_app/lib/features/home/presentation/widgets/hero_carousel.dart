@@ -289,7 +289,7 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: statusTop),
-            HomeHeader(onCanvas: true, plainThumb: true, scope: widget.scope),
+            HomeHeader(onCanvas: true, scope: widget.scope),
             Gap.h8,
           ],
         ),
@@ -312,9 +312,9 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(height: statusTop),
-              // Every stroke light on the teal; the lit sign white, so the
-              // زوبكسي tab is not teal on teal.
-              HomeHeader(onCanvas: true, plainThumb: true, scope: widget.scope),
+              // Every stroke light on the teal. The shelf signs are not in
+              // here: the home screen paints its one pair over the band.
+              HomeHeader(onCanvas: true, scope: widget.scope),
               SizedBox(
                 height: HeroMetrics.page(context, width),
                 child: Stack(

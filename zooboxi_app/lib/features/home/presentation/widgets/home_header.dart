@@ -20,18 +20,9 @@ import 'shelf_tabs.dart';
 /// header fuses with — so every stroke turns light and the search field stays
 /// a bright, obvious well on top of the color.
 class HomeHeader extends ConsumerWidget {
-  const HomeHeader({
-    super.key,
-    this.onCanvas = false,
-    this.plainThumb = false,
-    this.scope,
-  });
+  const HomeHeader({super.key, this.onCanvas = false, this.scope});
 
   final bool onCanvas;
-
-  /// With [onCanvas]: the lit shelf sign as a white plate rather than its own
-  /// gradient — for the زوبكسي board, which is already teal.
-  final bool plainThumb;
 
   /// The active shelf, as the server resolved it: it decides the arrival time
   /// on the address line and carries the express branch's opening hours for
@@ -51,17 +42,10 @@ class HomeHeader extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // The two storefronts, above everything — the first decision on the
-          // page is which shop you are in, not which product you want.
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 8, end: 8, bottom: 10),
-            child: ShelfTabs(
-              onCanvas: onCanvas,
-              plainThumb: plainThumb,
-              hours: scope?.expressHours,
-              expressAvailable: scope?.expressAvailable,
-              standardCutoffMinutes: scope?.standardCutoffMinutes,
-            ),
-          ),
+          // page is which shop you are in, not which product you want. The
+          // signs themselves are the home screen's, painted over this band
+          // so they stay put while the page under them changes.
+          const SizedBox(height: ShelfBand.reserved),
           Row(
             children: [
               // The address gets the whole row it needs. A logo sticker used
