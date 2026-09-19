@@ -44,3 +44,12 @@ shorebird patch --platforms ios --release-version X.Y.Z+N --no-confirm
 - عملية مقتولة في منتصف البناء تترك كاشًا فاسدًا: Gradle يسقط بصنف مفقود وXcode بـ«disk I/O
   error» على `build.db`. العلاج: `(cd android && ./gradlew --stop)` و`rm -rf
   ~/Library/Developer/Xcode/DerivedData/Runner-*`.
+- **ابنِ الرقعة من worktree نظيف عند وجود عمل غير محفوظ لجلسة أخرى** (2026-09-19): Shorebird يبني
+  من شجرة العمل كما هي؛ إضافات أصلية غير محفوظة (حزمة جديدة في pubspec، Podfile.lock) تُرفض
+  بـ«native changes» وتفسد رقعتك. الطريقة: `git worktree add --detach ../zb-patch-wt <commit>`،
+  انسخ الملفات المستثناة (key.properties · local.properties · google-services.json ·
+  GoogleService-Info.plist · gradlew*) ثم `flutter pub get` وشغّل الرقعتين **بالتسلسل** (iOS ثم
+  أندرويد) لا بالتوازي — يتشاركان `.dart_tool/flutter_build` ويمسح أحدهما ملفات الآخر.
+- للتحقق على المحاكي: `shorebird preview --platform android --release-version X.Y.Z+N` يثبّت
+  الإصدار الأصلي فيسحب الرقعة بنفسه. المحاكي بـVulkan/SwiftShader يرسم بثانية للإطار؛ شغّله
+  بـ`-gpu host -feature -Vulkan`. وعند القصّ بـ`sips` ضع `--cropOffset` قبل `-c` وإلا يقصّ من المنتصف.
