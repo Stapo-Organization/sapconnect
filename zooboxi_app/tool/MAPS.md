@@ -6,9 +6,13 @@ The app draws its map with the Google Maps SDK. The key is NOT in the repo:
 
       GMS_API_KEY = AIza…
 
-* Android — `android/local.properties` (git-ignored):
+* Android — `android/secrets.properties` (git-ignored). NOT local.properties:
+  Flutter rewrites that file on every build and the key would vanish.
 
       googleMapsApiKey=AIza…
+
+Check a bundle before uploading it — the manifest must carry the key:
+`unzip -p app-release.aab base/manifest/AndroidManifest.xml | grep -c AIza` → 1.
 
 Use keys restricted in Google Cloud (project 932944071249): an iOS key limited to
 the bundle `com.zooboxi.app`, an Android key limited to `com.zooboxi.app` + the

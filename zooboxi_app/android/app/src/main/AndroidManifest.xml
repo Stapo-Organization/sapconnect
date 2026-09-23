@@ -40,7 +40,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- The delivery map. The key comes from android/local.properties
+        <!-- The delivery map. The key comes from android/secrets.properties
              (googleMapsApiKey, git-ignored) — see tool/MAPS.md. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"

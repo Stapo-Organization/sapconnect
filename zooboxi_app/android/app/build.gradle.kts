@@ -17,10 +17,12 @@ val keystoreProperties = Properties().apply {
 }
 val hasUploadKey = keystoreProperties.getProperty("storeFile") != null
 
-// The Maps key lives outside the repo too: android/local.properties
-// (git-ignored) carries googleMapsApiKey. See tool/MAPS.md.
+// The Maps key lives outside the repo too: android/secrets.properties
+// (git-ignored) carries googleMapsApiKey. Not local.properties — Flutter
+// rewrites that file on every build and the key would silently vanish,
+// leaving a blank map. See tool/MAPS.md.
 val mapsApiKey: String = Properties().apply {
-    val f = rootProject.file("local.properties")
+    val f = rootProject.file("secrets.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("googleMapsApiKey") ?: ""
 
