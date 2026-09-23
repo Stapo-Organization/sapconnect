@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/characters/characters.dart';
+import '../../../../core/characters/companion.dart';
+import '../../../../core/characters/props.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/sparkles.dart';
@@ -25,9 +28,15 @@ class FreeShippingBar extends StatelessWidget {
     this.freeDeliveryReason,
     this.expressFreeReason,
     this.express = false,
+    this.runner = false,
   });
 
   final FreeShipping freeShipping;
+
+  /// The customer's animal runs along the bar toward a finish flag, and
+  /// celebrates on it once delivery is free. The basket only — elsewhere the
+  /// bar is a quiet nudge and a character there would crowd the page.
+  final bool runner;
 
   /// The line is the express basket's own (see FreeShipping.forShelf), so the
   /// sentence names express delivery rather than shipping.
@@ -68,22 +77,104 @@ class FreeShippingBar extends StatelessWidget {
           ),
           if (freeShipping.isActive) ...[
             Gap.h8,
-            _Bar(freeShipping: freeShipping, express: express),
+            _Bar(freeShipping: freeShipping, express: express, runner: runner),
           ],
         ],
       );
     }
     if (!freeShipping.isActive) return const SizedBox.shrink();
-    return _Bar(freeShipping: freeShipping, express: express);
+    return _Bar(freeShipping: freeShipping, express: express, runner: runner);
+  }
+}
+
+/// The bar as a race: the animal runs at the head of the fill toward the flag
+/// at the far end, and celebrates on the flag once the fee is gone.
+class _RunnerTrack extends StatelessWidget {
+  const _RunnerTrack({required this.progress, required this.qualified, required this.accent});
+
+  final double progress;
+  final bool qualified;
+  final Color accent;
+
+  static const double _runner = 32;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    final runnerWidth = ZbSticker.sizeOf('dog-run', height: _runner).width;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: progress),
+      duration: context.motion(const Duration(milliseconds: 520)),
+      curve: Motion.emphasized,
+      builder: (context, value, _) => LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final head = (value * width - runnerWidth * 0.8).clamp(0.0, width - runnerWidth - 18);
+          return SizedBox(
+            height: 46,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: value,
+                      minHeight: 8,
+                      backgroundColor: cs.surfaceContainerHighest,
+                      valueColor: AlwaysStoppedAnimation(accent),
+                    ),
+                  ),
+                ),
+                PositionedDirectional(
+                  end: -2,
+                  bottom: 4,
+                  child: FinishFlag(height: 26, color: qualified ? ZbTokens.amber : ZbTokens.coral),
+                ),
+                if (qualified)
+                  PositionedDirectional(
+                    end: 18,
+                    bottom: 6,
+                    child: Companion(
+                      ZbPose.celebrate,
+                      fallback: ZbCast.dog,
+                      height: 40,
+                      idle: ZbIdle.hop,
+                      flip: !context.isRtl,
+                    ),
+                  )
+                else
+                  PositionedDirectional(
+                    start: head,
+                    bottom: 5,
+                    child: Companion(
+                      ZbPose.run,
+                      fallback: ZbCast.dog,
+                      height: _runner,
+                      idle: ZbIdle.hop,
+                      entrance: false,
+                      flip: !context.isRtl,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
 /// The counter: the sentence and the bar.
 class _Bar extends StatelessWidget {
-  const _Bar({required this.freeShipping, this.express = false});
+  const _Bar({required this.freeShipping, this.express = false, this.runner = false});
 
   final FreeShipping freeShipping;
   final bool express;
+  final bool runner;
 
   @override
   Widget build(BuildContext context) {
@@ -127,6 +218,9 @@ class _Bar extends StatelessWidget {
               ),
             ],
           ),
+          if (runner)
+            _RunnerTrack(progress: freeShipping.progress, qualified: qualified, accent: accent)
+          else ...[
           Gap.h8,
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
@@ -142,6 +236,7 @@ class _Bar extends StatelessWidget {
               ),
             ),
           ),
+          ],
         ],
       ),
     );

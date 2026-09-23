@@ -4,21 +4,25 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/characters/scenes.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/error_text.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/rail.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/totals_card.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../account/data/account_repository.dart';
 import '../../auth/presentation/auth_sheet.dart';
 import '../../loyalty/data/loyalty_repository.dart';
 import '../../loyalty/presentation/widgets/claim_reward_sheet.dart';
 import '../data/cart_controller.dart';
 import '../data/cart_models.dart';
+import 'add_to_cart.dart';
 import 'widgets/cart_line.dart';
 import 'widgets/coupon_field.dart';
 import 'widgets/free_shipping_bar.dart';
@@ -236,11 +240,12 @@ class _Loaded extends ConsumerWidget {
       }
       return EmptyState(
         icon: Icons.shopping_bag_rounded,
-        title: l.cartEmpty,
+        title: l.cartEmptyBowl,
         message: l.cartEmptyHint,
         actionLabel: l.cartStartShopping,
         onAction: () => context.go('/home'),
-        mascot: true,
+        scene: const CartScene(),
+        footer: const _BuyAgainRail(),
       );
     }
 
@@ -271,6 +276,7 @@ class _Loaded extends ConsumerWidget {
                         (cart.loyalty.claims.any((g) => g.reward.isFreeDelivery) ? 'reward' : null),
                     expressFreeReason: cart.loyalty.expressFreeReason ??
                         (cart.loyalty.claims.any((g) => g.reward.isExpressFree) ? 'reward' : null),
+                    runner: true,
                   ),
                   Gap.h16,
                 ],
@@ -422,4 +428,23 @@ class _CartSkeleton extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// Under an empty basket: what they bought before, one tap from coming back.
+/// Nothing for a guest or a first-time customer — an empty rail is no help.
+class _BuyAgainRail extends ConsumerWidget {
+  const _BuyAgainRail();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final products = ref.watch(buyAgainProvider).value ?? const [];
+    if (products.isEmpty) return const SizedBox.shrink();
+    return ProductRailView(
+      title: L.of(context).buyAgainTitle,
+      products: products,
+      zone: 'cart_empty',
+      onSeeAll: () => context.push('/buy-again'),
+      onAdd: (product) => addToCart(context, ref, product: product, zone: 'cart_empty', quiet: true),
+    );
+  }
 }

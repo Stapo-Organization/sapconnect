@@ -8,7 +8,7 @@ import '../../../../core/analytics/events_buffer.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/haptics.dart';
-import '../../../../core/widgets/mascot_peek.dart';
+import '../../../../core/characters/characters.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -696,17 +696,25 @@ class _Invitation extends StatelessWidget {
             ),
           ),
           Gap.w8,
-          // The two on the box, peeking in.
-          ClipRRect(
-            borderRadius: BorderRadius.circular(ZbTokens.rLg),
-            child: SizedBox(
-              width: 104,
-              height: 92,
-              child: FittedBox(
-                fit: BoxFit.cover,
-                alignment: Alignment.bottomCenter,
-                child: Image.asset(MascotPeek.asset, width: 220),
-              ),
+          // The pair from the logo, whole — drawn, never cut out of the logo.
+          SizedBox(
+            width: 104,
+            height: 92,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.bottomCenter,
+              children: [
+                PositionedDirectional(
+                  end: 0,
+                  bottom: 0,
+                  child: ZbSticker.cast(ZbCast.dog, ZbPose.sitUp, height: 84, idle: ZbIdle.none, entrance: false),
+                ),
+                PositionedDirectional(
+                  start: 0,
+                  bottom: 0,
+                  child: ZbSticker.cast(ZbCast.cat, ZbPose.sitUp, height: 76, idle: ZbIdle.none, entrance: false),
+                ),
+              ],
             ),
           ),
         ],

@@ -95,6 +95,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (_, state) => sharedAxisPage(state.pageKey, const OnboardingScreen()),
       ),
+      // «مين معك في البيت؟» on its own, for everyone already past the welcome.
+      GoRoute(
+        path: '/household',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (_, state) => slideUpPage(state.pageKey, const HouseholdScreen()),
+      ),
 
       GoRoute(
         path: '/product/:id',

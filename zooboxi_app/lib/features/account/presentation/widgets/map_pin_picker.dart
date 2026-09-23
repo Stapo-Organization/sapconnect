@@ -1,12 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:latlong2/latlong.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
-import '../../../../core/maps/map_tiles.dart';
-import '../../../../core/utils/debouncer.dart';
+import '../../../../core/maps/map_style.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -16,18 +17,15 @@ const LatLng _fallbackCentre = LatLng(24.7136, 46.6753);
 
 /// What the map is made of.
 ///
-/// The plain OSM style is a *reference* map — every clinic, mosque and bus
-/// stop shouted in the same weight. On a screen whose only question is "which
-/// door is yours", that noise competes with the one thing that matters. So:
-///
-///  * [streets] is a quiet drawn map with Arabic street names (see
-///    [ZbTiles] for the provider and why) — the teal pin is the only
-///    saturated thing on the screen;
-///  * [satellite] is the imagery, because a Riyadh compound is recognised by
-///    its roof and its walls long before it is recognised by a street name.
+///  * [streets] is Google's map in Zooboxi's own colours (see [ZbMapStyle]):
+///    Arabic street and district names, no shop pins shouting over the door —
+///    the teal pin is the only saturated thing on the screen;
+///  * [satellite] is the imagery with the names on it, because a Riyadh
+///    compound is recognised by its roof and its walls long before it is
+///    recognised by a street name.
 enum MapStyle { streets, satellite }
 
-/// The delivery pin: an OSM map with a pin fixed to the centre of the frame.
+/// The delivery pin: a map with a pin fixed to the centre of the frame.
 ///
 /// The pin does not move — the map does. A marker anchored to a coordinate
 /// lags a frame behind the drag and reads as broken; a fixed overlay is always
@@ -35,8 +33,8 @@ enum MapStyle { streets, satellite }
 /// simply read back off the camera.
 ///
 /// [onMoved] fires while dragging (for a live pin shadow), [onSettled] fires
-/// once the map has been still for a beat — that one is where the reverse
-/// geocode belongs, so a single pan doesn't spend twenty requests.
+/// once the camera comes to rest — that one is where the reverse geocode
+/// belongs, so a single pan doesn't spend twenty requests.
 class MapPinPicker extends StatefulWidget {
   const MapPinPicker({
     super.key,
@@ -71,19 +69,18 @@ class MapPinPicker extends StatefulWidget {
   final MapStyle style;
 
   /// Keeps the floating controls clear of whatever the screen lays over the
-  /// map — the address card at the bottom, a hint capsule at the top.
+  /// map — the address card at the bottom, the search bar at the top.
   final EdgeInsets controlsPadding;
 
   @override
   State<MapPinPicker> createState() => MapPinPickerState();
 }
 
-class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixin {
-  final MapController _map = MapController();
-  final Debouncer _settle = Debouncer(duration: const Duration(milliseconds: 550));
+class MapPinPickerState extends State<MapPinPicker> {
+  gm.GoogleMapController? _map;
 
   late LatLng _centre = widget.initial ?? _fallbackCentre;
-  late double _zoom = widget.initial == null ? 11 : 16;
+  late double _zoom = widget.initial == null ? 11 : 16.5;
   late MapStyle _style = widget.style;
   bool _dragging = false;
   bool _locating = false;
@@ -93,57 +90,45 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
 
   @override
   void dispose() {
-    _settle.dispose();
-    _map.dispose();
+    _map?.dispose();
     super.dispose();
   }
 
-  void _onPositionChanged(MapCamera camera, bool hasGesture) {
-    _centre = camera.center;
-    _zoom = camera.zoom;
+  static gm.LatLng _g(LatLng p) => gm.LatLng(p.latitude, p.longitude);
+
+  void _onCameraMove(gm.CameraPosition position) {
+    _centre = LatLng(position.target.latitude, position.target.longitude);
+    _zoom = position.zoom;
     widget.onMoved?.call(_centre);
-    if (hasGesture && !_dragging) setState(() => _dragging = true);
-    _settle.run(() {
-      if (!mounted) return;
-      setState(() => _dragging = false);
-      widget.onSettled?.call(_centre);
-    });
+    if (!_dragging) setState(() => _dragging = true);
   }
 
-  /// A step of zoom from the buttons, animated by hand: a map that jumps a
-  /// whole level in one frame loses the customer's place on it.
+  void _onCameraIdle() {
+    if (!mounted) return;
+    if (_dragging) setState(() => _dragging = false);
+    widget.onSettled?.call(_centre);
+  }
+
   void _zoomBy(double delta) {
-    final target = (_zoom + delta).clamp(4.0, 18.0);
+    final target = (_zoom + delta).clamp(4.0, 20.0);
     if (target == _zoom) return;
     Haptics.selection();
-    _animateTo(_centre, target);
+    _map?.animateCamera(gm.CameraUpdate.zoomTo(target));
   }
 
-  void _animateTo(LatLng point, double zoom) {
-    final fromZoom = _zoom;
-    final from = _centre;
-    final controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
-    );
-    final curve = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
-    curve.addListener(() {
-      final t = curve.value;
-      _map.move(
-        LatLng(
-          from.latitude + (point.latitude - from.latitude) * t,
-          from.longitude + (point.longitude - from.longitude) * t,
-        ),
-        fromZoom + (zoom - fromZoom) * t,
-      );
-    });
-    controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
-        curve.dispose();
-        controller.dispose();
-      }
-    });
-    controller.forward();
+  /// Flies the pin to [point] — a search result, the device's own fix. The
+  /// settle that follows is what asks the store about it.
+  Future<void> moveTo(LatLng point, {double zoom = 17}) async {
+    final map = _map;
+    if (map == null) {
+      setState(() {
+        _centre = point;
+        _zoom = zoom;
+      });
+      widget.onSettled?.call(point);
+      return;
+    }
+    await map.animateCamera(gm.CameraUpdate.newLatLngZoom(_g(point), zoom));
   }
 
   /// Centres on the device's own fix. Silent on refusal: the customer can
@@ -169,12 +154,8 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
               timeLimit: Duration(seconds: 12),
             ),
           );
-          final point = LatLng(position.latitude, position.longitude);
           if (!mounted) return;
-          _animateTo(point, 16.5);
-          _centre = point;
-          widget.onMoved?.call(point);
-          widget.onSettled?.call(point);
+          await moveTo(LatLng(position.latitude, position.longitude), zoom: 17);
         }
       }
     } catch (_) {
@@ -186,29 +167,34 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-
     final satellite = _style == MapStyle.satellite;
-    final tiles = satellite ? ZbTiles.satellite() : ZbTiles.streets(context);
 
-    final map = FlutterMap(
-      mapController: _map,
-      options: MapOptions(
-        initialCenter: _centre,
-        initialZoom: _zoom,
-        minZoom: 4,
-        maxZoom: 18,
-        backgroundColor: cs.surfaceContainerHigh,
-        onPositionChanged: widget.interactive ? _onPositionChanged : null,
-        interactionOptions: InteractionOptions(
-          flags: widget.interactive
-              // Rotation on a delivery pin only ever confuses; everything else
-              // (drag, pinch, double-tap) is how people expect a map to work.
-              ? InteractiveFlag.all & ~InteractiveFlag.rotate
-              : InteractiveFlag.none,
-        ),
-      ),
-      children: [tiles],
-    );
+    final Widget map = ZbMapStyle.live
+        ? gm.GoogleMap(
+            initialCameraPosition: gm.CameraPosition(target: _g(_centre), zoom: _zoom),
+            onMapCreated: (controller) => _map = controller,
+            onCameraMove: widget.interactive ? _onCameraMove : null,
+            onCameraIdle: widget.interactive ? _onCameraIdle : null,
+            mapType: satellite ? gm.MapType.hybrid : gm.MapType.normal,
+            style: satellite ? null : ZbMapStyle.of(context),
+            // The screen draws its own controls; Google's would stack on ours.
+            myLocationEnabled: false,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            compassEnabled: false,
+            mapToolbarEnabled: false,
+            indoorViewEnabled: false,
+            buildingsEnabled: true,
+            // Rotation and tilt on a delivery pin only ever confuse.
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            scrollGesturesEnabled: widget.interactive,
+            zoomGesturesEnabled: widget.interactive,
+            // A still preview is a picture of a point, drawn once.
+            liteModeEnabled: !widget.interactive,
+            padding: widget.controlsPadding,
+          )
+        : ColoredBox(color: cs.surfaceContainerHigh);
 
     return SizedBox(
       height: widget.height,
@@ -217,9 +203,14 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
           Positioned.fill(child: map),
           Positioned.fill(
             child: IgnorePointer(
-              // A preview strip can be shorter than the pin is tall; letting it
-              // overflow into the clip is right, an overflow error is not.
-              child: Center(
+              // The map's padding moves the camera's centre to the middle of the
+              // unpadded area — the pin has to stand exactly there, or the
+              // coordinate read off the camera is not the one under the pin.
+              child: Padding(
+                padding: widget.controlsPadding,
+                // A preview strip can be shorter than the pin is tall; letting
+                // it overflow into the clip is right, an overflow error is not.
+                child: Center(
                 child: OverflowBox(
                   maxHeight: double.infinity,
                   child: _Pin(
@@ -228,14 +219,8 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
                   ),
                 ),
               ),
+              ),
             ),
-          ),
-          // Whoever drew the tiles gets named on them — a licence term, and
-          // the cheapest kind of trust: this map is a real map.
-          PositionedDirectional(
-            start: 6,
-            bottom: widget.controlsPadding.bottom + 4,
-            child: _Attribution(style: _style),
           ),
           if (widget.interactive)
             PositionedDirectional(
@@ -249,18 +234,13 @@ class MapPinPickerState extends State<MapPinPicker> with TickerProviderStateMixi
                       style: _style,
                       onTap: () {
                         Haptics.selection();
-                        setState(() => _style = satellite
-                            ? MapStyle.streets
-                            : MapStyle.satellite);
+                        setState(() => _style = satellite ? MapStyle.streets : MapStyle.satellite);
                       },
                     ),
                     Gap.h12,
                   ],
                   if (widget.showZoom) ...[
-                    _ZoomStack(
-                      onIn: () => _zoomBy(1),
-                      onOut: () => _zoomBy(-1),
-                    ),
+                    _ZoomStack(onIn: () => _zoomBy(1), onOut: () => _zoomBy(-1)),
                     Gap.h12,
                   ],
                   _LocateButton(busy: _locating, onTap: locate),
@@ -340,35 +320,6 @@ class _Pin extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// The credit line the tiles are used under — OpenStreetMap and CARTO for the
-/// drawn map, Esri and its imagery partners for the satellite.
-class _Attribution extends StatelessWidget {
-  const _Attribution({required this.style});
-
-  final MapStyle style;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = context.cs;
-    final credit = ZbTiles.creditFor(satellite: style == MapStyle.satellite);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: cs.surface.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(ZbTokens.rPill),
-      ),
-      child: Text(
-        credit,
-        textDirection: TextDirection.ltr,
-        style: context.tt.labelSmall?.copyWith(
-          fontSize: 9.5,
-          color: cs.onSurfaceVariant,
-        ),
       ),
     );
   }

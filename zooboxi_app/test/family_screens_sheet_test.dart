@@ -196,7 +196,19 @@ Future<void> _shoot(WidgetTester tester, Widget screen, String name, {double hei
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(_host(screen, overrides: overrides));
   await tester.pump(const Duration(milliseconds: 900));
+  await _decodeImages(tester);
   await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/family_$name.png'));
+}
+
+/// Asset images decode off the fake clock: without this the drawn characters
+/// are blank in the golden.
+Future<void> _decodeImages(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    for (final element in find.byType(Image).evaluate()) {
+      await precacheImage((element.widget as Image).image, element);
+    }
+  });
+  await tester.pump(const Duration(milliseconds: 100));
 }
 
 void main() {

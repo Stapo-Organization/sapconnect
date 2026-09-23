@@ -81,13 +81,12 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.textContaining('OpenStreetMap'), findsOneWidget);
+    // Google draws its own credit on the map; the switch offers the other view.
+    expect(find.byIcon(Icons.satellite_alt_rounded), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.satellite_alt_rounded));
     await tester.pump();
 
-    // The credit follows the tiles it belongs to.
-    expect(find.textContaining('Esri'), findsOneWidget);
     expect(find.byIcon(Icons.map_rounded), findsOneWidget);
   });
 }

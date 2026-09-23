@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/characters/characters.dart';
+import '../../../../core/characters/companion.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../core/widgets/zb_image.dart';
@@ -13,6 +15,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../loyalty/data/loyalty_models.dart';
 import '../../../loyalty/data/loyalty_repository.dart';
 import '../../../loyalty/presentation/supply_actions.dart';
+import '../../../pets/data/household.dart';
 
 /// «يخلص طعام أوريو خلال ٤ أيام» — the one tile no grocery app can draw.
 ///
@@ -68,7 +71,11 @@ class _ReplenishTileState extends ConsumerState<ReplenishTile> {
       );
     }
 
-    return Padding(
+    // «الاستراحة»: the animal whose food this is sits at the card's end,
+    // its head above the edge — the reminder is theirs, not the store's.
+    final cast = item.pet == null ? null : castForSpecies(item.pet!.species);
+    const sitter = 108.0;
+    final card = Padding(
       padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
       child: Material(
         color: cs.surface,
@@ -155,11 +162,24 @@ class _ReplenishTileState extends ConsumerState<ReplenishTile> {
                     ],
                   ),
                 ),
+                if (cast != null) const SizedBox(width: sitter * 0.62),
               ],
             ),
           ),
         ),
       ),
+    );
+    if (cast == null) return card;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Padding(padding: const EdgeInsets.only(top: 30), child: card),
+        PositionedDirectional(
+          end: 26,
+          bottom: 6,
+          child: Companion(ZbPose.sitUp, cast: cast, height: sitter, flip: !context.isRtl),
+        ),
+      ],
     );
   }
 }

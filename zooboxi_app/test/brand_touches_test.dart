@@ -7,6 +7,8 @@ import 'package:zooboxi_app/app/theme/app_theme.dart';
 import 'package:zooboxi_app/core/providers.dart';
 import 'package:zooboxi_app/core/session/session_controller.dart';
 import 'package:zooboxi_app/core/storage/local_store.dart';
+import 'package:zooboxi_app/core/characters/characters.dart';
+import 'package:zooboxi_app/core/characters/scenes.dart';
 import 'package:zooboxi_app/core/widgets/empty_state.dart';
 import 'package:zooboxi_app/core/widgets/mascot_peek.dart';
 import 'package:zooboxi_app/core/widgets/sparkles.dart';
@@ -137,8 +139,8 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(MascotPeek), findsOneWidget);
-      expect(_assetImage(MascotPeek.asset), findsOneWidget);
+      expect(find.byType(PeekOverCard), findsOneWidget);
+      expect(_assetImage(stickerAsset('cat-peek')), findsOneWidget);
       expect(find.text('فاضية'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -163,7 +165,7 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
-      expect(find.byType(MascotPeek), findsOneWidget);
+      expect(find.byType(PeekOverCard), findsOneWidget);
     });
 
     testWidgets('compact ignores the mascot — there is no room for it', (tester) async {
@@ -180,8 +182,8 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(MascotPeek), findsNothing);
-      expect(_assetImage(MascotPeek.asset), findsNothing);
+      expect(find.byType(PeekOverCard), findsNothing);
+      expect(_assetImage(stickerAsset('cat-peek')), findsNothing);
       expect(find.text('ما فيه نتائج'), findsOneWidget);
     });
 
@@ -200,7 +202,7 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
-      expect(find.byType(MascotPeek), findsOneWidget);
+      expect(find.byType(PeekOverCard), findsOneWidget);
     });
 
     testWidgets('off by default', (tester) async {
@@ -215,7 +217,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(MascotPeek), findsNothing);
+      expect(find.byType(PeekOverCard), findsNothing);
     });
   });
 
@@ -242,7 +244,7 @@ void main() {
     }
   });
 
-  testWidgets('checkout success bursts sparkles and peeks over the receipt',
+  testWidgets('checkout success: the pair celebrates under the confetti',
       (tester) async {
     tester.view.physicalSize = const Size(390, 1400);
     tester.view.devicePixelRatio = 1;
@@ -279,8 +281,11 @@ void main() {
     await tester.pump();
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(SparkleField), findsOneWidget);
-    expect(_assetImage(MascotPeek.asset), findsOneWidget);
+    // No household on file: the logo's pair, whole — never a crop of the logo.
+    expect(_assetImage(stickerAsset('confetti-burst')), findsOneWidget);
+    expect(_assetImage(stickerAsset('dog-celebrate')), findsOneWidget);
+    expect(_assetImage(stickerAsset('cat-celebrate')), findsOneWidget);
+    expect(_assetImage(MascotPeek.asset), findsNothing);
   });
 
   testWidgets('the splash shows the full logo', (tester) async {

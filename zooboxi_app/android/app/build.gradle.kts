@@ -17,6 +17,13 @@ val keystoreProperties = Properties().apply {
 }
 val hasUploadKey = keystoreProperties.getProperty("storeFile") != null
 
+// The Maps key lives outside the repo too: android/local.properties
+// (git-ignored) carries googleMapsApiKey. See tool/MAPS.md.
+val mapsApiKey: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.getProperty("googleMapsApiKey") ?: ""
+
 // See the release build type: patches for 1.0.2 (39) must reproduce its Java.
 val legacyR8 = System.getenv("ZB_LEGACY_R8") != null
 
@@ -63,6 +70,7 @@ android {
         // The app ships Arabic and English only; without this, Play would
         // advertise every locale the bundled libraries happen to carry.
         resourceConfigurations += listOf("ar", "en")
+        manifestPlaceholders["googleMapsApiKey"] = mapsApiKey
     }
 
     signingConfigs {

@@ -67,6 +67,30 @@ class PinPlaceCard extends ConsumerWidget {
             subtitle: l.pinPlaceOutOfRange,
           );
         }
+        // The door, when the store could read it: «مبنى 2412 · رقم 412» over
+        // the district, with the national short address a driver can type.
+        final door = result.door;
+        if (door != null && door.hasDoor) {
+          final title = door.building.isNotEmpty && door.street.isNotEmpty
+              ? l.pinDoorTitle(door.building, door.street)
+              : (door.street.isNotEmpty ? door.street : (label ?? l.pinPlaceUnnamed));
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (door.shortAddress.isNotEmpty) ...[
+                NationalAddressChip(code: door.shortAddress),
+                Gap.h8,
+              ],
+              _Line(
+                icon: Icons.place_rounded,
+                title: title,
+                subtitle: label,
+                trailing: _PromiseChip(result: result),
+              ),
+            ],
+          );
+        }
         return _Line(
           icon: Icons.place_rounded,
           title: label ?? l.pinPlaceUnnamed,
@@ -213,6 +237,44 @@ class _PromiseChip extends StatelessWidget {
             style: context.tt.labelSmall?.copyWith(
               color: pair.fg,
               fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// «العنوان الوطني · RANC2412» — the short code any Saudi map or courier app
+/// resolves to the door.
+class NationalAddressChip extends StatelessWidget {
+  const NationalAddressChip({super.key, required this.code, this.filled = false});
+
+  final String code;
+
+  /// The details step says the form was filled from it.
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final bg = context.isDark ? cs.primaryContainer : ZbTokens.tealTintSoft;
+    final fg = context.isDark ? cs.onPrimaryContainer : ZbTokens.tealDeep;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 10, 4),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(ZbTokens.rPill)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(filled ? Icons.check_rounded : Icons.verified_outlined, size: 15, color: fg),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              filled ? l.nationalAddressFilled(code) : l.nationalAddressChip(code),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.tt.labelMedium?.copyWith(color: fg, fontWeight: FontWeight.w800),
             ),
           ),
         ],

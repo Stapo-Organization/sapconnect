@@ -745,9 +745,14 @@ class HomeFeed {
     this.bundles,
     this.needs = NeedsHint.none,
     this.loginNudge = false,
+    this.forPet,
   });
 
   final PersonalSlot personal;
+
+  /// «مختار لـ…» — the best of the store for the animal the page is arranged
+  /// around. The app writes the pet's name over the store's title.
+  final FeedRail? forPet;
   final FeedRail? forYou;
   final FeedRail? inCity;
 
@@ -770,6 +775,7 @@ class HomeFeed {
         bundles: FeedRail.maybe(json['bundles']),
         needs: NeedsHint.fromJson(asMap(json['needs'])),
         loginNudge: asBool(json['login_nudge']),
+        forPet: FeedRail.maybe(json['forpet']),
       );
 }
 

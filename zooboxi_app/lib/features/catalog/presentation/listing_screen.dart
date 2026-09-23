@@ -5,6 +5,7 @@ import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
+import '../../../core/characters/scenes.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/paginated_grid.dart';
 import '../../../l10n/app_localizations.dart';
@@ -162,6 +163,9 @@ class _ListingScreenState extends ConsumerState<ListingScreen> {
           onAction: _query.hasFilters
               ? () => setState(() => _query = _query.cleared())
               : null,
+          // A search that found nothing: the animal points at the words.
+          // Any other empty shelf keeps the peek.
+          scene: (_query.q?.trim().isNotEmpty ?? false) ? SearchScene(query: _query.q) : null,
           mascot: true,
         ),
       ),

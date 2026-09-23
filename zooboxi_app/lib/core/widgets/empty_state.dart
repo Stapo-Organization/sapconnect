@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../app/theme/zb_colors.dart';
 import '../../app/theme/zooboxi_tokens.dart';
-import 'mascot_peek.dart';
+import '../characters/scenes.dart';
 
 /// The illustrated empty state.
 ///
@@ -20,6 +20,8 @@ class EmptyState extends StatelessWidget {
     this.onAction,
     this.compact = false,
     this.mascot = false,
+    this.scene,
+    this.footer,
   });
 
   final IconData icon;
@@ -34,6 +36,13 @@ class EmptyState extends StatelessWidget {
   /// something on them — cart, wishlist, orders, search results. Ignored when
   /// [compact], which has no room for it.
   final bool mascot;
+
+  /// A drawn stage for this screen (`WishlistScene`, `CartScene`…) in place of
+  /// the icon. Takes precedence over [mascot]. Ignored when [compact].
+  final Widget? scene;
+
+  /// What to offer below the message — a way back into the store.
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -87,12 +96,20 @@ class EmptyState extends StatelessWidget {
       ),
     );
 
+    final staged = scene != null && !compact;
+    final peeking = mascot && !compact && !staged;
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        illustration,
-        SizedBox(height: compact ? 14 : 22),
-        Text(title, style: context.tt.titleMedium, textAlign: TextAlign.center),
+        if (staged) ...[scene!, const SizedBox(height: 26)]
+        // A peeking animal already says «nothing here yet»; the icon tile
+        // under it would say it twice.
+        else if (!peeking) ...[illustration, SizedBox(height: compact ? 14 : 22)],
+        Text(
+          title,
+          style: staged ? context.tt.titleLarge?.copyWith(fontWeight: FontWeight.w900) : context.tt.titleMedium,
+          textAlign: TextAlign.center,
+        ),
         Gap.h8,
         Text(
           message,
@@ -114,7 +131,22 @@ class EmptyState extends StatelessWidget {
             .fadeIn(duration: 320.ms, curve: Curves.easeOut)
             .moveY(begin: 12, end: 0, duration: 320.ms, curve: Curves.easeOut);
 
-    if (!mascot || compact) {
+    if (staged) {
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: body),
+              if (footer != null) ...[const SizedBox(height: 28), footer!],
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (!peeking) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -126,12 +158,10 @@ class EmptyState extends StatelessWidget {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: MascotPeek(
-          delay: const Duration(milliseconds: 260),
+        child: PeekOverCard(
           child: Container(
             width: double.infinity,
-            // Extra top padding leaves the illustration clear of the heads.
-            padding: const EdgeInsets.fromLTRB(20, 34, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 30, 20, 22),
             decoration: BoxDecoration(
               color: context.isDark ? cs.surfaceContainerHigh : ZbTokens.creamLogo,
               borderRadius: BorderRadius.circular(ZbTokens.rLg),

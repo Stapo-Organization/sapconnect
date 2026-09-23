@@ -187,10 +187,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the journey walks welcome → location → notifications', (tester) async {
+  testWidgets('the journey walks welcome → household → location → notifications', (tester) async {
     await _pump(tester);
 
     await _tap(tester, 'يلا نبدأ');
+
+    expect(find.text('مين معك في البيت؟'), findsOneWidget);
+    await _tap(tester, 'لاحقًا');
 
     expect(find.text('وين نوصّلك؟'), findsOneWidget);
     expect(find.text('حدد موقعي على الخريطة'), findsOneWidget);
@@ -205,6 +208,48 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the household is picked in taps, named on the sign, and kept for the app', (tester) async {
+    await _pump(tester);
+    await _tap(tester, 'يلا نبدأ');
+
+    await tester.tap(find.text('قطط'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('أضف'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('كلاب'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('التالي · 3 حيوانات'), findsOneWidget);
+    expect(find.text('3 حيوانات كحد أقصى — تقدر تغيّرهم بعدين'), findsOneWidget, reason: 'the ceiling is said, not hit');
+
+    await _tap(tester, 'التالي · 3 حيوانات');
+    expect(find.text('وش اسمه؟'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'مشمش');
+    await tester.pumpAndSettle();
+    expect(find.text('مشمش'), findsWidgets, reason: 'the name is written on the sign as it is typed');
+    await _tap(tester, 'بنت');
+    expect(find.text('وش اسمها؟'), findsOneWidget);
+
+    await _tap(tester, 'تخطّي');
+
+    expect(find.text('وين نوصّلك؟'), findsOneWidget);
+    expect(_store.household.map((m) => m['species']), ['cat', 'cat', 'dog']);
+    expect(_store.household.first['name'], 'مشمش');
+    expect(_store.household.first['sex'], 'f');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('«أتسوّق لغيري» is an answer, not a dead end', (tester) async {
+    await _pump(tester);
+    await _tap(tester, 'يلا نبدأ');
+    await _tap(tester, 'أتسوّق لغيري، أو ما عندي حيوان الحين');
+
+    expect(find.text('وين نوصّلك؟'), findsOneWidget);
+    expect(_store.shopsForOthers, isTrue);
+    expect(_store.household, isEmpty);
+  });
+
   // App Review's rule for a custom message that precedes a permission request
   // (5.1.1(iv)): the message must always lead to the request. So before the
   // OS has an answer the step offers the one button that asks, and the city
@@ -215,6 +260,7 @@ void main() {
 
     await _pump(tester, locationAnswered: false);
     await _tap(tester, 'يلا نبدأ');
+    await _tap(tester, 'لاحقًا');
 
     expect(find.text('حدد موقعي على الخريطة'), findsOneWidget);
     expect(find.text('لاحقًا'), findsNothing, reason: 'no way past the message but the dialog');
@@ -239,6 +285,7 @@ void main() {
 
     await _pump(tester, locationAnswered: false);
     await _tap(tester, 'يلا نبدأ');
+    await _tap(tester, 'لاحقًا');
 
     expect(find.text('افتح الإعدادات'), findsOneWidget);
     expect(find.text('حدد موقعي على الخريطة'), findsNothing);
@@ -251,6 +298,7 @@ void main() {
       (tester) async {
     await _pump(tester);
     await _tap(tester, 'يلا نبدأ');
+    await _tap(tester, 'لاحقًا');
     await _tap(tester, 'لاحقًا');
     await _tap(tester, 'لاحقًا');
 
@@ -269,6 +317,7 @@ void main() {
       await _pump(tester);
       await _tap(tester, 'يلا نبدأ');
       await _tap(tester, 'لاحقًا');
+      await _tap(tester, 'لاحقًا');
       await _tap(tester, 'فعّل الإشعارات');
 
       expect(asked, ['request'], reason: 'asked once, on zb/notify');
@@ -282,6 +331,7 @@ void main() {
       (tester) async {
     await _pump(tester, locationKnown: true);
     await _tap(tester, 'يلا نبدأ');
+    await _tap(tester, 'لاحقًا');
 
     expect(find.text('وصلناك!'), findsOneWidget);
     // The district is said the way it is said out loud: «حي النرجس».
@@ -319,6 +369,16 @@ void main() {
         expect(tester.takeException(), isNull);
 
         await _tap(tester, code == 'ar' ? 'يلا نبدأ' : "Let's go");
+        expect(tester.takeException(), isNull);
+
+        // The household step, with a full family picked, on the small screen.
+        for (final kind in code == 'ar' ? const ['قطط', 'قطط', 'كلاب'] : const ['Cats', 'Cats', 'Dogs']) {
+          await tester.tap(find.text(kind).first);
+          await tester.pumpAndSettle();
+        }
+        expect(tester.takeException(), isNull);
+
+        await _tap(tester, code == 'ar' ? 'لاحقًا' : 'Later');
         expect(tester.takeException(), isNull);
 
         await _tap(tester, code == 'ar' ? 'لاحقًا' : 'Later');

@@ -16,6 +16,24 @@ class LocationRepository {
     return asMapList(asMap(data)['cities']).map(CityEntry.fromJson).toList();
   }
 
+  /// Address search: place suggestions for [query], near the customer. The
+  /// store holds the Google key; [session] groups one search's requests.
+  Future<List<PlaceSuggestion>> search(String query, {double? lat, double? lng, required String session}) async {
+    final data = await _api.get('/location/search', query: {
+      'q': query,
+      'session': session,
+      if (lat != null) 'lat': lat.toStringAsFixed(5),
+      if (lng != null) 'lng': lng.toStringAsFixed(5),
+    });
+    return asMapList(asMap(data)['results']).map(PlaceSuggestion.fromJson).toList();
+  }
+
+  /// Where a suggestion is: its coordinate.
+  Future<({double lat, double lng})> place(String id, {required String session}) async {
+    final data = asMap(asMap(await _api.get('/location/place', query: {'id': id, 'session': session}))['place']);
+    return (lat: asDouble(data['lat']), lng: asDouble(data['lng']));
+  }
+
   Future<ResolveResult> resolve({required double lat, required double lng}) async {
     final data = await _api.post('/location/resolve', body: {'lat': lat, 'lng': lng});
     return ResolveResult.fromJson(asMap(data));

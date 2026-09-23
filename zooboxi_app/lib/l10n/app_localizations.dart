@@ -5718,6 +5718,426 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'سنملؤه قريبًا — جرّب قسمًا آخر'**
   String get aisleEmptyHint;
+
+  /// No description provided for @cartEmptyBowl.
+  ///
+  /// In ar, this message translates to:
+  /// **'الصحن فاضي… والسلة كمان'**
+  String get cartEmptyBowl;
+
+  /// No description provided for @wishlistEmptyFirst.
+  ///
+  /// In ar, this message translates to:
+  /// **'مفضّلتك تنتظر أول قلب'**
+  String get wishlistEmptyFirst;
+
+  /// No description provided for @wishlistEmptyNudge.
+  ///
+  /// In ar, this message translates to:
+  /// **'اضغط ♥ على أي منتج يعجبك، ونحفظه لك هنا لين ترجع له.'**
+  String get wishlistEmptyNudge;
+
+  /// No description provided for @ordersGhostTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبك الأول'**
+  String get ordersGhostTitle;
+
+  /// No description provided for @ordersGhostPlaced.
+  ///
+  /// In ar, this message translates to:
+  /// **'استلمنا طلبك'**
+  String get ordersGhostPlaced;
+
+  /// No description provided for @ordersGhostPacking.
+  ///
+  /// In ar, this message translates to:
+  /// **'نجهّزه'**
+  String get ordersGhostPacking;
+
+  /// No description provided for @ordersGhostOnWay.
+  ///
+  /// In ar, this message translates to:
+  /// **'في الطريق'**
+  String get ordersGhostOnWay;
+
+  /// No description provided for @ordersGhostArrived.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصل'**
+  String get ordersGhostArrived;
+
+  /// No description provided for @errOfflineTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'انقطع الاتصال'**
+  String get errOfflineTitle;
+
+  /// No description provided for @errOfflineBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكد من الإنترنت، ونكمل من حيث وقفت.'**
+  String get errOfflineBody;
+
+  /// No description provided for @expressAsleepTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إكسبريس نايم الحين'**
+  String get expressAsleepTitle;
+
+  /// No description provided for @expressAsleepBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'يصحى {time} · ورف زوبكسي مفتوح لك'**
+  String expressAsleepBody(String time);
+
+  /// No description provided for @homeEndTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصلت لآخر الرف'**
+  String get homeEndTitle;
+
+  /// No description provided for @homeEndBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'شفت كل شي في الصفحة'**
+  String get homeEndBody;
+
+  /// No description provided for @homeEndTop.
+  ///
+  /// In ar, this message translates to:
+  /// **'للأعلى'**
+  String get homeEndTop;
+
+  /// No description provided for @railEndKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصلت لنهاية الرف'**
+  String get railEndKicker;
+
+  /// No description provided for @railEndTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'شوف الكل'**
+  String get railEndTitle;
+
+  /// No description provided for @expressInterludeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوصلك خلال ساعتين'**
+  String get expressInterludeTitle;
+
+  /// No description provided for @expressInterludeBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب من رف إكسبريس، ويوصلك اليوم'**
+  String get expressInterludeBody;
+
+  /// No description provided for @expressInterludeCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوّق إكسبريس'**
+  String get expressInterludeCta;
+
+  /// No description provided for @homeForPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'مختار لـ{name}'**
+  String homeForPet(String name);
+
+  /// No description provided for @shopForLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوّق لـ'**
+  String get shopForLabel;
+
+  /// No description provided for @shopForAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get shopForAll;
+
+  /// No description provided for @homeWelcomeKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'أهلاً {names}'**
+  String homeWelcomeKicker(String names);
+
+  /// No description provided for @homeWelcomeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'رتّبنا الرئيسية على مقاس {name}'**
+  String homeWelcomeTitle(String name);
+
+  /// No description provided for @homeWelcomeSwitch.
+  ///
+  /// In ar, this message translates to:
+  /// **'بدّل بينهم من «تسوّق لـ» فوق'**
+  String get homeWelcomeSwitch;
+
+  /// No description provided for @homeWelcomeSingle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أقسامه أولاً، والأكل اللي يناسبه'**
+  String get homeWelcomeSingle;
+
+  /// No description provided for @onbPetsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مين معك في البيت؟'**
+  String get onbPetsTitle;
+
+  /// No description provided for @onbPetsBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر كل اللي عندك، ونرتّب لك التطبيق على مقاسهم'**
+  String get onbPetsBody;
+
+  /// No description provided for @onbPetsCats.
+  ///
+  /// In ar, this message translates to:
+  /// **'قطط'**
+  String get onbPetsCats;
+
+  /// No description provided for @onbPetsDogs.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلاب'**
+  String get onbPetsDogs;
+
+  /// No description provided for @onbPetsBirds.
+  ///
+  /// In ar, this message translates to:
+  /// **'طيور'**
+  String get onbPetsBirds;
+
+  /// No description provided for @onbPetsFish.
+  ///
+  /// In ar, this message translates to:
+  /// **'أسماك'**
+  String get onbPetsFish;
+
+  /// No description provided for @onbPetsSmall.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرانب وقوارض'**
+  String get onbPetsSmall;
+
+  /// No description provided for @onbPetsReptiles.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلاحف وزواحف'**
+  String get onbPetsReptiles;
+
+  /// No description provided for @onbPetsForOthers.
+  ///
+  /// In ar, this message translates to:
+  /// **'أتسوّق لغيري، أو ما عندي حيوان الحين'**
+  String get onbPetsForOthers;
+
+  /// No description provided for @onbPetsMax.
+  ///
+  /// In ar, this message translates to:
+  /// **'{max} حيوانات كحد أقصى — تقدر تغيّرهم بعدين'**
+  String onbPetsMax(String max);
+
+  /// No description provided for @onbPetsNext.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{التالي · حيوان واحد} =2{التالي · حيوانان} few{التالي · {count} حيوانات} other{التالي · {count} حيوان}}'**
+  String onbPetsNext(int count);
+
+  /// No description provided for @onbPetsNameHe.
+  ///
+  /// In ar, this message translates to:
+  /// **'وش اسمه؟'**
+  String get onbPetsNameHe;
+
+  /// No description provided for @onbPetsNameShe.
+  ///
+  /// In ar, this message translates to:
+  /// **'وش اسمها؟'**
+  String get onbPetsNameShe;
+
+  /// No description provided for @onbPetsNameBoy.
+  ///
+  /// In ar, this message translates to:
+  /// **'وش اسمه؟'**
+  String get onbPetsNameBoy;
+
+  /// No description provided for @onbPetsNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتب الاسم'**
+  String get onbPetsNameHint;
+
+  /// No description provided for @onbPetsSexQuestion.
+  ///
+  /// In ar, this message translates to:
+  /// **'ولد ولا بنت؟'**
+  String get onbPetsSexQuestion;
+
+  /// No description provided for @onbPetsOptional.
+  ///
+  /// In ar, this message translates to:
+  /// **'(اختياري)'**
+  String get onbPetsOptional;
+
+  /// No description provided for @onbPetsBoy.
+  ///
+  /// In ar, this message translates to:
+  /// **'ولد'**
+  String get onbPetsBoy;
+
+  /// No description provided for @onbPetsGirl.
+  ///
+  /// In ar, this message translates to:
+  /// **'بنت'**
+  String get onbPetsGirl;
+
+  /// No description provided for @onbPetsDone.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم'**
+  String get onbPetsDone;
+
+  /// No description provided for @onbPetsSkip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تخطّي'**
+  String get onbPetsSkip;
+
+  /// No description provided for @onbPetsAdd.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف'**
+  String get onbPetsAdd;
+
+  /// No description provided for @onbPetsRemove.
+  ///
+  /// In ar, this message translates to:
+  /// **'شيل'**
+  String get onbPetsRemove;
+
+  /// No description provided for @weightNudgeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كم وزن {name}؟'**
+  String weightNudgeTitle(String name);
+
+  /// No description provided for @weightNudgeBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'منه نحسب أكله اليومي، ونذكّرك قبل ما يخلص كيسه'**
+  String get weightNudgeBody;
+
+  /// No description provided for @weightNudgeCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف الوزن'**
+  String get weightNudgeCta;
+
+  /// No description provided for @weightSheetSave.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ الوزن'**
+  String get weightSheetSave;
+
+  /// No description provided for @weightSheetLater.
+  ///
+  /// In ar, this message translates to:
+  /// **'ما أعرف الحين'**
+  String get weightSheetLater;
+
+  /// No description provided for @weightSheetSlider.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوزن بالكيلو'**
+  String get weightSheetSlider;
+
+  /// No description provided for @householdInviteBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرّفنا عليهم بلمسة، ونرتّب لك التطبيق على مقاسهم'**
+  String get householdInviteBody;
+
+  /// No description provided for @householdInviteCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرّفنا عليهم'**
+  String get householdInviteCta;
+
+  /// No description provided for @householdInviteDismiss.
+  ///
+  /// In ar, this message translates to:
+  /// **'ليس الآن'**
+  String get householdInviteDismiss;
+
+  /// No description provided for @pinDoorTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مبنى {building} · {street}'**
+  String pinDoorTitle(String building, String street);
+
+  /// No description provided for @nationalAddressChip.
+  ///
+  /// In ar, this message translates to:
+  /// **'العنوان الوطني · {code}'**
+  String nationalAddressChip(String code);
+
+  /// No description provided for @nationalAddressFilled.
+  ///
+  /// In ar, this message translates to:
+  /// **'العنوان الوطني · {code} — عبّيناه لك'**
+  String nationalAddressFilled(String code);
+
+  /// No description provided for @addressSearchHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابحث عن حي، شارع أو مكان'**
+  String get addressSearchHint;
+
+  /// No description provided for @addressSearchUseLocation.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدم موقعي الحالي'**
+  String get addressSearchUseLocation;
+
+  /// No description provided for @addressSearchSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'عناويني'**
+  String get addressSearchSaved;
+
+  /// No description provided for @addressSearchResults.
+  ///
+  /// In ar, this message translates to:
+  /// **'نتائج البحث'**
+  String get addressSearchResults;
+
+  /// No description provided for @addressSearchEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'ما لقينا مكان بهالاسم — جرّب اسم الحي أو الشارع'**
+  String get addressSearchEmpty;
+
+  /// No description provided for @addressSearchFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر البحث الحين، حرّك الخريطة بيدك'**
+  String get addressSearchFailed;
+
+  /// No description provided for @distanceKm.
+  ///
+  /// In ar, this message translates to:
+  /// **'{value} كم'**
+  String distanceKm(String value);
+
+  /// No description provided for @distanceM.
+  ///
+  /// In ar, this message translates to:
+  /// **'{value} م'**
+  String distanceM(String value);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

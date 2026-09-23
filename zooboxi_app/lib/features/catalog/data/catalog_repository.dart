@@ -8,6 +8,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/network/envelope.dart';
 import '../../../core/providers.dart';
 import '../../../core/session/session_controller.dart';
+import '../../pets/data/household.dart';
 import '../../../core/shelf/shelf_controller.dart';
 import '../../../core/storage/local_store.dart';
 import 'catalog_models.dart';
@@ -88,10 +89,17 @@ class CatalogRepository {
 
   /// `GET /home/feed` — the personal half of the page. [recentIds] are the
   /// products this device has looked at, which is the only signal a guest has.
-  Future<HomeFeed> homeFeed(List<int> recentIds, {required bool authed}) async {
+  ///
+  /// [species] is the animal the app is arranged around («تسوّق لـ», or what a
+  /// guest described at welcome): the needs row follows it, and the store adds
+  /// its «مختار لـ…» rail.
+  Future<HomeFeed> homeFeed(List<int> recentIds, {required bool authed, String? species}) async {
     final data = asMap(await _api.get(
       '/home/feed',
-      query: {if (recentIds.isNotEmpty) 'recent_ids': recentIds.join(',')},
+      query: {
+        if (recentIds.isNotEmpty) 'recent_ids': recentIds.join(','),
+        'species': ?species,
+      },
     ));
     unawaited(_store.setHomeFeedCache(data, authed: authed));
     return HomeFeed.fromJson(data);
@@ -217,6 +225,7 @@ final homeFeedProvider = FutureProvider.autoDispose<HomeFeed>((ref) {
   return ref.watch(catalogRepositoryProvider).homeFeed(
         ref.watch(localStoreProvider).recentlyViewed,
         authed: session.$1 == AuthStatus.authenticated,
+        species: ref.watch(householdProvider.select((h) => h.feedSpecies?.key)),
       );
 });
 

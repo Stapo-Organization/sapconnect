@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/session/session_controller.dart';
 
 import '../core/analytics/events_buffer.dart';
+import '../features/pets/data/household.dart';
+import '../features/pets/presentation/widgets/pet_card.dart' show speciesLabel;
 import '../l10n/app_localizations.dart';
 import 'router.dart';
 import 'settings/app_settings.dart';
@@ -27,6 +29,13 @@ class _ZooboxiAppState extends ConsumerState<ZooboxiApp> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _signalOpen();
+    // The household a guest described becomes pets on their account the
+    // moment they have one — at sign-in, or at the next launch if that failed.
+    ref.listenManual<bool>(isAuthenticatedProvider, (previous, authed) {
+      if (!authed || previous == true) return;
+      final l = lookupL(ref.read(appSettingsProvider).effectiveLocale);
+      ref.read(householdProvider.notifier).adoptGuestHousehold(unnamed: (s) => speciesLabel(l, s));
+    }, fireImmediately: true);
   }
 
   void _signalOpen() {

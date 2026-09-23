@@ -3667,4 +3667,250 @@ class LAr extends L {
 
   @override
   String get aisleEmptyHint => 'سنملؤه قريبًا — جرّب قسمًا آخر';
+
+  @override
+  String get cartEmptyBowl => 'الصحن فاضي… والسلة كمان';
+
+  @override
+  String get wishlistEmptyFirst => 'مفضّلتك تنتظر أول قلب';
+
+  @override
+  String get wishlistEmptyNudge =>
+      'اضغط ♥ على أي منتج يعجبك، ونحفظه لك هنا لين ترجع له.';
+
+  @override
+  String get ordersGhostTitle => 'طلبك الأول';
+
+  @override
+  String get ordersGhostPlaced => 'استلمنا طلبك';
+
+  @override
+  String get ordersGhostPacking => 'نجهّزه';
+
+  @override
+  String get ordersGhostOnWay => 'في الطريق';
+
+  @override
+  String get ordersGhostArrived => 'وصل';
+
+  @override
+  String get errOfflineTitle => 'انقطع الاتصال';
+
+  @override
+  String get errOfflineBody => 'تأكد من الإنترنت، ونكمل من حيث وقفت.';
+
+  @override
+  String get expressAsleepTitle => 'إكسبريس نايم الحين';
+
+  @override
+  String expressAsleepBody(String time) {
+    return 'يصحى $time · ورف زوبكسي مفتوح لك';
+  }
+
+  @override
+  String get homeEndTitle => 'وصلت لآخر الرف';
+
+  @override
+  String get homeEndBody => 'شفت كل شي في الصفحة';
+
+  @override
+  String get homeEndTop => 'للأعلى';
+
+  @override
+  String get railEndKicker => 'وصلت لنهاية الرف';
+
+  @override
+  String get railEndTitle => 'شوف الكل';
+
+  @override
+  String get expressInterludeTitle => 'يوصلك خلال ساعتين';
+
+  @override
+  String get expressInterludeBody => 'اطلب من رف إكسبريس، ويوصلك اليوم';
+
+  @override
+  String get expressInterludeCta => 'تسوّق إكسبريس';
+
+  @override
+  String homeForPet(String name) {
+    return 'مختار لـ$name';
+  }
+
+  @override
+  String get shopForLabel => 'تسوّق لـ';
+
+  @override
+  String get shopForAll => 'الكل';
+
+  @override
+  String homeWelcomeKicker(String names) {
+    return 'أهلاً $names';
+  }
+
+  @override
+  String homeWelcomeTitle(String name) {
+    return 'رتّبنا الرئيسية على مقاس $name';
+  }
+
+  @override
+  String get homeWelcomeSwitch => 'بدّل بينهم من «تسوّق لـ» فوق';
+
+  @override
+  String get homeWelcomeSingle => 'أقسامه أولاً، والأكل اللي يناسبه';
+
+  @override
+  String get onbPetsTitle => 'مين معك في البيت؟';
+
+  @override
+  String get onbPetsBody => 'اختر كل اللي عندك، ونرتّب لك التطبيق على مقاسهم';
+
+  @override
+  String get onbPetsCats => 'قطط';
+
+  @override
+  String get onbPetsDogs => 'كلاب';
+
+  @override
+  String get onbPetsBirds => 'طيور';
+
+  @override
+  String get onbPetsFish => 'أسماك';
+
+  @override
+  String get onbPetsSmall => 'أرانب وقوارض';
+
+  @override
+  String get onbPetsReptiles => 'سلاحف وزواحف';
+
+  @override
+  String get onbPetsForOthers => 'أتسوّق لغيري، أو ما عندي حيوان الحين';
+
+  @override
+  String onbPetsMax(String max) {
+    return '$max حيوانات كحد أقصى — تقدر تغيّرهم بعدين';
+  }
+
+  @override
+  String onbPetsNext(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'التالي · $count حيوان',
+      few: 'التالي · $count حيوانات',
+      two: 'التالي · حيوانان',
+      one: 'التالي · حيوان واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onbPetsNameHe => 'وش اسمه؟';
+
+  @override
+  String get onbPetsNameShe => 'وش اسمها؟';
+
+  @override
+  String get onbPetsNameBoy => 'وش اسمه؟';
+
+  @override
+  String get onbPetsNameHint => 'اكتب الاسم';
+
+  @override
+  String get onbPetsSexQuestion => 'ولد ولا بنت؟';
+
+  @override
+  String get onbPetsOptional => '(اختياري)';
+
+  @override
+  String get onbPetsBoy => 'ولد';
+
+  @override
+  String get onbPetsGirl => 'بنت';
+
+  @override
+  String get onbPetsDone => 'تم';
+
+  @override
+  String get onbPetsSkip => 'تخطّي';
+
+  @override
+  String get onbPetsAdd => 'أضف';
+
+  @override
+  String get onbPetsRemove => 'شيل';
+
+  @override
+  String weightNudgeTitle(String name) {
+    return 'كم وزن $name؟';
+  }
+
+  @override
+  String get weightNudgeBody =>
+      'منه نحسب أكله اليومي، ونذكّرك قبل ما يخلص كيسه';
+
+  @override
+  String get weightNudgeCta => 'أضف الوزن';
+
+  @override
+  String get weightSheetSave => 'حفظ الوزن';
+
+  @override
+  String get weightSheetLater => 'ما أعرف الحين';
+
+  @override
+  String get weightSheetSlider => 'الوزن بالكيلو';
+
+  @override
+  String get householdInviteBody =>
+      'عرّفنا عليهم بلمسة، ونرتّب لك التطبيق على مقاسهم';
+
+  @override
+  String get householdInviteCta => 'عرّفنا عليهم';
+
+  @override
+  String get householdInviteDismiss => 'ليس الآن';
+
+  @override
+  String pinDoorTitle(String building, String street) {
+    return 'مبنى $building · $street';
+  }
+
+  @override
+  String nationalAddressChip(String code) {
+    return 'العنوان الوطني · $code';
+  }
+
+  @override
+  String nationalAddressFilled(String code) {
+    return 'العنوان الوطني · $code — عبّيناه لك';
+  }
+
+  @override
+  String get addressSearchHint => 'ابحث عن حي، شارع أو مكان';
+
+  @override
+  String get addressSearchUseLocation => 'استخدم موقعي الحالي';
+
+  @override
+  String get addressSearchSaved => 'عناويني';
+
+  @override
+  String get addressSearchResults => 'نتائج البحث';
+
+  @override
+  String get addressSearchEmpty =>
+      'ما لقينا مكان بهالاسم — جرّب اسم الحي أو الشارع';
+
+  @override
+  String get addressSearchFailed => 'تعذّر البحث الحين، حرّك الخريطة بيدك';
+
+  @override
+  String distanceKm(String value) {
+    return '$value كم';
+  }
+
+  @override
+  String distanceM(String value) {
+    return '$value م';
+  }
 }

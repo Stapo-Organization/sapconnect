@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/async_view.dart';
+import '../../../core/characters/scenes.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/product_card.dart';
 import '../../../core/widgets/product_card_metrics.dart';
@@ -67,11 +68,11 @@ class _List extends ConsumerWidget {
           if (visible.isEmpty) {
             return EmptyState(
               icon: Icons.favorite_border_rounded,
-              title: l.wishlistEmpty,
-              message: l.wishlistEmptyHint,
+              title: l.wishlistEmptyFirst,
+              message: l.wishlistEmptyNudge,
               actionLabel: l.cartStartShopping,
               onAction: () => context.go('/home'),
-              mascot: true,
+              scene: const WishlistScene(),
             );
           }
           return GridView.builder(

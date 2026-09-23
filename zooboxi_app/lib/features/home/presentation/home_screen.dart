@@ -8,12 +8,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/characters/characters.dart';
+import '../../../core/characters/companion.dart';
+import '../../../core/delivery/delivery_eta.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/bundle_card.dart';
 import '../../../core/widgets/product_grid_sliver.dart';
 import '../../../core/widgets/rail.dart';
+import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../cart/data/cart_controller.dart';
@@ -31,11 +35,18 @@ import '../../../core/notifications/local_notify.dart';
 import '../../../core/notifications/push_service.dart';
 import '../../loyalty/data/loyalty_models.dart';
 import '../../loyalty/data/loyalty_repository.dart';
+import '../../pets/data/household.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/address_nav_bar.dart';
 import 'widgets/animal_nav.dart';
 import 'widgets/brand_strip.dart';
 import 'widgets/campaign_banner.dart';
+import 'widgets/express_asleep_band.dart';
+import 'widgets/express_interlude.dart';
+import 'widgets/household_invite.dart';
+import 'widgets/household_welcome.dart';
+import 'widgets/shop_for_bar.dart';
+import 'widgets/weight_nudge.dart';
 import 'widgets/express_band.dart';
 import 'widgets/express_cards/animal_pills.dart';
 import 'widgets/express_cards/arrivals_wall.dart';
@@ -407,7 +418,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ref.invalidate(homeFeedProvider);
           await ref.read(homeProvider.future);
         },
-        child: CustomScrollView(
+        child: ShelfLook(
+          endCard: true,
+          child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             if (canvas) ...[
@@ -458,10 +471,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             // it. Scaffold folds the bar's height into the bottom padding —
             // reading it here means the gap is right on every device and stays
             // right if the bar ever changes size.
+            if (payload != null && !payload.isEmpty)
+              const SliverToBoxAdapter(child: RepaintBoundary(child: _EndOfShelf())),
             SliverToBoxAdapter(
               child: SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -622,7 +638,96 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         );
 
+    // «تسوّق لـ» heads the page for a family of two or more, and the first
+    // home after «مين معك في البيت؟» says what the answer changed.
+    final household = ref.watch(householdProvider);
+    if (household.members.length > 1) emit(const ShopForBar(), top: 4, bottom: 8);
+    if (HouseholdWelcome.owed(ref)) emit(const HouseholdWelcome(), bottom: 20);
+
+    // After hours an إكسبريس request is served as زوبكسي. Say so once, at the
+    // top, instead of letting the shop change under the customer unannounced.
+    final expressHours = payload.scope?.expressHours;
+    if (expressHours != null &&
+        ExpressAsleepBand.applies(askedExpress: ref.watch(shelfProvider) == Shelf.express, scope: payload.scope)) {
+      emit(ExpressAsleepBand(hours: expressHours), top: 4, bottom: 20);
+    }
+
+    // The characters' budget for the page: one animal asleep on the first
+    // shelf, one peeking into the end of a later rail, one interlude between
+    // rails. The rest of the page is products.
+    var napped = false;
+    var peeked = false;
+    // Product shelves passed so far — rails on زوبكسي, grids on إكسبريس.
+    var sections = 0;
+    Widget dress(Widget rail, {required bool seeAll}) {
+      if (!napped) {
+        napped = true;
+        return ShelfLook(endCard: true, nap: true, child: rail);
+      }
+      if (!peeked && seeAll) {
+        peeked = true;
+        return ShelfLook(endCard: true, endPeek: true, child: rail);
+      }
+      return rail;
+    }
+
+    final nowOpen = isExpressOpen(DateTime.now(), payload.scope?.expressHours);
+    final inviteExpress = !express && ref.watch(expressAvailableProvider) && nowOpen;
+    // One interlude per page: finishing a pet's profile outranks the
+    // إكسبريس invitation — it is about their animal, not our storefront.
+    final weightPet = WeightNudge.candidate(ref);
+    final askHousehold = HouseholdInvite.owed(ref);
+    var invited = false;
+    void interlude() {
+      if (invited || sections < 2) return;
+      // Knowing who is at home is what arranges everything else — it goes first.
+      if (askHousehold) {
+        invited = true;
+        emit(const HouseholdInvite());
+        return;
+      }
+      if (weightPet != null) {
+        invited = true;
+        emit(WeightNudge(pet: weightPet));
+        return;
+      }
+      if (!inviteExpress) return;
+      invited = true;
+      emit(const ExpressInterlude());
+    }
+
+    // «مختار لـ…» leads the products: the best of the store for the animal the
+    // page is arranged around, and it is the shelf the animal naps on.
+    var forPetShown = false;
+    void forPet() {
+      if (forPetShown) return;
+      forPetShown = true;
+      final rail = feedData?.forPet;
+      if (rail == null) return;
+      final products = claim(rail.products);
+      if (products == null) return;
+      final focus = household.feedSpecies == null ? null : household.focus;
+      emit(
+        dress(
+          ProductRailView(
+            title: focus != null && focus.name.isNotEmpty ? l.homeForPet(focus.name) : rail.title,
+            products: products,
+            zone: 'forpet',
+            onAdd: add,
+          ),
+          seeAll: false,
+        ),
+      );
+    }
+
     for (final slot in payload.slots) {
+      final shelf = slot.type == 'grid' || slot.type == 'rail';
+      // «مختار لـ…» opens the product shelves (after the deals and the
+      // customer's own reorders, which lead the page on purpose).
+      if (shelf) forPet();
+      // The one interlude lands after the second shelf.
+      interlude();
+      if (shelf) sections += 1;
       switch (slot.type) {
         // The hero fused with the header at the very top of the scroll view —
         // its slot in the layout only decides *whether* it exists, never where:
@@ -810,17 +915,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           final products = claim(rail.products);
           if (products == null) break;
           emit(
-            ProductRailView(
-              title: rail.title,
-              products: products,
-              zone: rail.key,
-              onAdd: add,
-              onSeeAll: () => context.push(
-                Uri(
-                  path: '/listing',
-                  queryParameters: {'rail': rail.key, 'title': rail.title},
-                ).toString(),
+            dress(
+              ProductRailView(
+                title: rail.title,
+                products: products,
+                zone: rail.key,
+                onAdd: add,
+                onSeeAll: () => context.push(
+                  Uri(
+                    path: '/listing',
+                    queryParameters: {'rail': rail.key, 'title': rail.title},
+                  ).toString(),
+                ),
               ),
+              seeAll: true,
             ),
           );
 
@@ -1115,6 +1223,68 @@ class _HomeSkeleton extends StatelessWidget {
         Gap.h24,
         const SkeletonRail(),
       ],
+    );
+  }
+}
+
+/// The bottom of the page: the animal asleep on its cushion, «وصلت لآخر الرف»,
+/// and the way back up. A feed that just stops reads as a page that failed to
+/// load the rest.
+class _EndOfShelf extends StatelessWidget {
+  const _EndOfShelf();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 170,
+            height: 92,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.bottomCenter,
+              children: [
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: 140,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      color: context.isDark ? cs.surfaceContainerHigh : ZbTokens.tealTint,
+                      borderRadius: const BorderRadius.all(Radius.elliptical(70, 13)),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  bottom: 12,
+                  child: Companion(ZbPose.sleep, fallback: ZbCast.dog, height: 74, idle: ZbIdle.sleep, entrance: false),
+                ),
+              ],
+            ),
+          ),
+          Gap.h12,
+          Text(l.homeEndTitle, style: context.tt.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 2),
+          Text(l.homeEndBody, style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+          Gap.h12,
+          OutlinedButton.icon(
+            onPressed: () {
+              Haptics.selection();
+              Scrollable.of(context).position.animateTo(
+                    0,
+                    duration: context.motion(const Duration(milliseconds: 600)),
+                    curve: Motion.emphasized,
+                  );
+            },
+            icon: const Icon(Icons.arrow_upward_rounded, size: 18),
+            label: Text(l.homeEndTop),
+          ),
+        ],
+      ),
     );
   }
 }

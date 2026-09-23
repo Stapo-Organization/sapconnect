@@ -9,6 +9,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/app_toast.dart';
+import '../../../core/characters/scenes.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/skeleton.dart';
@@ -262,7 +263,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               message: l.ordersEmptyHint,
               actionLabel: l.cartStartShopping,
               onAction: () => context.go('/home'),
-              mascot: true,
+              scene: const OrdersScene(),
             )
           else
             EmptyState(

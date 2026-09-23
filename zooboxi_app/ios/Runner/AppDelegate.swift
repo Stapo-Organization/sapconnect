@@ -1,4 +1,5 @@
 import Flutter
+import GoogleMaps
 import UIKit
 import UserNotifications
 
@@ -8,6 +9,12 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // The delivery map. The key comes from Flutter/Secrets.xcconfig (git-ignored)
+    // through Info.plist, so it never sits in the repo — see tool/MAPS.md.
+    if let key = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
+       !key.isEmpty, !key.hasPrefix("$(") {
+      GMSServices.provideAPIKey(key)
+    }
     UNUserNotificationCenter.current().getNotificationSettings { settings in
       guard settings.authorizationStatus == .authorized
               || settings.authorizationStatus == .provisional else { return }

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/characters/characters.dart';
 import '../../../../core/icons/painters/icon_painter.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../loyalty/presentation/widgets/loyalty_art.dart';
+import '../../data/household.dart';
 import '../../data/pet_models.dart';
 
 /// The coat a species is drawn in, and the wash its portrait sits on.
@@ -125,13 +127,7 @@ class SpeciesAvatar extends StatelessWidget {
               child: ZbImage(url: photo, fit: BoxFit.cover),
             ),
           )
-        : SizedBox.square(
-            dimension: size * 0.80,
-            child: CustomPaint(
-              size: Size.square(size * 0.80),
-              painter: _painter(art, size * 0.80),
-            ),
-          );
+        : _drawn(art);
 
     if (!showWell) return SizedBox.square(dimension: size, child: Center(child: glyph));
 
@@ -160,6 +156,50 @@ class SpeciesAvatar extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
       child: glyph,
+    );
+  }
+
+  /// The character itself, from the same drawn family as the rest of the app:
+  /// in a well, the cat and dog lean in over its rim (the well hides the
+  /// peek's cut edge); without one, and for the one-pose animals, the whole
+  /// animal sits in the square. «Other» keeps its painted face — there is no
+  /// drawing of an animal we cannot name.
+  Widget _drawn(SpeciesArt art) {
+    final cast = castForSpecies(species);
+    if (cast == null) {
+      return SizedBox.square(
+        dimension: size * 0.80,
+        child: CustomPaint(size: Size.square(size * 0.80), painter: _painter(art, size * 0.80)),
+      );
+    }
+    final leans = showWell && (cast == ZbCast.cat || cast == ZbCast.dog);
+    if (leans) {
+      return SizedBox.square(
+        dimension: size,
+        child: OverflowBox(
+          maxWidth: size * 2,
+          maxHeight: size * 2,
+          alignment: Alignment.bottomCenter,
+          child: Transform.translate(
+            offset: Offset(0, size * 0.10),
+            child: ZbSticker.cast(cast, ZbPose.peek, width: size * 1.02, idle: ZbIdle.none, entrance: false),
+          ),
+        ),
+      );
+    }
+    final wide = cast == ZbCast.fish || cast == ZbCast.turtle || cast == ZbCast.budgie;
+    return SizedBox.square(
+      dimension: size,
+      child: Center(
+        child: ZbSticker.cast(
+          cast,
+          ZbPose.sitUp,
+          width: wide ? size * 0.78 : null,
+          height: wide ? null : size * 0.74,
+          idle: ZbIdle.none,
+          entrance: false,
+        ),
+      ),
     );
   }
 

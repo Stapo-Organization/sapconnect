@@ -131,6 +131,17 @@ Widget _sheet({required Brightness brightness, required Color background, requir
   );
 }
 
+/// Asset images decode off the fake clock: without this the drawn characters
+/// are blank in the golden.
+Future<void> _decodeImages(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    for (final element in find.byType(Image).evaluate()) {
+      await precacheImage((element.widget as Image).image, element);
+    }
+  });
+  await tester.pump(const Duration(milliseconds: 100));
+}
+
 void main() {
   testWidgets('family art sheet', (tester) async {
     tester.view.physicalSize = const Size(1400, 1300);
@@ -154,6 +165,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 1200));
+    await _decodeImages(tester);
 
     await expectLater(
       find.byType(SingleChildScrollView),

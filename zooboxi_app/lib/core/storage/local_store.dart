@@ -19,6 +19,12 @@ class LocalStore {
   static const _kLocation = 'location.current';
   static const _kDriftDismissed = 'location.drift_dismissed';
   static const _kPendingAddress = 'address.pending';
+  static const _kHousehold = 'pets.household.v1';
+  static const _kShopsForOthers = 'pets.shops_for_others';
+  static const _kShoppingFor = 'pets.shopping_for';
+  static const _kHouseholdWelcomed = 'pets.welcomed';
+  static const _kWeightNudgePrefix = 'pets.weight_nudge.';
+  static const _kHouseholdInvite = 'pets.invite_dismissed';
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
   static const _kHomeCache = 'catalog.home_cache';
@@ -184,6 +190,57 @@ class LocalStore {
       return null;
     }
   }
+
+  // ── «مين معك في البيت؟» ─────────────────────────────────────────────
+
+  /// A guest's household as they described it in the welcome journey — the
+  /// animals, by species, with whatever names they gave. Created on the
+  /// server at sign-in, then cleared.
+  List<Map<String, dynamic>> get household {
+    final raw = _prefs.getString(_kHousehold);
+    if (raw == null) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return [for (final m in decoded) if (m is Map) Map<String, dynamic>.from(m)];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> setHousehold(List<Map<String, dynamic>> members) =>
+      members.isEmpty ? _prefs.remove(_kHousehold) : _prefs.setString(_kHousehold, jsonEncode(members));
+
+  /// «أتسوّق لغيري» — shopping for someone else's animal, or none at home yet.
+  bool get shopsForOthers => _prefs.getBool(_kShopsForOthers) ?? false;
+  Future<void> setShopsForOthers(bool value) => _prefs.setBool(_kShopsForOthers, value);
+
+  /// Which animal the store is arranged for («تسوّق لـ»): a member key, or
+  /// null for all of them.
+  String? get shoppingFor => _prefs.getString(_kShoppingFor);
+  Future<void> setShoppingFor(String? key) =>
+      key == null ? _prefs.remove(_kShoppingFor) : _prefs.setString(_kShoppingFor, key);
+
+  /// «ما أعرف الحين» on a pet's weight: when it was said, so the ask rests.
+  DateTime? weightNudgeDismissed(int petId) {
+    final ms = _prefs.getInt('$_kWeightNudgePrefix$petId');
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> dismissWeightNudge(int petId) =>
+      _prefs.setInt('$_kWeightNudgePrefix$petId', DateTime.now().millisecondsSinceEpoch);
+
+  /// «ليس الآن» on the home's «مين معك في البيت؟» card.
+  DateTime? get householdInviteDismissed {
+    final ms = _prefs.getInt(_kHouseholdInvite);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> dismissHouseholdInvite() => _prefs.setInt(_kHouseholdInvite, DateTime.now().millisecondsSinceEpoch);
+
+  /// The one-time «رتّبنا الرئيسية على مقاس…» card has been seen.
+  bool get householdWelcomed => _prefs.getBool(_kHouseholdWelcomed) ?? false;
+  Future<void> setHouseholdWelcomed() => _prefs.setBool(_kHouseholdWelcomed, true);
 
   // ── Analytics batch (survives a cold kill) ───────────────────────────
 

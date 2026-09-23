@@ -28,6 +28,14 @@ import '../../account/data/addresses_controller.dart';
 import '../../account/presentation/address_editor_screen.dart';
 import '../../location/data/location_models.dart';
 import '../../location/presentation/widgets/city_picker.dart';
+import '../../../core/characters/characters.dart';
+import '../../../core/characters/companion.dart';
+import '../../../core/utils/formatters.dart';
+import '../../pets/data/household.dart';
+import '../../pets/data/pet_models.dart';
+import '../../pets/presentation/widgets/pet_card.dart' show speciesLabel;
+
+part 'household_step.dart';
 
 /// رحلة الترحيب — the first-run journey: language, where we deliver, and
 /// whether we may tell them their order moved.
@@ -44,7 +52,11 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with WidgetsBindingObserver {
-  static const int _stepCount = 3;
+  static const int _stepCount = 4;
+
+  /// The household step is two pages in one; while it asks for names the top
+  /// bar's back returns to the picker.
+  final ValueNotifier<bool> _naming = ValueNotifier<bool>(false);
 
   /// How long the "وصلناك!" card stays on screen before the flow moves on —
   /// long enough to read the address we resolved, short enough not to stall.
@@ -82,6 +94,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
     WidgetsBinding.instance.removeObserver(this);
     _advanceTimer?.cancel();
     _pager.dispose();
+    _naming.dispose();
     super.dispose();
   }
 
@@ -158,6 +171,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
 
   void _back() {
     if (_step == 0) return;
+    if (_naming.value) {
+      Haptics.light();
+      _naming.value = false;
+      return;
+    }
     _advanceTimer?.cancel();
     Haptics.light();
     setState(() => _step -= 1);
@@ -166,6 +184,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
     } else {
       unawaited(_pager.animateToPage(_step, duration: Motion.enter, curve: Motion.emphasized));
     }
+  }
+
+  /// «مين معك في البيت؟» answered: the household the whole app is arranged
+  /// around. Saved before moving on — the next screens already draw it.
+  Future<void> _describeHousehold(List<HouseholdMember> members, {bool shopsForOthers = false}) async {
+    final l = L.of(context);
+    await ref
+        .read(householdProvider.notifier)
+        .describe(members, shopsForOthers: shopsForOthers, unnamed: (s) => speciesLabel(l, s));
+    if (!mounted) return;
+    _naming.value = false;
+    _next();
   }
 
   Future<void> _finish() async {
@@ -326,6 +356,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> with Widget
         selected: ref.watch(appSettingsProvider).effectiveLocale.languageCode,
         onPick: (code) => unawaited(_pickLocale(code)),
         onNext: _next,
+      ),
+      _HouseholdStep(
+        naming: _naming,
+        onDone: (members, {shopsForOthers = false}) =>
+            unawaited(_describeHousehold(members, shopsForOthers: shopsForOthers)),
+        onSkip: _next,
       ),
       _LocationStep(
         answered: _locAnswered,

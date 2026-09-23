@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,16 +7,15 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
 import '../../../core/analytics/events_buffer.dart';
-import '../../../core/icons/zb_icons.dart';
+import '../../../core/characters/characters.dart';
+import '../../../core/characters/companion.dart';
 import '../../../core/notifications/notify_permission.dart';
 import '../../../core/notifications/push_service.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../core/motion/motion.dart';
 import '../../../core/utils/haptics.dart';
-import '../../../core/widgets/mascot_peek.dart';
-import '../../../core/widgets/sparkles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../loyalty/data/loyalty_repository.dart';
+import '../../pets/data/household.dart';
 import '../../loyalty/presentation/widgets/loyalty_art.dart';
 import '../../loyalty/presentation/widgets/scratch_card_view.dart';
 import '../../orders/data/orders_repository.dart';
@@ -143,7 +141,7 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                 children: [
-                  const Center(child: _SuccessMark()),
+                  const Center(child: _Celebration()),
                   Gap.h24,
                   Text(
                     l.successTitle,
@@ -176,15 +174,9 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                     ),
                     Gap.h24,
                   ],
-                  // The receipt block is a card so the mascots have an edge to
-                  // peek over — the screen had no card of its own.
-                  MascotPeek(
-                    widthFactor: 0.70,
-                    maxWidth: 280,
-                    delay: const Duration(milliseconds: 520),
-                    child: Container(
+                  Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(16, 32, 16, 18),
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
                       decoration: BoxDecoration(
                         color: context.isDark
                             ? cs.surfaceContainerLow
@@ -216,7 +208,6 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
                         ],
                       ),
                     ),
-                  ),
                   if (_offerNotify) ...[
                     Gap.h16,
                     _NotifyCard(busy: _asking, onAsk: () => unawaited(_askNotify())),
@@ -322,148 +313,6 @@ class _NotifyCard extends StatelessWidget {
   }
 }
 
-/// The order, packed and then confirmed.
-///
-/// The check is not the first thing that happens: the box closes its lid
-/// first. That is the actual event — the order was *packed* — and it buys the
-/// confirmation a beat of anticipation instead of a mark that is simply
-/// already there. The check, the paw and the confetti follow it.
-class _SuccessMark extends StatefulWidget {
-  const _SuccessMark();
-
-  @override
-  State<_SuccessMark> createState() => _SuccessMarkState();
-}
-
-class _SuccessMarkState extends State<_SuccessMark>
-    with SingleTickerProviderStateMixin {
-  /// The whole sequence: 700ms of packing, then the confirmation.
-  static const Duration _total = Duration(milliseconds: 1400);
-
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: _total,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (context.reduceMotion) {
-        _c.value = 1;
-      } else {
-        _c.forward();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  double _seg(double t, double from, double to) =>
-      ((t - from) / (to - from)).clamp(0.0, 1.0);
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = context.cs;
-    final zb = context.zb;
-    final still = context.reduceMotion;
-
-    final mark = Container(
-      width: 104,
-      height: 104,
-      decoration: BoxDecoration(
-        gradient: zb.brandGradient,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: cs.primary.withValues(alpha: 0.32),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: const Icon(Icons.check_rounded, size: 54, color: Colors.white),
-    );
-
-    final paw = Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: cs.surface,
-        shape: BoxShape.circle,
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: ZbIcon(ZbIconKind.paw, size: 21, fill: 1, ink: zb.sale),
-    );
-
-    return SizedBox(
-      width: _burstSide,
-      height: _burstSide,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, _) {
-          final t = still ? 1.0 : _c.value;
-
-          final lid = 1 - Curves.easeOutBack.transform(_seg(t, 0, 0.5));
-          // A short settle as the flaps meet — the box lands its own lid.
-          final land = math.sin(math.pi * _seg(t, 0.42, 0.58));
-          final boxOpacity = 1 - _seg(t, 0.56, 0.64);
-
-          final appear = _seg(t, 0.5, 0.8);
-          final checkScale = 0.6 + 0.4 * Curves.easeOutBack.transform(appear);
-          final pawIn = _seg(t, 0.73, 0.95);
-
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              const SparkleField(sparkles: _successSparkles, twinkle: true),
-              if (boxOpacity > 0)
-                Opacity(
-                  opacity: boxOpacity.clamp(0.0, 1.0),
-                  child: Transform(
-                    alignment: Alignment.bottomCenter,
-                    transform: Matrix4.diagonal3Values(
-                      1 + 0.06 * land,
-                      1 - 0.08 * land,
-                      1,
-                    ),
-                    child: ZbIcon(
-                      ZbIconKind.cart,
-                      size: 120,
-                      fill: 1,
-                      lidOpen: lid.clamp(0.0, 1.0),
-                      smile: 1,
-                    ),
-                  ),
-                ),
-              Opacity(
-                opacity: _seg(t, 0.5, 0.67),
-                child: Transform.scale(scale: checkScale, child: mark),
-              ),
-              PositionedDirectional(
-                bottom: (_burstSide - 116) / 2 + 2,
-                end: (_burstSide - 120) / 2 + 2,
-                child: Opacity(
-                  opacity: pawIn,
-                  child: Transform.translate(
-                    offset: Offset(0, 10 * (1 - Curves.easeOut.transform(pawIn))),
-                    child: paw,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
 class _OrderChip extends StatelessWidget {
   const _OrderChip({required this.number, required this.total});
 
@@ -508,21 +357,6 @@ class _OrderChip extends StatelessWidget {
   }
 }
 
-/// The check circle plus its confetti halo. Bigger than the mark so the
-/// sparkles orbit it instead of landing on it.
-const double _burstSide = 190;
-
-const List<SparkleSpec> _successSparkles = [
-  SparkleSpec(dx: 0.10, dy: 0.26, size: 14, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 780)),
-  SparkleSpec(dx: 0.50, dy: 0.04, size: 11, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 850), rotation: 0.4),
-  SparkleSpec(dx: 0.90, dy: 0.20, size: 18, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 920)),
-  SparkleSpec(dx: 0.04, dy: 0.66, size: 9, color: ZbTokens.logoTeal, delay: Duration(milliseconds: 990)),
-  SparkleSpec(dx: 0.96, dy: 0.62, size: 12, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 1050), rotation: 0.3),
-  SparkleSpec(dx: 0.24, dy: 0.94, size: 20, color: ZbTokens.logoCoral, delay: Duration(milliseconds: 1120)),
-  SparkleSpec(dx: 0.74, dy: 0.96, size: 10, color: ZbTokens.sparkAmber, delay: Duration(milliseconds: 1180)),
-];
-
-/// «X بصمة تُضاف عند التسليم» — with the coin, on the cream ground.
 class _DeliveryNote extends StatelessWidget {
   const _DeliveryNote({required this.paws, required this.withMission, this.subscription = false});
 
@@ -567,6 +401,54 @@ class _DeliveryNote extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The order is in: the family celebrates. The customer's own animals when we
+/// know them (two at most), otherwise the logo's pair, the cat and the dog,
+/// under a burst of confetti drawn in the same hand.
+class _Celebration extends ConsumerWidget {
+  const _Celebration();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final household = ref.watch(householdProvider);
+    final cast = <ZbCast>[
+      for (final species in household.species) ?castForSpecies(species),
+    ].take(2).toList();
+    if (cast.isEmpty) cast.addAll(const [ZbCast.dog, ZbCast.cat]);
+
+    return SizedBox(
+      width: 300,
+      height: 250,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(top: 0, child: ZbSticker.prop(ZbProp.confetti, width: 270)),
+          const Positioned(bottom: -8, child: ZbGround(width: 240, height: 22)),
+          if (cast.length == 2) ...[
+            PositionedDirectional(
+              bottom: 0,
+              start: 38,
+              child: Companion(ZbPose.celebrate, cast: cast[0], height: 200, idle: ZbIdle.hop,
+                  delay: const Duration(milliseconds: 180)),
+            ),
+            PositionedDirectional(
+              bottom: 0,
+              end: 38,
+              child: Companion(ZbPose.celebrate, cast: cast[1], height: 190,
+                  delay: const Duration(milliseconds: 300)),
+            ),
+          ] else
+            Positioned(
+              bottom: 0,
+              child: Companion(ZbPose.celebrate, cast: cast[0], height: 206, idle: ZbIdle.hop,
+                  delay: const Duration(milliseconds: 180)),
+            ),
         ],
       ),
     );

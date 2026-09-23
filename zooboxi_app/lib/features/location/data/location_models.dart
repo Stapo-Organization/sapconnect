@@ -79,10 +79,15 @@ class ResolveResult {
     this.options = const [],
     this.pickupPoints = const [],
     this.best,
+    this.door,
   });
 
   final String? city;
   final String? district;
+
+  /// The door itself, when the store could read it: the Saudi national short
+  /// address, building number, street and postal code.
+  final DoorAddress? door;
   final List<DeliveryOption> options;
   final List<DeliveryOption> pickupPoints;
   final DeliveryOption? best;
@@ -118,6 +123,58 @@ class ResolveResult {
               warehouseName: asStringOrNull(bestJson['warehouse_name']),
               etaLabel: asStringOrNull(bestJson['promise_label']),
             ),
+      door: DoorAddress.maybe(json['address']),
     );
   }
+}
+
+/// A door the way a Saudi driver reads one: «RANC2412», building 2412 on
+/// «رقم 412», النرجس 13327.
+@immutable
+class DoorAddress {
+  const DoorAddress({this.shortAddress = '', this.building = '', this.street = '', this.district = '', this.postalCode = ''});
+
+  /// The national short address — four letters, four digits — or empty.
+  final String shortAddress;
+  final String building;
+  final String street;
+  final String district;
+  final String postalCode;
+
+  bool get hasDoor => building.isNotEmpty || street.isNotEmpty;
+
+  static DoorAddress? maybe(dynamic value) {
+    final m = asMap(value);
+    if (m.isEmpty) return null;
+    final door = DoorAddress(
+      shortAddress: asString(m['short_address']),
+      building: asString(m['building']),
+      street: asString(m['street']),
+      district: asString(m['district']),
+      postalCode: asString(m['postal_code']),
+    );
+    return door.hasDoor || door.shortAddress.isNotEmpty ? door : null;
+  }
+}
+
+/// One suggestion from the address search.
+@immutable
+class PlaceSuggestion {
+  const PlaceSuggestion({required this.id, required this.main, this.secondary = '', this.kind = 'place', this.distanceM});
+
+  final String id;
+  final String main;
+  final String secondary;
+
+  /// `area` | `street` | `park` | `food` | `mosque` | `school` | `health` | `place`.
+  final String kind;
+  final int? distanceM;
+
+  factory PlaceSuggestion.fromJson(Map<String, dynamic> json) => PlaceSuggestion(
+        id: asString(json['id']),
+        main: asString(json['main']),
+        secondary: asString(json['secondary']),
+        kind: asString(json['kind'], fallback: 'place'),
+        distanceM: asIntOrNull(json['distance_m']),
+      );
 }

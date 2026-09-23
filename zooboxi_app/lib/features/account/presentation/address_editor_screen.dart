@@ -15,6 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../location/data/location_models.dart';
 import '../../location/data/location_repository.dart';
+import '../../location/presentation/widgets/address_search_sheet.dart';
 import '../../location/presentation/widgets/pin_place_card.dart';
 import '../data/account_models.dart';
 import 'widgets/address_form.dart';
@@ -105,6 +106,10 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
 
   /// The point whose answer has already been written into the form.
   PinPoint? _adopted;
+
+  /// True while the street/building on screen came from the pin (the national
+  /// address) rather than from the customer — only then may a new pin redo them.
+  bool _doorIsAuto = false;
 
   @override
   void initState() {
@@ -201,6 +206,34 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
     _city.text = result.city ?? _city.text;
     _district.text = result.district ?? _district.text;
     _cityIsAuto = true;
+    _adoptDoor(result.door);
+  }
+
+  /// The door, from the national address: the street line carries the short
+  /// address a driver can type into any map («RANC2412 · رقم 412»), the
+  /// building field its number. Only into fields the customer left empty, or
+  /// that an earlier pin filled.
+  void _adoptDoor(DoorAddress? door) {
+    if (door == null) return;
+    final ownLine = !_doorIsAuto && _line.text.trim().isNotEmpty;
+    final ownBuilding = !_doorIsAuto && _building.text.trim().isNotEmpty;
+    final line = [door.shortAddress, door.street].where((s) => s.isNotEmpty).join(' · ');
+    if (!ownLine && line.isNotEmpty) _line.text = line;
+    if (!ownBuilding && door.building.isNotEmpty) _building.text = door.building;
+    _doorIsAuto = true;
+  }
+
+  /// The search over the map: a place to fly to, or the device's own fix.
+  Future<void> _openSearch() async {
+    Haptics.selection();
+    final pick = await showAddressSearch(context, near: _pinKey.currentState?.value ?? _point);
+    if (!mounted || pick == null) return;
+    switch (pick) {
+      case PickPoint(:final point):
+        await _pinKey.currentState?.moveTo(point);
+      case PickMyLocation():
+        await _pinKey.currentState?.locate();
+    }
   }
 
   void _confirmPin() {
@@ -309,13 +342,13 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
         backgroundColor: _stage == _Stage.pin ? Colors.transparent : null,
         surfaceTintColor: _stage == _Stage.pin ? Colors.transparent : null,
         elevation: 0,
-        title: Text(
-          _stage == _Stage.pin
-              ? l.addressPinTitle
-              : editing
-                  ? l.addressEditTitle
-                  : l.addressNewTitle,
-        ),
+        titleSpacing: _stage == _Stage.pin ? 0 : null,
+        title: _stage == _Stage.pin
+            ? Padding(
+                padding: const EdgeInsetsDirectional.only(end: 16),
+                child: _SearchPill(onTap: _openSearch),
+              )
+            : Text(editing ? l.addressEditTitle : l.addressNewTitle),
       ),
       body: _stage == _Stage.pin
           ? _buildPinStage(context)
@@ -346,7 +379,9 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
               if (!mounted) return;
               setState(() => _point = point);
             },
-            controlsPadding: EdgeInsets.only(bottom: 150 + bottomInset),
+            // The map's centre — and so the pin — sits in the middle of what is
+            // actually visible between the search bar and the address card.
+            controlsPadding: EdgeInsets.only(top: topInset + 40, bottom: 150 + bottomInset),
           ),
         ),
         PositionedDirectional(
@@ -404,6 +439,13 @@ class _AddressEditorScreenState extends ConsumerState<AddressEditorScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
               _MapPreview(point: _point, onTap: _reopenMap),
+              if ((place?.asData?.value.door?.shortAddress ?? '').isNotEmpty) ...[
+                Gap.h12,
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: NationalAddressChip(code: place!.asData!.value.door!.shortAddress, filled: _doorIsAuto),
+                ),
+              ],
               Gap.h20,
               AddressForm(
                 name: _name,
@@ -511,6 +553,53 @@ class _BottomBar extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// The search over the map — the map's own control, not a page before it.
+class _SearchPill extends StatelessWidget {
+  const _SearchPill({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    final l = L.of(context);
+    return Semantics(
+      button: true,
+      label: l.addressSearchHint,
+      excludeSemantics: true,
+      child: PressScale(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(ZbTokens.rLg),
+        child: Container(
+          height: 50,
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(ZbTokens.rLg),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.14), blurRadius: 16, offset: const Offset(0, 6)),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.search_rounded, color: cs.primary, size: 22),
+              Gap.w8,
+              Expanded(
+                child: Text(
+                  l.addressSearchHint,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

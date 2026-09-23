@@ -2,21 +2,21 @@ import 'dart:math' as math;
 import 'package:clock/clock.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
-import '../../../../core/maps/map_tiles.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/haptics.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/live_tracking.dart';
+import 'courier_map.dart';
 import 'courier_search_glyph.dart';
+
+export 'courier_map.dart' show courierDotKey, mapPoints;
 import '../../data/orders_repository.dart';
 
 /// «تتبّع مندوبك» — the live courier panel on the order screen.
@@ -356,59 +356,23 @@ class _CourierMap extends StatefulWidget {
 }
 
 class _CourierMapState extends State<_CourierMap> {
-  final MapController _map = MapController();
-  bool _ready = false;
-
-  @override
-  void dispose() {
-    _map.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant _CourierMap old) {
-    super.didUpdateWidget(old);
-
-    // A courier riding out of the initial frame would otherwise slide off the
-    // preview and never come back.
-    final points = mapPoints(widget.tracking);
-    if (_ready && points.length > 1) {
-      _map.fitCamera(CameraFit.coordinates(
-        coordinates: points,
-        padding: const EdgeInsets.all(46),
-        maxZoom: 15.5,
-      ));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = widget.tracking;
-    final points = mapPoints(t);
-
     return GestureDetector(
       onTap: widget.onOpen,
       child: SizedBox(
         height: 190,
         child: Stack(
           children: [
+            // A still preview: the map is a picture, the tap opens the full one.
             Positioned.fill(
-              child: FlutterMap(
-                mapController: _map,
-                options: MapOptions(
-                  initialCameraFit: CameraFit.coordinates(
-                    coordinates: points,
-                    padding: const EdgeInsets.all(46),
-                    maxZoom: 15.5,
-                  ),
-                  interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
-                  onMapReady: () => _ready = true,
-                ),
-                children: courierMapLayers(context, t),
+              child: IgnorePointer(
+                child: CourierMap(tracking: t, tone: livePhaseColor(context, t.phase)),
               ),
             ),
             // The map is a preview, so it says so rather than inviting a drag
-            // that the disabled interaction would swallow.
+            // that would go nowhere.
             if (widget.onOpen != null)
               PositionedDirectional(
                 end: 10,
@@ -419,211 +383,6 @@ class _CourierMapState extends State<_CourierMap> {
         ),
       ),
     );
-  }
-}
-
-/// Every point worth framing: the courier, the door, and the branch when we
-/// know it.
-/// What the camera has to keep in frame.
-///
-/// A stale courier point is deliberately NOT one of them: framing the map
-/// around a place he left half an hour ago drags the view back to the branch
-/// and squeezes the part of the journey that is still ahead.
-List<LatLng> mapPoints(LiveTracking t) => [
-      if (t.courierIsWhereWeSay) LatLng(t.courier.lat!, t.courier.lng!),
-      if (t.dropoff != null) LatLng(t.dropoff!.lat, t.dropoff!.lng),
-      if (t.pickup != null) LatLng(t.pickup!.lat, t.pickup!.lng),
-    ];
-
-/// The courier's dot, keyed so a test can assert on it: it is the one mark on
-/// this screen that must never be drawn from a position we no longer believe.
-const Key courierDotKey = Key('zb-courier-dot');
-
-/// The tiles, the leg being ridden, and the three markers — shared by the
-/// preview and the full-screen map so they can never drift apart.
-List<Widget> courierMapLayers(BuildContext context, LiveTracking t) {
-  final l = L.of(context);
-  final tone = livePhaseColor(context, t.phase);
-
-  // Only a position we still believe becomes a dot. For most of a ride Mrsool
-  // has not moved the courier since he confirmed pickup, and drawing him there
-  // parks a marker on the branch while he is halfway across Riyadh — which is
-  // what «ليش باين المندوب عند المعرض» was looking at.
-  final courier = t.courierIsWhereWeSay ? LatLng(t.courier.lat!, t.courier.lng!) : null;
-  final dropoff = t.dropoff == null ? null : LatLng(t.dropoff!.lat, t.dropoff!.lng);
-  final pickup = t.pickup == null ? null : LatLng(t.pickup!.lat, t.pickup!.lng);
-
-  // Draw the leg the courier is actually riding. Before pickup he is heading
-  // for the branch, and a line to the customer's door would be a lie drawn to
-  // scale.
-  final target = t.headingTo == 'pickup' ? pickup : dropoff;
-
-  // With no dot to draw from, the line runs the whole journey instead: branch
-  // to door is what is actually true — he is somewhere along it.
-  final from = courier ?? (t.headingTo == 'dropoff' ? pickup : null);
-  final to = courier != null ? target : dropoff;
-
-  return [
-    // Same source as the delivery pin — see ZbTiles for why CARTO went.
-    ZbTiles.streets(context),
-    if (from != null && to != null)
-      PolylineLayer(
-        polylines: [
-          Polyline(
-            points: [from, to],
-            strokeWidth: 3,
-            color: tone.withValues(alpha: 0.55),
-            pattern: const StrokePattern.dotted(),
-          ),
-        ],
-      ),
-    MarkerLayer(
-      markers: [
-        if (pickup != null)
-          Marker(
-            point: pickup,
-            width: 34,
-            height: 34,
-            child: _MapDot(
-              icon: Icons.storefront_rounded,
-              color: context.cs.onSurfaceVariant,
-              tooltip: l.liveTrackBranch,
-            ),
-          ),
-        if (dropoff != null)
-          Marker(
-            point: dropoff,
-            width: 34,
-            height: 34,
-            child: _MapDot(
-              icon: Icons.home_rounded,
-              color: context.cs.primary,
-              tooltip: l.liveTrackYou,
-            ),
-          ),
-      ],
-    ),
-    if (courier != null)
-      _CourierMarkerLayer(key: courierDotKey, to: courier, tone: tone),
-    RichAttributionWidget(
-      alignment: AttributionAlignment.bottomLeft,
-      showFlutterMapAttribution: false,
-      attributions: [
-        const TextSourceAttribution('Esri, HERE', prependCopyright: false),
-        TextSourceAttribution('OpenStreetMap', onTap: () {
-          launchUrl(
-            Uri.parse('https://www.openstreetmap.org/copyright'),
-            mode: LaunchMode.externalApplication,
-          );
-        }),
-      ],
-    ),
-  ];
-}
-
-/// The courier's own layer, so his marker can be moved smoothly without
-/// re-laying the static markers on every animation frame.
-///
-/// The lerp is between the LAST point we drew and the new one, held in state:
-/// tweening from a value read during build would restart the glide on every
-/// unrelated rebuild.
-class _CourierMarkerLayer extends StatefulWidget {
-  const _CourierMarkerLayer({super.key, required this.to, required this.tone});
-
-  final LatLng to;
-  final Color tone;
-
-  @override
-  State<_CourierMarkerLayer> createState() => _CourierMarkerLayerState();
-}
-
-class _CourierMarkerLayerState extends State<_CourierMarkerLayer> {
-  late LatLng _from = widget.to;
-
-  @override
-  void didUpdateWidget(covariant _CourierMarkerLayer old) {
-    super.didUpdateWidget(old);
-    if (old.to != widget.to) _from = old.to;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      key: ValueKey('${widget.to.latitude},${widget.to.longitude}'),
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 900),
-      curve: Curves.easeInOut,
-      builder: (context, t, _) {
-        final point = LatLng(
-          _from.latitude + (widget.to.latitude - _from.latitude) * t,
-          _from.longitude + (widget.to.longitude - _from.longitude) * t,
-        );
-
-        return MarkerLayer(
-          markers: [
-            Marker(
-              point: point,
-              width: 44,
-              height: 44,
-              child: _CourierDot(tone: widget.tone),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// The courier's dot: a soft halo so it stays findable against a busy tile.
-class _CourierDot extends StatelessWidget {
-  const _CourierDot({required this.tone});
-
-  final Color tone;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: tone.withValues(alpha: 0.22),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: tone,
-            boxShadow: [
-              BoxShadow(color: tone.withValues(alpha: 0.45), blurRadius: 10, spreadRadius: 1),
-            ],
-          ),
-          child: const Icon(Icons.two_wheeler_rounded, size: 18, color: Colors.white),
-        ),
-      ),
-    );
-  }
-}
-
-class _MapDot extends StatelessWidget {
-  const _MapDot({required this.icon, required this.color, this.tooltip});
-
-  final IconData icon;
-  final Color color;
-  final String? tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    final dot = DecoratedBox(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: context.cs.surface,
-        border: Border.all(color: color, width: 2),
-      ),
-      child: Icon(icon, size: 17, color: color),
-    );
-
-    final label = tooltip;
-    return label == null ? dot : Tooltip(message: label, child: dot);
   }
 }
 
@@ -1087,30 +846,12 @@ class LiveTrackingMapPage extends ConsumerWidget {
     final l = L.of(context);
     final tracking = ref.watch(liveTrackingProvider(orderId)).value ?? initial;
     final tone = livePhaseColor(context, tracking.phase);
-    final points = mapPoints(tracking);
-
     return Scaffold(
       appBar: AppBar(title: Text(l.liveTrackTitle)),
       body: Stack(
         children: [
           Positioned.fill(
-            child: FlutterMap(
-              options: MapOptions(
-                initialCameraFit: points.length > 1
-                    ? CameraFit.coordinates(
-                        coordinates: points,
-                        padding: const EdgeInsets.all(70),
-                        maxZoom: 16,
-                      )
-                    : null,
-                initialCenter: points.isEmpty ? const LatLng(24.7136, 46.6753) : points.first,
-                initialZoom: 14,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
-              ),
-              children: courierMapLayers(context, tracking),
-            ),
+            child: CourierMap(tracking: tracking, tone: tone, interactive: true, framePadding: 70, maxZoom: 16),
           ),
           PositionedDirectional(
             start: 12,

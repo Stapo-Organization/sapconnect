@@ -3593,4 +3593,256 @@ class LEn extends L {
 
   @override
   String get aisleEmptyHint => 'We are stocking it — try another section';
+
+  @override
+  String get cartEmptyBowl => 'An empty bowl… and an empty basket';
+
+  @override
+  String get wishlistEmptyFirst =>
+      'Your favourites are waiting for a first heart';
+
+  @override
+  String get wishlistEmptyNudge =>
+      'Tap ♥ on anything you like and we\'ll keep it here until you\'re back.';
+
+  @override
+  String get ordersGhostTitle => 'Your first order';
+
+  @override
+  String get ordersGhostPlaced => 'Order received';
+
+  @override
+  String get ordersGhostPacking => 'Packing';
+
+  @override
+  String get ordersGhostOnWay => 'On the way';
+
+  @override
+  String get ordersGhostArrived => 'Delivered';
+
+  @override
+  String get errOfflineTitle => 'You\'re offline';
+
+  @override
+  String get errOfflineBody =>
+      'Check your connection and we\'ll pick up where you left off.';
+
+  @override
+  String get expressAsleepTitle => 'Express is asleep';
+
+  @override
+  String expressAsleepBody(String time) {
+    return 'Back $time · the Zooboxi shelf is open';
+  }
+
+  @override
+  String get homeEndTitle => 'That\'s the end of the shelf';
+
+  @override
+  String get homeEndBody => 'You\'ve seen everything on this page';
+
+  @override
+  String get homeEndTop => 'Back to top';
+
+  @override
+  String get railEndKicker => 'End of the shelf';
+
+  @override
+  String get railEndTitle => 'See them all';
+
+  @override
+  String get expressInterludeTitle => 'At your door in two hours';
+
+  @override
+  String get expressInterludeBody =>
+      'Order from the Express shelf and it arrives today';
+
+  @override
+  String get expressInterludeCta => 'Shop Express';
+
+  @override
+  String homeForPet(String name) {
+    return 'Picked for $name';
+  }
+
+  @override
+  String get shopForLabel => 'Shopping for';
+
+  @override
+  String get shopForAll => 'Everyone';
+
+  @override
+  String homeWelcomeKicker(String names) {
+    return 'Hello, $names';
+  }
+
+  @override
+  String homeWelcomeTitle(String name) {
+    return 'We arranged the home around $name';
+  }
+
+  @override
+  String get homeWelcomeSwitch =>
+      'Switch between them with “Shopping for” above';
+
+  @override
+  String get homeWelcomeSingle =>
+      'Their aisles first, and food that suits them';
+
+  @override
+  String get onbPetsTitle => 'Who\'s at home with you?';
+
+  @override
+  String get onbPetsBody =>
+      'Pick everyone you have, and we\'ll arrange the app around them';
+
+  @override
+  String get onbPetsCats => 'Cats';
+
+  @override
+  String get onbPetsDogs => 'Dogs';
+
+  @override
+  String get onbPetsBirds => 'Birds';
+
+  @override
+  String get onbPetsFish => 'Fish';
+
+  @override
+  String get onbPetsSmall => 'Rabbits & rodents';
+
+  @override
+  String get onbPetsReptiles => 'Turtles & reptiles';
+
+  @override
+  String get onbPetsForOthers =>
+      'I\'m shopping for someone else, or have no pet yet';
+
+  @override
+  String onbPetsMax(String max) {
+    return 'Up to $max for now — you can change them later';
+  }
+
+  @override
+  String onbPetsNext(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Next · $count pets',
+      one: 'Next · 1 pet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onbPetsNameHe => 'What\'s their name?';
+
+  @override
+  String get onbPetsNameShe => 'What\'s her name?';
+
+  @override
+  String get onbPetsNameBoy => 'What\'s his name?';
+
+  @override
+  String get onbPetsNameHint => 'Type a name';
+
+  @override
+  String get onbPetsSexQuestion => 'Boy or girl?';
+
+  @override
+  String get onbPetsOptional => '(optional)';
+
+  @override
+  String get onbPetsBoy => 'Boy';
+
+  @override
+  String get onbPetsGirl => 'Girl';
+
+  @override
+  String get onbPetsDone => 'Done';
+
+  @override
+  String get onbPetsSkip => 'Skip';
+
+  @override
+  String get onbPetsAdd => 'Add';
+
+  @override
+  String get onbPetsRemove => 'Remove';
+
+  @override
+  String weightNudgeTitle(String name) {
+    return 'How much does $name weigh?';
+  }
+
+  @override
+  String get weightNudgeBody =>
+      'From it we work out their daily food, and remind you before the bag runs out';
+
+  @override
+  String get weightNudgeCta => 'Add weight';
+
+  @override
+  String get weightSheetSave => 'Save weight';
+
+  @override
+  String get weightSheetLater => 'Not sure yet';
+
+  @override
+  String get weightSheetSlider => 'Weight in kilograms';
+
+  @override
+  String get householdInviteBody =>
+      'Tell us in a tap, and we\'ll arrange the app around them';
+
+  @override
+  String get householdInviteCta => 'Introduce them';
+
+  @override
+  String get householdInviteDismiss => 'Not now';
+
+  @override
+  String pinDoorTitle(String building, String street) {
+    return 'Building $building · $street';
+  }
+
+  @override
+  String nationalAddressChip(String code) {
+    return 'National address · $code';
+  }
+
+  @override
+  String nationalAddressFilled(String code) {
+    return 'National address · $code — filled in for you';
+  }
+
+  @override
+  String get addressSearchHint => 'Search a district, street or place';
+
+  @override
+  String get addressSearchUseLocation => 'Use my current location';
+
+  @override
+  String get addressSearchSaved => 'My addresses';
+
+  @override
+  String get addressSearchResults => 'Results';
+
+  @override
+  String get addressSearchEmpty =>
+      'Nothing by that name — try the district or the street';
+
+  @override
+  String get addressSearchFailed =>
+      'Search is unavailable right now — move the map by hand';
+
+  @override
+  String distanceKm(String value) {
+    return '$value km';
+  }
+
+  @override
+  String distanceM(String value) {
+    return '$value m';
+  }
 }

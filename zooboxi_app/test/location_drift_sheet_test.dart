@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zooboxi_app/app/theme/app_theme.dart';
 import 'package:zooboxi_app/core/location/location_controller.dart';
@@ -181,9 +182,10 @@ void main() {
   testWidgets('a nudged pin is what the store is asked about', (tester) async {
     await _open(tester);
 
-    await tester.drag(find.byType(MapPinPicker), const Offset(0, -80));
-    // Past the picker's settle debounce.
-    await tester.pump(const Duration(milliseconds: 700));
+    // The native map is not drawn under `flutter test`; nudge the pin the way
+    // a search result or a drag does — through the picker itself.
+    final picker = tester.state<MapPinPickerState>(find.byType(MapPinPicker));
+    await picker.moveTo(LatLng(picker.value.latitude - 0.002, picker.value.longitude));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('وصّلوا إلى هذا الموقع'));
@@ -191,8 +193,8 @@ void main() {
 
     final applied = _RecordingLocation.applied;
     expect(applied, isNotNull);
-    // Dragging the tiles upward walks the camera south — the pin is now on a
-    // point the device never reported, and that is the one that is used.
+    // The pin is now on a point the device never reported, and that is the
+    // one that is used.
     expect(applied!.lat, lessThan(_drift.lat));
   });
 
