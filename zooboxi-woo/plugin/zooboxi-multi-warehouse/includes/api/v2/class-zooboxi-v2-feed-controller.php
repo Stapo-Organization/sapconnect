@@ -11,6 +11,9 @@
  *                for guests / first-time buyers, "شاهدته مؤخرًا".
  *   • foryou   → recently-viewed merged with FBT + substitutes for the latest view.
  *   • incity   → top-ranked products actually stocked in the customer's own warehouses.
+ *   • forpet   → «مختار لـ…»: the best of the store for the animal the app is arranged
+ *                around (`?species=`, the pet the customer picked in «تسوّق لـ» or
+ *                described in the welcome journey — a guest has no pets on file).
  *
  * The three slots never repeat a product: ids emitted by an earlier slot are excluded
  * from the later ones, so the app's home reads as one list, not three overlapping ones.
@@ -30,6 +33,20 @@ class Zooboxi_V2_Feed_Controller
     private const PERSONAL_MAX = 12;
     private const FORYOU_MAX   = 14;
     private const INCITY_MAX   = 12;
+    private const FORPET_MAX   = 12;
+    private const FORPET_TTL   = 1800;  // 30 min
+
+    /**
+     * Species → the MAIN-tree root the store browses it under (the same curated
+     * ids the catalogue's animal_nav uses). Fish and reptiles have no aisle of
+     * their own yet, so they get no «مختار لـ» rail rather than a wrong one.
+     */
+    private const SPECIES_ROOT = [
+        'cat'   => 107,
+        'dog'   => 114,
+        'bird'  => 202,
+        'small' => 194,
+    ];
 
     /** A slot with fewer products than this is not worth a rail — it returns null. */
     private const MIN_PRODUCTS = 4;
@@ -57,12 +74,18 @@ class Zooboxi_V2_Feed_Controller
 
     public function feed(\WP_REST_Request $request): \WP_REST_Response
     {
-        $uid    = get_current_user_id();
-        $recent = $this->read_recent($request);
+        $uid     = get_current_user_id();
+        $recent  = $this->read_recent($request);
+        $species = self::read_species($request);
         [$lat, $lng, $city] = $this->read_location($request);
 
         $personal = $this->personal($uid, $recent);
         $used     = self::ids_of($personal['products']);
+
+        $forpet = $species !== '' ? $this->forpet($species, $used) : null;
+        if ($forpet !== null) {
+            $used = array_merge($used, self::ids_of($forpet['products']));
+        }
 
         $foryou = $this->foryou($recent, $used);
         if ($foryou !== null) {
@@ -77,7 +100,8 @@ class Zooboxi_V2_Feed_Controller
             'foryou'      => $foryou,
             'incity'      => $incity,
             'bundles'     => $this->bundles($uid, $lat, $lng),
-            'needs'       => $this->needs($uid),
+            'needs'       => $this->needs($uid, $species),
+            'forpet'      => $forpet,
             'login_nudge' => $uid <= 0,
         ], null);
     }
@@ -96,12 +120,14 @@ class Zooboxi_V2_Feed_Controller
      *
      * @return array{species:string, order:string[]}
      */
-    private function needs(int $uid): array
+    private function needs(int $uid, string $asked = ''): array
     {
-        $species = '';
+        // The animal the app is arranged around wins: it is the customer's own
+        // answer, and the only one a guest can give.
+        $species = $asked;
         $counts  = [];
 
-        if ($uid > 0 && class_exists('Zooboxi_Loyalty_Pets') && class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled()) {
+        if ($species === '' && $uid > 0 && class_exists('Zooboxi_Loyalty_Pets') && class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled()) {
             $owned   = Zooboxi_Loyalty_Pets::species_of($uid);
             $species = (string) ($owned[0] ?? '');
         }
@@ -155,6 +181,100 @@ class Zooboxi_V2_Feed_Controller
             'small', 'rodent', 'rabbit' => 'small',
             default                     => 'cat',
         };
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SLOT — «مختار لـ…» (the best of the store for this animal)
+       ══════════════════════════════════════════════════════════════ */
+
+    /** `?species=` → one of the app's species keys, or '' when absent/unknown. */
+    private static function read_species(\WP_REST_Request $request): string
+    {
+        $raw = strtolower(trim((string) $request->get_param('species')));
+        return in_array($raw, ['cat', 'dog', 'bird', 'fish', 'small', 'reptile'], true) ? $raw : '';
+    }
+
+    /**
+     * The species' own aisle, ranked by the store's «موصى به» score, in stock and
+     * reachable on the shelf being served. The app puts the pet's name on it.
+     *
+     * @param int[] $exclude
+     * @return array{species:string,title:string,products:array<int,array>}|null
+     */
+    private function forpet(string $species, array $exclude): ?array
+    {
+        $root = self::SPECIES_ROOT[$species] ?? 0;
+        if ($root <= 0) {
+            return null;
+        }
+
+        $tkey = 'zbfeed_forpet_' . $species . '_' . get_locale() . Zooboxi_V2_Scope::cache_suffix();
+        $ids  = get_transient($tkey);
+        if (!is_array($ids)) {
+            $args = [
+                'post_type'           => 'product',
+                'post_status'         => 'publish',
+                'posts_per_page'      => 40,
+                'fields'              => 'ids',
+                'no_found_rows'       => true,
+                'ignore_sticky_posts' => true,
+                'meta_key'            => '_zb_rank_score',
+                'orderby'             => 'meta_value_num',
+                'order'               => 'DESC',
+                'tax_query'           => [
+                    'relation' => 'AND',
+                    [
+                        'taxonomy' => 'product_visibility',
+                        'field'    => 'name',
+                        'terms'    => 'exclude-from-catalog',
+                        'operator' => 'NOT IN',
+                    ],
+                    [
+                        'taxonomy'         => 'product_cat',
+                        'field'            => 'term_id',
+                        'terms'            => $root,
+                        'include_children' => true,
+                    ],
+                ],
+                'meta_query'          => [
+                    'relation' => 'AND',
+                    ['key' => '_stock_status', 'value' => 'instock'],
+                ],
+            ];
+            $scope_clause = Zooboxi_V2_Scope::meta_clause();
+            if ($scope_clause) {
+                $args['meta_query'][] = $scope_clause;
+            }
+            $q   = new \WP_Query($args);
+            $ids = is_array($q->posts) ? array_map('intval', $q->posts) : [];
+            wp_reset_postdata();
+            set_transient($tkey, $ids, self::FORPET_TTL);
+        }
+
+        $ids = array_map('intval', $ids);
+        if (!empty($exclude)) {
+            $ids = array_values(array_diff($ids, $exclude));
+        }
+        $ids = array_slice(Zooboxi_V2_Scope::filter_ids($ids), 0, self::FORPET_MAX);
+        if (count($ids) < self::MIN_PRODUCTS) {
+            return null;
+        }
+
+        $cards = Zooboxi_Product_DTO::cards($ids);
+        if (count($cards) < self::MIN_PRODUCTS) {
+            return null;
+        }
+
+        return [
+            'species'  => $species,
+            'title'    => match ($species) {
+                'dog'   => Zooboxi_V2_Bootstrap::pick('مختار لكلبك', 'Picked for your dog'),
+                'bird'  => Zooboxi_V2_Bootstrap::pick('مختار لطيرك', 'Picked for your bird'),
+                'small' => Zooboxi_V2_Bootstrap::pick('مختار لأليفك', 'Picked for your pet'),
+                default => Zooboxi_V2_Bootstrap::pick('مختار لقطتك', 'Picked for your cat'),
+            },
+            'products' => $cards,
+        ];
     }
 
     /* ══════════════════════════════════════════════════════════════

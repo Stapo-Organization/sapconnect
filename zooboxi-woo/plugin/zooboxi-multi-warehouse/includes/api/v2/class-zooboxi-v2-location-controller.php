@@ -10,6 +10,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once __DIR__ . '/../../core/class-zooboxi-google-places.php';
+
 class Zooboxi_V2_Location_Controller
 {
     public function register_routes(): void
@@ -17,6 +19,8 @@ class Zooboxi_V2_Location_Controller
         Zooboxi_V2_Bootstrap::route('/location/cities', 'GET', [$this, 'cities']);
         Zooboxi_V2_Bootstrap::route('/location/resolve', 'POST', [$this, 'resolve']);
         Zooboxi_V2_Bootstrap::route('/location/pickup-points', 'GET', [$this, 'pickup_points']);
+        Zooboxi_V2_Bootstrap::route('/location/search', 'GET', [$this, 'search']);
+        Zooboxi_V2_Bootstrap::route('/location/place', 'GET', [$this, 'place']);
     }
 
     /* ── GET /location/cities ──────────────────────── */
@@ -82,11 +86,22 @@ class Zooboxi_V2_Location_Controller
             $city = 'الرياض';
         }
 
+        // The door itself, from Google: national short address, building,
+        // street, postal code. Additive — city/district above stay the ones the
+        // delivery routing knows.
+        $door = class_exists('Zooboxi_Google_Places')
+            ? Zooboxi_Google_Places::reverse($lat, $lng, Zooboxi_V2_Bootstrap::lang() === 'en' ? 'en' : 'ar')
+            : null;
+        if ($district === '' && $door && $door['district'] !== '') {
+            $district = $door['district'];
+        }
+
         return Zooboxi_V2_Bootstrap::ok([
             // Kept as the store spells it: the app echoes this value back as
             // the scope's city key, so it must match the warehouse rows.
             'city'     => $city,
             'district' => $district,
+            'address'  => $door,
             'options'  => [
                 'express'  => self::option_dto($options['express'] ?? null),
                 'standard' => self::option_dto($options['standard'] ?? null),
@@ -101,6 +116,71 @@ class Zooboxi_V2_Location_Controller
                 'fee'            => (float) ($best['fee'] ?? 0),
             ] : null,
         ]);
+    }
+
+    /* ── GET /location/search?q=&lat=&lng=&session= ── */
+
+    /**
+     * Address search for the app's map: Google place suggestions, Saudi Arabia
+     * only, near the customer. Only the app may ask (its device id or its
+     * token), and each caller is rate-limited.
+     */
+    public function search(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $caller = self::caller($request);
+        if ($caller === '') {
+            return Zooboxi_V2_Bootstrap::fail('forbidden', __('غير مسموح', 'zooboxi'), 'Forbidden.', 403);
+        }
+        if (!Zooboxi_Google_Places::allow($caller)) {
+            return Zooboxi_V2_Bootstrap::fail('rate_limited', __('محاولات كثيرة، جرّب بعد قليل', 'zooboxi'), 'Too many requests.', 429);
+        }
+        $q   = sanitize_text_field((string) $request->get_param('q'));
+        $lat = (float) $request->get_param('lat');
+        $lng = (float) $request->get_param('lng');
+        $results = Zooboxi_Google_Places::autocomplete(
+            $q,
+            $lat ?: null,
+            $lng ?: null,
+            substr(preg_replace('/[^A-Za-z0-9-]/', '', (string) $request->get_param('session')), 0, 64),
+            Zooboxi_V2_Bootstrap::lang() === 'en' ? 'en' : 'ar'
+        );
+        return Zooboxi_V2_Bootstrap::ok(['results' => $results], null);
+    }
+
+    /* ── GET /location/place?id=&session= ───────────── */
+
+    public function place(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $caller = self::caller($request);
+        if ($caller === '') {
+            return Zooboxi_V2_Bootstrap::fail('forbidden', __('غير مسموح', 'zooboxi'), 'Forbidden.', 403);
+        }
+        if (!Zooboxi_Google_Places::allow($caller)) {
+            return Zooboxi_V2_Bootstrap::fail('rate_limited', __('محاولات كثيرة، جرّب بعد قليل', 'zooboxi'), 'Too many requests.', 429);
+        }
+        $place = Zooboxi_Google_Places::details(
+            sanitize_text_field((string) $request->get_param('id')),
+            substr(preg_replace('/[^A-Za-z0-9-]/', '', (string) $request->get_param('session')), 0, 64),
+            Zooboxi_V2_Bootstrap::lang() === 'en' ? 'en' : 'ar'
+        );
+        if ($place === null) {
+            return Zooboxi_V2_Bootstrap::fail('place_not_found', __('المكان غير موجود', 'zooboxi'), 'Place not found.', 404);
+        }
+        return Zooboxi_V2_Bootstrap::ok(['place' => $place], null);
+    }
+
+    /** Who is asking: the signed-in customer, else the app's device id. '' = not the app. */
+    private static function caller(\WP_REST_Request $request): string
+    {
+        $uid = Zooboxi_V2_Bootstrap::token_user();
+        if ($uid > 0) {
+            return 'u' . $uid;
+        }
+        $guest = preg_replace('/[^A-Za-z0-9-]/', '', (string) $request->get_header('X-ZB-Guest'));
+        if ($guest !== '' && strlen($guest) >= 16) {
+            return 'g' . $guest . '|' . ($_SERVER['REMOTE_ADDR'] ?? '');
+        }
+        return '';
     }
 
     /* ── GET /location/pickup-points ───────────────── */
