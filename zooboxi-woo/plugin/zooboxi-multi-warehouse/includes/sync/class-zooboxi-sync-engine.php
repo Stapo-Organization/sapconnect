@@ -65,7 +65,9 @@ class Zooboxi_Sync_Engine
                 if (!$productId) continue;
 
                 $warehouseStocks = $item['warehouses'] ?? [];
-                Zooboxi_Stock_Manager::update_stock($productId, $warehouseStocks);
+                // 'sap' scope: this feed owns every warehouse EXCEPT the ShipGo ones
+                // (RUH003) — those are written by the ShipGo callback and must survive.
+                Zooboxi_Stock_Manager::update_stock($productId, $warehouseStocks, 'sap');
                 $updated++;
             }
 
@@ -94,14 +96,21 @@ class Zooboxi_Sync_Engine
                 if (!$productId) continue;
 
                 $prices = $item['prices'] ?? [];
-                $retail = $this->extract_price($prices, $priceList);
 
-                if ($retail !== null && $retail > 0) {
-                    update_post_meta($productId, '_regular_price', (string) $retail);
-                    // Respect an existing clearance sale price; otherwise current price = regular.
-                    $sale = get_post_meta($productId, '_sale_price', true);
-                    $current = ($sale !== '' && (float) $sale > 0 && (float) $sale < $retail) ? (string) $sale : (string) $retail;
-                    update_post_meta($productId, '_price', $current);
+                // دفتر الأسعار: the backend already turned the SAP lists into one
+                // VAT-inclusive piece price per storefront (زوبكسي / إكسبريس);
+                // the book writes them (variations × pack size). The legacy
+                // single-list path only runs for a feed without shelf prices.
+                if (!(class_exists('Zooboxi_Price_Book') && Zooboxi_Price_Book::apply($productId, $item))) {
+                    $retail = $this->extract_price($prices, $priceList);
+
+                    if ($retail !== null && $retail > 0) {
+                        update_post_meta($productId, '_regular_price', (string) $retail);
+                        // Respect an existing clearance sale price; otherwise current price = regular.
+                        $sale = get_post_meta($productId, '_sale_price', true);
+                        $current = ($sale !== '' && (float) $sale > 0 && (float) $sale < $retail) ? (string) $sale : (string) $retail;
+                        update_post_meta($productId, '_price', $current);
+                    }
                 }
 
                 // Store all price lists for future use
@@ -378,12 +387,9 @@ class Zooboxi_Sync_Engine
             }
         }
 
-        // 2) Fallback: first row that carries a positive price.
-        foreach ($prices as $row) {
-            $p = $readPrice($row);
-            if ($p !== null && $p > 0) return $p;
-        }
-
+        // No fallback: the first positive row is list 1 = the WHOLESALE list.
+        // A product without a price on the store's list stays unpriced and
+        // is reported, rather than silently sold at wholesale.
         return null;
     }
 
@@ -400,8 +406,11 @@ class Zooboxi_Sync_Engine
             $product = wc_get_product($existingId);
             if (!$product) return;
 
-            // Update price (match by PriceList value + capital 'Price' key)
-            $price = $this->extract_price($data['prices'] ?? [], (int) get_option('zooboxi_default_price_list', 1));
+            // Update price (match by PriceList value + capital 'Price' key).
+            // When the feed carries shelf prices the price book writes them
+            // AFTER save() below (variations × pack size, express meta).
+            $bookPriced = class_exists('Zooboxi_Price_Book') && is_array($data['shelf_prices'] ?? null);
+            $price = $bookPriced ? null : $this->extract_price($data['prices'] ?? [], (int) get_option('zooboxi_default_price_list', 1));
             if ($price !== null && $price > 0) {
                 $product->set_regular_price((string) $price);
             }
@@ -448,6 +457,10 @@ class Zooboxi_Sync_Engine
             $product->set_manage_stock(true);
             $product->set_stock_status('instock');
             $product->save();
+
+            if ($bookPriced) {
+                Zooboxi_Price_Book::apply($existingId, $data);
+            }
 
             // Update SAP metadata
             update_post_meta($existingId, '_zooboxi_sap_name', $data['item_name'] ?? '');
@@ -496,103 +509,15 @@ class Zooboxi_Sync_Engine
                 wp_set_object_terms($existingId, $data['brand_name'], 'product_cat', true);
             }
 
+            // Pictures the gate verified since last time → sideload, publish a
+            // held draft, un-hide a launch-day «no image» product.
+            Zooboxi_Catalog_Onboarding::refresh($existingId, $data);
+
         } else {
-            // ─── NEW PRODUCT: Create with ZID + SAP data ───
-            $product = new \WC_Product_Simple();
-
-            $nameAr = $data['name_ar'] ?? '';
-            $nameEn = $data['name_en'] ?? '';
-            $name = !empty($nameAr) ? $nameAr : (!empty($nameEn) ? $nameEn : ($data['item_name'] ?? $itemCode));
-
-            $product->set_props([
-                'name'          => $name,
-                'regular_price' => (string) ($this->extract_price($data['prices'] ?? [], (int) get_option('zooboxi_default_price_list', 1)) ?? ''),
-                'manage_stock'  => true,
-                'stock_status'  => 'instock',
-                'catalog_visibility' => 'visible',
-            ]);
-
-            // Set barcode as SKU if available
-            if (!empty($data['barcode'])) {
-                try {
-                    $product->set_sku($data['barcode']);
-                } catch (\Exception $e) {
-                    // SKU already exists — skip
-                }
-            }
-
-            // Description from ZID
-            $descAr = $data['description_ar'] ?? '';
-            $descEn = $data['description_en'] ?? '';
-            if (!empty($descAr)) {
-                $product->set_description($descAr);
-            } elseif (!empty($descEn)) {
-                $product->set_description($descEn);
-            }
-
-            $shortDescAr = $data['short_description_ar'] ?? '';
-            $shortDescEn = $data['short_description_en'] ?? '';
-            if (!empty($shortDescAr)) {
-                $product->set_short_description($shortDescAr);
-            } elseif (!empty($shortDescEn) || !empty($data['foreign_name'])) {
-                $product->set_short_description($shortDescEn ?: $data['foreign_name']);
-            }
-
-            // Weight
-            if (!empty($data['weight'])) {
-                $product->set_weight((string) $data['weight']);
-            }
-
-            // Image from holeno.com
-            $imageUrl = $data['image_url'] ?? '';
-            if ($imageUrl) {
-                $product->add_meta_data('_zooboxi_image_url', $imageUrl, true);
-            }
-
-            $productId = $product->save();
-
-            // Store SAP identifiers
-            update_post_meta($productId, '_zooboxi_item_code', $itemCode);
-            update_post_meta($productId, '_zooboxi_sap_name', $data['item_name'] ?? '');
-            update_post_meta($productId, '_zooboxi_sap_foreign_name', $data['foreign_name'] ?? '');
-            update_post_meta($productId, '_zooboxi_brand_code', $data['brand_code'] ?? '');
-            update_post_meta($productId, '_zooboxi_barcode', $data['barcode'] ?? '');
-            update_post_meta($productId, '_zooboxi_uom', $data['uom'] ?? '');
-            // SAP's pieces-per-carton factor — the backfill/variation logic
-            // turns it into `_zooboxi_units` on the pack variation.
-            if (isset($data['sales_items_per_unit']) && (float) $data['sales_items_per_unit'] > 0) {
-                update_post_meta($productId, '_zooboxi_sales_items_per_unit', (string) round((float) $data['sales_items_per_unit']));
-            }
-            update_post_meta($productId, '_zooboxi_price_lists', wp_json_encode($data['prices'] ?? []));
-            update_post_meta($productId, '_zooboxi_last_sync', current_time('mysql'));
-            $this->store_english($productId, $data);
-
-            // Keywords
-            if (!empty($data['keywords'])) {
-                update_post_meta($productId, '_zooboxi_keywords', $data['keywords']);
-            }
-
-            // Assign categories from ZID
-            $catAr = $data['categories_ar'] ?? '';
-            if (!empty($catAr)) {
-                $catParts = array_filter(array_map('trim', explode(',', $catAr)));
-                foreach ($catParts as $catPath) {
-                    $segments = array_filter(array_map('trim', explode('>', $catPath)));
-                    $parentId = 0;
-                    foreach ($segments as $seg) {
-                        $term = term_exists($seg, 'product_cat', $parentId ?: null);
-                        if (!$term) {
-                            $term = wp_insert_term($seg, 'product_cat', $parentId ? ['parent' => $parentId] : []);
-                        }
-                        if (!is_wp_error($term)) {
-                            $parentId = is_array($term) ? (int) $term['term_id'] : (int) $term;
-                        }
-                    }
-                }
-            }
-            if (!empty($data['brand_name'])) {
-                wp_set_object_terms($productId, $data['brand_name'], 'product_cat', true);
-            }
+            // ─── NEW PRODUCT ─── the backend gate activated it; onboarding
+            // builds a complete store product (pictures, copy, SEO, ShipGo link)
+            // and publishes only once a picture is in.
+            Zooboxi_Catalog_Onboarding::create($data);
         }
     }
 

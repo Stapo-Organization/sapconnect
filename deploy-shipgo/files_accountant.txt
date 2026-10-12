@@ -1,0 +1,5 @@
+app/Support/PanelAccess.php
+app/Http/Middleware/RestrictLimitedPanelRoles.php
+database/migrations/2026_09_22_000002_create_accountant_role_and_first_user.php
+app/Filament/Resources/ShipGoCustomerResource.php
+app/Filament/Resources/ShipGoCustomerResource/Pages/ListShipGoCustomers.php

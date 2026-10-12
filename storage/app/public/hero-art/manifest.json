@@ -1,0 +1,54 @@
+{
+    "generated_at": "2026-09-08T14:40:29+00:00",
+    "art": {
+        "bundles": {
+            "products": [
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/bundles-0.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/bundles-1.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/bundles-2.png"
+            ],
+            "version": "1788878429"
+        },
+        "express_clock": {
+            "products": [
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_clock-0.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_clock-1.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_clock-2.png"
+            ],
+            "version": "1788878429"
+        },
+        "express_top": {
+            "products": [
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_top-0.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_top-1.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_top-2.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_top-3.png"
+            ],
+            "version": "1788878429"
+        },
+        "express_new": {
+            "products": [
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_new-0.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_new-1.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/express_new-2.png"
+            ],
+            "version": "1788878429"
+        },
+        "cutoff": {
+            "products": [
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/cutoff-0.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/cutoff-1.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/cutoff-2.png"
+            ],
+            "version": "1788878429"
+        },
+        "clearance": {
+            "products": [
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/clearance-0.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/clearance-1.png",
+                "http://sapapi.muntajat.sa/storage/hero-art/cut/clearance-2.png"
+            ],
+            "version": "1788878429"
+        }
+    }
+}

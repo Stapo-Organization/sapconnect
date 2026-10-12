@@ -176,6 +176,7 @@ class Campaign {
     this.startsAt,
     this.endsAt,
     this.creatives = const {},
+    this.motion = const {},
     this.itemCode,
     this.productId,
     this.linkUrl,
@@ -207,6 +208,10 @@ class Campaign {
   /// format → url.
   final Map<String, String> creatives;
 
+  /// format → animated WebP url from the motion engine (same slots as
+  /// [creatives]). The image slot plays it natively; absent for older ads.
+  final Map<String, String> motion;
+
   final String? itemCode;
 
   /// When the campaign promotes one product, navigate in-app by id —
@@ -231,6 +236,27 @@ class Campaign {
     return null;
   }
 
+  /// The finished hero plate rendered by the motion engine for the app's own
+  /// slot (animated when available). Only that engine produces `app_hero`, so
+  /// its presence means the picture already carries the copy.
+  String? get finishedPlate {
+    final m = motion['app_hero'];
+    if (m != null && m.isNotEmpty) return m;
+    final s = creatives['app_hero'];
+    return (s != null && s.isNotEmpty) ? s : null;
+  }
+
+  /// Like [artFor] but prefers the animated WebP of the best-fitting slot
+  /// when the campaign was rendered by the motion engine; falls back to the
+  /// static creative so older campaigns keep rendering unchanged.
+  String? motionArtFor(List<String> preferredFormats) {
+    for (final format in preferredFormats) {
+      final url = motion[format];
+      if (url != null && url.isNotEmpty) return url;
+    }
+    return artFor(preferredFormats);
+  }
+
   // Server fields: campaign_id, ab_variant, zones[], campaign_type, headline,
   // subheadline, cta, badge, coupon_code, discount_pct, starts_at, ends_at,
   // creatives{}, item_code, product_id, link.
@@ -244,6 +270,11 @@ class Campaign {
     // an older server keeps rendering instead of going blank.
     final legacy = asStringOrNull(json['image']);
     if (creatives.isEmpty && legacy != null) creatives['hero'] = legacy;
+    final motion = <String, String>{};
+    asMap(json['motion']).forEach((key, value) {
+      final url = asStringOrNull(value);
+      if (url != null && url.isNotEmpty) motion[key] = url;
+    });
 
     return Campaign(
       campaignId: asString(json['campaign_id']),
@@ -259,6 +290,7 @@ class Campaign {
       startsAt: asDate(json['starts_at']),
       endsAt: asDate(json['ends_at']),
       creatives: creatives,
+      motion: motion,
       itemCode: asStringOrNull(json['item_code']),
       productId: asIntOrNull(json['product_id']),
       linkUrl: asStringOrNull(json['link']),

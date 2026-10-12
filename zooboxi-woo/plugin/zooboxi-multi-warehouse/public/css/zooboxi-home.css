@@ -94,6 +94,21 @@ body.page .site-content .entry-content > .zb-home {
 }
 .zb-hero__media { display: block; width: 100%; height: 100%; }
 .zb-hero__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Motion-engine creatives: animated SVG on desktop, the static card on phones (never both). */
+.zb-hero__media--motion { position: absolute; inset: 0; }
+.zb-hero__media--motion svg { width: 100%; height: 100%; display: block; }
+.zb-hero__slide.has-motion .zb-hero__media--fallback { display: none; }
+@media (max-width: 768px) {
+  .zb-hero__media--motion { display: none; }
+  .zb-hero__slide.has-motion .zb-hero__media--fallback { display: block; }
+}
+.zb-home-banner__motion { display: block; width: 100%; line-height: 0; }
+.zb-home-banner__motion svg { width: 100%; height: auto; display: block; }
+.zb-home-banner.has-motion > img { display: none; }
+@media (max-width: 768px) {
+  .zb-home-banner.has-motion .zb-home-banner__motion { display: none; }
+  .zb-home-banner.has-motion > img { display: block; }
+}
 
 /* Auto gradient panels (no banner image needed) */
 .zb-hero__slide--auto { display: flex; align-items: center; }

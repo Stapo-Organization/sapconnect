@@ -35,9 +35,8 @@ class ProductRegistrationResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('المنتج / Product')
                 ->schema([
-                    Forms\Components\TextInput::make('item_code')
-                        ->label('Item / Vendor Code')
-                        ->required()
+                    Forms\Components\TextInput::make('vendor_code')
+                        ->label('كود المنتج (Vendor Code)')
                         ->maxLength(255),
                     Forms\Components\TextInput::make('name_ar')
                         ->label('الاسم بالعربي')
@@ -45,35 +44,33 @@ class ProductRegistrationResource extends Resource
                     Forms\Components\TextInput::make('item_name')
                         ->label('Item Name (EN)')
                         ->maxLength(255),
-                    Forms\Components\TextInput::make('brand_code')
-                        ->label('Brand Code')
-                        ->maxLength(255),
                     Forms\Components\TextInput::make('range')
-                        ->label('Range / Sub-brand')
+                        ->label('التصنيف / Range')
                         ->maxLength(255),
-                    Forms\Components\TextInput::make('vendor_code')
-                        ->label('Vendor Code')
+                    Forms\Components\TextInput::make('factory_name')
+                        ->label('المصنع / Factory')
                         ->maxLength(255),
                 ])->columns(3),
 
             Forms\Components\Section::make('التسجيل / Registration')
                 ->schema([
+                    Forms\Components\TextInput::make('reference_number')
+                        ->label('رقم التسجيل / Reference No.')
+                        ->helperText('SFDA submission/registration number — the identity of this registration')
+                        ->maxLength(255),
                     Forms\Components\Select::make('status')
-                        ->label('Status')
+                        ->label('الحالة / Status')
                         ->options(ProductRegistration::statusOptions())
                         ->default('new')
                         ->required(),
                     Forms\Components\Toggle::make('is_registered')
                         ->label('Registered?'),
-                    Forms\Components\TextInput::make('reference_number')
-                        ->label('Reference / Submission No.')
-                        ->maxLength(255),
                     Forms\Components\TextInput::make('certificate_number')
-                        ->label('Certificate No.')
+                        ->label('رقم الشهادة / Certificate No.')
                         ->maxLength(255),
-                    Forms\Components\DatePicker::make('request_date')->label('Request Date'),
-                    Forms\Components\DatePicker::make('received_date')->label('Received Date'),
-                    Forms\Components\DatePicker::make('expiry_date')->label('Expiry Date'),
+                    Forms\Components\DatePicker::make('request_date')->label('تاريخ الطلب'),
+                    Forms\Components\DatePicker::make('received_date')->label('تاريخ الاستلام'),
+                    Forms\Components\DatePicker::make('expiry_date')->label('تاريخ الانتهاء'),
                 ])->columns(3),
 
             Forms\Components\Section::make('ملاحظات / Notes')
@@ -87,13 +84,21 @@ class ProductRegistrationResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('item_code')
-                    ->label('Code')
+                Tables\Columns\TextColumn::make('reference_number')
+                    ->label('رقم التسجيل')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('—'),
+                Tables\Columns\TextColumn::make('vendor_code')
+                    ->label('كود المنتج')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('name_ar')
                     ->label('الاسم')
-                    ->searchable()
+                    ->searchable(['name_ar', 'item_name'])
+                    // Fall back to the English name for rows that have no Arabic name.
+                    ->formatStateUsing(fn ($state, $record) => $state ?: $record->item_name)
                     ->limit(40)
                     ->wrap(),
                 Tables\Columns\TextColumn::make('item_name')
@@ -101,13 +106,10 @@ class ProductRegistrationResource extends Resource
                     ->searchable()
                     ->limit(30)
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('brand_code')
-                    ->label('Brand')
+                Tables\Columns\TextColumn::make('range')
+                    ->label('التصنيف')
                     ->searchable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('range')
-                    ->label('Range')
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Status')
                     ->formatStateUsing(fn ($state) => ProductRegistration::statusOptions()[$state] ?? $state)
@@ -146,19 +148,18 @@ class ProductRegistrationResource extends Resource
                     ->boolean()
                     ->toggleable(),
             ])
-            ->defaultSort('name_ar', 'asc')
+            ->defaultSort('vendor_code', 'asc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options(ProductRegistration::statusOptions())
                     ->multiple(),
-                Tables\Filters\SelectFilter::make('brand_code')
-                    ->options(fn () => ProductRegistration::query()
-                        ->whereNotNull('brand_code')
-                        ->distinct()
-                        ->orderBy('brand_code')
-                        ->pluck('brand_code', 'brand_code')
-                        ->toArray())
-                    ->searchable(),
+                Tables\Filters\SelectFilter::make('source_sheet')
+                    ->label('Source')
+                    ->options([
+                        'saud'        => 'السجل الرئيسي (Saud)',
+                        'sheet15'     => 'Sheet15',
+                        'regtracking' => 'متابعة التسجيل',
+                    ]),
                 Tables\Filters\TernaryFilter::make('is_registered')
                     ->label('Registered'),
                 Tables\Filters\Filter::make('expiring_soon')
@@ -166,6 +167,9 @@ class ProductRegistrationResource extends Resource
                     ->query(fn (Builder $query) => $query
                         ->whereNotNull('expiry_date')
                         ->whereBetween('expiry_date', [now(), now()->addDays(ProductRegistration::EXPIRING_SOON_DAYS)])),
+                Tables\Filters\Filter::make('rejected')
+                    ->label('مرفوضة (Rejected)')
+                    ->query(fn (Builder $query) => $query->where('status', 'rejected')),
                 Tables\Filters\Filter::make('unmatched')
                     ->label('Unmatched SKU (no product)')
                     ->query(fn (Builder $query) => $query->whereNull('product_id')),

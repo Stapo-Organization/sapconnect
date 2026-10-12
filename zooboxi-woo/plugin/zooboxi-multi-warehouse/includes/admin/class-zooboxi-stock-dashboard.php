@@ -48,7 +48,7 @@ class Zooboxi_Stock_Dashboard
                     <input type="hidden" name="page" value="zooboxi-stock">
                     <div class="zbx-search-row">
                         <input type="text" name="s" value="<?php echo esc_attr($search); ?>"
-                               placeholder="ابحث بالاسم أو كود المنتج..." class="zbx-input">
+                               placeholder="ابحث بالاسم أو كود المنتج أو الباركود..." class="zbx-input">
                         <select name="warehouse" class="zbx-select">
                             <option value="">كل المستودعات</option>
                             <?php foreach ($warehouses as $wh): ?>
@@ -361,7 +361,28 @@ class Zooboxi_Stock_Dashboard
 
         if ($search) {
             $like = '%' . $wpdb->esc_like($search) . '%';
-            $where .= $wpdb->prepare(" AND (p.post_title LIKE %s OR EXISTS (SELECT 1 FROM {$wpdb->postmeta} pm_s WHERE pm_s.post_id = p.ID AND pm_s.meta_key = '_zooboxi_item_code' AND pm_s.meta_value LIKE %s))", $like, $like);
+            $match = $wpdb->prepare(" p.post_title LIKE %s OR EXISTS (SELECT 1 FROM {$wpdb->postmeta} pm_s WHERE pm_s.post_id = p.ID AND pm_s.meta_key = '_zooboxi_item_code' AND pm_s.meta_value LIKE %s)", $like, $like);
+
+            // The barcode is the product's SKU (or one of its variations'). The
+            // box used to ignore it, so a barcode search came back empty and read
+            // as "not in stock anywhere". Scanners add or drop leading zeros, so
+            // an all-digit search matches on its digits without them.
+            $digits = ctype_digit($search) ? ltrim($search, '0') : '';
+            $sku_like = $digits !== '' ? '%' . $wpdb->esc_like($digits) . '%' : $like;
+            $by_barcode = $wpdb->get_col($wpdb->prepare(
+                "SELECT DISTINCT IF(v.post_type = 'product_variation', v.post_parent, v.ID)
+                   FROM {$wpdb->postmeta} m
+                   JOIN {$wpdb->posts} v ON v.ID = m.post_id
+                  WHERE m.meta_key = '_sku' AND m.meta_value LIKE %s
+                  LIMIT 200",
+                $sku_like
+            ));
+            $by_barcode = array_filter(array_map('intval', $by_barcode));
+            if ($by_barcode) {
+                $match .= ' OR p.ID IN (' . implode(',', $by_barcode) . ')';
+            }
+
+            $where .= " AND ($match)";
         }
 
         if ($stock_filter === 'instock') {

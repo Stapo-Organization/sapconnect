@@ -91,4 +91,22 @@ class WooPricesFeedTest extends TestCase
         $this->assertSame([], $body['data']);
         $this->assertArrayHasKey('timestamp', $body);
     }
+
+    public function test_it_carries_shelf_prices_built_from_the_retail_list(): void
+    {
+        $p = $this->product('P003', [
+            ['PriceList' => 1, 'Price' => 32.0],
+            ['PriceList' => 2, 'Price' => 51.0],
+        ]);
+        $p->update(['sales_items_per_unit' => 6]);
+
+        $row = $this->fetch()['data'][0];
+
+        $this->assertSame(58.65, $row['shelf_prices']['all']);
+        $this->assertSame(61.58, $row['shelf_prices']['express']);
+        $this->assertSame('ok', $row['price_status']);
+        $this->assertSame(6, $row['units']);
+        // the raw lists stay for the store's reference meta
+        $this->assertEquals(32, $row['prices'][0]['Price']);
+    }
 }

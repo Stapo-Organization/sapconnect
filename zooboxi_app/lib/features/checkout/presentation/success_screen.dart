@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/characters/characters.dart';
 import '../../../core/characters/companion.dart';
@@ -57,6 +58,14 @@ class _CheckoutSuccessScreenState extends ConsumerState<CheckoutSuccessScreen> {
             },
           ),
         );
+    // The ad platforms bid on the first paid order, and the plan's north
+    // star is the second one — both come from the count the store reports.
+    ref.analytics.logPurchase(
+      orderId: widget.order.orderId,
+      total: widget.order.total,
+      ordersCount: widget.order.ordersCount,
+      express: widget.order.promise.lines.any((l) => l.tier == 'express'),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Haptics.success();
       // «طلباتي» is imperative paging, not a provider — this is how it learns

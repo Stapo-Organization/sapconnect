@@ -1,0 +1,38 @@
+# Storefront served from a sub-path of the Laravel public/ directory.
+# Two jobs: reproduce Netlify's extensionless URLs, and stop Laravel's front
+# controller from turning them into a 404.
+#
+# This directory is also registered in cPanel as the document root of the
+# subdomain b2b.sapapi.muntajat.sa (created 2026-08-10, never given a DNS
+# record). Creating it overwrote this file with Laravel's stock public/.htaccess
+# and dropped a public/index.php alongside it; that index.php won DirectoryIndex
+# over index.html and then fataled on a vendor/autoload.php one level up that
+# does not exist -> HTTP 500 on the whole storefront. DirectoryIndex is stated
+# first here so a reappearing index.php cannot shadow the site again.
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /b2b/
+
+  # /b2b/brands/acana -> /b2b/brands/acana.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
+</IfModule>
+
+# belt and braces: the bundle no longer ships these, but a stray copy on the
+# server stays unreadable
+<FilesMatch "^_">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=300"
+  </FilesMatch>
+  <FilesMatch "\.(png|ico|svg|woff2?)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>

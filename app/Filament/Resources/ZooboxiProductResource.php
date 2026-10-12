@@ -109,6 +109,13 @@ class ZooboxiProductResource extends Resource
                     ->weight('bold')
                     ->toggleable(isToggledHiddenByDefault: true),
 
+                Tables\Columns\TextColumn::make('zb_content_source')
+                    ->label(__('المحتوى'))
+                    ->badge()
+                    ->formatStateUsing(fn (?string $s) => match ($s) { 'ai' => 'آلي', 'sap' => 'SAP', 'zid' => 'Zid', 'manual' => 'يدوي', default => '—' })
+                    ->color(fn (?string $s) => match ($s) { 'ai' => 'info', 'sap' => 'gray', default => 'success' })
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('zb_name_ar')
                     ->label(__('اسم المنتج'))
                     ->searchable()
@@ -142,11 +149,17 @@ class ZooboxiProductResource extends Resource
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('retail_price')
-                    ->label(__('Price (SAR)'))
+                    ->label(__('سعر الرف (شامل الضريبة)'))
                     ->state(function (Product $record) {
-                        if (!$record->prices) return '-';
-                        $price1 = collect($record->prices)->firstWhere('PriceList', 1);
-                        return $price1 ? number_format($price1['Price'], 2) : '-';
+                        // دفتر الأسعار: retail list floored to wholesale, VAT added
+                        $q = \App\Services\Zooboxi\PriceBook::quote($record->prices);
+                        if ($q['shelves']['all'] === null) return '-';
+                        $tag = $q['status'] === \App\Services\Zooboxi\PriceBook::STATUS_OK ? '' : ' ⚠';
+                        return number_format($q['shelves']['all'], 2) . $tag;
+                    })
+                    ->tooltip(function (Product $record) {
+                        $q = \App\Services\Zooboxi\PriceBook::quote($record->prices);
+                        return 'جملة ' . ($q['wholesale'] ?? '-') . ' · قطاعي ' . ($q['retail'] ?? '-') . ' · إكسبريس ' . ($q['shelves']['express'] ?? '-') . ' · ' . $q['status'];
                     })
                     ->alignEnd(),
 
@@ -197,6 +210,11 @@ class ZooboxiProductResource extends Resource
                     ->relationship('brand', 'name')
                     ->searchable()
                     ->preload(),
+
+                // بوابة الكتالوج — who wrote the storefront copy (review the AI ones)
+                Tables\Filters\SelectFilter::make('zb_content_source')
+                    ->label(__('مصدر المحتوى'))
+                    ->options(['ai' => 'كُتب آليًا (للمراجعة)', 'sap' => 'من SAP فقط', 'zid' => 'استيراد Zid', 'manual' => 'يدوي']),
 
                 Tables\Filters\Filter::make('has_description')
                     ->label(__('Has Description'))

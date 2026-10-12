@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://muntajat-b2b.netlify.app/sitemap.xml

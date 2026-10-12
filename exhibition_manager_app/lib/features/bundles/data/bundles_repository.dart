@@ -43,7 +43,7 @@ class BundlesRepository {
   Future<({bool success, String? error})> approve(int id, {String? nameAr, double? price}) async {
     final result = await _api.post(ApiEndpoints.bundleApprove(id), body: {
       if (nameAr != null && nameAr.isNotEmpty) 'name_ar': nameAr,
-      if (price != null) 'bundle_price': price,
+      'bundle_price': ?price,
     });
     return (success: result.isSuccess, error: result.errorMessage);
   }

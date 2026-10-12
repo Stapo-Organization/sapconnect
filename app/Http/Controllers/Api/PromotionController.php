@@ -146,7 +146,7 @@ class PromotionController extends Controller
 
         // Fresh single-format creative for the chosen placement (preview).
         CampaignCreative::where('campaign_id', $c->id)->delete();
-        GenerateAdCreative::dispatchAfterResponse($c->id);
+        \App\Console\Commands\RenderCampaignCreative::background($c->id);
 
         return response()->json(['data' => $this->detail($c->fresh('creatives'))]);
     }
@@ -237,7 +237,7 @@ class PromotionController extends Controller
         CampaignCreative::where('campaign_id', $c->id)->update(['content_hash' => null, 'status' => 'generating']);
         // afterResponse: prod queue is sync, so run AFTER returning (the request must
         // not block for the ~minutes gpt-image takes). The app polls until ready.
-        GenerateAdCreative::dispatchAfterResponse($c->id);
+        \App\Console\Commands\RenderCampaignCreative::background($c->id);
 
         return response()->json(['data' => ['id' => $c->id, 'regenerating' => true]]);
     }
@@ -255,7 +255,7 @@ class PromotionController extends Controller
         $c->update(['refinement_note' => trim($data['note'])]);
 
         CampaignCreative::where('campaign_id', $c->id)->update(['content_hash' => null, 'status' => 'generating']);
-        GenerateAdCreative::dispatchAfterResponse($c->id);
+        \App\Console\Commands\RenderCampaignCreative::background($c->id);
 
         return response()->json(['data' => ['id' => $c->id, 'regenerating' => true]]);
     }
@@ -330,6 +330,9 @@ class PromotionController extends Controller
                 'status' => $cr->status,
                 'final_url' => $cr->final_url,
                 'thumb_url' => $cr->thumb_url,
+                'anim_svg_url' => $cr->anim_svg_url,
+                'anim_webp_url' => $cr->anim_webp_url,
+                'engine' => $cr->driver,
             ])->values(),
         ];
     }

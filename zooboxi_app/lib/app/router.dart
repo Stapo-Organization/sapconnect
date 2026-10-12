@@ -1,3 +1,5 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -75,6 +77,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: notifier,
+    // screen_view per route for Firebase; folded away without a Firebase app.
+    observers: [
+      if (Firebase.apps.isNotEmpty)
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+    ],
     // Auth deliberately does NOT gate navigation. This is a storefront: a
     // guest browses, searches and fills a basket exactly like a customer.
     // Sign-in is asked for in a sheet at the moment it's actually needed, and

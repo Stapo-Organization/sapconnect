@@ -11,6 +11,9 @@ class ZooboxiOrderLine {
   final double unitPrice;
   final double totalPrice;
 
+  /// Product photo for picking. Null for items the store has no image for.
+  final String? imageUrl;
+
   ZooboxiOrderLine({
     required this.id,
     required this.itemCode,
@@ -18,6 +21,7 @@ class ZooboxiOrderLine {
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
+    this.imageUrl,
   });
 
   factory ZooboxiOrderLine.fromJson(Map<String, dynamic> json) => ZooboxiOrderLine(
@@ -27,6 +31,9 @@ class ZooboxiOrderLine {
         quantity: _toDouble(json['quantity']),
         unitPrice: _toDouble(json['unit_price']),
         totalPrice: _toDouble(json['total_price']),
+        imageUrl: (json['image_url'] as String?)?.trim().isNotEmpty == true
+            ? json['image_url'] as String
+            : null,
       );
 
   /// What the manager confirms: the product name (fallback to its code).

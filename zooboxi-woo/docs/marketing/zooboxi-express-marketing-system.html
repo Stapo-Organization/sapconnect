@@ -1,0 +1,762 @@
+<title>نظام تسويق زوبكسي إكسبريس</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Manrope:wght@500;700;800&display=swap">
+<style>
+:root{
+  --teal:#429D9C; --teal-deep:#2E7A79; --teal-soft:#E3F1F0; --teal-ink:#1E5D5C;
+  --coral:#D46856; --coral-soft:#FBE9E5; --coral-ink:#9E3F2F;
+  --paper:#F6F8F7; --panel:#FFFFFF; --panel-2:#EEF3F2;
+  --ink:#16221F; --ink-2:#3E4F4C; --muted:#6F817E; --line:#D7E0DE; --line-2:#C3D0CD;
+  --good:#2F8F5B; --warn:#C48A1A; --crit:#B8412E;
+  --shadow:0 1px 2px rgba(22,34,31,.06),0 8px 24px rgba(22,34,31,.06);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --teal:#5DB8B6; --teal-deep:#7CCBC9; --teal-soft:#15302F; --teal-ink:#A9DEDC;
+    --coral:#E8836F; --coral-soft:#3A1F1A; --coral-ink:#F2B2A4;
+    --paper:#0E1716; --panel:#152120; --panel-2:#1C2B29;
+    --ink:#E9F0EE; --ink-2:#C2CFCC; --muted:#8FA3A0; --line:#273937; --line-2:#345350;
+    --good:#5FC58A; --warn:#E0B24C; --crit:#EE7A66;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --teal:#5DB8B6; --teal-deep:#7CCBC9; --teal-soft:#15302F; --teal-ink:#A9DEDC;
+  --coral:#E8836F; --coral-soft:#3A1F1A; --coral-ink:#F2B2A4;
+  --paper:#0E1716; --panel:#152120; --panel-2:#1C2B29;
+  --ink:#E9F0EE; --ink-2:#C2CFCC; --muted:#8FA3A0; --line:#273937; --line-2:#345350;
+  --good:#5FC58A; --warn:#E0B24C; --crit:#EE7A66;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{direction:rtl}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Tajawal",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.num{font-family:"Manrope","Tajawal",system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.wrap{max-width:960px;margin-inline:auto;padding-inline:20px;padding-block:0 96px}
+h1,h2,h3,h4{margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800}
+h2{font-size:clamp(24px,3.4vw,31px);font-weight:800;color:var(--ink)}
+h3{font-size:20px;font-weight:700}
+h4{font-size:17px;font-weight:700}
+p{margin:0}
+a{color:var(--teal-deep)}
+.eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-deep)}
+.eyebrow .num{font-weight:800}
+/* hero */
+.hero{margin-top:28px;background:var(--teal-soft);border:1px solid var(--line);border-radius:22px;padding:36px 32px;display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:end}
+.hero .lead{font-size:19px;color:var(--ink-2);max-width:32em;margin-top:14px}
+.hero .thesis{margin-top:18px;padding:14px 18px;border-inline-start:4px solid var(--coral);background:var(--panel);border-radius:10px;font-weight:700;font-size:18px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.fact .k{font-size:12.5px;color:var(--muted);font-weight:700}
+.fact .v{font-size:22px;font-weight:800;line-height:1.2;margin-top:2px}
+.fact .v small{font-size:13px;color:var(--muted);font-weight:700;margin-inline-start:4px;font-family:"Tajawal",sans-serif}
+/* nav */
+.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:22px -20px 0;padding:10px 20px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc a{white-space:nowrap;text-decoration:none;font-size:14px;font-weight:700;color:var(--ink-2);padding:6px 12px;border-radius:999px;border:1px solid var(--line)}
+.toc a:hover,.toc a:focus-visible{background:var(--teal-soft);color:var(--teal-ink);outline:none;border-color:var(--teal)}
+/* sections */
+section{margin-top:64px;scroll-margin-top:80px}
+.sec-head{display:grid;gap:8px;margin-bottom:22px;max-width:40em}
+.sec-head p{color:var(--ink-2);font-size:17.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px}
+.card h3,.card h4{margin-bottom:8px}
+.card p,.card li{color:var(--ink-2);font-size:16px}
+.card ul{margin:8px 0 0;padding-inline-start:18px}
+.card li{margin-top:4px}
+.card .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal-ink);margin-bottom:8px}
+.card .tag.coral{background:var(--coral-soft);color:var(--coral-ink)}
+.rule{display:grid;grid-template-columns:44px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.rule:last-child{border-bottom:1px solid var(--line)}
+.rule .n{font-family:"Manrope",sans-serif;font-weight:800;font-size:26px;color:var(--teal);line-height:1}
+.rule h4{margin-bottom:4px}
+.rule p{color:var(--ink-2);font-size:16px}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .k{font-size:13px;color:var(--muted);font-weight:700}
+.kpi .v{font-size:28px;font-weight:800;line-height:1.15;margin-top:4px}
+.kpi .v small{font-size:13px;color:var(--muted);font-family:"Tajawal",sans-serif;font-weight:700;margin-inline-start:4px}
+.kpi .d{font-size:13px;color:var(--ink-2);margin-top:4px}
+/* budget bars */
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:150px 1fr 120px;align-items:center;gap:12px}
+.bar .lbl{font-weight:700;font-size:15px}
+.bar .lbl small{display:block;color:var(--muted);font-weight:500;font-size:12.5px}
+.bar .track{height:22px;background:var(--panel-2);border-radius:4px;position:relative;overflow:hidden}
+.bar .fill{position:absolute;inset-block:0;inset-inline-start:0;background:var(--teal);border-start-end-radius:4px;border-end-end-radius:4px}
+.bar .fill.creator{background:var(--coral)}
+.bar .val{font-size:15px;font-weight:700;color:var(--ink-2);text-align:start}
+.bar .val small{color:var(--muted);font-weight:500}
+.legend{display:flex;gap:16px;margin-top:12px;font-size:13.5px;color:var(--muted);font-weight:700}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--teal);vertical-align:-1px;margin-inline-end:6px}
+.legend i.c{background:var(--coral)}
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:15px}
+th,td{padding:11px 14px;text-align:start;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--panel-2);font-weight:800;font-size:13.5px;color:var(--ink-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td .num{font-weight:700}
+td em{font-style:normal;color:var(--muted)}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.pill.good{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pill.crit{background:color-mix(in srgb,var(--crit) 16%,transparent);color:var(--crit)}
+.pill.teal{background:var(--teal-soft);color:var(--teal-ink)}
+.pill.coral{background:var(--coral-soft);color:var(--coral-ink)}
+/* channel cards */
+.chan{display:grid;grid-template-columns:1fr;gap:14px}
+.chan .card{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:18px}
+.chan .head h3{margin-bottom:2px}
+.chan .head .share{font-family:"Manrope",sans-serif;font-weight:800;font-size:30px;color:var(--teal);line-height:1.1}
+.chan .head .share small{font-family:"Tajawal",sans-serif;font-size:13px;color:var(--muted);font-weight:700;margin-inline-start:6px}
+.chan .head p{margin-top:8px}
+.chan .col h4{font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:6px}
+.chan .col ul{margin:0;padding-inline-start:16px}
+/* timeline */
+.phase{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;margin-top:14px}
+.phase .ph{display:flex;align-items:baseline;gap:12px;padding:14px 20px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+.phase .ph h3{flex:1}
+.phase .ph .when{font-size:13.5px;color:var(--muted);font-weight:700}
+.wk{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.wk:last-child{border-bottom:0}
+.wk .w{font-weight:800;color:var(--teal-deep);font-size:14.5px;padding-top:2px}
+.wk p{font-size:15.5px;color:var(--ink-2)}
+/* callouts */
+.note{border-radius:12px;padding:16px 20px;background:var(--coral-soft);border:1px solid color-mix(in srgb,var(--coral) 35%,transparent);color:var(--ink);margin-top:16px}
+.note b{color:var(--coral-ink)}
+.note.teal{background:var(--teal-soft);border-color:color-mix(in srgb,var(--teal) 40%,transparent)}
+.note.teal b{color:var(--teal-ink)}
+/* checklist */
+.check{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.check li{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:16px;color:var(--ink-2)}
+.check li::before{content:"";width:18px;height:18px;border-radius:5px;border:2px solid var(--teal);margin-top:5px}
+code{font-family:"Manrope",ui-monospace,monospace;font-size:13.5px;background:var(--panel-2);padding:1px 6px;border-radius:5px;direction:ltr;unicode-bidi:isolate}
+pre{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;direction:ltr;text-align:left;font-family:"Manrope",ui-monospace,monospace;font-size:13.5px;line-height:1.6;margin:10px 0 0}
+.foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;padding:26px 20px}
+  .grid2,.grid3,.kpis{grid-template-columns:1fr 1fr}
+  .chan .card{grid-template-columns:1fr}
+  .bar{grid-template-columns:110px 1fr 92px}
+}
+@media (max-width:480px){
+  .grid2,.grid3,.kpis,.facts{grid-template-columns:1fr}
+  .wk{grid-template-columns:1fr;gap:2px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .toc a{transition:background .15s,color .15s}
+}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="eyebrow">إطلاق تجريبي · الرياض · <span class="num">90</span> يومًا</div>
+    <h1 style="margin-top:10px">نظام تسويق زوبكسي إكسبريس</h1>
+    <p class="lead">خطة تشغيلية كاملة لإطلاق التطبيق تجريبيًا بميزانية <span class="num">10,000$</span> شهريًا، تركّز على وعد التوصيل خلال ساعتين داخل نطاق الإكسبريس في الرياض، وتعمل كنظام أسبوعي متكرّر لا كحملة لمرة واحدة.</p>
+    <p class="thesis">نحن لا نشتري تنزيلات. نشتري عميلًا داخل نطاق الإكسبريس يطلب مرتين في أول 30 يومًا.</p>
+  </div>
+  <div class="facts">
+    <div class="fact"><div class="k">الميزانية الشهرية</div><div class="v num">37,500<small>﷼ ≈ 10,000$</small></div></div>
+    <div class="fact"><div class="k">المدة التجريبية</div><div class="v num">3<small>أشهر · 13 أسبوعًا</small></div></div>
+    <div class="fact"><div class="k">القنوات</div><div class="v">iOS · Android · الويب</div></div>
+    <div class="fact"><div class="k">الوعد</div><div class="v">إكسبريس خلال ساعتين</div></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="أقسام الخطة">
+  <a href="#principles">المبادئ</a>
+  <a href="#assets">نقطة الانطلاق</a>
+  <a href="#audience">الجمهور والتموضع</a>
+  <a href="#goals">الأهداف</a>
+  <a href="#budget">الميزانية</a>
+  <a href="#measure">القياس</a>
+  <a href="#channels">القنوات</a>
+  <a href="#creative">الإبداع</a>
+  <a href="#offers">العروض</a>
+  <a href="#retention">الاحتفاظ</a>
+  <a href="#aso">ASO والويب</a>
+  <a href="#creators">المبدعون والشراكات</a>
+  <a href="#ops">نظام التشغيل</a>
+  <a href="#calendar">تقويم 90 يوم</a>
+  <a href="#economics">الاقتصاد</a>
+  <a href="#risks">المخاطر</a>
+  <a href="#appendix">الملاحق</a>
+</nav>
+
+<!-- 1 -->
+<section id="principles">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">1</span></div>
+    <h2>خمسة مبادئ تحكم كل قرار</h2>
+    <p>كل ما بعد هذا القسم تفصيل لهذه المبادئ. إذا تعارض تكتيك معها، يسقط التكتيك.</p>
+  </div>
+  <div class="rule"><div class="n">1</div><div><h4>التسويق يتبع القدرة التشغيلية، لا العكس</h4><p>سقف الطلبات اليومي الذي يتحمّله الإكسبريس (المستودع + مرسول) هو سقف الإنفاق. إعلان يجلب طلبًا يتأخر أسوأ من لا إعلان. الحملات مقيّدة جغرافيًا بنطاق التغطية الفعلي وبساعات العمل.</p></div></div>
+  <div class="rule"><div class="n">2</div><div><h4>لا ريال واحد قبل اكتمال القياس</h4><p>الأسبوع الأول للبنية التحتية: أداة إسناد (MMP) وروابط عميقة وتحويلات من الخادم. بدون ذلك كل منصة ستدّعي نفس الطلب وسنوزّع الميزانية على أوهام.</p></div></div>
+  <div class="rule"><div class="n">3</div><div><h4>الإبداع هو المتغيّر الأكبر</h4><p>في حملات التطبيقات يفسّر الإبداع ما بين <span class="num">60</span> و<span class="num">80%</span> من فرق التكلفة بين حملتين متماثلتين. لذلك نظام إنتاج أسبوعي للمحتوى بأسلوب المستخدمين (UGC) أهم من أي ضبط للاستهداف.</p></div></div>
+  <div class="rule"><div class="n">4</div><div><h4>العرض الأول لا يكسر سعر الجملة</h4><p>مُنتجات موزّع جملة لكل العلامات، فخصم عميق على المستهلك يضرّ قناة الجملة. عرض الاستقطاب يكون في التوصيل والهدايا والكفوف، لا في تخفيض سعر المنتج.</p></div></div>
+  <div class="rule"><div class="n">5</div><div><h4>الاحتفاظ يبدأ من الطلب الأول</h4><p>طعام الحيوان يُشترى كل <span class="num">3</span> إلى <span class="num">6</span> أسابيع. العميل الذي يطلب مرتين في شهره الأول يبقى؛ الذي يطلب مرة واحدة غالبًا ضاع. كل الرحلة بعد الشراء مُصمَّمة لهدف واحد: الطلب الثاني.</p></div></div>
+</section>
+
+<!-- 2 -->
+<section id="assets">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">2</span></div>
+    <h2>نقطة الانطلاق: ما هو جاهز وما ينقص</h2>
+    <p>الخطة مبنية على ما هو مُشغَّل فعلًا في المنصة اليوم، لا على افتراضات.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <span class="tag">جاهز ويعمل</span>
+      <h3>أصول نبني عليها</h3>
+      <ul>
+        <li>تطبيق زوبكسي على App Store وGoogle Play، ومتجر ويب على WooCommerce بنفس السلة والحساب.</li>
+        <li>شاشة الإكسبريس «الوعد»: عدّاد الإغلاق، ساعة الوصول، رسوم <span class="num">25﷼</span> وتوصيل مجاني من <span class="num">79﷼</span>.</li>
+        <li>برنامج الولاء «عائلة زوبوكسي»: كفوف، بطاقة عضوية، هدايا حسب نوع الحيوان، إحالة تمنح <span class="num">300</span> كفّ للمُحيل و<span class="num">100</span> للجديد، رابط إحالة على الويب.</li>
+        <li>مقياس الطعام وخطة التغذية والتذكيرات: أساس جاهز لإعادة الشراء.</li>
+        <li>البكجات الذكية، صفحات البراند، الإشعارات (رحلات، سلة متروكة، قائمة انتظار، حملات).</li>
+        <li>هوية بصرية مكتملة: التيل والمرجاني، الشخصيات الكرتونية، خط Tajawal.</li>
+        <li>مرسول للتوصيل الإكسبريس في الرياض (سقف حالي <span class="num">20</span> طلبًا يوميًا).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag coral">ينقص قبل الإطلاق</span>
+      <h3>فجوات تُغلق في الأسبوعين الأولين</h3>
+      <ul>
+        <li><b>أداة إسناد (MMP):</b> AppsFlyer أو Adjust، مع روابط OneLink/deep links مؤجّلة للتثبيت.</li>
+        <li><b>تحويلات من الخادم:</b> Meta CAPI وTikTok Events API وSnap CAPI مرتبطة بأحداث WooCommerce، لا بالمتصفح وحده.</li>
+        <li><b>تحسين المتجرين (ASO):</b> كلمات مفتاحية عربية، لقطات شاشة تحكي الوعد، صفحات منتج مخصّصة لإعلانات آبل.</li>
+        <li><b>واتساب للأعمال (API):</b> قناة الاحتفاظ الأعلى فتحًا في السعودية، غير مُفعَّلة اليوم.</li>
+        <li><b>برنامج مبدعين محلي:</b> لا يوجد اليوم؛ نبنيه في الشهر الأول.</li>
+        <li><b>قرار الدفع عند الاستلام:</b> مرسول لا يحصّل كاش. الخيار المقترح: الإكسبريس بالدفع الإلكتروني فقط مع Apple Pay وSTC Pay ومدى، وتُقدَّم التجربة على أنها «ادفع وانسَ».</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="audience">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">3</span></div>
+    <h2>الجمهور والتموضع</h2>
+    <p>سوق التوصيل السريع في الرياض مزدحم بمنصات عامة (كيتا، نينجا، نعناع، هنقرستيشن، جاهز) لكن لا أحد منها متخصّص في الحيوانات الأليفة. هذا هو الموقع الذي نحتلّه.</p>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <span class="tag">الشريحة الأولى · الأولوية</span>
+      <h3>مربّو القطط في الأحياء المغطّاة</h3>
+      <p>أعلى تكرار شراء (طعام جاف ورطب ورمل). قرار الشراء عاطفي وسريع، وغالبهم نساء بين <span class="num">22</span> و<span class="num">38</span>. الرسالة: «نفد الطعام؟ يوصلك خلال ساعتين».</p>
+    </div>
+    <div class="card">
+      <span class="tag">الشريحة الثانية</span>
+      <h3>مربّو الكلاب</h3>
+      <p>سلة أكبر وأقل تكرارًا، حساسون لتوفّر العلامة المحدّدة. الرسالة: «علامتك موجودة، وتوصل اليوم». البكجات والاشتراك الناعم مناسبان جدًا لهم.</p>
+    </div>
+    <div class="card">
+      <span class="tag">الشريحة الثالثة</span>
+      <h3>الأهل الجدد لحيوان أليف</h3>
+      <p>تبنّوا أو اشتروا حيوانًا خلال آخر <span class="num">60</span> يومًا. أعلى قيمة عمرية وأكثر حاجة للإرشاد. الرسالة: «كل ما يحتاجه أول أسبوع، في طلب واحد». نصل إليهم عبر العيادات والمربّين والمحتوى التعليمي.</p>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card">
+      <h3>التموضع في جملة واحدة</h3>
+      <p style="font-size:18px;font-weight:700;color:var(--ink)">زوبكسي: متجر الحيوانات الأليفة المتخصّص الوحيد في الرياض الذي يوصل خلال ساعتين، بتشكيلة العلامات الكاملة، وبرنامج يعرف حيوانك بالاسم.</p>
+      <ul>
+        <li><b>ضد المنصات العامة:</b> تشكيلة كاملة بدل رفّ واحد، وخبرة متخصّصة.</li>
+        <li><b>ضد متاجر الحيوانات التقليدية:</b> السرعة، والتطبيق، والولاء.</li>
+        <li><b>ضد المتاجر الإلكترونية الكبيرة:</b> اليوم لا بعد ثلاثة أيام، وتوصيل إكسبريس مجاني من <span class="num">79﷼</span>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>قواعد الرسالة</h3>
+      <ul>
+        <li>الكلمة دائمًا «إكسبريس»، لا «الفرع» ولا اسم الحي الذي ينطلق منه التوصيل.</li>
+        <li>الوعد رقم: «خلال ساعتين»، لا «سريع» ولا «فوري».</li>
+        <li>اللهجة سعودية بيضاء، والحيوان هو البطل لا التطبيق.</li>
+        <li>الرمز ﷼ الرسمي في كل تصميم، والأرقام بالصيغة السعودية.</li>
+        <li>لا وعود بخصومات على سعر المنتج في الإعلانات الجماهيرية.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="goals">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">4</span></div>
+    <h2>الأهداف ومؤشّر النجم الشمالي</h2>
+    <p>مؤشّر واحد يحكم: <b>عدد العملاء الجدد في الرياض الذين أتمّوا طلبهم الثاني خلال 30 يومًا</b>. كل ما دونه مؤشّرات تشخيصية.</p>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="k">تنزيلات الفترة التجريبية</div><div class="v num">12–15<small>ألف</small></div><div class="d">تراكمي خلال 90 يومًا</div></div>
+    <div class="kpi"><div class="k">عملاء جدد (طلب أول)</div><div class="v num">2,000+</div><div class="d">تطبيق + ويب داخل نطاق الإكسبريس</div></div>
+    <div class="kpi"><div class="k">تكلفة العميل الجديد (CAC)</div><div class="v num">≤ 45<small>﷼</small></div><div class="d">مدمجة، بنهاية الشهر الثالث</div></div>
+    <div class="kpi"><div class="k">نسبة الطلب الثاني</div><div class="v num">≥ 35%</div><div class="d">خلال 30 يومًا من الطلب الأول</div></div>
+    <div class="kpi"><div class="k">الالتزام بالوعد</div><div class="v num">≥ 95%</div><div class="d">طلبات إكسبريس تصل داخل الساعتين</div></div>
+    <div class="kpi"><div class="k">تقييم المتجرين</div><div class="v num">≥ 4.7</div><div class="d">على App Store وGoogle Play</div></div>
+    <div class="kpi"><div class="k">متوسط السلة</div><div class="v num">≥ 140<small>﷼</small></div><div class="d">فوق عتبة التوصيل المجاني بمسافة</div></div>
+    <div class="kpi"><div class="k">استرداد التكلفة</div><div class="v num">≤ 60<small>يومًا</small></div><div class="d">هامش المساهمة من العميل يغطّي CAC</div></div>
+  </div>
+  <div class="note teal"><b>مسار القرار في نهاية التجربة:</b> إذا تحقّق CAC ≤ 45﷼ ونسبة الطلب الثاني ≥ 35% في الشهر الثالث، نضاعف الميزانية ونفتح نطاق إكسبريس جديدًا في الرياض. إذا تحقّق أحدهما فقط، نثبّت الميزانية ونعالج الآخر شهرًا إضافيًا. إذا لم يتحقّق أيّ منهما، المشكلة في المنتج أو التشغيل لا في الإعلان، ونوقف التوسّع.</div>
+</section>
+
+<!-- 5 -->
+<section id="budget">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">5</span></div>
+    <h2>توزيع الميزانية الشهرية</h2>
+    <p>التوزيع أدناه للشهر الأول (شهر التعلّم). من الأسبوع الخامس يُعاد التوزيع كل أسبوع بقاعدة واحدة: <b>70%</b> للقنوات الفائزة، <b>20%</b> للقنوات الواعدة، <b>10%</b> لاختبار جديد.</p>
+  </div>
+  <div class="card">
+    <div class="bars" role="img" aria-label="توزيع الميزانية الشهرية 37,500 ريال على القنوات">
+      <div class="bar"><div class="lbl">تيك توك<small>تثبيت + أول طلب</small></div><div class="track"><div class="fill" style="width:25%"></div></div><div class="val num">9,375 ﷼ <small>· 25%</small></div></div>
+      <div class="bar"><div class="lbl">سناب شات<small>الأعلى انتشارًا في الرياض</small></div><div class="track"><div class="fill" style="width:20%"></div></div><div class="val num">7,500 ﷼ <small>· 20%</small></div></div>
+      <div class="bar"><div class="lbl">ميتا<small>إنستقرام + فيسبوك</small></div><div class="track"><div class="fill" style="width:18%"></div></div><div class="val num">6,750 ﷼ <small>· 18%</small></div></div>
+      <div class="bar"><div class="lbl">قوقل<small>حملات التطبيق + بحث</small></div><div class="track"><div class="fill" style="width:12%"></div></div><div class="val num">4,500 ﷼ <small>· 12%</small></div></div>
+      <div class="bar"><div class="lbl">Apple Search Ads<small>نيّة عالية، iOS</small></div><div class="track"><div class="fill" style="width:8%"></div></div><div class="val num">3,000 ﷼ <small>· 8%</small></div></div>
+      <div class="bar"><div class="lbl">مبدعون ومحتوى<small>UGC + أكواد مبدعين</small></div><div class="track"><div class="fill creator" style="width:12%"></div></div><div class="val num">4,500 ﷼ <small>· 12%</small></div></div>
+      <div class="bar"><div class="lbl">شراكات محلية<small>عيادات، مربّون، فعاليات</small></div><div class="track"><div class="fill creator" style="width:3%"></div></div><div class="val num">1,125 ﷼ <small>· 3%</small></div></div>
+      <div class="bar"><div class="lbl">احتياطي اختبار<small>قناة أو فكرة جديدة</small></div><div class="track"><div class="fill" style="width:2%"></div></div><div class="val num">750 ﷼ <small>· 2%</small></div></div>
+    </div>
+    <div class="legend"><span><i></i>إعلانات مدفوعة على المنصات</span><span><i class="c"></i>إنتاج وشراكات خارج المنصات</span></div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card">
+      <h3>لماذا هذا التوزيع</h3>
+      <ul>
+        <li>سناب وتيك توك يغطّيان الغالبية الساحقة من الشباب في الرياض، وتكلفة التثبيت فيهما هي الأدنى للمحتوى الأصلي.</li>
+        <li>ميتا أغلى في التثبيت لكنها الأقوى في إعادة الاستهداف وفي جمهور الويب (WooCommerce).</li>
+        <li>قوقل وآبل يلتقطان النيّة الجاهزة: من يكتب «أكل قطط توصيل الرياض» يشتري اليوم.</li>
+        <li><span class="num">15%</span> خارج المنصات لأن المحتوى الأصلي هو وقود كل القنوات المدفوعة؛ بدونه ترتفع التكلفة بعد الأسبوع الثالث.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>قواعد الإنفاق الصارمة</h3>
+      <ul>
+        <li>الإنفاق اليومي = سقف الطلبات التشغيلي × CAC المستهدف × <span class="num">1.2</span>. لا أكثر مهما بدت النتائج مغرية.</li>
+        <li>الاستهداف الجغرافي دائمًا بمضلّعات نطاق الإكسبريس + كيلومتر واحد، لا «الرياض» كاملة.</li>
+        <li>جدولة الإعلانات على ساعات عمل الإكسبريس، ورسالة «يوصلك صباحًا» خارجها.</li>
+        <li>لا حملة تتجاوز <span class="num">25%</span> من الميزانية الشهرية دون أسبوعين من البيانات.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="measure">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">6</span></div>
+    <h2>بنية القياس</h2>
+    <p>تُبنى في الأسبوع الأول وتُختبر بطلبات حقيقية قبل أول ريال إعلاني.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>الطبقات الأربع</h3>
+      <ul>
+        <li><b>الإسناد (MMP):</b> AppsFlyer (أو Adjust). يوحّد iOS وAndroid والويب، يدعم SKAdNetwork وAdAttributionKit على iOS وInstall Referrer على Android، ويُصدر روابط OneLink لكل حملة ومبدع.</li>
+        <li><b>التحويلات من الخادم:</b> WooCommerce يرسل الطلب المدفوع إلى Meta CAPI وTikTok Events API وSnap CAPI بمعرّف حدث موحّد، حتى تصل الإشارة رغم قيود iOS.</li>
+        <li><b>التحليلات:</b> Firebase Analytics في التطبيق (موجود) + GA4 على الويب، بنفس أسماء الأحداث.</li>
+        <li><b>الحقيقة المالية:</b> لوحة أسبوعية من قاعدة sapconnect: عملاء جدد حقيقيون، طلب ثاني، هامش، حسب مصدر الإحالة.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>قمع الأحداث الموحّد</h3>
+      <p>نفس الأسماء في التطبيق والويب والمنصات الإعلانية. الحدث المُحسَّن له في الحملات هو <b>أول طلب مدفوع</b>، لا التثبيت.</p>
+      <pre>app_install
+signup_complete
+pet_added            (species, age)
+express_available    (in_zone: true/false)
+add_to_cart
+checkout_start
+first_order_paid     ← هدف التحسين
+second_order_paid    ← النجم الشمالي
+subscription_start
+referral_sent</pre>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>اصطلاح التسمية (لا استثناءات)</h3>
+    <p>الحملة: <code>ZB_RUH_{channel}_{objective}_{audience}_{month}</code> · الإعلان: <code>{concept}_{hook}_{format}_{v#}</code> · الروابط: <code>utm_source</code> = المنصة، <code>utm_campaign</code> = اسم الحملة نفسه، <code>utm_content</code> = اسم الإعلان نفسه. كود المبدع = رابط إحالة الولاء نفسه حتى يُحتسب مرة واحدة.</p>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="channels">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">7</span></div>
+    <h2>القنوات: الدور، البنية، المقياس</h2>
+    <p>لكل قناة وظيفة واحدة في القمع. لا نطلب من قناة ما لا تجيده.</p>
+  </div>
+  <div class="chan">
+    <div class="card">
+      <div class="head"><h3>تيك توك</h3><div class="share num">25%<small>9,375 ﷼</small></div><p>محرّك الاكتشاف والتثبيت الأرخص. يكافئ المحتوى الذي يشبه المنصة ويعاقب الإعلان المصقول.</p></div>
+      <div class="col"><h4>البنية</h4><ul><li>حملة App Install بالتحسين على «أول طلب» (Value/Event) بعد أسبوع تعلّم على التثبيت.</li><li>مجموعة Smart+ واحدة عريضة داخل النطاق الجغرافي، ومجموعة اهتمامات (حيوانات أليفة، قطط، كلاب).</li><li>Spark Ads من حسابات المبدعين لا من حساب البراند فقط.</li></ul></div>
+      <div class="col"><h4>القياس والقواعد</h4><ul><li>CPI مستهدف ≤ <span class="num">5﷼</span>، تكلفة أول طلب ≤ <span class="num">40﷼</span>.</li><li><span class="num">6</span> إعلانات جديدة أسبوعيًا؛ يُوقف أي إعلان تجاوز ضعف الهدف بعد <span class="num">300﷼</span>.</li><li>معدّل مشاهدة <span class="num">3</span> ثوانٍ ≥ <span class="num">25%</span> أو يُستبدل الخطّاف.</li></ul></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>سناب شات</h3><div class="share num">20%<small>7,500 ﷼</small></div><p>المنصة الأكثر استخدامًا يوميًا في السعودية، وقوّتها الحقيقية في الاستهداف الجغرافي الدقيق والمحتوى العمودي القصير.</p></div>
+      <div class="col"><h4>البنية</h4><ul><li>App Install ثم App Conversion على «أول طلب» بعد <span class="num">50</span> تحويلًا.</li><li>Radius targeting حول نطاق الإكسبريس بالذات؛ لا استهداف مدينة.</li><li>فلتر/عدسة «حيوانك بطاقة عضوية» مع تحدّي بسيط عند وجود فائض ميزانية.</li></ul></div>
+      <div class="col"><h4>القياس والقواعد</h4><ul><li>CPI مستهدف ≤ <span class="num">6﷼</span>، تكلفة أول طلب ≤ <span class="num">45﷼</span>.</li><li>Snap CAPI إلزامي؛ بدون تحويلات الخادم تتضاعف التكلفة.</li><li>تحديث الإبداع كل <span class="num">10</span> أيام لأن الإرهاق الإعلاني أسرع هنا.</li></ul></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>ميتا (إنستقرام + فيسبوك)</h3><div class="share num">18%<small>6,750 ﷼</small></div><p>أقوى محرّك لإعادة الاستهداف وأفضل قناة لجمهور الويب. إنستقرام هو مرجع «هل هذا البراند حقيقي؟».</p></div>
+      <div class="col"><h4>البنية</h4><ul><li>Advantage+ App Campaign واحدة على «أول طلب».</li><li>حملة Advantage+ Sales للويب (WooCommerce) بكتالوج ديناميكي.</li><li>إعادة استهداف: زوّار بلا طلب خلال <span class="num">7</span> أيام، وسلة متروكة خلال <span class="num">3</span> أيام، ومثبّتون بلا حساب.</li></ul></div>
+      <div class="col"><h4>القياس والقواعد</h4><ul><li>تكلفة أول طلب ≤ <span class="num">55﷼</span> للاستقطاب، ≤ <span class="num">25﷼</span> لإعادة الاستهداف.</li><li>CAPI مع مطابقة بريد/هاتف مُجزّأة، جودة الحدث ≥ <span class="num">7</span>.</li><li>إعادة الاستهداف لا تتجاوز <span class="num">30%</span> من ميزانية ميتا.</li></ul></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>قوقل</h3><div class="share num">12%<small>4,500 ﷼</small></div><p>يلتقط النيّة الجاهزة: بحث عربي عن طعام أو رمل أو علامة محدّدة مع «توصيل» و«الرياض».</p></div>
+      <div class="col"><h4>البنية</h4><ul><li>حملة بحث بكلمات عربية وإنجليزية: «اكل قطط توصيل الرياض»، «رويال كانين الرياض»، «رمل قطط توصيل سريع»، بأسماء العلامات الأعلى مبيعًا.</li><li>حملة App Campaign (Android أولًا) على «أول طلب».</li><li>Performance Max للويب فقط بعد الشهر الأول.</li></ul></div>
+      <div class="col"><h4>القياس والقواعد</h4><ul><li>البحث: تكلفة أول طلب ≤ <span class="num">50﷼</span>، نسبة نقر ≥ <span class="num">6%</span> على البراند.</li><li>كلمات سلبية أسبوعيًا (مجاني، وظائف، تبنّي).</li><li>صفحات هبوط لكل مجموعة كلمات، لا الصفحة الرئيسية.</li></ul></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>Apple Search Ads</h3><div class="share num">8%<small>3,000 ﷼</small></div><p>أعلى جودة مستخدم على iOS وأقصر مسافة إلى التثبيت. صغيرة لكنها دائمًا مربحة إذا ضُبطت.</p></div>
+      <div class="col"><h4>البنية</h4><ul><li>حملة براند (زوبكسي، zooboxi) + حملة منافسين + حملة كلمات عامة (pet shop، اكل قطط).</li><li>Custom Product Pages: صفحة للقطط وصفحة للكلاب بلقطات مختلفة.</li><li>Search Tab Ads عند فائض.</li></ul></div>
+      <div class="col"><h4>القياس والقواعد</h4><ul><li>نسبة التحويل من النقر للتثبيت ≥ <span class="num">50%</span> على البراند.</li><li>CPI عام ≤ <span class="num">10﷼</span>، ويُقاس بالطلب الأول عبر MMP.</li><li>مزايدة على كلمات المنافسين فقط حين تُثبت ربحيتها.</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="creative">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">8</span></div>
+    <h2>نظام الإبداع</h2>
+    <p>ليس «حملة إبداعية» بل خط إنتاج: خطّافات مُختبرة × مفاهيم × صيغ، بإيقاع أسبوعي ثابت.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>الخطّافات الخمسة الأساسية (أول 3 ثوانٍ)</h3>
+      <ul>
+        <li><b>اللحظة الحرجة:</b> «الساعة 9 بالليل والأكل خلص» ثم العدّاد يبدأ.</li>
+        <li><b>الإثبات الزمني:</b> شاشة الطلب، ثم الجرس، ثم الساعة: <span class="num">1:42</span>.</li>
+        <li><b>الحيوان يتكلّم:</b> صوت داخلي للقط ينتظر عند الباب.</li>
+        <li><b>المقارنة الهادئة:</b> «توصيل بعد 3 أيام» مقابل «وصل قبل ما تشوف الفيلم».</li>
+        <li><b>الكشف:</b> «الأشياء اللي ما توقّعت إنها توصلك خلال ساعتين» مع تصفّح حقيقي للتطبيق.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>الإيقاع الأسبوعي</h3>
+      <ul>
+        <li><b>الاثنين:</b> قراءة الأداء، اختيار الخطّافين الفائزين، وقتل الأضعف.</li>
+        <li><b>الثلاثاء:</b> إنزال <span class="num">6</span> إعلانات جديدة (<span class="num">4</span> UGC + <span class="num">2</span> من الاستوديو) بنسخ عمودية <span class="num">9:16</span>.</li>
+        <li><b>الخميس:</b> إعادة توزيع الميزانية بقاعدة 70/20/10.</li>
+        <li>كل إبداع يُختبر بميزانية ثابتة قبل الحكم عليه: <span class="num">300﷼</span> أو <span class="num">3</span> أيام.</li>
+        <li>أي إعلان فائز يُنسخ في <span class="num">3</span> نسخ (خطّاف مختلف، أول لقطة مختلفة، نداء مختلف).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>بنك المفاهيم للشهر الأول</h3>
+    <div class="tbl" style="margin-top:8px"><table>
+      <thead><tr><th>المفهوم</th><th>الصيغة</th><th>الشريحة</th><th>الوعد المُبرَز</th></tr></thead>
+      <tbody>
+        <tr><td>«خلصت الأكل» — يوم في حياة مربّية قطة</td><td>UGC عمودي 20 ث</td><td>قطط</td><td>ساعتان + توصيل مجاني من 79﷼</td></tr>
+        <tr><td>تحدّي الساعة: نطلب ونصوّر لحظة الوصول</td><td>مبدع + لقطة شاشة حقيقية</td><td>الجميع</td><td>الالتزام بالوعد</td></tr>
+        <tr><td>«شنو داخل الصندوق» فتح طلب إكسبريس</td><td>UGC أنبوكسينغ</td><td>الأهل الجدد</td><td>التشكيلة + الهدية</td></tr>
+        <tr><td>بطاقة العضوية والهدية لحيوانك</td><td>استوديو + شخصيات</td><td>الجميع</td><td>عائلة زوبوكسي</td></tr>
+        <tr><td>«علامتك موجودة» تمرير سريع على العلامات</td><td>Motion 15 ث</td><td>كلاب</td><td>الاكتمال + السرعة</td></tr>
+        <tr><td>البكج الأسبوعي: كل ما تحتاجه قطتك بضغطة</td><td>Carousel + فيديو</td><td>قطط</td><td>البكجات</td></tr>
+        <tr><td>نصيحة بيطرية قصيرة تنتهي بحلّ متوفّر الآن</td><td>مبدع خبير</td><td>الأهل الجدد</td><td>الثقة</td></tr>
+        <tr><td>مقارنة صامتة: 3 أيام مقابل ساعتين</td><td>Split-screen</td><td>الجميع</td><td>السرعة</td></tr>
+        <tr><td>«صاحبي قالي جرّبه» — رابط الإحالة</td><td>UGC</td><td>الجميع</td><td>300 كفّ للمُحيل</td></tr>
+        <tr><td>ليلة الجمعة: طلب متأخّر يوصل قبل النوم</td><td>UGC ليلي</td><td>قطط</td><td>ساعات العمل الممتدة</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="note"><b>خط أحمر إبداعي:</b> لا تظهر واجهة المستودع ولا عمّاله ولا اسم الحيّ الذي يخرج منه التوصيل. البطل هو الحيوان وصاحبه ولحظة الوصول.</div>
+</section>
+
+<!-- 9 -->
+<section id="offers">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">9</span></div>
+    <h2>هندسة العروض</h2>
+    <p>العروض مُصمَّمة لتخفيض تكلفة أول طلب ورفع احتمال الطلب الثاني، دون المساس بسعر المنتج المعلن.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>المرحلة</th><th>العرض</th><th>الآلية الموجودة</th><th>الهدف</th><th>الضابط</th></tr></thead>
+    <tbody>
+      <tr><td><b>الطلب الأول</b></td><td>توصيل إكسبريس مجاني بلا حدّ أدنى + هدية لحيوانك في الصندوق</td><td>الولاء: هدايا حسب النوع</td><td>كسر تردّد التجربة</td><td>مرة واحدة لكل حساب وهاتف وعنوان</td></tr>
+      <tr><td><b>الطلب الثاني</b></td><td>كفوف مضاعفة إذا طلب خلال 14 يومًا + بطاقة العضوية تُفعَّل بالكامل</td><td>الولاء: الكفوف + العضوية</td><td>تثبيت العادة</td><td>تُرسَل كإشعار وواتساب في اليوم 5 و10 و13</td></tr>
+      <tr><td><b>الإحالة</b></td><td>300 كفّ للمُحيل و100 كفّ + توصيل مجاني للجديد</td><td>الولاء: الإحالة (موجودة)</td><td>نموّ عضوي</td><td>سقف 10 إحالات ومهلة 7 أيام (كما هو مضبوط)</td></tr>
+      <tr><td><b>الاشتراك الناعم</b></td><td>«خلّه يوصل كل 3 أسابيع» بتوصيل مجاني دائم على الاشتراك</td><td>الولاء المرحلة 2</td><td>تكرار متوقّع</td><td>يمكن إيقافه بضغطة؛ لا التزام مالي</td></tr>
+      <tr><td><b>البكجات</b></td><td>بكج «الأسبوع الأول» للأهل الجدد وبكج «القطة السعيدة» الشهري</td><td>نظام البكجات</td><td>رفع السلة</td><td>الوفر من التوصيل والهدايا لا من خصم البند</td></tr>
+      <tr><td><b>الاستعادة</b></td><td>بعد 45 يومًا بلا طلب: توصيل مجاني + تذكير مقياس الطعام</td><td>رحلات الإشعارات</td><td>إنقاذ العميل</td><td>مرة كل 90 يومًا لكل عميل</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>مبدأ ثابت:</b> أي خصم على سعر بند يمرّ بموافقة المالك أولًا بسبب قناة الجملة. كل ما في هذا الجدول يعمل بدون خصم على المنتج.</div>
+</section>
+
+<!-- 10 -->
+<section id="retention">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">10</span></div>
+    <h2>محرّك الاحتفاظ</h2>
+    <p>الميزانية الإعلانية تجلب الطلب الأول؛ هذا المحرّك يجلب الثاني والثالث بتكلفة قريبة من الصفر. يعمل على الإشعارات (جاهزة) والواتساب (يُفعَّل) والبريد.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>التوقيت</th><th>المشغّل</th><th>الرسالة</th><th>القناة</th><th>الهدف</th></tr></thead>
+    <tbody>
+      <tr><td>اليوم <span class="num">0</span></td><td>تثبيت بلا حساب</td><td>«سجّل حيوانك وخذ هديته الأولى» بعد 30 دقيقة</td><td>إشعار</td><td>إكمال التسجيل</td></tr>
+      <tr><td>اليوم <span class="num">0</span></td><td>حساب بلا طلب</td><td>«أول طلب إكسبريس عليك، والتوصيل علينا» + عدّاد الإغلاق الحقيقي</td><td>إشعار + واتساب</td><td>أول طلب</td></tr>
+      <tr><td>اليوم <span class="num">1–3</span></td><td>سلة متروكة</td><td>صورة المنتج + «يوصلك قبل ...» بوقت حقيقي</td><td>إشعار ثم واتساب</td><td>استرجاع السلة</td></tr>
+      <tr><td>بعد التسليم</td><td>طلب مكتمل</td><td>طلب تقييم داخل التطبيق (موجود) ثم دعوة تقييم المتجر لمن أعطى 5</td><td>داخل التطبيق</td><td>التقييم 4.7+</td></tr>
+      <tr><td>اليوم <span class="num">5 / 10 / 13</span></td><td>لا طلب ثاني</td><td>كفوف مضاعفة حتى اليوم 14 + حالة مقياس الطعام</td><td>إشعار + واتساب</td><td>الطلب الثاني</td></tr>
+      <tr><td>حسب المقياس</td><td>الطعام قارب على النفاد</td><td>«باقي 4 أيام تقريبًا، نجدّد لك؟» بزرّ إعادة الطلب</td><td>إشعار</td><td>إعادة الشراء</td></tr>
+      <tr><td>اليوم <span class="num">45</span></td><td>غياب</td><td>عرض الاستعادة</td><td>واتساب + بريد</td><td>إنقاذ</td></tr>
+      <tr><td>الأحداث</td><td>عيد ميلاد الحيوان، رمضان، الصيف</td><td>لحظات الولاء (موجودة) بصور الشخصيات</td><td>إشعار</td><td>الارتباط</td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><h3>ضوابط الإزعاج</h3><ul><li>حدّ أقصى إشعاران ترويجيان أسبوعيًا لكل عميل؛ الإشعارات التشغيلية (حالة الطلب) خارج الحدّ.</li><li>واتساب رسالة تسويقية واحدة أسبوعيًا كحدّ أقصى، مع خيار الإيقاف في كل رسالة.</li><li>ساعات الهدوء من <span class="num">11</span> مساءً إلى <span class="num">9</span> صباحًا.</li></ul></div>
+    <div class="card"><h3>القياس</h3><ul><li>نسبة الطلب الثاني خلال 30 يومًا حسب المصدر الإعلاني (تكشف المصادر التي تجلب عملاء لا يبقون).</li><li>التفاعل مع كل رحلة (فتح، نقر، طلب خلال 24 ساعة).</li><li>نسبة إلغاء الاشتراك في الواتساب ≤ <span class="num">1%</span> شهريًا.</li></ul></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="aso">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">11</span></div>
+    <h2>المتجران والويب</h2>
+    <p>كل ريال إعلاني يمرّ بصفحة المتجر أو صفحة الهبوط. تحسينها يرفع كفاءة كل القنوات دفعة واحدة.</p>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <h3>App Store وGoogle Play</h3>
+      <ul>
+        <li>العنوان الفرعي يحمل الوعد: «توصيل خلال ساعتين في الرياض».</li>
+        <li>الكلمات: زوبكسي، متجر حيوانات، اكل قطط، اكل كلاب، رمل قطط، رويال كانين، توصيل سريع، pet shop، pet food.</li>
+        <li>اللقطة الأولى = شاشة «الوعد» بالعدّاد؛ الثانية = بطاقة العضوية والهدية؛ الثالثة = التشكيلة.</li>
+        <li>فيديو معاينة <span class="num">15</span> ث من نفس مفاهيم UGC الفائزة.</li>
+        <li>تجارب A/B لصفحة المتجر شهريًا (أيقونة، لقطة أولى).</li>
+        <li>الردّ على كل تقييم خلال <span class="num">24</span> ساعة بالعربية.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>الويب (WooCommerce)</h3>
+      <ul>
+        <li>صفحة هبوط لكل شريحة: /express للقطط، /express-dogs، /new-pet، مع فحص «هل عنواني داخل النطاق؟» في أعلى الصفحة.</li>
+        <li>لافتة التطبيق الذكية (Smart App Banner) ورابط OneLink ينقل السلة من الويب إلى التطبيق.</li>
+        <li>SEO محلي: صفحات «توصيل أكل قطط في الرياض» وصفحات العلامات (موجودة) بمحتوى حقيقي.</li>
+        <li>OPcache على خادم المتجر قبل الإطلاق (يقلّل زمن الصفحة إلى أقل من النصف).</li>
+        <li>Google Business Profile لعلامة «زوبكسي» بمراجعات حقيقية، بلا اسم فرع.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>الحسابات العضوية</h3>
+      <ul>
+        <li>إنستقرام: <span class="num">4</span> منشورات و<span class="num">10</span> ستوريز أسبوعيًا؛ ستوري يومي «وصل خلال ...» بصور حقيقية بإذن العملاء.</li>
+        <li>تيك توك: إعادة نشر كل UGC ناجح كمحتوى عضوي قبل تحويله لإعلان Spark.</li>
+        <li>سناب: حساب عام بقصص يومية قصيرة من وراء الكواليس دون كشف المكان.</li>
+        <li>مجتمع واتساب «عائلة زوبوكسي الرياض» للأعضاء النشطين: نصائح، أوّلية العروض، تجارب المنتجات.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section id="creators">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">12</span></div>
+    <h2>المبدعون والشراكات المحلية</h2>
+    <p>في فئة الحيوانات الأليفة الثقة تُنقل من صاحب حيوان إلى صاحب حيوان. المبدعون الصغار في الرياض أرخص وأصدق من المشاهير.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>برنامج المبدعين (4,500﷼ شهريًا)</h3>
+      <ul>
+        <li><b>الطبقة الأولى:</b> <span class="num">10–15</span> مبدعًا نانو/مايكرو (<span class="num">3</span> إلى <span class="num">40</span> ألف متابع) من مربّي القطط والكلاب في الرياض، مقابل منتجات + مكافأة ثابتة صغيرة + عمولة على كود الإحالة.</li><li><b>الطبقة الثانية:</b> <span class="num">2</span> مبدعان متوسّطان شهريًا لمحتوى «تحدّي الساعة».</li>
+        <li><b>الطبقة الثالثة:</b> طبيب بيطري أو مدرّب واحد للمحتوى التعليمي (الثقة).</li>
+        <li>كل مبدع يمنح حقوق Spark Ads/Whitelisting لشهرين؛ هذا هو العائد الحقيقي لا المتابعون.</li>
+        <li>الاختيار بمعيار واحد: هل جمهوره في الرياض ويملك حيوانًا فعلًا؟</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>الشراكات الأرضية (1,125﷼ شهريًا)</h3>
+      <ul>
+        <li><b>العيادات البيطرية داخل النطاق:</b> بطاقة «أول طلب إكسبريس مجاني» مع كود العيادة؛ العيادة تكسب كفوفًا أو منتجات لعملائها.</li>
+        <li><b>صالونات التجميل والفنادق:</b> نفس الآلية مع بكج «بعد الاستحمام».</li>
+        <li><b>المربّون ومجموعات التبنّي:</b> بكج «الأسبوع الأول» لكل حيوان جديد؛ أعلى قيمة عمرية في الخطة كلها.</li>
+        <li><b>مجموعات واتساب وتلقرام لمربّي القطط في الرياض:</b> حضور صادق لا إعلاني، برابط إحالة لمشرف المجموعة.</li>
+        <li><b>فعالية واحدة كل شهرين:</b> يوم تبنّي أو معرض حيوانات بركن زوبكسي والشخصيات.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section id="ops">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">13</span></div>
+    <h2>نظام التشغيل الأسبوعي</h2>
+    <p>هذا ما يجعل الخطة «نظامًا»: إيقاع ثابت، قواعد قرار مكتوبة سلفًا، وأدوار واضحة. لا اجتهاد يومي.</p>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <h3>الإيقاع</h3>
+      <ul>
+        <li><b>يوميًا (10 دقائق):</b> الإنفاق مقابل السقف، الطلبات مقابل القدرة، الالتزام بالوعد، تقييمات جديدة.</li>
+        <li><b>الاثنين:</b> مراجعة الأسبوع: CAC حسب القناة، الطلب الثاني حسب المصدر، أفضل وأسوأ 5 إعلانات.</li>
+        <li><b>الثلاثاء:</b> إنزال الإبداع الجديد.</li>
+        <li><b>الخميس:</b> إعادة توزيع الميزانية 70/20/10.</li>
+        <li><b>أول كل شهر:</b> مراجعة مع المالك: قرارات التوسّع، العروض، الميزانية.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>قواعد الإيقاف والتوسيع</h3>
+      <ul>
+        <li><b>إيقاف إعلان:</b> تجاوز ضعف تكلفة الطلب المستهدفة بعد <span class="num">300﷼</span>، أو <span class="num">0</span> طلبات بعد <span class="num">500﷼</span>.</li>
+        <li><b>توسيع حملة:</b> ثلاثة أيام متتالية تحت الهدف تسمح برفع <span class="num">20%</span> يوميًا، لا أكثر.</li>
+        <li><b>إيقاف قناة:</b> أسبوعان فوق الهدف بـ<span class="num">50%</span> رغم تغيير الإبداع.</li>
+        <li><b>فرملة تشغيلية:</b> الالتزام بالوعد أقل من <span class="num">90%</span> يومًا واحدًا = خفض الإنفاق <span class="num">50%</span> في اليوم التالي تلقائيًا.</li>
+        <li><b>نفاد المخزون:</b> منتج في إعلان نشط نفد = إيقاف الإعلان قبل الظهر.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>الأدوار</h3>
+      <ul>
+        <li><b>المالك:</b> الموافقة على العروض والخصومات، قرار التوسّع الشهري.</li>
+        <li><b>مدير الأداء (شخص واحد أو وكالة صغيرة):</b> الحملات، القياس، التقرير الأسبوعي.</li>
+        <li><b>منسّق المحتوى والمبدعين:</b> <span class="num">6</span> إعلانات أسبوعيًا، إدارة المبدعين، الحسابات العضوية.</li>
+        <li><b>مسؤول التشغيل:</b> يمدّ التسويق بسقف الطلبات اليومي والالتزام بالوعد كل صباح.</li>
+        <li><b>التقنية (sapconnect):</b> لوحة الأسبوع، الأحداث، CAPI، الواتساب.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>التقرير الأسبوعي: الحقول الثابتة</h3>
+    <div class="tbl" style="margin-top:8px"><table>
+      <thead><tr><th>المجموعة</th><th>الحقول</th></tr></thead>
+      <tbody>
+        <tr><td>المال</td><td>الإنفاق الكلي · الإنفاق حسب القناة · CAC مدمج · CAC حسب القناة · تكلفة الطلب الثاني</td></tr>
+        <tr><td>القمع</td><td>تنزيلات · تسجيلات · حيوانات مضافة · أول طلب · طلب ثاني خلال 30 يومًا · نسبة داخل النطاق</td></tr>
+        <tr><td>التشغيل</td><td>الطلبات مقابل السقف · الالتزام بالوعد · متوسط زمن التوصيل · نفاد المخزون في الإعلانات</td></tr>
+        <tr><td>الإبداع</td><td>أفضل 5 وأسوأ 5 إعلانات بتكلفة الطلب · نسبة المشاهدة 3 ث · عدد الإبداعات الجديدة</td></tr>
+        <tr><td>الاحتفاظ</td><td>أداء كل رحلة · تقييم المتجرين · إلغاء اشتراك الواتساب · إحالات مكافأة</td></tr>
+        <tr><td>القرارات</td><td>ما أُوقف · ما وُسّع · ما يُختبر الأسبوع القادم · ما يحتاج المالك</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section id="calendar">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">14</span></div>
+    <h2>تقويم التسعين يومًا</h2>
+    <p>ثلاث مراحل: تأسيس وتعلّم، ثم توسيع الفائز، ثم تثبيت الاقتصاد واتخاذ قرار التوسّع.</p>
+  </div>
+  <div class="phase">
+    <div class="ph"><h3>المرحلة الأولى: التأسيس والتعلّم</h3><span class="when">الأسابيع 1–4 · ميزانية إعلانية مخفّضة ثم كاملة</span></div>
+    <div class="wk"><div class="w">الأسبوع 1</div><p>بنية القياس كاملة (MMP، CAPI، الأحداث، OneLink) واختبارها بطلبات حقيقية. ASO ولقطات المتجر. تفعيل واتساب API. قرار الدفع الإلكتروني للإكسبريس. تصوير أول <span class="num">12</span> إعلان UGC. إنفاق إعلاني: صفر.</p></div>
+    <div class="wk"><div class="w">الأسبوع 2</div><p>إطلاق ناعم بـ<span class="num">40%</span> من الميزانية على تيك توك وسناب وميتا بالتحسين على التثبيت. بحث قوقل وApple Search Ads على كلمات البراند والعلامات. أول <span class="num">5</span> مبدعين يستلمون طلباتهم. توزيع بطاقات العيادات.</p></div>
+    <div class="wk"><div class="w">الأسبوع 3</div><p>الميزانية إلى <span class="num">80%</span>. تحويل التحسين إلى «أول طلب» حيثما تجاوزت التحويلات <span class="num">50</span>. أول قراءة حقيقية لـCAC حسب القناة. أول مراجعة إبداع وقتل الأضعف.</p></div>
+    <div class="wk"><div class="w">الأسبوع 4</div><p>الميزانية كاملة. تشغيل رحلة الطلب الثاني والاستعادة. تقرير الشهر الأول للمالك: أين CAC، ما القناة الفائزة، هل القدرة التشغيلية تكفي للشهر الثاني.</p></div>
+  </div>
+  <div class="phase">
+    <div class="ph"><h3>المرحلة الثانية: توسيع الفائز</h3><span class="when">الأسابيع 5–8</span></div>
+    <div class="wk"><div class="w">الأسبوع 5</div><p>إعادة توزيع 70/20/10 لأول مرة على بيانات فعلية. إطلاق Spark Ads من حسابات المبدعين. صفحات هبوط الويب للشرائح الثلاث.</p></div>
+    <div class="wk"><div class="w">الأسبوع 6</div><p>حملة الإحالة كموضوع إبداعي رئيسي. تجربة A/B لصفحة المتجر. مجتمع واتساب للأعضاء النشطين.</p></div>
+    <div class="wk"><div class="w">الأسبوع 7</div><p>اختبار Performance Max للويب من احتياطي الاختبار. أول فعالية أرضية. توسيع المبدعين إلى <span class="num">12</span>.</p></div>
+    <div class="wk"><div class="w">الأسبوع 8</div><p>تقرير الشهر الثاني: نسبة الطلب الثاني حسب المصدر، قرار رفع سقف مرسول إن تحقّق الالتزام بالوعد، وقرار الاشتراك الناعم كعرض رئيسي.</p></div>
+  </div>
+  <div class="phase">
+    <div class="ph"><h3>المرحلة الثالثة: تثبيت الاقتصاد وقرار التوسّع</h3><span class="when">الأسابيع 9–13</span></div>
+    <div class="wk"><div class="w">الأسبوع 9–10</div><p>خفض إعادة الاستهداف لصالح الاحتفاظ العضوي. تركيز الاستقطاب على الشريحة الأعلى طلبًا ثانيًا (لا الأرخص تثبيتًا). تجديد كامل لبنك المفاهيم.</p></div>
+    <div class="wk"><div class="w">الأسبوع 11–12</div><p>اختبار نطاق إكسبريس ثانٍ بميزانية صغيرة إن سمحت القدرة. تحليل جماعات العملاء (cohorts) بالأسبوع: من بقي ومن أين جاء.</p></div>
+    <div class="wk"><div class="w">الأسبوع 13</div><p>تقرير التجربة النهائي وقرار المسار الثلاثي (مضاعفة، تثبيت، إيقاف التوسّع) وفق معايير القسم الرابع.</p></div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section id="economics">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">15</span></div>
+    <h2>اقتصاد الحملة: ثلاثة سيناريوهات</h2>
+    <p>الأرقام أدناه افتراضات مبنية على معدّلات السوق السعودي لتطبيقات التجارة عام 2026، وتُستبدل بالفعلي بعد الأسبوع الثالث. الإعلانات المدفوعة على المنصات = <span class="num">31,125﷼</span> شهريًا.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>المؤشّر</th><th>متحفّظ</th><th>أساسي</th><th>متفائل</th><th>كيف يتحرّك</th></tr></thead>
+    <tbody>
+      <tr><td>تكلفة التثبيت المدمجة</td><td class="num">9 ﷼</td><td class="num">6 ﷼</td><td class="num">4.5 ﷼</td><td><em>الإبداع والاستهداف الجغرافي الضيّق</em></td></tr>
+      <tr><td>تنزيلات شهرية مدفوعة</td><td class="num">≈ 3,450</td><td class="num">≈ 5,200</td><td class="num">≈ 6,900</td><td><em>الميزانية ÷ CPI</em></td></tr>
+      <tr><td>تثبيت ← أول طلب</td><td class="num">12%</td><td class="num">18%</td><td class="num">22%</td><td><em>عرض الطلب الأول، صفحة المتجر، النطاق</em></td></tr>
+      <tr><td>عملاء جدد شهريًا (تطبيق)</td><td class="num">≈ 415</td><td class="num">≈ 935</td><td class="num">≈ 1,520</td><td><em>+ عملاء الويب والإحالة والشراكات</em></td></tr>
+      <tr><td>CAC على الإعلانات فقط</td><td class="num">≈ 75 ﷼</td><td class="num">≈ 33 ﷼</td><td class="num">≈ 20 ﷼</td><td><em>الهدف المدمج ≤ 45﷼ بالشهر الثالث</em></td></tr>
+      <tr><td>الطلب الثاني خلال 30 يومًا</td><td class="num">25%</td><td class="num">35%</td><td class="num">45%</td><td><em>محرّك الاحتفاظ + الالتزام بالوعد</em></td></tr>
+      <tr><td>الحكم</td><td><span class="pill warn">راجع العرض والمنتج</span></td><td><span class="pill good">وسّع</span></td><td><span class="pill good">ضاعف الميزانية</span></td><td></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note teal"><b>ملاحظة الهامش:</b> استرداد التكلفة يُحسب بهامش المساهمة (سعر البيع ناقص تكلفة البضاعة والتوصيل والهدية) مضروبًا في عدد طلبات العميل خلال <span class="num">60</span> يومًا. الفرق بين السيناريو المتحفّظ والأساسي يأتي كله تقريبًا من التحويل بعد التثبيت، لا من سعر التثبيت؛ لذلك يُقاس التطبيق والعرض قبل المزايدة.</div>
+</section>
+
+<!-- 16 -->
+<section id="risks">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">16</span></div>
+    <h2>المخاطر والحواجز</h2>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>الخطر</th><th>الأثر</th><th>الحاجز</th><th>الحالة</th></tr></thead>
+    <tbody>
+      <tr><td>الطلبات تتجاوز قدرة الإكسبريس</td><td>تأخير، تقييمات سيئة، فقدان الوعد</td><td>سقف إنفاق يومي مربوط بالقدرة + فرملة تلقائية عند الالتزام أقل من 90%</td><td><span class="pill crit">الأعلى</span></td></tr>
+      <tr><td>الدفع عند الاستلام مع مرسول</td><td>طلبات لا تُنفَّذ</td><td>الإكسبريس بالدفع الإلكتروني فقط في التجربة</td><td><span class="pill warn">قرار مالك</span></td></tr>
+      <tr><td>خصم يكسر سعر الجملة</td><td>تضرّر قناة الجملة</td><td>كل العروض في التوصيل والهدايا والكفوف</td><td><span class="pill good">محكوم</span></td></tr>
+      <tr><td>الإسناد المزدوج بين المنصات</td><td>توزيع خاطئ للميزانية</td><td>MMP كمرجع وحيد + لوحة sapconnect للحقيقة المالية</td><td><span class="pill teal">الأسبوع 1</span></td></tr>
+      <tr><td>نفاد المخزون في المنتجات المُعلَن عنها</td><td>خيبة أمل وتكلفة ضائعة</td><td>الإعلان فقط على منتجات مخزونها فوق حدّ الأسبوعين، فحص يومي</td><td><span class="pill teal">قاعدة</span></td></tr>
+      <tr><td>إرهاق الإبداع بعد الأسبوع الثالث</td><td>ارتفاع CPI 30–50%</td><td>خط الإنتاج الأسبوعي ثابت لا يتوقّف</td><td><span class="pill teal">قاعدة</span></td></tr>
+      <tr><td>ذكر الفرع أو موقعه في المحتوى</td><td>تعارض مع استراتيجية العلامة</td><td>مراجعة نصوص كل إعلان قبل النشر (فرع/branch)</td><td><span class="pill good">محكوم</span></td></tr>
+      <tr><td>الشتاء ورمضان يغيّران السلوك</td><td>تذبذب الطلب</td><td>رسائل موسمية جاهزة ومراجعة الميزانية شهريًا</td><td><span class="pill teal">مراقب</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 17 -->
+<section id="appendix">
+  <div class="sec-head">
+    <div class="eyebrow">القسم <span class="num">17</span></div>
+    <h2>الملاحق: قوائم التشغيل</h2>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>قائمة ما قبل الإطلاق</h3>
+      <ul class="check">
+        <li>MMP مثبّت في iOS وAndroid والويب، وطلب اختباري ظهر بمصدره الصحيح</li>
+        <li>Meta CAPI وTikTok Events API وSnap CAPI تستقبل «أول طلب مدفوع» من الخادم</li>
+        <li>OneLink ينقل من الإعلان إلى صفحة المنتج داخل التطبيق حتى بعد التثبيت الجديد</li>
+        <li>صفحة المتجرين محدّثة: عنوان فرعي، كلمات، لقطات، فيديو</li>
+        <li>عرض الطلب الأول مُفعَّل ومحدود بحساب وهاتف وعنوان</li>
+        <li>واتساب API مُفعَّل وقوالب الرحلات معتمدة</li>
+        <li>سقف الطلبات اليومي متّفق عليه مع التشغيل ومكتوب في لوحة التسويق</li>
+        <li>مضلّعات نطاق الإكسبريس مرفوعة في كل منصة إعلانية</li>
+        <li>12 إعلان UGC جاهزة بصيغة 9:16 و4:5 و1:1</li>
+        <li>لوحة الأسبوع تعمل من قاعدة sapconnect</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>قالب موجز الإبداع (Brief)</h3>
+      <ul>
+        <li><b>الشريحة:</b> قطط / كلاب / أهل جدد</li>
+        <li><b>الخطّاف (0–3 ث):</b> جملة واحدة أو مشهد واحد</li>
+        <li><b>الوعد المُبرَز:</b> ساعتان / مجاني من 79﷼ / الهدية / العضوية</li>
+        <li><b>الإثبات:</b> لقطة شاشة حقيقية أو لحظة وصول مصوّرة</li>
+        <li><b>النداء:</b> «حمّل وخلّ أول طلب علينا»</li>
+        <li><b>الممنوعات:</b> الفرع، الموقع، خصم على المنتج، ادعاء زمن أقل من ساعتين</li>
+        <li><b>الصيغ المطلوبة:</b> 9:16 (15 و30 ث) · 4:5 · 1:1 · نسخة صامتة بترجمة</li>
+        <li><b>اسم الملف:</b> مطابق لاصطلاح التسمية في القسم السادس</li>
+      </ul>
+      <h3 style="margin-top:18px">مواصفات قائمة الكلمات المفتاحية</h3>
+      <p>تُبنى من ثلاث مصادر: تقارير مصطلحات البحث في قوقل وآبل أسبوعيًا، وأكثر <span class="num">30</span> علامة مبيعًا في sapconnect، وأسئلة العملاء في الواتساب والتقييمات. تُراجع كل أسبوعين.</p>
+    </div>
+  </div>
+  <div class="foot">
+    <p>مصادر أرقام السوق: DataReportal Digital 2026 Saudi Arabia · NapoleonCat 2026 · Admiral Media Mobile App Benchmarks 2026 · Redseer KSA Q-commerce Roundup · Saudi Arabia Quick Commerce Market Report 2026. أرقام الخطة نفسها (الرسوم، العتبات، الكفوف، سقف مرسول) من إعدادات المنصة الحيّة بتاريخ <span class="num">2026-09-19</span>.</p>
+  </div>
+</div>

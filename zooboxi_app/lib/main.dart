@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,15 @@ Future<void> main() async {
   // Pre-warms the liquid-glass shaders so the tab bar's first frame is glass,
   // not a stutter while they compile.
   await LiquidGlassWidgets.initialize();
+
+  // Firebase (analytics + push) — before the first frame so the launch itself
+  // is measured. A build without the platform config files simply runs
+  // without it; PushService and AnalyticsService both check `Firebase.apps`.
+  try {
+    if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+  } catch (error) {
+    if (kDebugMode) debugPrint('[firebase] not configured: $error');
+  }
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

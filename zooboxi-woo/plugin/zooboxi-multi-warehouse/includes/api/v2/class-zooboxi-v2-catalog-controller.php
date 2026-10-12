@@ -1046,7 +1046,30 @@ class Zooboxi_V2_Catalog_Controller
                 'product_id'    => $woo_id ?: null,
                 'link'          => $woo_id ? (get_permalink($woo_id) ?: null) : null,
                 'creatives'     => $creatives,
+                // Motion engine: slot → animated WebP (the app's image slot plays it natively).
+                'motion'        => self::motion_set($c, $variant),
             ];
+        }
+        return $out;
+    }
+
+    /**
+     * Animated WebP URLs of one A/B arm, keyed by slot (empty when the campaign has no motion creatives).
+     *
+     * @return array<string,string>
+     */
+    private static function motion_set(array $campaign, string $variant): array
+    {
+        $set = $campaign['motion'][$variant] ?? null;
+        if (!is_array($set)) {
+            return [];
+        }
+        $out = [];
+        foreach (['hero', 'hero_wide', 'wide', 'card', 'strip', 'app_hero'] as $slot) {
+            $url = isset($set[$slot]['webp']) ? trim((string) $set[$slot]['webp']) : '';
+            if ($url !== '') {
+                $out[$slot] = esc_url_raw($url);
+            }
         }
         return $out;
     }
@@ -1063,7 +1086,7 @@ class Zooboxi_V2_Catalog_Controller
             return [];
         }
         $out = [];
-        foreach (['hero', 'wide', 'card', 'strip', 'app_hero'] as $slot) {
+        foreach (['hero', 'hero_wide', 'wide', 'card', 'strip', 'app_hero'] as $slot) {
             $url = isset($set[$slot]) ? trim((string) $set[$slot]) : '';
             if ($url !== '') {
                 $out[$slot] = esc_url_raw($url);

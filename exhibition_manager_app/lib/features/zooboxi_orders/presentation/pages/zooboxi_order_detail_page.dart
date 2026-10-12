@@ -552,6 +552,8 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage>
                   style: AppTypography.labelMedium.copyWith(color: _accent, fontWeight: FontWeight.w800)),
             ),
           const SizedBox(width: AppSpacing.md),
+          ProductThumb(url: line.imageUrl, size: 48, accent: _accent),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,6 +582,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage>
       ),
     );
   }
+
 
   // ─── Bottom action ──────────────────────────────────────────
   Widget _buildBottom(ZooboxiOrder o) {

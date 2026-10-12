@@ -230,10 +230,35 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
     // Nothing turns by itself while nobody is looking.
     if (!_visible || !_foreground) return;
 
-    _autoplay = Timer.periodic(const Duration(seconds: 6), (_) {
+    _armAutoplay();
+  }
+
+  /// A motion-engine plate plays a 4.5 s timeline and holds 1.5 s before it
+  /// loops; the slide stays until that first run has been seen in full.
+  static const _plainDwell = Duration(seconds: 6);
+  static const _motionDwell = Duration(seconds: 8);
+
+  Duration _dwellOf(int index) {
+    final items = _items;
+    if (index < 0 || index >= items.length) return _plainDwell;
+    final item = items[index];
+    if (item is _CampaignItem && item.campaign.finishedPlate != null) {
+      return _motionDwell;
+    }
+    return _plainDwell;
+  }
+
+  /// One-shot timer per slide, re-armed on every page change, so the dwell can
+  /// follow the slide that is actually showing.
+  void _armAutoplay() {
+    _autoplay?.cancel();
+    _autoplay = Timer(_dwellOf(_index), () {
       if (!mounted || !_controller.hasClients) return;
       // Reduce Motion means "don't move things on your own": no autoplay.
-      if (MediaQuery.disableAnimationsOf(context)) return;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _armAutoplay();
+        return;
+      }
       final next = (_index + 1) % _items.length;
       unawaited(
         _controller.animateToPage(
@@ -342,6 +367,7 @@ class _HeroCarouselState extends ConsumerState<HeroCarousel>
                         onPageChanged: (index) {
                           setState(() => _index = index);
                           _reportImpression(index);
+                          if (_autoplay != null) _armAutoplay();
                         },
                         itemBuilder: (context, index) => _Page(
                           item: items[index],
@@ -591,6 +617,38 @@ class _CampaignSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Motion-engine campaigns ship a finished plate cut for this exact slot
+    // (`app_hero`): headline, product, character and CTA are already in the
+    // picture, so the app draws nothing over it — no duplicated copy, no seam.
+    final plate = campaign.finishedPlate;
+    if (plate != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(PlateMetrics.radius),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ZbImage(
+              url: plate,
+              fit: BoxFit.cover,
+              backgroundColor: Colors.transparent,
+              decodeWidth: ZbDecode.hero,
+            ),
+            if (campaign.couponCode != null || campaign.endsAt != null)
+              PositionedDirectional(
+                start: 12,
+                bottom: 10,
+                child: CampaignChipRow(
+                  campaign: campaign,
+                  panel: CampaignPanel.of(context, campaignType: campaign.campaignType),
+                  includeBadge: false,
+                  maxChips: 2,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     final panel = CampaignPanel.of(
       context,
       campaignType: campaign.campaignType,
@@ -609,7 +667,7 @@ class _CampaignSlide extends StatelessWidget {
           top: 10,
           bottom: 10,
         ),
-        art: campaign.artFor(const ['app_hero', 'card', 'hero', 'wide']),
+        art: campaign.motionArtFor(const ['app_hero', 'card', 'hero', 'wide']),
         copy: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,

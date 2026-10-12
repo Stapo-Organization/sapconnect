@@ -48,6 +48,14 @@ class Product extends Model
         'zb_images',
         'zb_weight',
         'zb_weight_unit',
+        // بوابة كتالوج زوبوكسي
+        'zooboxi_gate_status',
+        'zooboxi_gate_reasons',
+        'zooboxi_gate_checked_at',
+        'zooboxi_activated_at',
+        'zb_content_source',
+        'zb_content_at',
+        'zb_resolved_images',
     ];
 
     protected $casts = [
@@ -57,6 +65,11 @@ class Product extends Model
         'zooboxi_active' => 'boolean',
         'zb_images' => 'array',
         'zb_weight' => 'decimal:3',
+        'zooboxi_gate_reasons' => 'array',
+        'zooboxi_gate_checked_at' => 'datetime',
+        'zooboxi_activated_at' => 'datetime',
+        'zb_content_at' => 'datetime',
+        'zb_resolved_images' => 'array',
     ];
 
     protected $appends = [

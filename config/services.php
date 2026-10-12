@@ -38,7 +38,8 @@ return [
         'free_shipping_min' => env('WOO_FREE_SHIPPING_MIN', 200),
 
         // Default price list to use for WooCommerce regular price
-        'default_price_list' => env('WOO_DEFAULT_PRICE_LIST', 1),
+        // (2 = «Retail PL - Muntajat»; 1 is the WHOLESALE list — never the shelf)
+        'default_price_list' => env('WOO_DEFAULT_PRICE_LIST', 2),
 
         // Do store orders move stock inside sapconnect?
         //
@@ -51,11 +52,49 @@ return [
         'deduct_stock' => env('WOO_DEDUCT_STOCK', false),
     ],
 
+    // دفتر أسعار زوبوكسي — App\Services\Zooboxi\PriceBook
+    // SAP prices are per piece and EX-VAT. Shelf = base × (1+VAT);
+    // express shelf = base × (1+express_markup) × (1+VAT). Base is the retail
+    // list floored to the wholesale list (owner rule: never net below wholesale).
+    'zooboxi_pricing' => [
+        'price_list' => env('ZOOBOXI_PRICE_LIST', 2),            // Retail PL - Muntajat
+        'wholesale_list' => env('ZOOBOXI_WHOLESALE_LIST', 1),    // 01-Wholesale PL (the floor)
+        'vat_rate' => env('ZOOBOXI_VAT_RATE', 0.15),
+        'express_markup' => env('ZOOBOXI_EXPRESS_MARKUP', 0.05), // owner, 2026-09-22
+    ],
+
     // ShipGo WMS read API (catalog mirror) — Bearer token + which SAP price
     // list is the wholesale/selling price exposed to ShipGo (convention: 1).
     'shipgo' => [
         'api_token' => env('SHIPGO_API_TOKEN'),
         'price_list' => env('SHIPGO_PRICE_LIST', 1),
+        // Catalog gate → ShipGo channel API (store-scoped sk_ key of the Zooboxi
+        // WooCommerce connection; same key the shipgo-connect plugin holds).
+        'base_url' => env('SHIPGO_BASE_URL', 'https://wms.stapo.io'),
+        'store_key' => env('SHIPGO_STORE_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Anthropic (Claude) — storefront copywriting for the Zooboxi catalog gate
+    |--------------------------------------------------------------------------
+    */
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5'),
+        // hard ceiling on listings written per day (cost guard)
+        'catalog_daily_cap' => env('ZOOBOXI_COPY_DAILY_CAP', 400),
+    ],
+
+    // بوابة كتالوج زوبوكسي — readiness rules
+    'zooboxi_gate' => [
+        'enabled' => env('ZOOBOXI_GATE_ENABLED', true),
+        // which SAP price list is the store's shelf price (must exist and be > 0)
+        'price_list' => env('WOO_DEFAULT_PRICE_LIST', 2),
+        // SAP warehouse ShipGo fulfils (its stock is also read live from ShipGo)
+        'shipgo_warehouse' => env('ZOOBOXI_SHIPGO_WAREHOUSE', 'RUH003'),
+        // products per scheduled run (copywriting is the slow part)
+        'batch' => env('ZOOBOXI_GATE_BATCH', 150),
     ],
 
     /*
@@ -90,6 +129,19 @@ return [
         'node_binary' => env('NODE_BINARY', 'node'),
         // hard daily ceiling on AI generations (cost guard)
         'max_generations_per_day' => env('CREATIVE_MAX_PER_DAY', 60),
+
+        // 'motion' driver (zero-cost engine, resources/js/zooboxi-engine): the same template exports a
+        // static PNG + an animated SVG (store) + an animated WebP (app). No AI call per ad.
+        'motion_frames' => env('CREATIVE_MOTION_FRAMES', 72),          // frames of the timeline in the app WebP
+        'motion_play_ms' => env('CREATIVE_MOTION_PLAY_MS', 3000),      // how long those frames play → 24 fps
+        'motion_app_width' => env('CREATIVE_MOTION_APP_WIDTH', 1080),  // = the board width: pixel-exact on a 3x phone
+        'motion_webp_quality' => env('CREATIVE_MOTION_WEBP_Q', 80),
+        'motion_webp_tool' => env('CREATIVE_MOTION_WEBP_TOOL', 'auto'), // auto | img2webp | convert (ImageMagick)
+        'motion_timeout' => env('CREATIVE_MOTION_TIMEOUT', 240),
+        // CLI PHP used to render creatives detached from the web request (approve → poll).
+        'php_binary' => env('CREATIVE_PHP_BINARY', 'php'),
+        // Trust-row lines under the CTA; null = engine defaults (cash on delivery, + 2h line for express).
+        'trust_lines' => null,
     ],
 
     /*

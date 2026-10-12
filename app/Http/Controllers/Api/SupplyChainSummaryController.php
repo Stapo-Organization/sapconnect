@@ -113,10 +113,11 @@ class SupplyChainSummaryController extends Controller
         return response()->json([
             'registrations' => $rows->map(fn (ProductRegistration $r) => [
                 'id'                 => $r->id,
-                'item_code'          => $r->item_code,
+                'reference_number'   => $r->reference_number,
+                'vendor_code'        => $r->vendor_code,
                 'name_ar'            => $r->name_ar,
                 'item_name'          => $r->item_name,
-                'brand_code'         => $r->brand_code,
+                'range'              => $r->range,
                 'status'             => $r->status,
                 'status_label'       => $r->statusLabel(),
                 'certificate_number' => $r->certificate_number,

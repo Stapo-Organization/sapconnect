@@ -298,11 +298,18 @@
         var delay = parseInt(hero.getAttribute('data-zb-autoplay') || '6000', 10);
         var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+        function replayMotion(slide) {
+            // Motion-engine SVGs run their CSS timeline once; re-inserting the node restarts it.
+            if (reduce || !slide) { return; }
+            var svg = slide.querySelector('.zb-hero__media--motion svg');
+            if (svg && svg.parentNode) { svg.parentNode.replaceChild(svg.cloneNode(true), svg); }
+        }
         function go(i) {
             idx = (i + n) % n;
             track.style.transform = 'translateX(' + (-idx * 100) + '%)';
             for (var d = 0; d < dots.length; d++) { dots[d].classList.toggle('is-active', d === idx); }
             trackCampaign(slides[idx]);
+            replayMotion(slides[idx]);
         }
         function next() { go(idx + 1); }
         function prev() { go(idx - 1); }

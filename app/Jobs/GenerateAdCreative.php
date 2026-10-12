@@ -54,6 +54,13 @@ class GenerateAdCreative implements ShouldQueue
         $hasProduct = ! empty($productImages);
         $kit = (new \App\Services\Marketing\BrandDesignKit())->forCampaign($campaign);
 
+        // Zero-cost motion engine: character library + product cut-out + brand layer → static PNG,
+        // animated SVG (store) and animated WebP (app) from one template. No AI call.
+        if ($driverName === 'motion') {
+            $this->handleMotion($campaign, app(\App\Services\Marketing\MotionCompositor::class), $variants, $kit);
+            return;
+        }
+
         // gpt-image-2 renders the COMPLETE finished banner (scene + product + Arabic
         // + logo) — a different pipeline from the nano/Imagen + resvg compositor path.
         if ($driverName === 'gpt-image') {
@@ -162,6 +169,98 @@ class GenerateAdCreative implements ShouldQueue
             foreach ($targetFormats as $format) {
                 $shape = $shapeForFormat[$format] ?? 'hero';
                 $this->storeFinishedCreative($campaign, $variant, $format, $shapePath[$shape] ?? null, $driver->key(), $prompts[$shape], $hash);
+            }
+        }
+    }
+
+    /**
+     * Motion engine path: one render per (format, variant) — the engine writes
+     * creatives/{id}/{format}-{variant}.png|.svg|.webp. Only the placement's format is
+     * rendered (all formats when un-placed). Idempotent via the engine's content hash.
+     */
+    private function handleMotion(MarketingCampaign $campaign, \App\Services\Marketing\MotionCompositor $engine, array $variants, array $kit): void
+    {
+        // The placement's format for the store + a finished app-hero plate for the app's slot, always.
+        $placementFormat = $campaign->placement ? \App\Services\Marketing\AdPlacements::formatFor($campaign->placement) : null;
+        // The store's desktop hero slot is 8:3 (hero_wide, animated); phones get the 3:2 hero (static).
+        $targetFormats = $placementFormat
+            ? array_values(array_unique($placementFormat === 'hero' ? ['hero_wide', 'hero', 'app_hero'] : [$placementFormat, 'app_hero']))
+            : array_merge(self::FORMATS, ['hero_wide', 'app_hero']);
+        $staticOnlyFormats = in_array('hero_wide', $targetFormats, true) ? ['hero'] : [];
+
+        // A campaign that is already published keeps serving: its re-rendered creatives are approved
+        // straight away (the owner approved the campaign, not one file); previews stay 'ready'.
+        $liveStatus = in_array($campaign->status, ['active', 'scheduled'], true) ? 'approved' : 'ready';
+
+        foreach ($variants as $variant) {
+            $hash = $engine->hash($campaign, $variant, $kit);
+            $ready = CampaignCreative::where('campaign_id', $campaign->id)
+                ->where('variant', $variant)
+                ->whereIn('status', ['ready', 'approved', 'selected'])
+                ->where('content_hash', $hash)
+                ->whereIn('format', $targetFormats)
+                ->count();
+            if ($ready >= count($targetFormats)) {
+                continue;
+            }
+
+            foreach ($targetFormats as $format) {
+                $creative = CampaignCreative::firstOrNew([
+                    'campaign_id' => $campaign->id,
+                    'format' => $format,
+                    'variant' => $variant,
+                ]);
+                $creative->fill([
+                    'status' => 'generating',
+                    'driver' => 'motion',
+                    'headline_ar' => $campaign->headline_ar,
+                    'subheadline_ar' => $campaign->subheadline_ar,
+                    'cta_ar' => $campaign->cta_ar,
+                    'badge_ar' => $campaign->badge_ar,
+                    'prompt' => null,
+                    'content_hash' => $hash,
+                    'attempts' => (int) $creative->attempts + 1,
+                ]);
+                $creative->save();
+
+                $disk = Storage::disk('public');
+                $rel = "creatives/{$campaign->id}/{$format}-{$variant}";
+
+                // Phase 1 — static preview in a few seconds so the HUB can show it while the motion renders.
+                $quick = $engine->render($campaign, $format, $variant, $kit, true);
+                if (! $quick) {
+                    $creative->update(['status' => 'failed', 'error' => 'motion engine failed']);
+                    continue;
+                }
+                $v = '?v=' . filemtime($quick['png']);
+                $creative->update([
+                    'status' => $liveStatus,
+                    'final_url' => $disk->url($rel . '.png') . $v,
+                    'thumb_url' => $disk->url($rel . '.png') . $v,
+                    'anim_svg_url' => null,
+                    'anim_webp_url' => null,
+                    'base_image_url' => null,
+                    'generation_meta' => $quick['meta'] + ['phase' => 'static'],
+                    'error' => null,
+                ]);
+
+                // Phase 2 — animated SVG (store) + animated WebP (app) from the same template.
+                if (in_array($format, $staticOnlyFormats, true)) {
+                    continue; // phones show the static picture; no motion needed for this format
+                }
+                $res = $engine->render($campaign, $format, $variant, $kit);
+                if (! $res) {
+                    Log::warning('[creative] motion phase failed; static creative kept', ['campaign' => $campaign->id, 'format' => $format]);
+                    continue;
+                }
+                $v = '?v=' . filemtime($res['png']);
+                $creative->update([
+                    'final_url' => $disk->url($rel . '.png') . $v,
+                    'thumb_url' => $disk->url($rel . '.png') . $v,
+                    'anim_svg_url' => $res['svg'] ? $disk->url($rel . '.svg') . $v : null,
+                    'anim_webp_url' => $res['webp'] ? $disk->url($rel . '.webp') . $v : null,
+                    'generation_meta' => $res['meta'],
+                ]);
             }
         }
     }

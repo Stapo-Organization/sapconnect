@@ -116,6 +116,8 @@
 	     so a reviewer reading both sees one honest sentence. -->
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>نستخدم موقعك لعرض المنتجات المتوفّرة فعليًا قربك ووقت التوصيل الحقيقي.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>نستخدم هذا الإذن لقياس فعالية إعلاناتنا ولعرض عروض تناسب حيوانك. لا نبيع بياناتك.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نستخدم موقعك لعرض المنتجات المتوفّرة فعليًا قربك ووقت التوصيل الحقيقي.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

@@ -31,3 +31,8 @@ Route::get('/sync-sap-products', function () {
         return 'Error: ' . $e->getMessage();
     }
 });
+
+// ShipGo — customer account statement PDF (read-only from SAP). Filament auth guard.
+Route::middleware(['web', 'auth'])
+    ->get('/admin/shipgo/customers/{cardCode}/statement', \App\Http\Controllers\ShipGoStatementController::class)
+    ->name('shipgo.customers.statement');

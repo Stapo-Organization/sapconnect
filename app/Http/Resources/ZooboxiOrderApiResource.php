@@ -52,6 +52,10 @@ class ZooboxiOrderApiResource extends JsonResource
                 'quantity' => (float) $line->quantity,
                 'unit_price' => (float) $line->unit_price,
                 'total_price' => (float) $line->total_price,
+                // Picking is done by eye: the photo identifies the product far
+                // faster than a code. Null for the ~27% with no image yet, and
+                // the app falls back to a placeholder rather than a broken box.
+                'image_url' => $line->product?->primary_image ?: null,
             ])->values()),
         ];
     }

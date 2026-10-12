@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 /**
  * One current SFDA registration record per SKU (dedup key = item_code).
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProductRegistration extends Model
 {
     protected $fillable = [
+        'reg_key',
         'item_code',
         'product_id',
         'brand_code',
@@ -24,6 +26,7 @@ class ProductRegistration extends Model
         'name_ar',
         'range',
         'vendor_code',
+        'factory_name',
         'reference_number',
         'certificate_number',
         'status',
@@ -44,6 +47,23 @@ class ProductRegistration extends Model
 
     /** Flag a registration as "expiring soon" this many days ahead. */
     public const EXPIRING_SOON_DAYS = 90;
+
+    /**
+     * Keep the identity columns populated for rows created/edited in Filament:
+     * reg_key = reference number (the registration's identity) or a stable random,
+     * and the legacy not-null item_code mirrors the product code.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (self $r) {
+            if (blank($r->reg_key)) {
+                $r->reg_key = filled($r->reference_number) ? $r->reference_number : 'REG-' . Str::upper(Str::random(10));
+            }
+            if (blank($r->item_code)) {
+                $r->item_code = $r->vendor_code ?: $r->reg_key;
+            }
+        });
+    }
 
     /* -------------------- Status vocabulary (single source of truth) -------------------- */
 

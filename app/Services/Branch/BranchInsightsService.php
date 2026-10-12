@@ -88,7 +88,11 @@ class BranchInsightsService
         'UZH001' => 'عنيزة',
         'KHO001' => 'الخبر',
         'BRD001' => 'بريدة',
-        'HBT001' => 'حوطة بني تميم',
+        // HBT is Hafar Al Batin ("Hafar Al Batin Store - HBT" in SAP), not
+        // Hawtat Bani Tamim — a different city entirely.
+        'HBT001' => 'حفر الباطن',
+        'RUH009' => 'سوق الحمام · الرياض',
+        'RUH010' => 'الملك فهد · الرياض',
     ];
 
     /** Arabic showroom name with graceful fallback (master English name → code). */

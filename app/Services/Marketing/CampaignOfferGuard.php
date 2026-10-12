@@ -117,6 +117,11 @@ class CampaignOfferGuard
         return $result;
     }
 
+    /**
+     * The store's base price (ex-VAT, per piece) — the retail list floored to
+     * wholesale, exactly what the shelf is built from. Measuring the discount
+     * ceiling off list 1 (the WHOLESALE list) understated every cap.
+     */
     private function retailOf(string $itemCode): float
     {
         $prices = Product::where('item_code', $itemCode)->value('prices');
@@ -126,11 +131,6 @@ class CampaignOfferGuard
         if (! is_array($prices)) {
             return 0.0;
         }
-        foreach ($prices as $p) {
-            if ((int) ($p['PriceList'] ?? 0) === 1) {
-                return (float) ($p['Price'] ?? 0);
-            }
-        }
-        return 0.0;
+        return (float) (\App\Services\Zooboxi\PriceBook::quote($prices)['base'] ?? 0.0);
     }
 }

@@ -101,14 +101,23 @@ class ZooboxiWarehouseResource extends Resource
 
                 Forms\Components\Section::make(__('Location & Delivery'))
                     ->schema([
+                        // sap:sync-warehouses drafts new branches without a GPS
+                        // pin. Express radius and reachability are computed from
+                        // these two numbers, so a branch may not go live without
+                        // them — an unpinned active branch would measure every
+                        // customer's distance from the Gulf of Guinea.
                         Forms\Components\TextInput::make('latitude')
                             ->label(__('Latitude'))
                             ->numeric()
-                            ->step(0.000001),
+                            ->step(0.000001)
+                            ->required(fn (Forms\Get $get): bool => (bool) $get('is_active'))
+                            ->helperText(__('Required before the branch can be activated')),
                         Forms\Components\TextInput::make('longitude')
                             ->label(__('Longitude'))
                             ->numeric()
-                            ->step(0.000001),
+                            ->step(0.000001)
+                            ->required(fn (Forms\Get $get): bool => (bool) $get('is_active'))
+                            ->helperText(__('Required before the branch can be activated')),
                         Forms\Components\TextInput::make('express_radius_km')
                             ->label(__('Express Delivery Radius (km)'))
                             ->numeric()
@@ -121,6 +130,8 @@ class ZooboxiWarehouseResource extends Resource
                     ->schema([
                         Forms\Components\Toggle::make('is_active')
                             ->label(__('Active'))
+                            ->helperText(__('Active branches serve store customers'))
+                            ->live()
                             ->default(true),
                         Forms\Components\Toggle::make('is_central')
                             ->label(__('Central Warehouse'))

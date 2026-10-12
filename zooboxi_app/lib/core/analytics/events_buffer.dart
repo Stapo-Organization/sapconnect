@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers.dart';
+import 'analytics_service.dart';
 
 /// One behavioural signal. Never carries PII — the server already knows who is
 /// calling from the bearer token or the guest header.
@@ -129,6 +130,10 @@ class EventsBuffer {
   bool _sending = false;
 
   void track(ZbEvent event) {
+    // Mirrored to Firebase under its marketing name before it is queued, so
+    // the ad platforms see the funnel in real time while the store gets its
+    // batch later.
+    _ref.read(analyticsProvider).mirror(event);
     _queue.add(event.toJson());
     unawaited(_ref.read(localStoreProvider).setPendingEvents(_queue));
 

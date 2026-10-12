@@ -25,7 +25,21 @@ class ZooboxiOrderController extends Controller
 
     // Eager-loaded on every order payload: lines for the picking list, the
     // warehouse + active Mrsool delivery for the courier card/map (avoids N+1).
-    private const EAGER = ['lines', 'zooboxiWarehouse', 'activeMrsoolDelivery'];
+    // `lines.product` feeds the picking thumbnails; eager-loaded so a
+    // ten-line order stays one query instead of ten.
+    private const EAGER = ['zooboxiWarehouse', 'activeMrsoolDelivery'];
+
+    /**
+     * Eager set including the product behind each line (picking thumbnails).
+     * `products` is unique on (item_code, source), so the relation is scoped to
+     * production rows — without it a stray non-production row could win.
+     */
+    private static function eager(): array
+    {
+        return array_merge(self::EAGER, [
+            'lines.product' => fn ($q) => $q->production(),
+        ]);
+    }
 
     // Un-prepared = still actionable by the branch (the "waiting" tab).
     private const OPEN_STATUSES = [
@@ -49,7 +63,7 @@ class ZooboxiOrderController extends Controller
 
         $base = $this->baseQuery($codes);
         $count = (clone $base)->count();
-        $orders = $base->with(self::EAGER)->latest()->limit(10)->get();
+        $orders = $base->with(self::eager())->latest()->limit(10)->get();
 
         return response()->json([
             'urgent_count' => $count,
@@ -66,7 +80,7 @@ class ZooboxiOrderController extends Controller
 
         $query = ZooboxiOrder::query()
             ->byDeliveryType(ZooboxiOrder::DELIVERY_EXPRESS)
-            ->with(self::EAGER)
+            ->with(self::eager())
             ->latest();
 
         $query->whereIn('warehouse_code', $codes ?: ['__none__']);
@@ -89,7 +103,7 @@ class ZooboxiOrderController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $order = $this->scopedZooboxiOrders($request->user())->with(self::EAGER)->findOrFail($id);
+        $order = $this->scopedZooboxiOrders($request->user())->with(self::eager())->findOrFail($id);
 
         return new ZooboxiOrderApiResource($order);
     }
@@ -109,7 +123,7 @@ class ZooboxiOrderController extends Controller
         }
 
         $order->update(['delivery_status' => ZooboxiOrder::STATUS_PREPARING]);
-        $order->load(self::EAGER);
+        $order->load(self::eager());
 
         return new ZooboxiOrderApiResource($order);
     }
@@ -146,7 +160,7 @@ class ZooboxiOrderController extends Controller
             ]);
         }
 
-        $order->load(self::EAGER);
+        $order->load(self::eager());
 
         return response()->json([
             'data' => new ZooboxiOrderApiResource($order),

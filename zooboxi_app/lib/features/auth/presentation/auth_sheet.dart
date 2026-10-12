@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/session/session_controller.dart';
 import '../../../core/utils/error_text.dart';
 import '../../../core/utils/haptics.dart';
@@ -139,6 +140,7 @@ class _AuthSheetState extends ConsumerState<AuthSheet> {
             user: result.user,
           );
       if (!mounted) return;
+      ref.analytics.logSignup(result.user.id, isNew: result.isNew);
 
       _countdown?.cancel();
       await Haptics.success();

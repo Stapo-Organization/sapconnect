@@ -35,8 +35,12 @@ class CampaignDeliveryController extends Controller
 
         $data = $campaigns->map(function ($c) use ($wooIds) {
             $creatives = [];
+            $motion = [];
             foreach ($c->creatives as $cr) {
                 $creatives[$cr->variant][$cr->format] = $cr->final_url;
+                if ($cr->anim_svg_url || $cr->anim_webp_url) {
+                    $motion[$cr->variant][$cr->format] = ['svg' => $cr->anim_svg_url, 'webp' => $cr->anim_webp_url];
+                }
             }
 
             return [
@@ -59,6 +63,8 @@ class CampaignDeliveryController extends Controller
                 'starts_at' => $c->starts_at,
                 'ends_at' => $c->ends_at,
                 'creatives' => $creatives, // { A: { hero:url, wide:url, card:url, strip:url }, B: {...} }
+                // Motion engine artefacts (same slots): svg = animated SVG for store zones, webp = animated WebP for the app.
+                'motion' => $motion,
             ];
         })->filter(fn ($row) => ! empty($row['creatives']))->values();
 

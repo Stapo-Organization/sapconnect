@@ -23,8 +23,12 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\URL::forceScheme('https');
 
         // Implicitly grant "Super Admin" role all permissions
-        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super Admin') ? true : null;
+        \Illuminate\Support\Facades\Gate::before(function ($user, $ability, array $arguments = []) {
+            if ($user->hasRole('Super Admin')) {
+                return true;
+            }
+            // Limited roles (e.g. Accountant) are denied everything except their own resources.
+            return \App\Support\PanelAccess::gate($user, $ability, $arguments);
         });
 
         // Explicitly register Policies for Spatie Models

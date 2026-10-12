@@ -42,8 +42,8 @@ class CampaignBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wideArt = campaign.artFor(const ['wide', 'strip']);
-    final art = wideArt ?? campaign.artFor(const ['app_hero', 'hero', 'card']);
+    final wideArt = campaign.motionArtFor(const ['wide', 'strip']);
+    final art = wideArt ?? campaign.motionArtFor(const ['app_hero', 'hero', 'card']);
     final panel = CampaignPanel.of(context, campaignType: campaign.campaignType);
 
     return CampaignImpression(

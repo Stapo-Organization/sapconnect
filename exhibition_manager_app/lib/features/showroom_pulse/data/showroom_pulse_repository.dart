@@ -70,8 +70,9 @@ class ShowroomPulseRepository {
   Future<({bool success, List<BleedingItem> items, String? error})>
   getBleedingAll({String? warehouse}) async {
     final r = await _leverRaw('bleeding', warehouse);
-    if (!r.success)
+    if (!r.success) {
       return (success: false, items: <BleedingItem>[], error: r.error);
+    }
     return (
       success: true,
       items: r.items.map(BleedingItem.fromJson).toList(),
@@ -82,8 +83,9 @@ class ShowroomPulseRepository {
   Future<({bool success, List<TrappedItem> items, String? error})>
   getTrappedAll({String? warehouse}) async {
     final r = await _leverRaw('trapped', warehouse);
-    if (!r.success)
+    if (!r.success) {
       return (success: false, items: <TrappedItem>[], error: r.error);
+    }
     return (
       success: true,
       items: r.items.map(TrappedItem.fromJson).toList(),
@@ -95,8 +97,9 @@ class ShowroomPulseRepository {
     String? warehouse,
   }) async {
     final r = await _leverRaw('basket', warehouse);
-    if (!r.success)
+    if (!r.success) {
       return (success: false, items: <BasketPair>[], error: r.error);
+    }
     return (
       success: true,
       items: r.items.map(BasketPair.fromJson).toList(),

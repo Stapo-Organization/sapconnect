@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics_service.dart';
 import '../network/envelope.dart';
 import '../providers.dart';
 
@@ -147,6 +148,7 @@ class SessionController extends Notifier<SessionState> {
   }
 
   Future<void> _tearDown() async {
+    ref.analytics.setUser(null);
     final guestId = state.guestId ?? await ref.read(secureStoreProvider).guestId();
     state = SessionState(status: AuthStatus.guest, guestId: guestId);
     await ref.read(secureStoreProvider).clearToken();

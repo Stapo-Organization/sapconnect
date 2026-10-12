@@ -134,6 +134,7 @@ class PlacedOrder {
     this.scratchCard,
     this.pawsToEarn = 0,
     this.subscriptionOrder = false,
+    this.ordersCount,
   });
 
   final int orderId;
@@ -161,6 +162,11 @@ class PlacedOrder {
   /// This basket delivered a subscription — free delivery and bonus paws.
   final bool subscriptionOrder;
 
+  /// The customer's lifetime paid-order count *including* this one, as the
+  /// store reports it. 1 is the first order the ad platforms are bid on; null
+  /// when the store did not say (a guest, or an older plugin).
+  final int? ordersCount;
+
   PlacedOrder withPromise(DeliveryPromise value) => PlacedOrder(
         orderId: orderId,
         orderNumber: orderNumber,
@@ -173,6 +179,7 @@ class PlacedOrder {
         scratchCard: scratchCard,
         pawsToEarn: pawsToEarn,
         subscriptionOrder: subscriptionOrder,
+        ordersCount: ordersCount,
       );
 
   factory PlacedOrder.fromJson(Map<String, dynamic> json) => PlacedOrder(
@@ -186,5 +193,6 @@ class PlacedOrder {
         scratchCard: ScratchCard.maybe(json['scratch_card']),
         pawsToEarn: asInt(json['paws_to_earn']),
         subscriptionOrder: asBool(json['subscription_order']),
+        ordersCount: json['orders_count'] == null ? null : asInt(json['orders_count']),
       );
 }

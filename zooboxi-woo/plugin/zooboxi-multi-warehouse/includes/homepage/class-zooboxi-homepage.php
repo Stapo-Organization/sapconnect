@@ -277,8 +277,15 @@ class Zooboxi_Homepage
                     $cid = (int) ($c['id'] ?? 0);
                     $wid = (int) ($c['woo_product_id'] ?? 0);
                     $link = $wid > 0 ? (get_permalink($wid) ?: wc_get_page_permalink('shop')) : wc_get_page_permalink('shop');
-                    return '<a class="zb-home-banner zb-camp" href="' . esc_url($link) . '" data-zb-campaign="' . $cid
+                    // Motion engine: inline the animated SVG when the campaign has one (PNG stays the fallback).
+                    $motion = '';
+                    $msvg = $c['motion']['A']['wide']['svg'] ?? ($c['motion']['A']['hero']['svg'] ?? '');
+                    if (is_string($msvg) && $msvg !== '' && class_exists('Zooboxi_Hero_Slider')) {
+                        $motion = Zooboxi_Hero_Slider::motion_inline_svg($msvg, 'b' . $slot);
+                    }
+                    return '<a class="zb-home-banner zb-camp' . ($motion !== '' ? ' has-motion' : '') . '" href="' . esc_url($link) . '" data-zb-campaign="' . $cid
                         . '" data-zb-zone="' . esc_attr('campaign:' . $cid . ':shop_top') . '" data-zb-variant="A" data-zb-item="' . esc_attr((string) ($c['item_code'] ?? '')) . '">'
+                        . ($motion !== '' ? '<span class="zb-home-banner__motion" aria-hidden="true">' . $motion . '</span>' : '')
                         . '<img src="' . esc_url($img) . '" alt="' . esc_attr((string) ($c['headline_ar'] ?? '')) . '" loading="lazy"></a>';
                 }
             }

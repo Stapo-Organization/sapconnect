@@ -99,6 +99,11 @@ class Zooboxi_Plugin
         // One basket per storefront: إكسبريس and زوبكسي never mix in one order.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-cart-shelf.php';
         Zooboxi_Cart_Shelf::hooks();
+        // دفتر الأسعار: one product, two shelves — إكسبريس is priced +5% over
+        // زوبكسي; cartons are piece × count on both. Written by the sync,
+        // read through the WooCommerce price getters for the served shelf.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-price-book.php';
+        Zooboxi_Price_Book::hooks();
 
         // An archive that lists nothing is not a search destination: keep empty
         // categories and brands out of the sitemap and out of the index.
@@ -167,6 +172,16 @@ class Zooboxi_Plugin
         if (is_admin()) {
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-push-admin.php';
             (new Zooboxi_Push_Admin())->register_hooks();
+        }
+
+        // Marketing — attribution, server-side conversions, web pixels and the
+        // first-order offer. Unconditional: the order hooks fire in cron and the
+        // fee filter must exist for every surface; the module has its own switch.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/marketing/class-zooboxi-marketing.php';
+        Zooboxi_Marketing::boot();
+        if (is_admin()) {
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/admin/class-zooboxi-marketing-admin.php';
+            (new Zooboxi_Marketing_Admin())->register_hooks();
         }
 
         // Mobile app API (namespace zooboxi/v2). Purely additive; kill switch:

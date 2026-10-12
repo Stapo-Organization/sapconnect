@@ -1,0 +1,68 @@
+{
+    "format": "hero",
+    "ad_type": "hero",
+    "seed": 36,
+    "copy": {
+        "kicker": null,
+        "headline": "الأكثر طلباً",
+        "sub": "كت كات مكافآت دجاج",
+        "cta": "تسوّق الآن",
+        "badge1": null,
+        "badge2": null,
+        "trust": [
+            [
+                "cash",
+                "الدفع عند الاستلام"
+            ]
+        ]
+    },
+    "price": {
+        "amount": "6.05",
+        "label": null,
+        "old": null
+    },
+    "products": [
+        {
+            "name": "p-P12600123",
+            "file": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/storage/app/public/creatives/bases/products/P12600123.png",
+            "count": 1
+        }
+    ],
+    "character": "cat-celebrate",
+    "pop_names": [
+        "sparkle-burst",
+        "star-glossy",
+        "hearts-cluster",
+        "stars-cluster",
+        "confetti-burst",
+        "heart-glossy"
+    ],
+    "colors": null,
+    "assets": {
+        "chars_dir": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/storage/app/public/creatives/bases/chars",
+        "pop_dir": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/storage/app/public/creatives/bases/pop",
+        "logo": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/storage/app/public/creatives/bases/logo.png",
+        "cache": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/storage/app/private/creative-cache/assets.json",
+        "font_dir": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/resources/fonts/zooboxi"
+    },
+    "asset_urls": {
+        "logo": "http://sapapi.muntajat.sa/storage/creatives/bases/logo.png",
+        "sparkle-burst": "http://sapapi.muntajat.sa/storage/creatives/bases/pop/sparkle-burst.png",
+        "star-glossy": "http://sapapi.muntajat.sa/storage/creatives/bases/pop/star-glossy.png",
+        "hearts-cluster": "http://sapapi.muntajat.sa/storage/creatives/bases/pop/hearts-cluster.png",
+        "stars-cluster": "http://sapapi.muntajat.sa/storage/creatives/bases/pop/stars-cluster.png",
+        "confetti-burst": "http://sapapi.muntajat.sa/storage/creatives/bases/pop/confetti-burst.png",
+        "heart-glossy": "http://sapapi.muntajat.sa/storage/creatives/bases/pop/heart-glossy.png",
+        "cat-celebrate": "http://sapapi.muntajat.sa/storage/creatives/bases/chars/cat-celebrate.png",
+        "p-P12600123": "http://sapapi.muntajat.sa/storage/creatives/bases/products/P12600123.png"
+    },
+    "out": {
+        "dir": "/Users/mohamedmahgoub/Desktop/Muntajat/Muntajat_auto/sapconnect/storage/app/public/creatives/5",
+        "name": "hero-A",
+        "frames": 6,
+        "app_w": 480,
+        "quality": 72,
+        "webp_tool": "auto",
+        "static_only": false
+    }
+}

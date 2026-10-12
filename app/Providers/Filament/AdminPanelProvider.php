@@ -69,7 +69,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-book-open')
                     ->group('System')
                     ->sort(99)
-                    ->visible(fn(): bool => !auth()->user()->hasAnyRole(['Branch Manager', 'Stakeholder'])),
+                    ->visible(fn(): bool => !auth()->user()->hasAnyRole(['Branch Manager', 'Stakeholder']) && !\App\Support\PanelAccess::isLimited(auth()->user())),
             ])
             ->font('Cairo')
             ->renderHook(
@@ -94,6 +94,26 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \App\Http\Middleware\RestrictLimitedPanelRoles::class,
             ]);
+    }
+
+    /**
+     * Limited roles (see App\Support\PanelAccess) get a sidebar with only their
+     * resources. This must run on the ServingFilament event: the panel itself
+     * boots in SetUpPanel, before the session middleware, when auth()->user()
+     * is still unknown in a real browser request.
+     */
+    public function boot(): void
+    {
+        \Filament\Facades\Filament::serving(function (): void {
+            $user = auth()->user();
+            if ($user && \App\Support\PanelAccess::isLimited($user)) {
+                \Filament\Facades\Filament::getCurrentPanel()?->navigation(
+                    fn (\Filament\Navigation\NavigationBuilder $builder): \Filament\Navigation\NavigationBuilder => $builder
+                        ->items(\App\Support\PanelAccess::navigationItems($user))
+                );
+            }
+        });
     }
 }

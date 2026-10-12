@@ -221,12 +221,15 @@ class SuggestCampaigns extends Command
     private function copyFor(array $c): array
     {
         $name = $c['name'] ?: 'تشكيلة مختارة';
+        // Customer copy never names a branch (owner rule): «إكسبريس»/«الآن» instead of «فرعك».
+        // The badge carries the label («الأكثر طلباً», «جديد»…); the headline is the product itself so it
+        // stays short enough for the ad engine's headline block.
         return match ($c['campaign_type']) {
-            'clearance' => ['headline' => "عرض خاص — {$name}", 'subheadline' => 'كمية محدودة · بادر بالطلب', 'cta' => 'تسوّق الآن', 'badge' => 'عرض'],
-            'spotlight' => ['headline' => "الأكثر طلباً — {$name}", 'subheadline' => 'متوفّر في فرعك · توصيل خلال ساعتين', 'cta' => 'تسوّق الآن', 'badge' => 'الأكثر طلباً'],
+            'clearance' => ['headline' => $name, 'subheadline' => 'كمية محدودة · بادر بالطلب', 'cta' => 'تسوّق الآن', 'badge' => 'عرض خاص'],
+            'spotlight' => ['headline' => $name, 'subheadline' => 'متوفّر الآن · توصيل خلال ساعتين', 'cta' => 'تسوّق الآن', 'badge' => 'الأكثر طلباً'],
             'bundle' => ['headline' => 'اشترِ معاً ووفّر', 'subheadline' => trim(($name) . ' + ' . ($c['name_b'] ?? '')), 'cta' => 'أضف الباقة', 'badge' => 'حزمة'],
-            'new_arrival' => ['headline' => "وصل حديثاً — {$name}", 'subheadline' => 'اكتشف أحدث التشكيلات', 'cta' => 'اكتشف الآن', 'badge' => 'جديد'],
-            'express' => ['headline' => "احصل عليه خلال ساعتين — {$name}", 'subheadline' => 'متوفّر الآن في فرعك', 'cta' => 'اطلب الآن', 'badge' => 'توصيل سريع'],
+            'new_arrival' => ['headline' => $name, 'subheadline' => 'وصل حديثاً · اكتشف أحدث التشكيلات', 'cta' => 'اكتشف الآن', 'badge' => 'جديد'],
+            'express' => ['headline' => 'يوصلك خلال ساعتين', 'subheadline' => $name, 'cta' => 'اطلب الآن', 'badge' => 'إكسبريس'],
             default => ['headline' => $name, 'subheadline' => '', 'cta' => 'تسوّق الآن', 'badge' => ''],
         };
     }

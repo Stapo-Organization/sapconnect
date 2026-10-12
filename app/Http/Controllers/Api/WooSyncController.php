@@ -9,6 +9,8 @@ use App\Models\ZooboxiOrder;
 use App\Models\ZooboxiOrderLine;
 use App\Models\ZooboxiSyncLog;
 use App\Models\ZooboxiWarehouse;
+use App\Services\NotificationRouter;
+use App\Support\NotificationAudience;
 use App\Services\Woo\WooDeliveryService;
 use App\Services\Woo\WooStockService;
 use Illuminate\Http\JsonResponse;
@@ -141,7 +143,7 @@ class WooSyncController extends Controller
         // unchanged — {"data":[...],"timestamp":"..."} — so the store plugin
         // needs no change.
         $query = Product::wooSyncable()->production()
-            ->select(['id', 'item_code', 'prices', 'updated_at'])
+            ->select(['id', 'item_code', 'prices', 'sales_items_per_unit', 'updated_at'])
             ->orderBy('id');
 
         if ($request->has('updated_since')) {
@@ -155,9 +157,15 @@ class WooSyncController extends Controller
             $query->chunkById(500, function ($products) use (&$first) {
                 $buffer = [];
                 foreach ($products as $p) {
+                    // دفتر الأسعار: the store writes `shelf_prices` (VAT-inclusive,
+                    // per piece, one per storefront) and keeps `prices` for reference.
+                    $book = \App\Services\Zooboxi\PriceBook::forProduct($p);
                     $buffer[] = json_encode([
                         'item_code' => $p->item_code,
                         'prices' => $p->prices ?? [],
+                        'shelf_prices' => $book['shelves'],
+                        'price_status' => $book['status'],
+                        'units' => $book['units'],
                         'updated_at' => $p->updated_at?->toIso8601String(),
                     ], JSON_UNESCAPED_UNICODE);
                 }
@@ -350,6 +358,13 @@ class WooSyncController extends Controller
                 'delivery_type' => $order->delivery_type,
                 'warehouse' => $order->warehouse_code,
             ]);
+
+            // The store calls this from inside the customer's checkout request
+            // (30s timeout, retry-on-timeout). Pushing is a sequential Guzzle
+            // call per device token, so doing it here would put FCM latency in
+            // front of a paying customer — and a timeout would make the store
+            // re-POST an order we already committed. Defer past the response.
+            app()->terminating(fn () => $this->notifyBranchOfNewOrder($order, $request));
 
             return response()->json([
                 'status' => 'received',
@@ -568,6 +583,9 @@ class WooSyncController extends Controller
             'uom' => $p->inventory_uom,
             'sales_items_per_unit' => $p->sales_items_per_unit,
             'prices' => $p->prices ?? [],
+            'shelf_prices' => ($book = \App\Services\Zooboxi\PriceBook::forProduct($p))['shelves'],
+            'price_status' => $book['status'],
+            'units' => $book['units'],
             'image_url' => $p->image_url,
             // ZID rich data
             'name_ar' => $p->zb_name_ar,
@@ -592,6 +610,85 @@ class WooSyncController extends Controller
             'woo_product_id' => $p->woo_product_id,
             'woo_synced_at' => $p->woo_synced_at?->toIso8601String(),
             'updated_at' => $p->updated_at?->toIso8601String(),
+            // بوابة الكتالوج — what the store may rely on when it CREATES the product:
+            // `pictures` answered HTTP 200 when the gate checked them (newest check
+            // wins); `content_source` says who wrote the copy (zid|ai|sap|manual).
+            'gate' => [
+                'status' => $p->zooboxi_gate_status ?? ($p->zooboxi_active ? 'active' : 'pending'),
+                'activated_at' => $p->zooboxi_activated_at?->toIso8601String(),
+                'content_source' => $p->zb_content_source,
+                'pictures' => array_values(array_filter((array) ($p->zb_resolved_images ?? []))),
+                'seo_title_ar' => $p->zb_seo_title_ar,
+                'seo_description_ar' => $p->zb_seo_description_ar,
+            ],
         ];
+    }
+
+    /**
+     * Tell the branch a new order has landed.
+     *
+     * Sent after the transaction commits, so a notification failure can never
+     * cost us the order — the store gets its 201 either way.
+     *
+     * The audience is the order's own warehouse, not every Branch Manager:
+     * a shipping order routed to the RUH hub must not buzz the King Fahad
+     * showroom. Super Admins are added on top so the owner sees all traffic.
+     * The Zooboxi warehouse may front several SAP codes, so both are matched
+     * (same bridge WooStockService documents).
+     */
+    private function notifyBranchOfNewOrder(ZooboxiOrder $order, Request $request): void
+    {
+        if (!$order->warehouse_code) {
+            return; // unrouted order — nobody owns it yet
+        }
+
+        // The app's order list is express-only (ZooboxiOrderController), so a
+        // push for a shipping order would open a tab that cannot show it.
+        // Widen this the day the app surfaces the other delivery types.
+        if ($order->delivery_type !== ZooboxiOrder::DELIVERY_EXPRESS) {
+            return;
+        }
+
+        try {
+            $warehouse = ZooboxiWarehouse::where('warehouse_code', $order->warehouse_code)->first();
+            $codes = array_values(array_unique(array_filter(array_merge(
+                [$order->warehouse_code],
+                (array) ($warehouse?->sap_warehouse_codes ?? []),
+            ))));
+
+            $recipients = NotificationAudience::warehouseUsers($codes)
+                ->merge(NotificationAudience::byRoles(['Super Admin']))
+                ->unique('id');
+
+            if ($recipients->isEmpty()) {
+                return;
+            }
+
+            $branch = $warehouse?->display_name_ar ?: $order->warehouse_code;
+            // Count from the request payload: the lines were just inserted and
+            // reading the relation here would cost a query for the same number.
+            $items = (int) collect($request->items ?? [])->sum('quantity');
+            $ref = $order->woo_order_number ?: ('#' . $order->woo_order_id);
+
+            app(NotificationRouter::class)->route(
+                'zooboxi_order_created',
+                $recipients,
+                [
+                    'title' => 'طلب زوبوكسي جديد — ' . $branch,
+                    'body'  => "طلب {$ref} • {$items} قطعة • بانتظار التجهيز",
+                    'data'  => [
+                        'type'     => 'zooboxi_order',
+                        'order_id' => (string) $order->id,
+                    ],
+                ],
+                // Keyed by the store's own order id, so a resend can never buzz
+                // the branch twice for the same purchase.
+                ['dedupe_key' => "zooboxi:new-order:{$order->woo_order_id}", 'dedupe_ttl' => 60],
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Zooboxi new-order notification failed: ' . $e->getMessage(), [
+                'order_id' => $order->id,
+            ]);
+        }
     }
 }

@@ -563,6 +563,9 @@ class Zooboxi_V2_Checkout_Controller
             'scratch_card'     => $loyalty['scratch_card'],
             'paws_to_earn'     => $loyalty['paws_to_earn'],
             'subscription_order' => $loyalty['subscription_order'],
+            // Lifetime count including this order: 1 is the first order the ad
+            // platforms are bid on, 2 is the plan's north star.
+            'orders_count'     => class_exists('Zooboxi_Marketing') ? Zooboxi_Marketing::orders_count_including($order) : null,
         ]);
     }
 

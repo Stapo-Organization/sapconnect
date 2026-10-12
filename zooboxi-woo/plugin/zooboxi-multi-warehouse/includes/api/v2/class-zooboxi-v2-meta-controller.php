@@ -51,6 +51,8 @@ class Zooboxi_V2_Meta_Controller
             'loyalty' => (class_exists('Zooboxi_Loyalty') && Zooboxi_Loyalty::is_enabled())
                 ? Zooboxi_Loyalty::meta_block()
                 : null,
+            // The paid-launch seams the app shows (first-order offer banner).
+            'marketing'   => class_exists('Zooboxi_Marketing') ? Zooboxi_Marketing::meta_block() : null,
             'maintenance' => get_option('zooboxi_v2_maintenance', 'no') === 'yes',
             'lang'        => Zooboxi_V2_Bootstrap::lang(),
         ], Zooboxi_V2_Bootstrap::TTL_META);

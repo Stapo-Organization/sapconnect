@@ -38,7 +38,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         if (result.success) {
           _reportData = result.report;
         } else {
-          _error = result.error ?? AppLocalizations.translate('ic_report_load_failed');
+          _error =
+              result.error ??
+              AppLocalizations.translate('ic_report_load_failed');
         }
       });
     }
@@ -74,10 +76,14 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
 
   Widget _buildReport() {
     final report = _reportData?['report'];
-    if (report == null)
+    if (report == null) {
       return Center(
-        child: Text(context.tr('ic_no_data'), style: const TextStyle(color: Colors.white70)),
+        child: Text(
+          context.tr('ic_no_data'),
+          style: const TextStyle(color: Colors.white70),
+        ),
       );
+    }
 
     final summary = report['summary'] as Map<String, dynamic>? ?? {};
     final discrepancies = report['discrepancies'] as List? ?? [];
@@ -112,7 +118,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                context.tr('ic_discrepancies_n').replaceAll('{n}', '${discrepancies.length}'),
+                context
+                    .tr('ic_discrepancies_n')
+                    .replaceAll('{n}', '${discrepancies.length}'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -156,20 +164,29 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            context.tr('ic_count_type_label').replaceAll(
-                '{type}',
-                report['counting_type'] == 'cycle'
-                    ? context.tr('cycle_count')
-                    : context.tr('ic_full_count_type')),
+            context
+                .tr('ic_count_type_label')
+                .replaceAll(
+                  '{type}',
+                  report['counting_type'] == 'cycle'
+                      ? context.tr('cycle_count')
+                      : context.tr('ic_full_count_type'),
+                ),
             style: const TextStyle(color: Colors.white60, fontSize: 14),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.inventory_2_rounded, color: Colors.tealAccent, size: 18),
+              const Icon(
+                Icons.inventory_2_rounded,
+                color: Colors.tealAccent,
+                size: 18,
+              ),
               const SizedBox(width: 6),
               Text(
-                context.tr('ic_products_counted_n').replaceAll('{n}', '${summary['total_lines'] ?? 0}'),
+                context
+                    .tr('ic_products_counted_n')
+                    .replaceAll('{n}', '${summary['total_lines'] ?? 0}'),
                 style: const TextStyle(
                   color: Colors.tealAccent,
                   fontSize: 16,
@@ -187,7 +204,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Row(
       children: [
         Expanded(
-          child: _statCard('✅ ${context.tr('ic_variance_match')}', '${summary['match'] ?? 0}', Colors.green),
+          child: _statCard(
+            '✅ ${context.tr('ic_variance_match')}',
+            '${summary['match'] ?? 0}',
+            Colors.green,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -199,7 +220,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: _statCard('📈 ${context.tr('ic_variance_over')}', '${summary['over'] ?? 0}', Colors.blue),
+          child: _statCard(
+            '📈 ${context.tr('ic_variance_over')}',
+            '${summary['over'] ?? 0}',
+            Colors.blue,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -293,11 +318,15 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                context.tr('ic_counted_qty_label').replaceAll('{n}', '${summary['total_counted_qty'] ?? 0}'),
+                context
+                    .tr('ic_counted_qty_label')
+                    .replaceAll('{n}', '${summary['total_counted_qty'] ?? 0}'),
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
               Text(
-                context.tr('ic_system_qty_label').replaceAll('{n}', '${summary['total_system_qty'] ?? 0}'),
+                context
+                    .tr('ic_system_qty_label')
+                    .replaceAll('{n}', '${summary['total_system_qty'] ?? 0}'),
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ],
@@ -337,7 +366,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  context.tr('ic_uncounted_products_note').replaceAll('{n}', '$count'),
+                  context
+                      .tr('ic_uncounted_products_note')
+                      .replaceAll('{n}', '$count'),
                   style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
               ],
@@ -357,7 +388,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         : status == 'over'
         ? Colors.blue
         : Colors.amber;
-    final icon = status == 'short' ? Icons.trending_down_rounded : Icons.trending_up_rounded;
+    final icon = status == 'short'
+        ? Icons.trending_down_rounded
+        : Icons.trending_up_rounded;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -452,9 +485,18 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               ),
               const SizedBox(height: 2),
               Text(
-                context.tr('ic_system_vs_counted')
-                    .replaceAll('{sys}', (d['system_quantity'] ?? 0).toDouble().toStringAsFixed(0))
-                    .replaceAll('{counted}', (d['counted_quantity'] ?? 0).toDouble().toStringAsFixed(0)),
+                context
+                    .tr('ic_system_vs_counted')
+                    .replaceAll(
+                      '{sys}',
+                      (d['system_quantity'] ?? 0).toDouble().toStringAsFixed(0),
+                    )
+                    .replaceAll(
+                      '{counted}',
+                      (d['counted_quantity'] ?? 0).toDouble().toStringAsFixed(
+                        0,
+                      ),
+                    ),
                 style: const TextStyle(color: Colors.white38, fontSize: 10),
               ),
             ],
@@ -476,7 +518,11 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
         children: [
           // بطل حالة النجاح — يطفو بهدوء (الحلقة المستمرة الوحيدة في الشاشة).
           const FloatingIcon(
-            child: Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
+            child: Icon(
+              Icons.check_circle_rounded,
+              color: Colors.green,
+              size: 48,
+            ),
           ),
           const SizedBox(height: 12),
           Text(

@@ -67,5 +67,40 @@ return [
             'username' => 'ppte\C001111.29',
             'password' => '$>B1$Sap4VA0',
         ],
+        // ShipGo company (read-only) — same SAP user as the main company.
+        'SHIPGO_LIVE_V1' => [
+            'username' => env('SAP_SHIPGO_USERNAME', 'ppte\C001111.29'),
+            'password' => env('SAP_SHIPGO_PASSWORD', '$>B1$Sap4VA0'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | ShipGo Company Database
+    |--------------------------------------------------------------------------
+    */
+    'shipgo_company_db' => env('SAP_SHIPGO_DB', 'SHIPGO_LIVE_V1'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | ShipGo Customer Statement
+    |--------------------------------------------------------------------------
+    |
+    | statement_query: code of the SAP user query (Query Manager → Service
+    | Layer `SQLQueries`) that returns the customer's JDT1 lines. The main
+    | company already has `SqlCustomerStatementOCRD01`; the same query must
+    | exist in the ShipGo company for the exact ledger statement. When it is
+    | missing, the service falls back to a documents-based statement
+    | (invoices + credit memos + incoming payments).
+    |
+    */
+    'shipgo' => [
+        'statement_query' => env('SAP_SHIPGO_STATEMENT_QUERY', 'SqlCustomerStatementOCRD01'),
+        'company_name'    => env('SHIPGO_COMPANY_NAME', 'ShipGo'),
+        'company_name_ar' => env('SHIPGO_COMPANY_NAME_AR', 'شركة شيب قو'),
+        'company_address' => env('SHIPGO_COMPANY_ADDRESS', 'الرياض، المملكة العربية السعودية'),
+        'company_vat'     => env('SHIPGO_COMPANY_VAT', ''),
+        'company_phone'   => env('SHIPGO_COMPANY_PHONE', ''),
+        'company_email'   => env('SHIPGO_COMPANY_EMAIL', ''),
     ],
 ];

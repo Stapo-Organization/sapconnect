@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/characters/characters.dart';
 import '../../../core/characters/companion.dart';
 import '../../../core/delivery/delivery_eta.dart';
@@ -146,7 +147,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOfferDrift());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeOfferDrift();
+      // iOS's ad-identifier sheet, once, on a screen the customer already
+      // recognises — never on the splash.
+      unawaited(ref.analytics.requestTrackingAuthorization());
+    });
   }
 
   @override
@@ -181,7 +187,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _adoptExpressHours(HomePayload payload) {
     final bool? serving = payload.scope?.expressAvailable;
     if (serving == null) return;
+    final bool? before = ref.read(servedExpressProvider);
     ref.read(servedExpressProvider.notifier).report(serving);
+    if (before != serving) {
+      final branch = payload.scope?.expressBranch;
+      ref.analytics.logExpressAvailable(
+        inZone: serving,
+        branch: branch == null || branch.isEmpty ? null : branch,
+      );
+    }
 
     final saved = ref.read(locationProvider).location.deliveryType == 'express';
     if (saved != serving) {

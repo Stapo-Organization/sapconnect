@@ -1,0 +1,16 @@
+app/Console/Commands/SyncShipGoCustomers.php
+app/Filament/Resources/ShipGoCustomerResource.php
+app/Filament/Resources/ShipGoCustomerResource/Pages/ListShipGoCustomers.php
+app/Filament/Resources/ShipGoCustomerResource/Pages/ViewShipGoCustomer.php
+app/Http/Controllers/ShipGoStatementController.php
+app/Models/ShipGoCustomer.php
+app/Services/ShipGo/ShipGoSapService.php
+app/Services/ShipGo/CustomerStatementPdf.php
+database/migrations/2026_09_22_000001_create_shipgo_customers_table.php
+resources/views/shipgo/statement.blade.php
+resources/views/shipgo/statement-error.blade.php
+resources/fonts/tajawal/Tajawal-Regular.ttf
+resources/fonts/tajawal/Tajawal-Bold.ttf
+resources/images/shipgo-logo.png
+config/sap.php
+routes/web.php

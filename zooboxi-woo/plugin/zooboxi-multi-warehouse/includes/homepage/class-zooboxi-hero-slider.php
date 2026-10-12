@@ -33,6 +33,45 @@ class Zooboxi_Hero_Slider
 
     /* ════════════════════════ FRONT RENDER ════════════════════════ */
 
+    /**
+     * Motion-engine creative: fetch the animated SVG once (transient, 6 h), sanitise it and make it
+     * safe to inline several times on one page (ids/classes/keyframes prefixed per instance). Returns
+     * '' on any doubt so the caller falls back to the static PNG.
+     */
+    public static function motion_inline_svg(string $url, string $prefix = ''): string
+    {
+        $url = trim($url);
+        if ($url === '' || !preg_match('#^https://sapapi\.muntajat\.sa/storage/creatives/#', $url)) {
+            return '';
+        }
+        $key = 'zb_motion_' . md5($url);
+        $svg = get_transient($key);
+        if (!is_string($svg)) {
+            $res = wp_remote_get($url, ['timeout' => 8]);
+            $svg = is_wp_error($res) ? '' : (string) wp_remote_retrieve_body($res);
+            if ($svg === '' || strlen($svg) > 400000 || stripos($svg, '<script') !== false || stripos($svg, '<foreignObject') !== false
+                || preg_match('/\son[a-z]+\s*=/i', $svg) || !preg_match('/^\s*<svg\b/i', $svg)) {
+                $svg = '';
+            } else {
+                // Responsive root: drop the fixed size, cover the slot (viewBox stays).
+                $svg = preg_replace('/^(\s*<svg\b[^>]*?)\s(width|height)="[^"]*"/i', '$1', $svg, 1);
+                $svg = preg_replace('/^(\s*<svg\b[^>]*?)\s(width|height)="[^"]*"/i', '$1', $svg, 1);
+                $svg = preg_replace('/^(\s*<svg\b)/i', '$1 preserveAspectRatio="xMidYMid slice"', $svg, 1);
+            }
+            set_transient($key, $svg, 6 * HOUR_IN_SECONDS);
+        }
+        if ($svg === '') {
+            return '';
+        }
+        $prefix = $prefix !== '' ? preg_replace('/[^a-z0-9]/', '', strtolower($prefix)) . '-' : 'm' . substr(md5($url), 0, 6) . '-';
+        // Unique ids / classes / keyframes per instance (several banners share one page).
+        return str_replace(
+            ['id="', 'url(#', 'href="#', '@keyframes k-', 'animation:k-', 'class="L-', '.L-', '[class^=L-]'],
+            ['id="' . $prefix, 'url(#' . $prefix, 'href="#' . $prefix, '@keyframes ' . $prefix . 'k-', 'animation:' . $prefix . 'k-', 'class="' . $prefix . 'L-', '.' . $prefix . 'L-', '[class^=' . $prefix . 'L-]'],
+            $svg
+        );
+    }
+
     public static function render(): string
     {
         // Lead with the responsive, full-width brand HTML hero (crisp at any size).
@@ -42,9 +81,13 @@ class Zooboxi_Hero_Slider
         if ($bh) {
             $slides[] = $bh;
         }
-        // Only fall back to the AI/auto slides when the HTML hero isn't available.
+        // Live campaigns published to the hero placement always follow the brand hero
+        // (motion-engine creatives are finished plates, so they sit naturally as slide 2+).
+        foreach (self::campaign_slides() as $cs) {
+            $slides[] = $cs;
+        }
+        // Only fall back to the identity/auto slides when the HTML hero isn't available.
         if (empty($slides)) {
-            $slides = self::campaign_slides();
             $identity = self::identity_slide();
             if ($identity) {
                 $slides[] = $identity;
@@ -137,12 +180,21 @@ class Zooboxi_Hero_Slider
             $cls .= ' zb-hero__slide--auto zb-hero__slide--' . esc_attr($s['theme'] ?? 'teal');
         }
 
+        $motion = '';
+        if ($kind === 'image' && !empty($s['motion_svg'])) {
+            $motion = self::motion_inline_svg((string) $s['motion_svg'], 'h' . $i);
+            if ($motion !== '') { $cls .= ' has-motion'; }
+        }
+
         $out  = '<a class="' . $cls . '" href="' . esc_url($href) . '"' . $track . ' role="group" aria-roledescription="' . esc_attr__('شريحة', 'zooboxi') . '">';
 
         // Visual layer
         if ($kind === 'image' && !empty($s['image'])) {
             $mob = !empty($s['image_mobile']) ? $s['image_mobile'] : $s['image'];
-            $out .= '<picture class="zb-hero__media">';
+            if ($motion !== '') {
+                $out .= '<span class="zb-hero__media zb-hero__media--motion" aria-hidden="true">' . $motion . '</span>';
+            }
+            $out .= '<picture class="zb-hero__media' . ($motion !== '' ? ' zb-hero__media--fallback' : '') . '">';
             $out .= '<source media="(max-width: 768px)" srcset="' . esc_url($mob) . '">';
             $out .= '<img src="' . esc_url($s['image']) . '" alt="' . esc_attr($s['headline'] ?? 'Zooboxi') . '"' . ($i === 0 ? ' fetchpriority="high"' : ' loading="lazy"') . '>';
             $out .= '</picture>';
@@ -218,19 +270,23 @@ class Zooboxi_Hero_Slider
             $zones = $c['zones'] ?? [];
             if (!is_array($zones) || !in_array('hero', $zones, true)) { continue; }
             if (!empty($c['ends_at']) && strtotime($c['ends_at']) < $now) { continue; }
-            $img = $c['creatives']['A']['hero'] ?? ($c['creatives']['A']['wide'] ?? null);
+            // Desktop slot is 8:3 → the motion engine's hero_wide; older campaigns fall back to hero/wide.
+            $img = $c['creatives']['A']['hero_wide'] ?? ($c['creatives']['A']['hero'] ?? ($c['creatives']['A']['wide'] ?? null));
             if (!$img) { continue; }
-            // Square card for mobile (the wide hero is too short on phones).
-            $mob = $c['creatives']['A']['card'] ?? $img;
+            // Phones show a 3:2 slide → the 3:2 hero (else the square card, else the desktop image).
+            $mob = $c['creatives']['A']['hero'] ?? ($c['creatives']['A']['card'] ?? $img);
             $cid = (int) ($c['id'] ?? 0);
             $link = '';
             $wid = (int) ($c['woo_product_id'] ?? 0);
             if ($wid > 0) { $link = get_permalink($wid) ?: ''; }
             if ($link === '') { $link = wc_get_page_permalink('shop'); }
+            // Motion engine: animated SVG for desktop (inlined at render), static PNG stays the fallback.
+            $motion = $c['motion']['A']['hero_wide']['svg'] ?? ($c['motion']['A']['hero']['svg'] ?? ($c['motion']['A']['wide']['svg'] ?? ''));
             $out[] = [
                 'kind'         => 'image',
                 'image'        => $img,
                 'image_mobile' => $mob,
+                'motion_svg'   => is_string($motion) ? $motion : '',
                 'link'         => $link,
                 // The AI banner already contains the headline/CTA → no overlay.
                 'headline'    => '',

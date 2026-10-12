@@ -57,7 +57,7 @@ class PushService {
   Future<void> start() async {
     if (_messaging != null) return;
     try {
-      await Firebase.initializeApp();
+      if (Firebase.apps.isEmpty) await Firebase.initializeApp();
     } catch (error) {
       // No plist, or a malformed one. This is the ordinary state before the
       // Firebase project exists, not a fault worth surfacing.

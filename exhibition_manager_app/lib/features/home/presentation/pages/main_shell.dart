@@ -90,6 +90,9 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
     final domain = switch (type) {
       'stock_transfer' => AppDomain.transfers,
       'cycle_due' => AppDomain.counting,
+      // Both a new order and a Mrsool courier update point at the orders tab —
+      // previously neither navigated anywhere when tapped.
+      'zooboxi_order' => AppDomain.zooboxi,
       _ => null,
     };
     if (domain != null) _navigateToDomain(domain);

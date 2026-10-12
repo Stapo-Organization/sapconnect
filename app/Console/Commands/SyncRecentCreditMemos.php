@@ -25,6 +25,9 @@ class SyncRecentCreditMemos extends Command
         
         $this->info("Starting Recent Credit Memos Sync...");
 
+        ini_set('memory_limit', '512M');
+        DB::disableQueryLog();
+
         try {
             $sapClient = app(\App\Services\SAP\SapClient::class);
             $sapClient->setCompanyDb('PPTC_V5_PROD');
