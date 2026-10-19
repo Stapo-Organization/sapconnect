@@ -8,6 +8,9 @@ import '../../core/icons/cart_box_icon.dart';
 import '../../core/icons/zb_icons.dart';
 import '../../core/motion/anchors.dart';
 import '../../core/motion/motion.dart';
+import '../../core/shelf/shelf_controller.dart';
+import '../../core/shelf/shelf_identity.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/widgets/sparkles.dart';
 import '../../features/cart/data/cart_controller.dart';
 import '../../l10n/app_localizations.dart';
@@ -63,12 +66,22 @@ class GlassNavBar extends ConsumerWidget {
     final cs = context.cs;
     final dark = context.isDark;
     final cartCount = ref.watch(cartCountProvider);
+    final glance = ref.watch(cartGlanceProvider);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     final destinations = <_Destination>[
       _Destination(kind: ZbIconKind.home, label: l.navHome),
       _Destination(kind: ZbIconKind.categories, label: l.navCategories),
-      _Destination(kind: ZbIconKind.cart, label: l.navCart, badge: cartCount),
+      _Destination(
+        kind: ZbIconKind.cart,
+        label: l.navCart,
+        badge: cartCount,
+        // The basket's running total, in the storefront's own colour, where
+        // the word «السلة» was — the same figure the cart's lines add up to.
+        amount: cartCount > 0 && glance.subtotal > 0 ? glance.subtotal : null,
+        // The colour of the storefront the basket belongs to.
+        accent: ShelfIdentity.of(context, glance.express ? Shelf.express : Shelf.all).accent,
+      ),
       _Destination(kind: ZbIconKind.account, label: l.navAccount),
     ];
 
@@ -116,15 +129,30 @@ class GlassNavBar extends ConsumerWidget {
               // Still glass (the refraction and the rim are the point), just
               // dense enough that the four labels never have to compete with
               // the product behind them.
+              //
+              // Raised again 2026-09-24 (UX review): at 0.72 product names
+              // scrolling under the bar still collided with «الرئيسية» and
+              // «حسابي» letter for letter. Dense enough now that nothing behind
+              // can be read, light enough that the shelf still moves under it.
               glassColor: dark
-                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.74)
-                  : cs.surface.withValues(alpha: 0.72),
-              blur: 18,
+                  ? ZbTokens.graphiteRaised.withValues(alpha: 0.9)
+                  : cs.surface.withValues(alpha: 0.9),
+              blur: 26,
             ),
             child: SizedBox(
               height: barHeight,
               child: Stack(
                       children: [
+                        // A backing under the glyphs. The glass shader refracts
+                        // what scrolls beneath it rather than veiling it, so
+                        // even at a dense tint a product name slid right under
+                        // «الرئيسية». This is what makes the menu a surface.
+                        Positioned.fill(
+                          child: ColoredBox(
+                            color: (dark ? ZbTokens.graphiteRaised : cs.surface)
+                                .withValues(alpha: 0.82),
+                          ),
+                        ),
                         AnimatedAlign(
                           key: pillKey,
                           alignment: AlignmentDirectional(pillX, 0),
@@ -176,11 +204,17 @@ class _Destination {
     required this.kind,
     required this.label,
     this.badge = 0,
+    this.amount,
+    this.accent,
   });
 
   final ZbIconKind kind;
   final String label;
   final int badge;
+
+  /// A running total to show instead of [label] — the cart tab only.
+  final double? amount;
+  final Color? accent;
 }
 
 class _NavItem extends StatelessWidget {
@@ -219,18 +253,77 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: 3),
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 4, end: 4),
-              child: Text(
-                destination.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.tt.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  height: 1.1,
+              child: AnimatedSwitcher(
+                duration: context.motion(Motion.select),
+                switchInCurve: Motion.emphasized,
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: ScaleTransition(scale: Tween(begin: 0.85, end: 1.0).animate(anim), child: child),
                 ),
+                child: destination.amount == null
+                    ? Text(
+                        destination.label,
+                        key: const ValueKey('label'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.tt.labelSmall?.copyWith(
+                          color: color,
+                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                          height: 1.1,
+                        ),
+                      )
+                    : _AmountCapsule(
+                        key: const ValueKey('amount'),
+                        amount: destination.amount!,
+                        accent: destination.accent ?? cs.primary,
+                        label: destination.label,
+                      ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The cart tab's running total: a small capsule in the storefront's colour.
+class _AmountCapsule extends StatelessWidget {
+  const _AmountCapsule({
+    super.key,
+    required this.amount,
+    required this.accent,
+    required this.label,
+  });
+
+  final double amount;
+  final Color accent;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    final price = Fmt.price(amount, locale: locale);
+    return Semantics(
+      label: '$label، $price',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: accent,
+          borderRadius: BorderRadius.circular(ZbTokens.rPill),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            price,
+            maxLines: 1,
+            style: context.tt.labelSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              height: 1.15,
+            ),
+          ),
         ),
       ),
     );

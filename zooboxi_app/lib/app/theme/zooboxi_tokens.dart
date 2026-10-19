@@ -122,8 +122,87 @@ abstract final class ZbTokens {
   static const Color creamLogo = Color(0xFFF4EBDA);
   static const Color sparkAmber = Color(0xFFE9B36A);
 
+  // ── Product story · دليل زوبكسي ────────────────────────────────────
+  // Round 3 (2026-09-24, owner: «الألوان فاتحة… وهوية زوبكسي»): every
+  // section is a LIGHT wash of a logo colour — teal, coral, kraft, amber,
+  // mint — with its deep shade for ink and a solid accent for the badge.
+  static const Color storyTealWash = Color(0xFFE8F5F4);
+  static const Color storyTealLine = Color(0xFFC6E5E2);
+  static const Color storyTeal = Color(0xFF1B9E98);
+  static const Color storyCoralWash = Color(0xFFFDF0EB);
+  static const Color storyCoralLine = Color(0xFFF5D3C8);
+  static const Color storyKraftWash = Color(0xFFFCF3E7);
+  static const Color storyKraftLine = Color(0xFFEFD9BD);
+  static const Color storyKraftDeep = Color(0xFF8A4E1F);
+  static const Color storyAmberWash = Color(0xFFFDF6E4);
+  static const Color storyAmberLine = Color(0xFFF1E0B0);
+  static const Color storyMintWash = Color(0xFFEBF6EE);
+  static const Color storyMintLine = Color(0xFFC9E7D2);
+  static const Color storyMint = Color(0xFF2E9A62);
+  static const Color storyMintDeep = Color(0xFF1E6A43);
+
+  /// Chart series — the logo's coral, amber and teal, stepped until the
+  /// dataviz validator passes (CVD ΔE ≥ 12, normal ΔE ≥ 16 on light). Amber
+  /// is under 3:1 on white, so every chart that uses it carries its values
+  /// as visible labels. [sliceRest] is the neutral «باقي المكونات».
+  static const Color sliceRed = Color(0xFFD65A45);
+  static const Color sliceGold = Color(0xFFDC9B18);
+  static const Color sliceTeal = Color(0xFF1B9E98);
+  static const Color sliceRest = Color(0xFFC9D0CD);
+  static const Color sliceRestDark = Color(0xFF56605C);
+
   // ── Radius · الاستدارة ─────────────────────────────────────────────
   static const double rXs = 8;
+  /// The mat a product photograph sits on in dark mode. Store photos are
+  /// shot on white; on graphite a white rectangle is the harshest thing on
+  /// the screen, so the photo sits on a warm light mat its white melts into.
+  static const Color photoMatDark = Color(0xFFECE9E3);
+
+  // ── One-component palettes · ألوان مكوّن واحد ──────────────────────
+  // Colours a single component owns. They live here, named, so the rule at
+  // the top of this file holds: nothing outside it writes a hex. The art
+  // painters (podium metals, loyalty art, scratch foil, species avatars) keep
+  // theirs — see test/design_tokens_test.dart for that list.
+
+  /// The kraft tape under a section title.
+  static const Color kraftTape = Color(0xFFE9C9A0);
+  static const Color kraftTapeEdge = Color(0xFFD4A976);
+  static const Color kraftTapeDark = Color(0xFF4A3A2C);
+  static const Color kraftTapeEdgeDark = Color(0xFF33281F);
+
+  /// «حسابي»'s hero canvas at night.
+  static const Color tealNight = Color(0xFF11312F);
+  static const Color tealNightEnd = Color(0xFF17403E);
+
+  /// The family card's warm paper and its edge.
+  static const Color creamCard = Color(0xFFFFF9F2);
+  static const Color creamCardLine = Color(0xFFF1E4D4);
+
+  /// The glow at a hero packshot's feet, and the shadow under its sticker.
+  static const Color plateGlow = Color(0xFFFFEFE3);
+  static const Color plateGlowDark = Color(0xFF3A3F3B);
+  static const Color emberShadow = Color(0xFF3C1A0A);
+
+  /// Bundle collage ground.
+  static const Color artworkGround = Color(0xFFF4F7F6);
+
+  /// Warm shadows under white tiles on a brand stage.
+  static const Color warmShadow = Color(0xFF502300);
+  static const Color earthShadow = Color(0xFF281400);
+
+  /// A brand name set on a white tile when the brand has no logo.
+  static const Color logoInk = Color(0xFF1A1A1A);
+
+  /// The aisle's studio sweeps — light and dark of each.
+  static const Color sweepSand = Color(0xFFF3EADB);
+  static const Color sweepSandDark = Color(0xFF3A3225);
+  static const Color sweepSage = Color(0xFFE3EFE7);
+  static const Color sweepSageDark = Color(0xFF24332A);
+  static const Color sweepBlush = Color(0xFFF9E6E1);
+  static const Color sweepBlushDark = Color(0xFF3B2A27);
+  static const Color sweepSky = Color(0xFFE4EDF6);
+  static const Color sweepSkyDark = Color(0xFF25313C);
+
   static const double rSm = 12;
   static const double rMd = 14;
   static const double rLg = 18;

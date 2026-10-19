@@ -2,4 +2,7 @@
 <resources>
     <color name="ic_launcher_background">#FFF7EF</color>
     <color name="notification_accent">#429D9C</color>
+    <!-- The launch canvas: cream by day, graphite at night — the first frame
+         Flutter draws on the splash is the same colour, logo and size. -->
+    <color name="splash_background">#FFF7EF</color>
 </resources>

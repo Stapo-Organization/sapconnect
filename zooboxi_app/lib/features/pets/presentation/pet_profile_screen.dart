@@ -28,6 +28,7 @@ import '../../loyalty/presentation/widgets/supply_card.dart';
 import '../data/care_models.dart';
 import '../data/pet_models.dart';
 import '../data/pets_repository.dart';
+import 'widgets/pet_brands.dart';
 import 'widgets/care_widgets.dart';
 import 'widgets/pet_card.dart' show speciesLabel;
 import 'widgets/species_avatar.dart';
@@ -423,6 +424,17 @@ class _Body extends StatelessWidget {
             Gap.h12,
           ],
         ],
+        // «براندات لولو»: the brands this pet eats, each with its bar and «جدّد».
+        if (care.brands.isNotEmpty) ...[
+          Gap.h20,
+          enter(CareHeader(title: l.myBrandsTitle(pet.name), subtitle: l.petBrandsSub)),
+          Gap.h8,
+          for (final brand in care.brands) ...[
+            enter(PetBrandRow(item: brand, busy: busy, onRenew: () => onOrderSupply(brand.supply))),
+            Gap.h12,
+          ],
+        ],
+        const FollowedNewRail(),
       ],
     );
   }

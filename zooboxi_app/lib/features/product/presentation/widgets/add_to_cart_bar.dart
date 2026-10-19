@@ -181,19 +181,31 @@ class _Button extends StatelessWidget {
                   ),
                 ] else if (bar.outOfStock)
                   Text(l.pdpOutOfStock)
-                else ...[
-                  ZbIcon(ZbIconKind.plusBox, size: 24, ink: cs.onPrimary),
-                  Gap.w8,
-                  Text(l.pdpAddToCart),
-                  Gap.w8,
-                  Container(
-                    width: 1,
-                    height: 16,
-                    color: cs.onPrimary.withValues(alpha: 0.32),
+                else
+                  // A long total («39,10 ﷼») on a narrow phone used to push
+                  // the label 20pt past the button; the line now shrinks to
+                  // fit instead of overflowing.
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ZbIcon(ZbIconKind.plusBox, size: 24, ink: cs.onPrimary),
+                          Gap.w8,
+                          Text(l.pdpAddToCart),
+                          Gap.w8,
+                          Container(
+                            width: 1,
+                            height: 16,
+                            color: cs.onPrimary.withValues(alpha: 0.32),
+                          ),
+                          Gap.w8,
+                          Text(Fmt.price(lineTotal, locale: locale)),
+                        ],
+                      ),
+                    ),
                   ),
-                  Gap.w8,
-                  Text(Fmt.price(lineTotal, locale: locale)),
-                ],
               ],
             ),
     );

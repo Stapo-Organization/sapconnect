@@ -23,6 +23,8 @@ import '../../loyalty/presentation/widgets/claim_reward_sheet.dart';
 import '../data/cart_controller.dart';
 import '../data/cart_models.dart';
 import 'add_to_cart.dart';
+import '../../brand/data/brand_activation.dart';
+import 'widgets/cart_brand_help.dart';
 import 'widgets/cart_line.dart';
 import 'widgets/coupon_field.dart';
 import 'widgets/free_shipping_bar.dart';
@@ -213,6 +215,13 @@ class _Loaded extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
+    // «لحظة القرار»: the cart's brand help — substitutes, the bigger pack,
+    // more of the basket's brand. Asked once per basket change; help, never a gate.
+    final help = ref.watch(cartBrandHelpProvider).value ?? CartBrandHelp.empty;
+    final shelf = cart.basket.effectiveShelf.isNotEmpty ? cart.basket.effectiveShelf : cart.basket.shelf;
+    final express = shelf == 'express';
+    final upgrade = help.bestUpgrade;
+    final upgradeItem = upgrade == null ? null : cart.items.where((i) => i.key == upgrade.key).firstOrNull;
 
     if (cart.isEmpty) {
       // An order empties the cart, but the other storefront's basket is still
@@ -264,14 +273,8 @@ class _Loaded extends ConsumerWidget {
                 ],
                 if (cart.freeShipping.isActive || cart.loyalty.hasDeliveryPerk || cart.loyalty.hasClaims) ...[
                   FreeShippingBar(
-                    freeShipping: cart.freeShipping.forShelf(
-                      cart.basket.effectiveShelf.isNotEmpty ? cart.basket.effectiveShelf : cart.basket.shelf,
-                    ),
-                    express: (cart.basket.effectiveShelf.isNotEmpty
-                            ? cart.basket.effectiveShelf
-                            : cart.basket.shelf) ==
-                        'express' &&
-                        cart.freeShipping.express?.isActive == true,
+                    freeShipping: freeDeliveryLine(cart.freeShipping, cart.basket).line,
+                    express: freeDeliveryLine(cart.freeShipping, cart.basket).express,
                     freeDeliveryReason: cart.loyalty.freeDeliveryReason ??
                         (cart.loyalty.claims.any((g) => g.reward.isFreeDelivery) ? 'reward' : null),
                     expressFreeReason: cart.loyalty.expressFreeReason ??
@@ -282,7 +285,21 @@ class _Loaded extends ConsumerWidget {
                 ],
                 for (final item in cart.items) ...[
                   CartLineView(item: item),
+                  if (help.lines[item.key]?.substitute != null) ...[
+                    Gap.h8,
+                    CartSubstituteRow(item: item, help: help.lines[item.key]!, express: express),
+                  ],
                   Gap.h12,
+                ],
+                if (upgrade != null && upgradeItem != null) ...[
+                  Gap.h4,
+                  CartUpgradeBand(item: upgradeItem, value: upgrade.value, brand: upgrade.brand),
+                  Gap.h8,
+                ],
+                if (help.brand != null && help.complete.length >= 2) ...[
+                  Gap.h8,
+                  CartCompleteRail(brand: help.brand!, products: help.complete),
+                  Gap.h16,
                 ],
                 if (cart.shipments.length > 1) ...[
                   Gap.h8,

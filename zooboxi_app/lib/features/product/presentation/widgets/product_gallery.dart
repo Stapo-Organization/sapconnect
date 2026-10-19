@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/zb_colors.dart';
+import '../../../../app/theme/zooboxi_tokens.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/widgets/zb_image.dart';
 
@@ -68,6 +69,8 @@ class _ProductGalleryState extends State<ProductGallery> {
                 url: images[index],
                 padding: const EdgeInsets.all(20),
                 backgroundColor: Colors.transparent,
+                photo: true,
+                radius: context.isDark ? BorderRadius.circular(ZbTokens.rXl) : null,
               ),
             ),
           ),

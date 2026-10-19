@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../../app/shell/live_order_bar.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
@@ -14,6 +17,7 @@ import '../../../../core/widgets/paw_wallpaper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../catalog/data/catalog_models.dart';
 import '../../../location/presentation/location_sheet.dart';
+import '../../../orders/data/orders_repository.dart';
 import '../../../search/presentation/express_search_field.dart';
 import 'shelf_tabs.dart';
 
@@ -21,10 +25,16 @@ import 'shelf_tabs.dart';
 ///
 /// A store leads with what it sells; a delivery app leads with when it gets
 /// there. So the arrival is the largest type on the page, set on a deep teal
-/// canvas that runs behind the status bar, with a faint dial behind it, the
-/// branch's own countdown to closing on flip tiles, and a route from the
-/// branch to the door. The search well rides the panel's curved bottom edge,
-/// half on the colour and half on the paper.
+/// canvas that runs behind the status bar with a faint dial behind it. The
+/// search well rides the panel's curved bottom edge, half on the colour and
+/// half on the paper.
+///
+/// Compact since 2026-09-24 (UX review, proposal 1): the promise, the address
+/// and the closing time live in ONE glass card. The header used to stack six
+/// objects before the first product — the address chip (which said the hour
+/// again), the clock, flip tiles, a decorative route — and the shelf started
+/// below the middle of the screen. The route is not gone: it comes back only
+/// when there is an order on it, and then it is that order's real progress.
 ///
 /// The palette is the express slide palette — the same teal the offer strip
 /// wears — so the header and the slides under it read as one shop.
@@ -136,47 +146,68 @@ class _PromiseHeaderState extends State<PromiseHeader> {
                     // reserves, so the one pair the home screen paints over
                     // both never moves when the shop changes.
                     const SizedBox(height: ShelfBand.reserved),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _Glass(
-                            radius: ZbTokens.rPill,
-                            child: LocationChip(onCanvas: true, scope: scope),
+                    _Glass(
+                      radius: 22,
+                      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _Promise(
+                                  lead: lead,
+                                  digits: digits,
+                                  suffix: suffix,
+                                  tomorrow: eta.tomorrow,
+                                  open: open,
+                                ),
+                              ),
+                              _GlassButton(
+                                kind: ZbIconKind.bell,
+                                tooltip: l.inboxTitle,
+                                onTap: () => context.push('/inbox'),
+                              ),
+                              Gap.w6,
+                              _GlassButton(
+                                kind: ZbIconKind.heart,
+                                tooltip: l.wishlistTitle,
+                                onTap: () => context.push('/wishlist'),
+                              ),
+                            ],
                           ),
-                        ),
-                        Gap.w8,
-                        _GlassButton(
-                          kind: ZbIconKind.bell,
-                          tooltip: l.inboxTitle,
-                          onTap: () => context.push('/inbox'),
-                        ),
-                        Gap.w8,
-                        _GlassButton(
-                          kind: ZbIconKind.heart,
-                          tooltip: l.wishlistTitle,
-                          onTap: () => context.push('/wishlist'),
-                        ),
-                      ],
-                    ),
-                    Gap.h8,
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: _Promise(
-                            lead: lead,
-                            digits: digits,
-                            suffix: suffix,
-                            tomorrow: eta.tomorrow,
-                            open: open,
+                          Row(
+                            children: [
+                              // The address alone: the hour is the big clock
+                              // above, and saying it twice was the old header's
+                              // loudest repetition.
+                              Expanded(
+                                flex: 3,
+                                child: Transform.translate(
+                                  offset: Offset(context.isRtl ? 8 : -8, 0),
+                                  child: LocationChip(onCanvas: true, scope: scope, showWhen: false),
+                                ),
+                              ),
+                              // Shrinks a step rather than push the address
+                              // off a narrow phone.
+                              Flexible(
+                                flex: 2,
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerEnd,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: ClosingCountdown(now: widget.now, hours: hours, open: open, compact: true),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        Gap.w12,
-                        ClosingCountdown(now: widget.now, hours: hours, open: open),
-                      ],
+                        ],
+                      ),
                     ),
-                    Gap.h8,
-                    _Route(branch: branch),
+                    // An order on the way: its route, its real stage.
+                    _LiveRoute(branch: branch),
                   ],
                 ),
               ),
@@ -386,12 +417,22 @@ class _Pulse extends StatelessWidget {
 /// a big painted panel and must not repaint sixty times a minute for the
 /// sake of one digit.
 class ClosingCountdown extends StatefulWidget {
-  const ClosingCountdown({super.key, required this.now, required this.hours, required this.open});
+  const ClosingCountdown({
+    super.key,
+    required this.now,
+    required this.hours,
+    required this.open,
+    this.compact = false,
+  });
 
   /// Fixed by the sheet tests; the wall clock (ticking) when null.
   final DateTime? now;
   final ExpressHours? hours;
   final bool open;
+
+  /// One small pill — «يغلق بعد 2:48» — instead of the flip tiles: the
+  /// compact header's closing time is a fact beside the address, not a show.
+  final bool compact;
 
   @override
   State<ClosingCountdown> createState() => _ClosingCountdownState();
@@ -406,7 +447,9 @@ class _ClosingCountdownState extends State<ClosingCountdown> {
     super.initState();
     _now = widget.now ?? DateTime.now();
     if (widget.now == null && widget.open) {
-      _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      // The pill shows minutes; ticking every second would repaint it for
+      // nothing sixty times over.
+      _tick = Timer.periodic(Duration(seconds: widget.compact ? 20 : 1), (_) {
         if (mounted) setState(() => _now = DateTime.now());
       });
     }
@@ -441,6 +484,43 @@ class _ClosingCountdownState extends State<ClosingCountdown> {
       h = hours.openMinutes ~/ 60;
       m = hours.openMinutes % 60;
       s = null;
+    }
+
+    if (widget.compact) {
+      final hm = '$h:${m.toString().padLeft(2, '0')}';
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(ZbTokens.rPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.schedule_rounded, size: 13, color: PromiseHeader.gold),
+            Gap.w4,
+            Text(
+              label,
+              style: tt.labelSmall?.copyWith(color: ink.withValues(alpha: 0.86), fontWeight: FontWeight.w700),
+            ),
+            Gap.w4,
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(
+                hm,
+                style: TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 13,
+                  height: 1.1,
+                  fontWeight: FontWeight.w800,
+                  color: ink,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return _Glass(
@@ -589,12 +669,46 @@ class _Tile extends StatelessWidget {
 ///
 /// The labels sit beside their nodes rather than under them, so the whole
 /// route is one row of type — it used to spend two rows on it.
-class _Route extends StatelessWidget {
-  const _Route({required this.branch});
+/// The route, drawn only while an order is on it — see [_Route].
+class _LiveRoute extends ConsumerWidget {
+  const _LiveRoute({required this.branch});
 
   final String branch;
 
-  static const double _progress = 0.46;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final active = ref.watch(topActiveOrderProvider);
+    if (active == null || (active.tracking?.phase.isTerminal ?? false)) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          Haptics.light();
+          context.push('/orders/${active.order.id}');
+        },
+        child: _Route(
+          branch: branch,
+          progress: liveOrderProgress(active),
+          window: liveOrderHeadline(context, active),
+        ),
+      ),
+    );
+  }
+}
+
+class _Route extends StatelessWidget {
+  const _Route({required this.branch, required this.progress, required this.window});
+
+  final String branch;
+
+  /// How far along the order is — the same fraction the live-order bar draws.
+  final double progress;
+
+  /// The order's state in a phrase, pinned beside the courier.
+  final String window;
 
   @override
   Widget build(BuildContext context) {
@@ -653,7 +767,7 @@ class _Route extends StatelessWidget {
                       painter: DashPainter(color: ink.withValues(alpha: 0.45)),
                     ),
                     Container(
-                      width: track * _progress,
+                      width: track * progress,
                       height: 2,
                       decoration: BoxDecoration(
                         color: PromiseHeader.gold,
@@ -668,8 +782,8 @@ class _Route extends StatelessWidget {
                     // The courier rides the end of the lit stretch, the
                     // window pinned to its side.
                     PositionedDirectional(
-                      start: (track * _progress - 14).clamp(0.0, track),
-                      child: _Courier(window: l.heroExpressWindow, label: label),
+                      start: (track * progress - 14).clamp(0.0, track),
+                      child: _Courier(window: window, label: label),
                     ),
                   ],
                 );
@@ -878,7 +992,7 @@ class _Glass extends StatelessWidget {
 
   final Widget child;
   final double radius;
-  final EdgeInsets padding;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {

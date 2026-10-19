@@ -3845,4 +3845,937 @@ class LEn extends L {
   String distanceM(String value) {
     return '$value m';
   }
+
+  @override
+  String get storyDetailsTitle => 'Product details';
+
+  @override
+  String get storyOverview => 'About this product';
+
+  @override
+  String get storyFeatures => 'Features';
+
+  @override
+  String get storyFeeding => 'How much to feed?';
+
+  @override
+  String get storyIngredients => 'What\'s inside?';
+
+  @override
+  String get storyAnalysis => 'Nutritional analysis';
+
+  @override
+  String get storySpecs => 'Specifications';
+
+  @override
+  String get storyContents => 'In the box';
+
+  @override
+  String get storyBreeds => 'Suitable breeds';
+
+  @override
+  String get storyUsage => 'How to use';
+
+  @override
+  String get storyStorage => 'Storage';
+
+  @override
+  String get storySafety => 'Safety notes';
+
+  @override
+  String get storyOther => 'Details';
+
+  @override
+  String get storyCalcCta => 'Work it out';
+
+  @override
+  String get storyReadAll => 'Read it all';
+
+  @override
+  String get storyPetWeight => 'Your pet\'s weight';
+
+  @override
+  String get storyDailyAmount => 'Daily amount';
+
+  @override
+  String get storyFeedingNote =>
+      'Manufacturer guidance — adjust for your pet\'s activity and weight.';
+
+  @override
+  String get storyIngredientsInOrder => 'Ingredients, in order';
+
+  @override
+  String storyStepsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count steps',
+      one: '1 step',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyWarningsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyTipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tips',
+      one: '1 tip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyCartonLasts(int units, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'A carton ($units pcs) lasts about $_temp0';
+  }
+
+  @override
+  String storyCartonLastsShort(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'A carton lasts about $_temp0';
+  }
+
+  @override
+  String storyPackLasts(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'One pack lasts about $_temp0';
+  }
+
+  @override
+  String storyMoreItems(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get storyClose => 'Close';
+
+  @override
+  String get storyEyebrow => 'Everything worth knowing';
+
+  @override
+  String get storyAnalysisShort => 'Analysis';
+
+  @override
+  String get storyUsageShort => 'How to use';
+
+  @override
+  String get storyBreedsShort => 'Breeds';
+
+  @override
+  String get storySafetyShort => 'Safety';
+
+  @override
+  String get storyFullTable => 'Full table';
+
+  @override
+  String get storyReadMore => 'Read more';
+
+  @override
+  String get storyReadLess => 'Show less';
+
+  @override
+  String get storyPerDay => 'a day';
+
+  @override
+  String get storyNutritionLabel => 'Nutrition facts';
+
+  @override
+  String storyMoreBreeds(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String get storyAllSteps => 'All steps';
+
+  @override
+  String get storyGuideEyebrow => 'The Zooboxi guide';
+
+  @override
+  String storyGuideTitle(String species) {
+    String _temp0 = intl.Intl.selectLogic(species, {
+      'cat': 'What matters to your cat',
+      'dog': 'What matters to your dog',
+      'bird': 'What matters to your bird',
+      'fish': 'What matters to your fish',
+      'other': 'What matters to your pet',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get storyPer100g => 'Per 100 g';
+
+  @override
+  String get storyNutritionRest => 'Fibre, minerals & more';
+
+  @override
+  String get storyDryMatter => 'Without the water';
+
+  @override
+  String get storyDryMatterHint => 'How vets compare wet food with dry';
+
+  @override
+  String get storyChartHint => 'Tap a weight to see the amount';
+
+  @override
+  String get storySignoff => 'Details arranged with care';
+
+  @override
+  String get storySignoffSub => 'because your pet deserves it';
+
+  @override
+  String get filterButton => 'Filter';
+
+  @override
+  String get filterSheetTitle => 'Filter results';
+
+  @override
+  String get filterClearAll => 'Clear all';
+
+  @override
+  String get filterApplied => 'Applied:';
+
+  @override
+  String get filterLiveHint => 'Numbers update with your choices';
+
+  @override
+  String get filterNoneSelected => 'All products';
+
+  @override
+  String get filterBrandSearch => 'Search brands';
+
+  @override
+  String get filterPrice => 'Price';
+
+  @override
+  String get filterPriceFrom => 'From';
+
+  @override
+  String get filterPriceTo => 'To';
+
+  @override
+  String get filterPriceHint => 'Prices in this list only';
+
+  @override
+  String get filterNoResults => 'No results — adjust your choices';
+
+  @override
+  String filterShowResults(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count products',
+      one: 'Show 1 product',
+      zero: 'No results',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String filterProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+      zero: 'No products',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String filterPriceChip(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String filterPriceUpTo(String to) {
+    return 'Up to $to';
+  }
+
+  @override
+  String filterPriceFromOnly(String from) {
+    return 'From $from';
+  }
+
+  @override
+  String get petFilterKicker => 'Showing what suits';
+
+  @override
+  String petFilterMatch(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products suit $name',
+      one: '1 product suits $name',
+      zero: 'Nothing here suits $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String petFilterOf(int total) {
+    return 'of $total';
+  }
+
+  @override
+  String get petFilterShowAll => 'Show all';
+
+  @override
+  String get petFilterOff => 'Off — showing everything';
+
+  @override
+  String petAskAge(String name) {
+    return 'How old is $name?';
+  }
+
+  @override
+  String get petAskAgeHint => 'We\'ll show food for that age only';
+
+  @override
+  String get petYourCat => 'your cat';
+
+  @override
+  String get petYourDog => 'your dog';
+
+  @override
+  String get petYourPet => 'your pet';
+
+  @override
+  String petFilterSwitch(String name) {
+    return 'Suits $name';
+  }
+
+  @override
+  String get emptyFilteredTitle => 'Nothing matches these choices';
+
+  @override
+  String get emptyFilteredBody =>
+      'Try one of these — each opens results right away';
+
+  @override
+  String emptyRemove(String label) {
+    return 'Remove “$label”';
+  }
+
+  @override
+  String get emptyRemovePrice => 'Remove the price limits';
+
+  @override
+  String emptySwap(String label) {
+    return 'Try $label instead';
+  }
+
+  @override
+  String get emptyClearAll => 'Clear all filters';
+
+  @override
+  String get needsTitle => 'Shop by need';
+
+  @override
+  String get needsSubtitle => 'Start from the problem, not the aisle';
+
+  @override
+  String brandLinesTitle(String brand) {
+    return '$brand lines';
+  }
+
+  @override
+  String brandShelvesTitle(String brand) {
+    return 'Shop $brand by';
+  }
+
+  @override
+  String brandAbout(String brand) {
+    return 'About $brand';
+  }
+
+  @override
+  String get brandFactOrigin => 'Origin';
+
+  @override
+  String get brandFactFounded => 'Founded';
+
+  @override
+  String get brandFactProducts => 'At Zooboxi';
+
+  @override
+  String get brandFactSpecialty => 'Specialty';
+
+  @override
+  String get brandFactInStock => 'In stock now';
+
+  @override
+  String brandInStock(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in stock',
+      zero: 'none in stock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String brandExpressReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products ready within two hours',
+      one: '1 product ready within two hours',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get brandExpressPill => 'Express · with you in two hours';
+
+  @override
+  String get brandValueKicker => 'The bigger pack costs less';
+
+  @override
+  String get brandValueEachUnit => 'each';
+
+  @override
+  String get brandValueEachKg => 'per kg';
+
+  @override
+  String brandValueSave(int percent) {
+    return 'Save $percent%';
+  }
+
+  @override
+  String get brandAboutMadeFor => 'Made for';
+
+  @override
+  String get brandAboutStory => 'The story';
+
+  @override
+  String brandAboutFounded(String brand) {
+    return '$brand is founded';
+  }
+
+  @override
+  String get brandAboutToday => 'Today at Zooboxi';
+
+  @override
+  String brandShopAllCta(String brand) {
+    return 'Shop all $brand';
+  }
+
+  @override
+  String get brandMoodTitle => 'Its character';
+
+  @override
+  String get allProductsTitle => 'All products';
+
+  @override
+  String get allProductsEveryPet => 'All';
+
+  @override
+  String get allProductsEveryShelf => 'All departments';
+
+  @override
+  String get allProductsCardHint =>
+      'Every department for every pet, with filters';
+
+  @override
+  String get searchBrowseAllTitle => 'Browse all products';
+
+  @override
+  String get searchBrowseAllHint =>
+      'Not sure of the name? Start from the pet and the shelf';
+
+  @override
+  String emptyNotify(String what) {
+    return 'Tell me when $what arrives';
+  }
+
+  @override
+  String get emptyNotifyOn => 'We\'ll tell you as soon as it arrives';
+
+  @override
+  String get emptyNotifyCancel => 'Cancel alert';
+
+  @override
+  String get emptyNotifyRemoved => 'Alert cancelled';
+
+  @override
+  String get brandsOfficialTitle =>
+      '100% genuine — straight from the official distributor';
+
+  @override
+  String brandsOfficialBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count global brands',
+      one: 'One global brand',
+    );
+    return '$_temp0 · authenticity guaranteed on every product';
+  }
+
+  @override
+  String get brandsOfficialSeal => 'Official distributor';
+
+  @override
+  String get brandsWallTitle => 'All brands';
+
+  @override
+  String get brandsWallAll => 'Directory';
+
+  @override
+  String myBrandsTitle(String name) {
+    return '$name\'s brands';
+  }
+
+  @override
+  String get myBrandsTitleAny => 'Brands you love';
+
+  @override
+  String get myBrandsSub => 'From your orders';
+
+  @override
+  String myBrandsBought(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ordered $count times',
+      one: 'Ordered once',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get brandFollow => 'Follow';
+
+  @override
+  String get brandFollowing => 'Following';
+
+  @override
+  String brandFollowTooltip(String brand) {
+    return 'Follow $brand';
+  }
+
+  @override
+  String brandFollowedToast(String brand) {
+    return 'Following $brand: new products, offers and restocks';
+  }
+
+  @override
+  String brandUnfollowedToast(String brand) {
+    return 'Unfollowed $brand';
+  }
+
+  @override
+  String get brandFollowSignIn =>
+      'Sign in to follow brands and hear what\'s new';
+
+  @override
+  String brandSearchLinesExpress(String brand) {
+    return '$brand lines ready in two hours';
+  }
+
+  @override
+  String brandSearchEnter(String brand) {
+    return 'Enter the $brand shop';
+  }
+
+  @override
+  String cartSubOutExpress(String name) {
+    return '$name is out on Express';
+  }
+
+  @override
+  String cartSubOut(String name) {
+    return '$name can\'t be delivered right now';
+  }
+
+  @override
+  String get cartSubKicker => 'Same line instead';
+
+  @override
+  String get cartSubSamePrice => 'Same price';
+
+  @override
+  String get cartSubSwap => 'Swap';
+
+  @override
+  String cartSubSwapped(String name) {
+    return 'Swapped for $name';
+  }
+
+  @override
+  String cartUpgradeEach(String big, String each, String unit, String small) {
+    return '$big: $each $unit instead of $small';
+  }
+
+  @override
+  String get cartUpgradeSwap => 'Switch to the big one';
+
+  @override
+  String cartCompleteTitle(String brand) {
+    return 'More from $brand';
+  }
+
+  @override
+  String get cartCompleteSub => 'In the same order';
+
+  @override
+  String get petBrandsSub => 'From the food gauge';
+
+  @override
+  String petBrandLast(String product) {
+    return 'Last order: $product';
+  }
+
+  @override
+  String get petBrandRenew => 'Reorder';
+
+  @override
+  String get petFollowedNew => 'New from brands you follow';
+
+  @override
+  String get cartItemsTotal => 'Items';
+
+  @override
+  String get cartFees => 'Fees';
+
+  @override
+  String get cartTotalInclVat => 'Total incl. VAT';
+
+  @override
+  String cartVatIncluded(String amount) {
+    return 'Includes $amount VAT';
+  }
+
+  @override
+  String get checkoutAddAddressCta => 'Add a delivery address';
+
+  @override
+  String get checkoutChangeAddressCta => 'Choose an address we deliver to';
+
+  @override
+  String get checkoutNoPaymentCta => 'No payment method available';
+
+  @override
+  String get supportWhatsapp => 'Chat with us on WhatsApp';
+
+  @override
+  String get supportAvailable => 'Available';
+
+  @override
+  String get supportChatHello => 'Hi Zooboxi, I need some help';
+
+  @override
+  String supportChatAboutOrder(String number) {
+    return 'Hi Zooboxi, I need help with my order #$number';
+  }
+
+  @override
+  String get supportOrderHelp => 'Help with this order';
+
+  @override
+  String get trackingPrimerTitle => 'Offers that fit your pet';
+
+  @override
+  String get trackingPrimerBody =>
+      'Your iPhone is about to ask about tracking. We use it only to learn which of our ads brought you here and to show offers that fit your pet. We never sell your data, and you can change your mind in Settings at any time.';
+
+  @override
+  String get trackingPrimerContinue => 'Continue';
+
+  @override
+  String get trackingPrimerLater => 'Not now';
+
+  @override
+  String searchForPet(String name) {
+    return 'For $name 🐾';
+  }
+
+  @override
+  String get searchPopular => 'Popular searches';
+
+  @override
+  String get searchTry => 'Try searching for';
+
+  @override
+  String get searchScanTitle => 'Scan the empty bag';
+
+  @override
+  String get searchScanHint => 'and we\'ll bring you the same one';
+
+  @override
+  String petShelfTitle(String name) {
+    return '$name\'s shelf';
+  }
+
+  @override
+  String petShelfFoodDays(String name, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days more days',
+      one: '1 more day',
+    );
+    return '$name\'s food lasts $_temp0';
+  }
+
+  @override
+  String petShelfFoodOut(String name) {
+    return '$name\'s food has run out';
+  }
+
+  @override
+  String get petShelfFood => 'Usual food';
+
+  @override
+  String get petShelfLitter => 'Litter';
+
+  @override
+  String get petShelfTreat => 'Treat';
+
+  @override
+  String get petShelfOrderAll => 'Order them all';
+
+  @override
+  String get petShelfOrderAllExpress => 'Order them all · within 2 hours';
+
+  @override
+  String petShelfAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Added $count items to your basket',
+      one: 'Added 1 item to your basket',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get petShelfPickPack => 'Pick a size on the product page first';
+
+  @override
+  String pdpLastsPet(String name, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Lasts $name $_temp0';
+  }
+
+  @override
+  String pdpPerDay(String price) {
+    return '$price a day';
+  }
+
+  @override
+  String get accountGreetMorning => 'Good morning';
+
+  @override
+  String get accountGreetEvening => 'Good evening';
+
+  @override
+  String accountPawsPending(int count) {
+    return '+$count once your order arrives';
+  }
+
+  @override
+  String get accountFirstPaws => 'Your first order starts your paws';
+
+  @override
+  String get accountRewards => 'Rewards';
+
+  @override
+  String get accountTopTier => 'You\'re at the top of the family';
+
+  @override
+  String get accountArrives => 'Arrives';
+
+  @override
+  String get accountStepReceived => 'Received';
+
+  @override
+  String get accountStepPacked => 'Packed';
+
+  @override
+  String get accountStepOnWay => 'On the way';
+
+  @override
+  String get accountStepDelivered => 'Delivered';
+
+  @override
+  String get accountPetsTitle => 'My pets';
+
+  @override
+  String get accountPetOrderExpress => 'Order it in 2 hours';
+
+  @override
+  String get accountPetOrder => 'Order it';
+
+  @override
+  String accountPetProfile(String name) {
+    return '$name\'s profile';
+  }
+
+  @override
+  String get accountPetNoFood =>
+      'Log their food and we\'ll remind you before it runs out';
+
+  @override
+  String get accountAddPet => 'Add a pet';
+
+  @override
+  String get accountHouseholdBody =>
+      'Tell us about your pet — we\'ll remind you before the food runs out and get a birthday gift ready';
+
+  @override
+  String get accountHouseholdCta => 'Add your pet';
+
+  @override
+  String get accountUsualTitle => 'Your usual';
+
+  @override
+  String get accountUsualAll => 'Everything I bought';
+
+  @override
+  String get accountAddAll => 'Add them all';
+
+  @override
+  String get accountFirstOrderTitle => 'Your first order starts the journey';
+
+  @override
+  String get accountFirstOrderBody =>
+      'Earn paws on every order and follow it live';
+
+  @override
+  String get accountStartShopping => 'Start shopping';
+
+  @override
+  String get accountWishlistHint => 'Tap the heart on any product';
+
+  @override
+  String get accountAddressesHint => 'Add a delivery address';
+
+  @override
+  String get accountFriends => 'Friends';
+
+  @override
+  String accountFriendsJoined(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count friends joined',
+      one: '1 friend joined',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountFriendsNone => 'Invite your first friend';
+
+  @override
+  String get accountInviteTitle => 'Invite a friend to Zooboxi';
+
+  @override
+  String accountInviteBody(int count) {
+    return 'You get $count paws when they first order';
+  }
+
+  @override
+  String get accountInviteCta => 'Share your code';
+
+  @override
+  String get accountHelp => 'Need help? Message us on WhatsApp';
+
+  @override
+  String get accountSettings => 'Settings';
+
+  @override
+  String get accountSettingsAccount => 'Account';
+
+  @override
+  String get accountSettingsHelp => 'Help';
+
+  @override
+  String accountVersionFooter(String version) {
+    return 'Zooboxi $version';
+  }
+
+  @override
+  String get accountGuestTitle => 'Join the Zooboxi family';
+
+  @override
+  String get accountGuestBody =>
+      'Paws on every order, gifts for your kind of pet, and a reminder before the food runs out';
+
+  @override
+  String get accountGuestCta => 'Sign in with your phone';
+
+  @override
+  String get accountGuestNote => 'One code, no password';
+
+  @override
+  String get accountPerkTrack => 'Follow your order live';
+
+  @override
+  String get accountPerkTrackBody =>
+      'and see the arrival time before you order';
+
+  @override
+  String get accountPerkReorder => 'Reorder in one tap';
+
+  @override
+  String get accountPerkReorderBody => 'everything you bought, kept for you';
+
+  @override
+  String get accountPerkPet => 'A profile for your pet';
+
+  @override
+  String get accountPerkPetBody => 'their food, weight and birthday';
+
+  @override
+  String get splashMorning => 'Good morning';
+
+  @override
+  String get splashEvening => 'Good evening';
+
+  @override
+  String splashPetWaiting(String name) {
+    return '$name is waiting for you';
+  }
+
+  @override
+  String get splashWelcomeBack => 'Welcome back';
 }

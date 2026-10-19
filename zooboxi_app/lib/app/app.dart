@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/providers.dart';
 import '../core/session/session_controller.dart';
 
 import '../core/analytics/events_buffer.dart';
+import '../features/onboarding/presentation/splash/splash_plan.dart';
+import '../features/onboarding/presentation/splash/splash_stage.dart';
 import '../features/pets/data/household.dart';
 import '../features/pets/presentation/widgets/pet_card.dart' show speciesLabel;
 import '../l10n/app_localizations.dart';
@@ -35,6 +38,14 @@ class _ZooboxiAppState extends ConsumerState<ZooboxiApp> with WidgetsBindingObse
       if (!authed || previous == true) return;
       final l = lookupL(ref.read(appSettingsProvider).effectiveLocale);
       ref.read(householdProvider.notifier).adoptGuestHousehold(unnamed: (s) => speciesLabel(l, s));
+    }, fireImmediately: true);
+    // Whoever the app speaks to is written down the moment it is known for
+    // certain, so the next cold start can greet them without the network.
+    ref.listenManual(splashCompanionTruthProvider, (_, truth) {
+      if (!truth.known) return;
+      final store = ref.read(localStoreProvider);
+      if (SplashCompanion.fromJson(store.splashCompanion) == truth.companion) return;
+      store.setSplashCompanion(truth.companion?.toJson());
     }, fireImmediately: true);
   }
 
@@ -93,7 +104,9 @@ class _ZooboxiAppState extends ConsumerState<ZooboxiApp> with WidgetsBindingObse
         );
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: scale),
-          child: child ?? const SizedBox.shrink(),
+          // The splash plays over the navigator, so it can uncover the
+          // screen the app has already moved to.
+          child: SplashStage(child: child ?? const SizedBox.shrink()),
         );
       },
     );

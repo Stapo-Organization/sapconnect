@@ -53,7 +53,7 @@ class PlateSkin {
       soft: dark ? ZbTokens.inkSoftDark : ZbTokens.inkSoft,
       // A warm breath at the product's feet — on graphite the plate is the
       // warmth already, so it only barely lifts.
-      glow: dark ? const Color(0xFF3A3F3B) : const Color(0xFFFFEFE3),
+      glow: dark ? ZbTokens.plateGlowDark : ZbTokens.plateGlow,
       cta: ZbTokens.coral,
       onCta: Colors.white,
     );
@@ -380,7 +380,7 @@ class _Pack extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3C1A0A).withValues(alpha: 0.26),
+                    color: ZbTokens.emberShadow.withValues(alpha: 0.26),
                     blurRadius: size * 0.14,
                     spreadRadius: -size * 0.02,
                   ),

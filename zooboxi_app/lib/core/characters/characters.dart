@@ -378,11 +378,18 @@ class ZbGround extends StatelessWidget {
 /// a pet's name as it is typed, a chapter title. The board's place inside
 /// the art was measured from the drawing (its centre, size and slight tilt).
 class SignHolder extends StatelessWidget {
-  const SignHolder({super.key, required this.cast, required this.text, required this.height});
+  const SignHolder({super.key, required this.cast, required this.text, required this.height})
+      : board = null;
+
+  /// The board carries a picture instead of words — a brand's own logo,
+  /// held up by the animal on its page.
+  const SignHolder.showing({super.key, required this.cast, required Widget this.board, required this.height})
+      : text = '';
 
   /// The cat or the dog — the only two drawn holding a sign.
   final ZbCast cast;
   final String text;
+  final Widget? board;
   final double height;
 
   // centre x, centre y, width, height — fractions of the art box.
@@ -415,7 +422,7 @@ class SignHolder extends StatelessWidget {
               angle: -3 * math.pi / 180,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: w * 0.08, vertical: h * 0.12),
-                child: FittedBox(
+                child: board ?? FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
                     text,

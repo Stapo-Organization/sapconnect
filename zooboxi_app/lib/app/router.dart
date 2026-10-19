@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../core/motion/motion.dart';
 import '../core/session/session_controller.dart';
 import '../features/account/presentation/account_screen.dart';
+import '../features/account/presentation/account_settings_screen.dart';
 import '../features/account/presentation/address_book_screen.dart';
 import '../features/account/presentation/buy_again_screen.dart';
 import '../features/brand/presentation/brand_screen.dart';
@@ -129,6 +130,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.pageKey,
           ListingScreen(
             title: state.uri.queryParameters['title'] ?? '',
+            allProducts: state.uri.queryParameters['all'] == '1',
             query: state.extra is ListingQuery
                 ? state.extra! as ListingQuery
                 : ListingQuery.fromJson(state.uri.queryParameters),
@@ -358,7 +360,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [GoRoute(path: '/cart', builder: (_, _) => const CartScreen())],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: '/account', builder: (_, _) => const AccountScreen())],
+            routes: [
+              GoRoute(
+                path: '/account',
+                builder: (_, _) => const AccountScreen(),
+                // Inside the tab's branch, so the tab bar stays under it.
+                routes: [GoRoute(path: 'settings', builder: (_, _) => const AccountSettingsScreen())],
+              ),
+            ],
           ),
         ],
       ),

@@ -9,10 +9,15 @@ const String riyalSymbol = '\u{E900}';
 /// Money, dates and counts.
 ///
 /// One rule holds throughout: **digits are always Western** (1234, never
-/// ١٢٣٤). Only the *separators* and word forms follow the language — Arabic
-/// gets the Arabic thousands separator `٬` and the Arabic decimal `٫`, English
-/// gets `,` and `.`. Mixing numeral families inside one screen (an Arabic date
-/// next to a Latin price) is the thing that makes an Arabic UI look cheap.
+/// ١٢٣٤), and so are the separators — `,` between thousands, `.` before the
+/// halalas — in both languages. Mixing numeral families inside one screen (an
+/// Arabic date next to a Latin price) is the thing that makes an Arabic UI look
+/// cheap.
+///
+/// Until 2026-09-24 Arabic took the Arabic separators `٬` and `٫`. Beside
+/// Western digits, and in Tajawal, `٫` draws as a comma: «3٫15» read as «3,15»,
+/// a price a customer can take for three thousand, and «1٬500» paws read as
+/// «1 .500». Saudi stores and receipts write 3.15 and 1,500.
 abstract final class Fmt {
   static bool _ar(String locale) => locale.startsWith('ar');
 
@@ -24,8 +29,8 @@ abstract final class Fmt {
   static String list(Iterable<String?> parts, String locale) =>
       parts.where((e) => e != null && e.isNotEmpty).cast<String>().join(comma(locale));
 
-  static String _thousands(String locale) => _ar(locale) ? '٬' : ',';
-  static String _decimal(String locale) => _ar(locale) ? '٫' : '.';
+  static String _thousands(String locale) => ',';
+  static String _decimal(String locale) => '.';
 
   /// Groups the integer part in threes, Western digits, locale separator.
   static String _grouped(int n, String locale) {
@@ -39,7 +44,7 @@ abstract final class Fmt {
     return (n < 0 ? '-' : '') + buffer.toString();
   }
 
-  /// Plain number: "1٬234٫50" / "1,234.50". Drops `.00` when [trimZeros].
+  /// Plain number: "1,234.50" in both languages. Drops `.00` when [trimZeros].
   static String number(num value, {required String locale, int decimals = 2, bool trimZeros = true}) {
     final negative = value < 0;
     final scale = _pow10(decimals);
@@ -56,7 +61,7 @@ abstract final class Fmt {
     return '${negative ? '-' : ''}${_grouped(whole, locale)}${_decimal(locale)}$frac';
   }
 
-  /// The money form used everywhere: "1٬234٫50 ﷼".
+  /// The money form used everywhere: "1,234.50 ﷼".
   ///
   /// The symbol trails the number in both languages — that is how the store
   /// and every Saudi receipt render it, and it keeps RTL/LTR identical.

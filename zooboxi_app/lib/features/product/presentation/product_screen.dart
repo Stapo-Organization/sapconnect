@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/icons/zb_icons.dart';
+import '../../../core/utils/formatters.dart';
+import '../../loyalty/data/loyalty_repository.dart';
 import '../../../core/analytics/events_buffer.dart';
 import '../../../core/motion/fly_to_cart.dart';
 import '../../../core/providers.dart';
@@ -23,13 +26,12 @@ import '../../catalog/data/product_models.dart';
 import '../../notifications/data/push_repository.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/add_to_cart_bar.dart';
-import 'widgets/delivery_card.dart';
 import 'widgets/bundle_contents.dart';
 import 'widgets/product_description.dart';
+import 'widgets/story/product_story_view.dart';
 import 'widgets/product_gallery.dart';
 import 'widgets/product_loading.dart';
 import 'widgets/variation_picker.dart';
-import 'widgets/warehouse_panel.dart';
 
 /// The product page.
 ///
@@ -215,16 +217,14 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
       var data = detail.requireValue;
       _onLoaded(data);
 
-      // A chosen pack (كرتون = N حبة) changes what the promise and warehouse
-      // numbers MEAN — overlay the variation-scoped read the server converts.
-      // The page itself never reloads; only the availability blocks swap.
+      // A chosen pack (كرتون = N حبة) changes what the stock numbers MEAN —
+      // overlay the variation-scoped read the server converts, so the
+      // quantity cap and out-of-stock follow the pack. The page never reloads.
       final matched = _matchedVariation(data);
-      var availabilityRefreshing = false;
       if (matched != null) {
         final scoped = ref.watch(variationDeliveryProvider(
           (id: widget.productId, variationId: matched.variationId),
         ));
-        availabilityRefreshing = scoped.isLoading;
         final scopedData = scoped.value;
         if (scopedData != null) {
           data = data.withAvailability(scopedData.delivery, scopedData.perWarehouse);
@@ -248,7 +248,6 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         notifyState: outOfStock ? _notify : NotifyState.none,
         onNotify: () => unawaited(_toggleNotify()),
         variation: matched,
-        availabilityRefreshing: availabilityRefreshing,
         onSelect: (attribute, option) => setState(() {
           if (_selection[attribute] == option) {
             _selection.remove(attribute);
@@ -287,16 +286,11 @@ class _Loaded extends ConsumerWidget {
     required this.variation,
     this.notifyState = NotifyState.none,
     this.onNotify,
-    this.availabilityRefreshing = false,
     required this.onSelect,
     required this.onQty,
     required this.onAdd,
     required this.addKey,
   });
-
-  /// True while the variation-scoped availability read is in flight — the
-  /// delivery blocks dim slightly instead of jumping numbers mid-read.
-  final bool availabilityRefreshing;
 
   final ProductDetail detail;
   final Map<String, String> selection;
@@ -320,6 +314,7 @@ class _Loaded extends ConsumerWidget {
     final l = L.of(context);
     final cs = context.cs;
     final card = detail.card;
+    final story = detail.story?.isUseful == true ? detail.story : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -376,6 +371,17 @@ class _Loaded extends ConsumerWidget {
                     DiscountPill(percent: card.discountPercent),
                   ],
                 ),
+                // «يكفي لولو 38 يوماً · 1.90 ﷼ لليوم» — the price turned into
+                // days of the customer's own pet, for food and litter.
+                if (ref.watch(petLastsProvider(detail.id)).value?.forVariation(variation?.variationId)
+                    case final unit?) ...[
+                  Gap.h8,
+                  _LastsLine(
+                    pet: ref.watch(petLastsProvider(detail.id)).value!.pet,
+                    days: unit.days,
+                    perDay: unit.perDay,
+                  ),
+                ],
                 if (detail.langFallback) ...[
                   Gap.h12,
                   _FallbackNotice(message: l.pdpLangFallback),
@@ -383,6 +389,11 @@ class _Loaded extends ConsumerWidget {
               ],
             ),
           ),
+          // «قصة المنتج»: the reasons to buy and the key facts, beside the price.
+          if (story != null && detail.bundleComponents.isEmpty) ...[
+            Gap.h16,
+            StoryHighlights(story: story),
+          ],
           if (detail.hasVariations) ...[
             Gap.h20,
             VariationPicker(
@@ -392,32 +403,18 @@ class _Loaded extends ConsumerWidget {
               onSelect: onSelect,
             ),
           ],
-          Gap.h20,
-          AnimatedOpacity(
-            opacity: availabilityRefreshing ? 0.45 : 1,
-            duration: const Duration(milliseconds: 180),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: DeliveryCard(delivery: detail.delivery),
-                ),
-                if (detail.perWarehouse.isNotEmpty) ...[
-                  Gap.h12,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: WarehousePanel(rows: detail.perWarehouse),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          // No delivery-promise card and no per-warehouse stock here (owner,
+          // 2026-09-24): stock by warehouse is internal, and the promise card
+          // was too big for what it said.
           // A bundle's description IS its component list, and the strip below
           // draws that list far better than stripped HTML can — so the two
           // never appear one under the other saying the same thing twice.
           if (detail.bundleComponents.isNotEmpty) ...[
             Gap.h24,
             BundleContents(components: detail.bundleComponents),
+          ] else if (story != null) ...[
+            Gap.h24,
+            ProductStoryTiles(story: story, cartonUnits: detail.cartonUnits),
           ] else if ((detail.descriptionHtml ?? detail.shortDescription ?? '')
               .isNotEmpty) ...[
             Gap.h24,
@@ -484,6 +481,46 @@ class _FallbackNotice extends StatelessWidget {
             child: Text(
               message,
               style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// How long the pack lasts this customer's pet, and what a day of it costs.
+class _LastsLine extends StatelessWidget {
+  const _LastsLine({required this.pet, required this.days, this.perDay});
+
+  final String pet;
+  final int days;
+  final double? perDay;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final locale = Localizations.localeOf(context).languageCode;
+    final text = [
+      l.pdpLastsPet(pet, days),
+      if (perDay != null) l.pdpPerDay(Fmt.price(perDay!, locale: locale)),
+    ].join(' · ');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: context.isDark ? 0.18 : 0.09),
+        borderRadius: BorderRadius.circular(ZbTokens.rPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ZbIcon(ZbIconKind.paw, size: 15, fill: 1, tint: cs.primary, ink: cs.primary),
+          Gap.w6,
+          Flexible(
+            child: Text(
+              text,
+              style: context.tt.labelMedium?.copyWith(color: cs.primary, fontWeight: FontWeight.w800),
             ),
           ),
         ],

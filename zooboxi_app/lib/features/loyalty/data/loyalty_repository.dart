@@ -47,6 +47,13 @@ class LoyaltyRepository {
 
   // ── Phase 2 «العادة» ──
 
+  /// «يكفي لولو 38 يوماً» for one product page. Null when the product is not
+  /// food or litter, has no readable pack, or no pet of its species is on file.
+  Future<PetLasts?> lasts(int productId) async {
+    final data = asMap(asMap(await _api.get('/loyalty/lasts/$productId'))['lasts']);
+    return data.isEmpty ? null : PetLasts.fromJson(data);
+  }
+
   Future<SupplyBlock> supply({bool fresh = false}) async =>
       SupplyBlock.fromJson(asMap(await _api.get('/loyalty/supply', query: fresh ? {'fresh': 1} : null)));
 
@@ -271,3 +278,14 @@ void invalidateLoyalty(WidgetRef ref) {
   ref.invalidate(subscriptionsProvider);
   ref.invalidate(referralProvider);
 }
+
+/// Per product page, per customer; a store without the endpoint, a guest or a
+/// product it cannot answer for all read as «nothing to say».
+final petLastsProvider = FutureProvider.autoDispose.family<PetLasts?, int>((ref, productId) async {
+  if (!ref.watch(isAuthenticatedProvider)) return null;
+  try {
+    return await ref.watch(loyaltyRepositoryProvider).lasts(productId);
+  } catch (_) {
+    return null;
+  }
+});

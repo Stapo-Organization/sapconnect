@@ -419,20 +419,27 @@ final shelfBasketsProvider = Provider<ShelfBaskets>((ref) {
 /// the shell it rides in — untouched. Every basket response decodes fresh
 /// objects; without this the bar would rebuild on each optimistic tap.
 class CartGlance {
-  const CartGlance({required this.count, required this.subtotal});
+  const CartGlance({required this.count, required this.subtotal, this.express = false});
 
   final int count;
+
+  /// The products at shelf price, VAT included — the figure the cart's lines
+  /// add up to.
   final double subtotal;
+
+  /// The basket belongs to إكسبريس (its colour is the ember, not the teal).
+  final bool express;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is CartGlance &&
           other.count == count &&
-          other.subtotal == subtotal;
+          other.subtotal == subtotal &&
+          other.express == express;
 
   @override
-  int get hashCode => Object.hash(count, subtotal);
+  int get hashCode => Object.hash(count, subtotal, express);
 }
 
 final cartGlanceProvider = Provider<CartGlance>((ref) {
@@ -440,6 +447,7 @@ final cartGlanceProvider = Provider<CartGlance>((ref) {
   return CartGlance(
     count: cart?.count ?? 0,
     subtotal: cart?.totals.subtotal ?? 0,
+    express: cart?.basket.shelf == 'express',
   );
 });
 
@@ -466,9 +474,7 @@ final cartFreeShippingNudgeProvider = Provider<FreeShippingNudge?>((ref) {
   // An express basket measures itself against its own, reachable line. The
   // national threshold would tell a 36 ﷼ basket it is 164 ﷼ away — a number
   // that switches the nudge off rather than on.
-  final shelf = cart.basket.effectiveShelf.isNotEmpty ? cart.basket.effectiveShelf : cart.basket.shelf;
-  final express = shelf == 'express';
-  final line = cart.freeShipping.forShelf(shelf);
-  if (!line.isActive || line.qualified) return null;
-  return (line: line, express: express && !identical(line, cart.freeShipping));
+  final pick = freeDeliveryLine(cart.freeShipping, cart.basket);
+  if (!pick.line.isActive || pick.line.qualified) return null;
+  return pick;
 });

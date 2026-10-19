@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
+import 'product_story.dart';
 
 /// A brand reference as it appears on a card or a product page.
 @immutable
@@ -424,6 +425,7 @@ class ProductVariation {
     this.image,
     this.inStock = true,
     this.maxQty,
+    this.units = 1,
   });
 
   final int variationId;
@@ -435,6 +437,9 @@ class ProductVariation {
   final String? image;
   final bool inStock;
   final int? maxQty;
+
+  /// Pieces this option sells as — 16 for «كرتون 16 حبة», 1 for a piece.
+  final int units;
 
   factory ProductVariation.fromJson(Map<String, dynamic> json) => ProductVariation(
         variationId: asInt(json['variation_id']),
@@ -453,6 +458,7 @@ class ProductVariation {
         image: asStringOrNull(json['image']),
         inStock: asBool(json['in_stock'], fallback: true),
         maxQty: asIntOrNull(json['max_qty']),
+        units: asInt(json['units'], fallback: 1),
       );
 
   /// Whether this variant satisfies a (possibly partial) selection. An empty
@@ -482,6 +488,7 @@ class ProductDetail {
     this.substitutes = const [],
     this.bundleComponents = const [],
     this.langFallback = false,
+    this.story,
   });
 
   final ProductCard card;
@@ -513,6 +520,7 @@ class ProductDetail {
         substitutes: substitutes,
         bundleComponents: bundleComponents,
         langFallback: langFallback,
+        story: story,
       );
   final List<ProductBadge> badges;
 
@@ -525,6 +533,18 @@ class ProductDetail {
 
   /// True when English was requested but only the Arabic content exists.
   final bool langFallback;
+
+  /// The description as typed sections — null when the copy has none.
+  final ProductStory? story;
+
+  /// Pieces in the biggest pack option (the carton), 0 when sold singly.
+  int get cartonUnits {
+    var max = 0;
+    for (final v in variations) {
+      if (v.units > max) max = v.units;
+    }
+    return max > 1 ? max : 0;
+  }
 
   int get id => card.id;
   String get name => card.name;
@@ -559,6 +579,7 @@ class ProductDetail {
       substitutes: ProductCard.listFrom(json['substitutes']),
       bundleComponents: BundleComponent.listFrom(asMap(json['bundle'])['components']),
       langFallback: asBool(json['lang_fallback']),
+      story: ProductStory.maybe(json['story']),
     );
   }
 
@@ -574,7 +595,9 @@ class ProductDetail {
         badges: badges,
         fbt: fbt,
         substitutes: substitutes,
+        bundleComponents: bundleComponents,
         langFallback: langFallback,
+        story: story,
       );
 }
 

@@ -1483,3 +1483,40 @@ class Nudge {
     return asMapList(raw).map(Nudge.fromJson).toList();
   }
 }
+
+/// «يكفي لولو كم يوم؟» — how long one unit lasts this customer's pet, per
+/// purchasable unit (a 2 كغ and a 7 كغ differ), and what a day of it costs.
+@immutable
+class PetLasts {
+  const PetLasts({required this.pet, this.kind = '', this.units = const []});
+
+  final String pet;
+  final String kind;
+  final List<({int variationId, int days, double? perDay})> units;
+
+  /// The answer for the unit on screen: the chosen variation, else the only
+  /// unit, else nothing (a range of sizes has no single answer).
+  ({int variationId, int days, double? perDay})? forVariation(int? variationId) {
+    if (units.isEmpty) return null;
+    if (variationId != null && variationId > 0) {
+      for (final unit in units) {
+        if (unit.variationId == variationId) return unit;
+      }
+      return null;
+    }
+    return units.length == 1 ? units.first : null;
+  }
+
+  factory PetLasts.fromJson(Map<String, dynamic> json) => PetLasts(
+        pet: asString(json['pet']),
+        kind: asString(json['kind']),
+        units: [
+          for (final unit in asMapList(json['units']))
+            (
+              variationId: asInt(unit['variation_id']),
+              days: asInt(unit['days']),
+              perDay: asDoubleOrNull(unit['per_day']),
+            ),
+        ],
+      );
+}

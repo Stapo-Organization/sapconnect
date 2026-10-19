@@ -292,7 +292,7 @@ void main() {
     test('two bars at the same point are the same bar', () {
       const a = FreeShipping(min: 200, remaining: 40);
       const b = FreeShipping(min: 200, remaining: 40);
-      expect(FreeShipping.fromJson(const {'min': 200, 'remaining': 40}), a);
+      expect(FreeShipping.fromJson(const {'min': 200, 'remaining': 40, 'basis': 'incl_vat'}), a);
       expect(a, b);
       expect(a.hashCode, b.hashCode);
     });

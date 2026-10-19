@@ -1,3 +1,5 @@
+import 'app_version.dart';
+
 /// Build-time configuration. Nothing secret ever lives here — the app talks
 /// only to the public storefront API; payment keys stay on the server.
 ///
@@ -20,10 +22,11 @@ abstract final class Env {
   /// Public storefront origin — used for share links and web fallbacks.
   static String get storeUrl => normalize(_rawStoreUrl);
 
-  /// App version reported in `X-ZB-App`. Kept as a define so CI can stamp it
-  /// without a source edit.
+  /// App version reported in `X-ZB-App` and on the About row. The define
+  /// still wins when CI passes one; otherwise it is the version this build
+  /// actually is (see app_version.dart).
   static const String appVersion =
-      String.fromEnvironment('ZB_APP_VERSION', defaultValue: '1.0.0');
+      String.fromEnvironment('ZB_APP_VERSION', defaultValue: kAppVersion);
 
   /// Which generation of home-layout slots this build can draw, sent as
   /// `X-ZB-Slots`.

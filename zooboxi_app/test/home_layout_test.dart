@@ -18,7 +18,7 @@ import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/features/home/presentation/home_screen.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/address_nav_bar.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/animal_nav.dart';
-import 'package:zooboxi_app/features/home/presentation/widgets/brand_strip.dart';
+import 'package:zooboxi_app/features/brand/presentation/widgets/brand_activation_widgets.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/campaign_banner.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/campaign_impression.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/hero_carousel.dart';
@@ -149,7 +149,7 @@ void main() {
       y(find.byType(CampaignBanner)),
       y(find.text('رائج الآن')),
       y(find.byType(TrustStrip)),
-      y(find.byType(BrandStrip)),
+      y(find.byType(BrandWall)),
     ];
     expect(
       order,

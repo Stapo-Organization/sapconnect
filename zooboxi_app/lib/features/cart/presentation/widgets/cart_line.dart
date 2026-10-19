@@ -66,6 +66,7 @@ class CartLineView extends ConsumerWidget {
                   url: item.image,
                   radius: BorderRadius.circular(ZbTokens.rSm),
                   padding: const EdgeInsets.all(6),
+                  photo: true,
                 ),
               ),
             ),

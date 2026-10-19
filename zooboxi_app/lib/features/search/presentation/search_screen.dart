@@ -17,10 +17,16 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/skeleton.dart';
 import '../../../core/widgets/zb_image.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/icons/facet_sticker.dart';
 import '../../../core/icons/zb_icons.dart';
 import '../../../core/session/session_controller.dart';
+import '../../../core/shelf/shelf_controller.dart';
+import '../../brand/data/brand_activation.dart';
+import '../../brand/presentation/widgets/brand_activation_widgets.dart';
+import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/data/product_models.dart';
+import '../../pets/data/household.dart';
 import 'search_transition.dart';
 
 /// Search: a debounced suggest list, recent queries, and a route to the
@@ -50,6 +56,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   CancelToken? _inFlight;
   List<SearchSuggestion> _suggestions = const [];
+
+  /// The brand the query names — «اينابا» is a brand before it is eight products.
+  BrandSummary? _brand;
   bool _loading = false;
   String _query = '';
 
@@ -117,6 +126,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _debouncer.cancel();
       setState(() {
         _suggestions = const [];
+        _brand = null;
         _loading = false;
       });
       return;
@@ -130,17 +140,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final token = CancelToken();
     _inFlight = token;
     try {
-      final results =
-          await ref.read(catalogRepositoryProvider).suggest(query, cancelToken: token);
+      final result =
+          await ref.read(brandActivationRepositoryProvider).suggest(query, cancelToken: token);
       if (!mounted || token.isCancelled) return;
       setState(() {
-        _suggestions = results;
+        _suggestions = result.suggestions;
+        _brand = result.brand;
         _loading = false;
       });
     } catch (_) {
       if (!mounted || token.isCancelled) return;
       setState(() {
         _suggestions = const [];
+        _brand = null;
         _loading = false;
       });
     }
@@ -257,8 +269,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
     }
 
-    if (_loading && _suggestions.isEmpty) {
+    if (_loading && _suggestions.isEmpty && _brand == null) {
       return const _SuggestSkeleton();
+    }
+
+    final brand = _brand;
+    final express = ref.watch(resolvedShelfProvider) == Shelf.express;
+
+    if (_suggestions.isEmpty && brand != null) {
+      return ListView(
+        padding: EdgeInsets.only(top: 8, bottom: 24 + MediaQuery.paddingOf(context).bottom),
+        children: [BrandSearchCard(brand: brand, express: express)],
+      );
     }
 
     if (_suggestions.isEmpty) {
@@ -272,11 +294,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
     }
 
+    // The brand's card leads; the product suggestions follow it.
+    final lead = brand == null ? 0 : 1;
     return ListView.separated(
-      padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),
-      itemCount: _suggestions.length + 1,
-      separatorBuilder: (_, _) => Divider(height: 1, color: context.cs.outlineVariant),
-      itemBuilder: (context, index) {
+      padding: EdgeInsets.only(top: lead == 1 ? 8 : 0, bottom: 24 + MediaQuery.paddingOf(context).bottom),
+      itemCount: _suggestions.length + 1 + lead,
+      separatorBuilder: (_, i) => i < lead
+          ? const SizedBox.shrink()
+          : Divider(height: 1, color: context.cs.outlineVariant),
+      itemBuilder: (context, raw) {
+        if (raw < lead) return BrandSearchCard(brand: brand!, express: express);
+        final index = raw - lead;
         if (index == _suggestions.length) {
           return ListTile(
             leading: Icon(Icons.search_rounded, color: context.cs.primary),
@@ -424,10 +452,26 @@ class _ScanRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              ZbIcon(ZbIconKind.scan, size: 20, ink: cs.primary),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: context.isDark ? 0.22 : 0.12),
+                  borderRadius: BorderRadius.circular(ZbTokens.rSm),
+                ),
+                child: Center(child: ZbIcon(ZbIconKind.scan, size: 20, ink: cs.primary)),
+              ),
               Gap.w10,
+              // Said as the job it does: the empty bag in the customer's hand
+              // becomes the same bag at their door.
               Expanded(
-                child: Text(l.searchScan, style: context.tt.titleSmall),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.searchScanTitle, style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
+                    Text(l.searchScanHint, style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                  ],
+                ),
               ),
               Icon(
                 context.isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
@@ -442,7 +486,59 @@ class _ScanRow extends StatelessWidget {
   }
 }
 
-class _RecentSearches extends StatelessWidget {
+/// «تصفّح كل المنتجات» — for the customer who came to search without a
+/// name to type: the whole store, started from the pet and the shelf.
+class _BrowseAllRow extends StatelessWidget {
+  const _BrowseAllRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final dark = context.isDark;
+    return Material(
+      color: dark ? ZbTokens.tealContainerDark : ZbTokens.tealTint.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(ZbTokens.rMd),
+      child: InkWell(
+        onTap: () {
+          Haptics.light();
+          context.push('/listing?all=1');
+        },
+        borderRadius: BorderRadius.circular(ZbTokens.rMd),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              const FacetSticker('all', size: 34),
+              Gap.w10,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.searchBrowseAllTitle, style: context.tt.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
+                    Text(l.searchBrowseAllHint, style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+              Icon(
+                context.isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                size: 20,
+                color: cs.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// What the screen offers before a word is typed — never a blank page.
+///
+/// The scan card first (the customer holding an empty bag is the fastest
+/// reorder there is), then the whole store, then their own purchases under
+/// their pet's name, their recent searches, and what people search for here.
+class _RecentSearches extends ConsumerWidget {
   const _RecentSearches({
     required this.queries,
     required this.onPick,
@@ -458,25 +554,30 @@ class _RecentSearches extends StatelessWidget {
   final List<SearchSuggestion> bought;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final cs = context.cs;
+    final popular = ref.watch(popularSearchesProvider).value ?? const PopularSearches();
+    final pet = ref.watch(householdProvider).focus;
+    final petName = pet == null || pet.name.isEmpty ? null : pet.name;
+    // A popular query the customer already has in «recent» is not news.
+    final fresh = [
+      for (final q in popular.queries)
+        if (!queries.any((r) => r.toLowerCase() == q.toLowerCase())) q,
+    ];
 
-    if (queries.isEmpty && bought.isEmpty) {
-      return EmptyState(
-        icon: Icons.search_rounded,
-        title: l.searchTitle,
-        message: l.searchStartHint,
-        compact: true,
-        // The header no longer carries a camera, so the scanner has to be
-        // offered where a customer with a bag in their hand looks for it.
-        actionLabel: l.searchScan,
-        onAction: () {
-          Haptics.light();
-          context.push('/scan');
-        },
-      );
-    }
+    Widget chips(List<String> items, IconData icon) => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final query in items)
+              ActionChip(
+                avatar: Icon(icon, size: 15, color: cs.onSurfaceVariant),
+                label: Text(query),
+                onPressed: () => onPick(query),
+              ),
+          ],
+        );
 
     return ListView(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + MediaQuery.paddingOf(context).bottom),
@@ -485,9 +586,11 @@ class _RecentSearches extends StatelessWidget {
           Haptics.light();
           context.push('/scan');
         }),
+        Gap.h8,
+        const _BrowseAllRow(),
         if (bought.isNotEmpty) ...[
           Gap.h16,
-          Text(l.searchBought, style: context.tt.titleSmall),
+          Text(petName != null ? l.searchForPet(petName) : l.searchBought, style: context.tt.titleSmall),
           Gap.h8,
           _BoughtRow(items: bought),
         ],
@@ -500,18 +603,15 @@ class _RecentSearches extends StatelessWidget {
             ],
           ),
           Gap.h8,
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final query in queries)
-                ActionChip(
-                  avatar: Icon(Icons.history_rounded, size: 15, color: cs.onSurfaceVariant),
-                  label: Text(query),
-                  onPressed: () => onPick(query),
-                ),
-            ],
-          ),
+          chips(queries, Icons.history_rounded),
+        ],
+        if (fresh.isNotEmpty) ...[
+          Gap.h16,
+          // Honest title: «الأكثر بحثاً» only when searches made the list; the
+          // store's biggest brands are an invitation, not a statistic.
+          Text(popular.fromSearches ? l.searchPopular : l.searchTry, style: context.tt.titleSmall),
+          Gap.h8,
+          chips(fresh, popular.fromSearches ? Icons.trending_up_rounded : Icons.search_rounded),
         ],
       ],
     );

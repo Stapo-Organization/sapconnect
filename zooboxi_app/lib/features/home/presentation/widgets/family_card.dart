@@ -599,10 +599,10 @@ class _Shell extends StatelessWidget {
           end: AlignmentDirectional.bottomEnd,
           colors: dark
               ? [cs.surfaceContainer, cs.surfaceContainerLow]
-              : [const Color(0xFFFFF9F2), Colors.white],
+              : [ZbTokens.creamCard, Colors.white],
         ),
         borderRadius: BorderRadius.circular(ZbTokens.rXl),
-        border: Border.all(color: dark ? cs.outlineVariant : const Color(0xFFF1E4D4)),
+        border: Border.all(color: dark ? cs.outlineVariant : ZbTokens.creamCardLine),
         boxShadow: [
           BoxShadow(
             color: ZbTokens.cardboard.withValues(alpha: dark ? 0 : 0.14),

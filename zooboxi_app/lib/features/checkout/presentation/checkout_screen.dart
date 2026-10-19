@@ -273,9 +273,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final blocked = address != null && !address.serves;
     final ready = address != null && !blocked && method != null;
 
-    final label = method?.isOnline == true
-        ? l.checkoutPayNow
-        : l.checkoutPlaceOrder;
+    // The button never goes grey without a reason: when a step is missing it
+    // names the step and takes the customer to it. «تأكيد الطلب» greyed out
+    // under «لا توجد عناوين محفوظة» three cards up read as a broken button.
+    final VoidCallback? fix = address == null
+        ? () => review.addresses.isEmpty ? _openEditor() : _pickAddress(review)
+        : blocked
+            ? () => _pickAddress(review)
+            : null;
+    final label = address == null
+        ? l.checkoutAddAddressCta
+        : blocked
+            ? l.checkoutChangeAddressCta
+            : method == null
+                ? l.checkoutNoPaymentCta
+                : method.isOnline
+                    ? l.checkoutPayNow
+                    : l.checkoutPlaceOrder;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -287,7 +301,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: FilledButton(
-            onPressed: ready && !_placing ? _advance : null,
+            onPressed: _placing
+                ? null
+                : ready
+                    ? _advance
+                    : fix == null
+                        ? null
+                        : () {
+                            Haptics.light();
+                            fix();
+                          },
             style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
             child: _placing
                 ? Row(
@@ -308,8 +331,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(label),
-                      ...[
+                      if (!ready && fix != null) ...[
+                        const Icon(Icons.location_on_rounded, size: 20),
+                        Gap.w8,
+                      ],
+                      Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      if (ready) ...[
                         Gap.w8,
                         Container(
                           width: 1,

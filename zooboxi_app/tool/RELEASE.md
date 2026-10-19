@@ -11,6 +11,7 @@ export ASC_KEY_PATH=$HOME/.appstoreconnect/private_keys/AuthKey_7MK7Y3F4F7.p8
 
 ## الخطوات
 1. ارفع رقم البناء في `pubspec.yaml` (`version: 1.0.0+N`) — أبل ترفض رقمًا مستعملًا.
+   ومعه `lib/core/config/app_version.dart` بنفس الرقم — يظهر في «عن التطبيق» ويُرسل للمتجر، و`test/app_version_test.dart` يفشل إن اختلفا.
 2. `flutter build ipa --export-options-plist=ios/ExportOptions.plist`
 3. `xcrun altool --upload-app --type ios -f build/ios/ipa/*.ipa --apiKey $ASC_KEY_ID --apiIssuer $ASC_ISSUER_ID`
 4. تابع المعالجة (تأخذ ٥–١٥ دقيقة قبل أن يظهر البناء أصلًا):

@@ -1973,5 +1973,517 @@
   "distanceKm": "{value} كم",
   "@distanceKm": {"placeholders": {"value": {"type": "String"}}},
   "distanceM": "{value} م",
-  "@distanceM": {"placeholders": {"value": {"type": "String"}}}
+  "@distanceM": {"placeholders": {"value": {"type": "String"}}},
+  "storyDetailsTitle": "تفاصيل المنتج",
+  "storyOverview": "عن المنتج",
+  "storyFeatures": "المميزات",
+  "storyFeeding": "كم أقدّم؟",
+  "storyIngredients": "مما يتكوّن؟",
+  "storyAnalysis": "التحليل الغذائي",
+  "storySpecs": "المواصفات",
+  "storyContents": "محتويات العبوة",
+  "storyBreeds": "السلالات المناسبة",
+  "storyUsage": "طريقة الاستخدام",
+  "storyStorage": "التخزين",
+  "storySafety": "تنبيهات السلامة",
+  "storyOther": "تفاصيل",
+  "storyCalcCta": "احسب لحيوانك",
+  "storyReadAll": "اقرأ الوصف كاملًا",
+  "storyPetWeight": "وزن حيوانك",
+  "storyDailyAmount": "الكمية اليومية",
+  "storyFeedingNote": "الكميات إرشادية من الشركة المصنّعة — عدّلها حسب نشاط حيوانك ووزنه.",
+  "storyIngredientsInOrder": "المكونات بالترتيب",
+  "storyStepsCount": "{count, plural, =1{خطوة واحدة} =2{خطوتان} few{{count} خطوات} other{{count} خطوة}}",
+  "@storyStepsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyWarningsCount": "{count, plural, =1{تنبيه واحد} =2{تنبيهان} few{{count} تنبيهات} other{{count} تنبيهًا}}",
+  "@storyWarningsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyTipsCount": "{count, plural, =1{نصيحة واحدة} =2{نصيحتان} few{{count} نصائح} other{{count} نصيحة}}",
+  "@storyTipsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyCartonLasts": "الكرتون ({units} حبة) يكفيه نحو {days, plural, =1{يوم واحد} =2{يومين} few{{days} أيام} other{{days} يومًا}}",
+  "@storyCartonLasts": {
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "storyCartonLastsShort": "الكرتون يكفيه نحو {days, plural, =1{يوم واحد} =2{يومين} few{{days} أيام} other{{days} يومًا}}",
+  "@storyCartonLastsShort": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "storyPackLasts": "العبوة تكفيه نحو {days, plural, =1{يوم واحد} =2{يومين} few{{days} أيام} other{{days} يومًا}}",
+  "@storyPackLasts": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "storyMoreItems": "+{count}",
+  "@storyMoreItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyClose": "إغلاق",
+  "storyEyebrow": "كل ما تحتاج معرفته",
+  "storyAnalysisShort": "التحليل",
+  "storyUsageShort": "الاستخدام",
+  "storyBreedsShort": "السلالات",
+  "storySafetyShort": "السلامة",
+  "storyFullTable": "الجدول الكامل",
+  "storyReadMore": "اقرأ المزيد",
+  "storyReadLess": "عرض أقل",
+  "storyPerDay": "يوميًا",
+  "storyNutritionLabel": "القيم الغذائية",
+  "storyMoreBreeds": "+{count} سلالات",
+  "@storyMoreBreeds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyAllSteps": "كل الخطوات",
+  "storyGuideEyebrow": "دليل زوبكسي",
+  "storyGuideTitle": "{species, select, cat{كل ما يهمّ قطتك} dog{كل ما يهمّ كلبك} bird{كل ما يهمّ طائرك} fish{كل ما يهمّ أسماكك} other{كل ما يهمّ أليفك}}",
+  "@storyGuideTitle": {
+    "placeholders": {
+      "species": {
+        "type": "String"
+      }
+    }
+  },
+  "storyPer100g": "في كل 100 جم",
+  "storyNutritionRest": "ألياف ومعادن وغيرها",
+  "storyDryMatter": "بعد استبعاد الماء",
+  "storyDryMatterHint": "هكذا يقارن الأطباء البيطريون الأطعمة الرطبة بالجافة",
+  "storyChartHint": "اضغط على الوزن لتعرف الكمية",
+  "storySignoff": "رتّبنا لك التفاصيل بعناية",
+  "storySignoffSub": "لأن أليفك يستاهل",
+  "filterButton": "فلترة",
+  "filterSheetTitle": "فلترة النتائج",
+  "filterClearAll": "مسح الكل",
+  "filterApplied": "مُطبّق:",
+  "filterLiveHint": "الأرقام تتغيّر مع اختياراتك",
+  "filterNoneSelected": "كل المنتجات",
+  "filterBrandSearch": "ابحث عن علامة",
+  "filterPrice": "السعر",
+  "filterPriceFrom": "من",
+  "filterPriceTo": "إلى",
+  "filterPriceHint": "أسعار هذه القائمة فقط",
+  "filterNoResults": "لا نتائج — عدّل اختياراتك",
+  "filterShowResults": "{count, plural, =0{لا توجد نتائج} =1{عرض منتج واحد} =2{عرض منتجين} few{عرض {count} منتجات} many{عرض {count} منتجًا} other{عرض {count} منتج}}",
+  "@filterShowResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filterProductCount": "{count, plural, =0{لا منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}",
+  "@filterProductCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filterPriceChip": "{from} – {to}",
+  "@filterPriceChip": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "filterPriceUpTo": "حتى {to}",
+  "@filterPriceUpTo": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "filterPriceFromOnly": "من {from}",
+  "@filterPriceFromOnly": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "petFilterKicker": "نعرض المناسب لـ",
+  "petFilterMatch": "{count, plural, =0{لا شيء يناسب {name} هنا} =1{منتج واحد يناسب {name}} =2{منتجان يناسبان {name}} few{{count} منتجات تناسب {name}} many{{count} منتجًا يناسب {name}} other{{count} منتج يناسب {name}}}",
+  "@petFilterMatch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "petFilterOf": "من {total}",
+  "@petFilterOf": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "petFilterShowAll": "عرض الكل",
+  "petFilterOff": "متوقف — نعرض الكل",
+  "petAskAge": "كم عمر {name}؟",
+  "@petAskAge": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "petAskAgeHint": "نعرض لك الأكل المناسب لعمره فقط",
+  "petYourCat": "قطتك",
+  "petYourDog": "كلبك",
+  "petYourPet": "أليفك",
+  "petFilterSwitch": "المناسب لـ {name}",
+  "@petFilterSwitch": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyFilteredTitle": "ما لقينا شيئًا بهذه الاختيارات",
+  "emptyFilteredBody": "جرّب واحدًا من هذه — كلها تفتح نتائج فورًا",
+  "emptyRemove": "أزل «{label}»",
+  "@emptyRemove": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyRemovePrice": "أزل حدود السعر",
+  "emptySwap": "جرّب {label} بدلًا منها",
+  "@emptySwap": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyClearAll": "مسح كل الفلاتر",
+  "needsTitle": "تسوّق حسب الاحتياج",
+  "needsSubtitle": "ابدأ من المشكلة، مو من القسم",
+  "brandLinesTitle": "خطوط {brand}",
+  "@brandLinesTitle": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "brandShelvesTitle": "تسوّق {brand} حسب",
+  "@brandShelvesTitle": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "brandAbout": "عن {brand}",
+  "@brandAbout": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "brandFactOrigin": "بلد المنشأ",
+  "brandFactFounded": "التأسيس",
+  "brandFactProducts": "في زوبكسي",
+  "brandFactSpecialty": "التخصص",
+  "brandFactInStock": "متوفر الآن",
+  "brandInStock": "{count, plural, =0{لا شيء متوفر الآن} other{{count} متوفر}}",
+  "@brandInStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "brandExpressReady": "{count, plural, =1{منتج واحد جاهز للتوصيل خلال ساعتين} =2{منتجان جاهزان للتوصيل خلال ساعتين} few{{count} منتجات جاهزة للتوصيل خلال ساعتين} other{{count} منتجًا جاهزة للتوصيل خلال ساعتين}}",
+  "@brandExpressReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "brandExpressPill": "إكسبريس · يوصلك خلال ساعتين",
+  "brandValueKicker": "العبوة الكبيرة أوفر",
+  "brandValueEachUnit": "للحبة",
+  "brandValueEachKg": "للكيلو",
+  "brandValueSave": "توفّر {percent}%",
+  "@brandValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "brandAboutMadeFor": "لمن صُنعت",
+  "brandAboutStory": "الحكاية",
+  "brandAboutFounded": "تأسست {brand}",
+  "@brandAboutFounded": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "brandAboutToday": "اليوم في زوبكسي",
+  "brandShopAllCta": "تسوّق كل {brand}",
+  "@brandShopAllCta": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "brandMoodTitle": "طابعها",
+  "allProductsTitle": "كل المنتجات",
+  "allProductsEveryPet": "الكل",
+  "allProductsEveryShelf": "كل الأقسام",
+  "allProductsCardHint": "كل الأقسام لكل الأليفات، بفلاترها",
+  "searchBrowseAllTitle": "تصفّح كل المنتجات",
+  "searchBrowseAllHint": "لا تعرف الاسم؟ ابدأ من الأليف والقسم",
+  "emptyNotify": "نبّهني إذا وصل {what}",
+  "@emptyNotify": {"placeholders": {"what": {"type": "String"}}},
+  "emptyNotifyOn": "سننبّهك أول ما يصل",
+  "emptyNotifyCancel": "إلغاء التنبيه",
+  "emptyNotifyRemoved": "ألغينا التنبيه",
+  "brandsOfficialTitle": "أصلي 100٪ — من الموزّع الرسمي مباشرة",
+  "brandsOfficialBody": "{count, plural, =1{براند عالمي واحد} =2{براندان عالميان} few{{count} براندات عالمية} other{{count} براندًا عالميًا}} · ضمان الأصالة على كل منتج",
+  "@brandsOfficialBody": {"placeholders": {"count": {"type": "int"}}},
+  "brandsOfficialSeal": "من الموزّع الرسمي",
+  "brandsWallTitle": "كل البراندات",
+  "brandsWallAll": "الدليل",
+  "myBrandsTitle": "براندات {name}",
+  "@myBrandsTitle": {"placeholders": {"name": {"type": "String"}}},
+  "myBrandsTitleAny": "براندات تحبها",
+  "myBrandsSub": "من طلباتك",
+  "myBrandsBought": "{count, plural, =1{طلبته مرة} =2{طلبته مرتين} few{طلبته {count} مرات} other{طلبته {count} مرة}}",
+  "@myBrandsBought": {"placeholders": {"count": {"type": "int"}}},
+  "brandFollow": "تابِع",
+  "brandFollowing": "تتابعه",
+  "brandFollowTooltip": "تابِع {brand}",
+  "@brandFollowTooltip": {"placeholders": {"brand": {"type": "String"}}},
+  "brandFollowedToast": "تابعت {brand}: يصلك جديده وعروضه ورجوع منتجاته",
+  "@brandFollowedToast": {"placeholders": {"brand": {"type": "String"}}},
+  "brandUnfollowedToast": "ألغيت متابعة {brand}",
+  "@brandUnfollowedToast": {"placeholders": {"brand": {"type": "String"}}},
+  "brandFollowSignIn": "سجّل دخولك لتتابع البراندات وتعرف جديدها",
+  "brandSearchLinesExpress": "خطوط {brand} الجاهزة خلال ساعتين",
+  "@brandSearchLinesExpress": {"placeholders": {"brand": {"type": "String"}}},
+  "brandSearchEnter": "ادخل متجر {brand}",
+  "@brandSearchEnter": {"placeholders": {"brand": {"type": "String"}}},
+  "cartSubOutExpress": "{name} نفد في إكسبريس",
+  "@cartSubOutExpress": {"placeholders": {"name": {"type": "String"}}},
+  "cartSubOut": "{name} غير متوفر للتوصيل الآن",
+  "@cartSubOut": {"placeholders": {"name": {"type": "String"}}},
+  "cartSubKicker": "البديل من نفس الخط",
+  "cartSubSamePrice": "نفس السعر",
+  "cartSubSwap": "استبدل",
+  "cartSubSwapped": "استبدلناه بـ {name}",
+  "@cartSubSwapped": {"placeholders": {"name": {"type": "String"}}},
+  "cartUpgradeEach": "{big}: {each} {unit} بدل {small}",
+  "@cartUpgradeEach": {"placeholders": {"big": {"type": "String"}, "each": {"type": "String"}, "unit": {"type": "String"}, "small": {"type": "String"}}},
+  "cartUpgradeSwap": "بدّل للكبيرة",
+  "cartCompleteTitle": "أكمل من {brand}",
+  "@cartCompleteTitle": {"placeholders": {"brand": {"type": "String"}}},
+  "cartCompleteSub": "مع نفس الطلب",
+  "petBrandsSub": "من مقياس الأكل",
+  "petBrandLast": "آخر طلب: {product}",
+  "@petBrandLast": {"placeholders": {"product": {"type": "String"}}},
+  "petBrandRenew": "جدّد",
+  "petFollowedNew": "جديد من براندات تتابعها",
+  "cartItemsTotal": "المنتجات",
+  "cartFees": "رسوم إضافية",
+  "cartTotalInclVat": "الإجمالي شامل الضريبة",
+  "cartVatIncluded": "منها ضريبة القيمة المضافة {amount}",
+  "@cartVatIncluded": {"placeholders": {"amount": {"type": "String"}}},
+  "checkoutAddAddressCta": "أضف عنوان التوصيل",
+  "checkoutChangeAddressCta": "اختر عنواناً يصله طلبك",
+  "checkoutNoPaymentCta": "لا توجد طريقة دفع متاحة الآن",
+  "supportWhatsapp": "كلّمنا على واتساب",
+  "supportAvailable": "متاح",
+  "supportChatHello": "مرحباً زوبكسي، أحتاج مساعدة",
+  "supportChatAboutOrder": "مرحباً زوبكسي، أحتاج مساعدة بخصوص طلبي رقم {number}",
+  "@supportChatAboutOrder": {"placeholders": {"number": {"type": "String"}}},
+  "supportOrderHelp": "مساعدة في هذا الطلب",
+  "trackingPrimerTitle": "عروض تناسب حيوانك",
+  "trackingPrimerBody": "بعد قليل يسألك الآيفون عن السماح بالتتبّع. نستخدمه فقط لنعرف أي إعلاناتنا أوصلتك إلينا ولنعرض لك عروضاً تناسب حيوانك. لا نبيع بياناتك، وتقدر تغيّر رأيك من الإعدادات في أي وقت.",
+  "trackingPrimerContinue": "متابعة",
+  "trackingPrimerLater": "ليس الآن",
+  "searchForPet": "لـ {name} 🐾",
+  "@searchForPet": {"placeholders": {"name": {"type": "String"}}},
+  "searchPopular": "الأكثر بحثاً",
+  "searchTry": "جرّب البحث عن",
+  "searchScanTitle": "صوّر الكيس الفاضي",
+  "searchScanHint": "ونطلب لك نفسه — امسح الباركود",
+  "petShelfTitle": "رفّ {name}",
+  "@petShelfTitle": {"placeholders": {"name": {"type": "String"}}},
+  "petShelfFoodDays": "طعام {name} يكفي {days, plural, =1{يوماً واحداً} =2{يومين} few{{days} أيام} other{{days} يوماً}}",
+  "@petShelfFoodDays": {"placeholders": {"name": {"type": "String"}, "days": {"type": "int"}}},
+  "petShelfFoodOut": "طعام {name} خلص",
+  "@petShelfFoodOut": {"placeholders": {"name": {"type": "String"}}},
+  "petShelfFood": "طعامه المعتاد",
+  "petShelfLitter": "رمله",
+  "petShelfTreat": "مكافأته",
+  "petShelfOrderAll": "اطلبها كلها",
+  "petShelfOrderAllExpress": "اطلبها كلها · خلال ساعتين",
+  "petShelfAdded": "{count, plural, =1{أضفنا منتجاً واحداً إلى السلة} =2{أضفنا منتجين إلى السلة} few{أضفنا {count} منتجات إلى السلة} other{أضفنا {count} منتجاً إلى السلة}}",
+  "@petShelfAdded": {"placeholders": {"count": {"type": "int"}}},
+  "petShelfPickPack": "اختر الحجم من صفحة المنتج أولاً",
+  "pdpLastsPet": "يكفي {name} {days, plural, =1{يوماً واحداً} =2{يومين} few{{days} أيام} other{{days} يوماً}}",
+  "@pdpLastsPet": {"placeholders": {"name": {"type": "String"}, "days": {"type": "int"}}},
+  "pdpPerDay": "{price} لليوم",
+  "@pdpPerDay": {"placeholders": {"price": {"type": "String"}}},
+  "accountGreetMorning": "صباح الخير",
+  "accountGreetEvening": "مساء الخير",
+  "accountPawsPending": "+{count} بعد وصول طلبك",
+  "@accountPawsPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accountFirstPaws": "أول طلب يبدأ رصيد بصماتك",
+  "accountRewards": "المكافآت",
+  "accountTopTier": "وصلت أعلى مستوى في العائلة",
+  "accountArrives": "يصلك",
+  "accountStepReceived": "استلمناه",
+  "accountStepPacked": "جهّزناه",
+  "accountStepOnWay": "في الطريق",
+  "accountStepDelivered": "وصل",
+  "accountPetsTitle": "حيواناتي",
+  "accountPetOrderExpress": "اطلبه خلال ساعتين",
+  "accountPetOrder": "اطلبه",
+  "accountPetProfile": "ملف {name}",
+  "@accountPetProfile": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountPetNoFood": "سجّل طعامه ونذكّرك قبل ما يخلص",
+  "accountAddPet": "أضف حيواناً",
+  "accountHouseholdBody": "عرّفنا على حيوانك، ونذكّرك قبل ما يخلص طعامه ونجهّز له هدية عيد ميلاده",
+  "accountHouseholdCta": "أضف حيوانك",
+  "accountUsualTitle": "مشترياتك المعتادة",
+  "accountUsualAll": "كل مشترياتي",
+  "accountAddAll": "أضفها كلها",
+  "accountFirstOrderTitle": "أول طلب يبدأ رحلتك",
+  "accountFirstOrderBody": "تكسب بصمات مع كل طلب، وتتابعه لحظة بلحظة",
+  "accountStartShopping": "ابدأ التسوّق",
+  "accountWishlistHint": "اضغط القلب على أي منتج",
+  "accountAddressesHint": "أضف عنوان التوصيل",
+  "accountFriends": "أصدقائي",
+  "accountFriendsJoined": "{count, plural, =1{انضم صديق واحد} =2{انضم صديقان} few{انضم {count} أصدقاء} other{انضم {count} صديقاً}}",
+  "@accountFriendsJoined": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accountFriendsNone": "ادعُ أول صديق",
+  "accountInviteTitle": "ادعُ صديقاً لزوبوكسي",
+  "accountInviteBody": "ولك {count} بصمة لما يطلب أول مرة",
+  "@accountInviteBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accountInviteCta": "شارك رمزك",
+  "accountHelp": "تحتاج مساعدة؟ كلمنا على واتساب",
+  "accountSettings": "الإعدادات",
+  "accountSettingsAccount": "الحساب",
+  "accountSettingsHelp": "المساعدة",
+  "accountVersionFooter": "زوبوكسي {version}",
+  "@accountVersionFooter": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accountGuestTitle": "انضم لعائلة زوبوكسي",
+  "accountGuestBody": "بصمات مع كل طلب، هدايا حسب نوع حيوانك، وتذكير قبل ما يخلص طعامه",
+  "accountGuestCta": "سجّل برقم جوالك",
+  "accountGuestNote": "رمز تحقق واحد، بدون كلمة مرور",
+  "accountPerkTrack": "تتبّع طلبك لحظة بلحظة",
+  "accountPerkTrackBody": "وتعرف وقت الوصول قبل ما تطلب",
+  "accountPerkReorder": "اطلب مشترياتك بلمسة",
+  "accountPerkReorderBody": "كل ما اشتريته محفوظ لك",
+  "accountPerkPet": "ملف لحيوانك",
+  "accountPerkPetBody": "طعامه، وزنه، وعيد ميلاده",
+  "splashMorning": "صباح الخير",
+  "@splashMorning": {
+    "description": "Splash greeting before noon"
+  },
+  "splashEvening": "مساء الخير",
+  "@splashEvening": {
+    "description": "Splash greeting from noon on"
+  },
+  "splashPetWaiting": "{name} بانتظارك",
+  "@splashPetWaiting": {
+    "description": "Splash headline naming the customer's pet; name is as the customer wrote it",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "splashWelcomeBack": "أهلاً من جديد",
+  "@splashWelcomeBack": {
+    "description": "Splash headline when the pet has no name on file"
+  }
 }

@@ -6,38 +6,57 @@ import 'package:zooboxi_app/app/theme/app_theme.dart';
 import 'package:zooboxi_app/core/analytics/events_buffer.dart';
 import 'package:zooboxi_app/core/providers.dart';
 import 'package:zooboxi_app/core/storage/local_store.dart';
-import 'package:zooboxi_app/core/widgets/rail.dart';
 import 'package:zooboxi_app/features/brand/presentation/brand_screen.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/features/catalog/data/catalog_repository.dart';
 import 'package:zooboxi_app/features/catalog/data/product_models.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
 
-/// The brand page has to look *finished* on the payload the server actually
-/// sends today: a name, a logo that is often missing, some categories and a
-/// product count. Hero art, tagline and story are the exception, not the rule.
-///
-/// So these pump the bare payload — no hero, no logo, no tagline, no story —
-/// and check the page still has an identity, a working department filter and
-/// the brand's own picks above its catalogue.
+/// «الواجهة» (the owner's pick, 2026-09-24) has to look finished on two very
+/// different payloads: a bare brand (a name, often no logo, a count) and a
+/// brand with its identity on file (colour, country, founding year, mood,
+/// who it is for, curated lines, a bigger-pack saving). These pump both and
+/// check what each promises: the stage and the facts that exist, the line
+/// tiles filtering the grid in place, and the story one tap away.
 
 const String _slug = 'applaws';
 
 ProductCard _p(int id) => ProductCard(id: id, name: 'P$id', itemCode: 'C$id', price: 10);
 
-// The chips row shows imaged departments only, so the fixtures carry art.
-CategoryNode _c(int id, String slug, String name, int count) =>
-    CategoryNode(id: id, slug: slug, name: name, count: count, image: 'https://x/c$id.png');
-
-BrandPage _page() => BrandPage(
+BrandPage _bare() => BrandPage(
       brand: const BrandSummary(slug: _slug, name: 'Applaws', logo: null),
       productCount: 80,
-      categories: [
-        _c(107, 'cat-main', 'قطط', 64),
-        _c(108, 'dog-main', 'كلاب', 12),
-        _c(109, 'treats', 'مكافآت', 4),
-      ],
       products: [_p(1), _p(2), _p(3), _p(4)],
+    );
+
+BrandPage _inaba() => BrandPage(
+      brand: const BrandSummary(slug: _slug, name: 'INABA', accent: '#F39200'),
+      hasKit: true,
+      accentDark: '#E2001A',
+      tagline: 'المكافأة اليابانية الأولى عالميًا التي تُلعق',
+      lead: 'أصحاب القطط المدللون الذين يحبون لحظة القرب والتدليل',
+      country: 'اليابان',
+      founded: '1958',
+      specialty: 'للقطط',
+      mood: const ['لطيف', 'شهي', 'قريب'],
+      species: 'cat',
+      productCount: 121,
+      shelfTotal: 121,
+      inStock: 92,
+      products: [_p(1), _p(2), _p(3)],
+      lines: const [
+        BrandShelf(group: 'line', key: 'inaba_churu', name: 'تشورو', count: 70),
+        BrandShelf(group: 'line', key: 'inaba_dashi', name: 'داشي ديلايت', count: 23),
+      ],
+      value: BrandValue(
+        perUnit: true,
+        product: _p(9),
+        bigLabel: '50 × 14 جم',
+        bigEach: 2.03,
+        smallLabel: '4 × 14 جم',
+        smallEach: 2.93,
+        saving: 31,
+      ),
     );
 
 /// The grid pages imperatively off the repository, so the repository is what
@@ -104,124 +123,121 @@ void main() {
     _store = LocalStore(await SharedPreferences.getInstance());
   });
 
-  testWidgets('a bare brand still gets an identity, departments and picks',
-      (tester) async {
+  testWidgets('a bare brand still gets a stage, its name and its whole range', (tester) async {
     final catalog = _FakeCatalog();
-    await _pump(tester, _host(_page(), catalog));
+    await _pump(tester, _host(_bare(), catalog));
 
-    // Identity: the name, and — with no logo — the brand's own initial rather
-    // than the generic paw, on the tile AND on the «الكل» chip's circle.
+    // No logo: the plate carries the name itself.
     expect(find.text('Applaws'), findsWidgets);
-    expect(find.text('A'), findsNWidgets(2));
-    // The one fact this payload can state honestly.
-    expect(find.text('80 منتجًا'), findsOneWidget);
-
-    // «الكل» plus one chip per department.
-    expect(find.text('الكل'), findsOneWidget);
-    for (final name in const ['قطط', 'كلاب', 'مكافآت']) {
-      expect(find.text(name), findsOneWidget);
-    }
-
-    // The curated rail leads, the whole catalogue pages underneath it.
-    expect(find.text('مختارات Applaws'), findsOneWidget);
-    expect(find.byType(ProductRailView), findsOneWidget);
+    // No identity on file: no story to open, no lines to show.
+    expect(find.byTooltip('عن Applaws'), findsNothing);
     expect(find.text('كل منتجات Applaws'), findsOneWidget);
-    expect(find.text('نتيجتان'), findsOneWidget, reason: 'the scope states its size');
+    expect(find.text('منتجان'), findsOneWidget, reason: 'the scope states its size');
 
     expect(catalog.queries.single.brand, _slug);
-    expect(catalog.queries.single.category, isNull);
+    expect(catalog.queries.single.filters, isEmpty);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a department chip re-queries in place instead of leaving the brand',
-      (tester) async {
+  testWidgets('a line tile narrows the grid in place, and lets go on a second tap', (tester) async {
     final catalog = _FakeCatalog();
-    await _pump(tester, _host(_page(), catalog));
+    await _pump(tester, _host(_inaba(), catalog));
 
-    await tester.tap(find.text('قطط'));
+    expect(find.text('خطوط INABA'), findsOneWidget);
+    expect(find.text('العبوة الكبيرة أوفر'), findsOneWidget);
+
+    await tester.tap(find.text('تشورو'));
     await tester.pumpAndSettle();
 
     expect(catalog.queries.last.brand, _slug, reason: 'still inside the brand');
-    expect(catalog.queries.last.category, 'cat-main');
-    // Inside a department the brand's own picks would be showing cat food above
-    // a dog shelf, so the rail stands down.
-    expect(find.byType(ProductRailView), findsNothing);
-    // The selected chip *is* the heading inside a department — repeating the
-    // name over the grid would be the page talking to itself.
-    expect(find.text('قطط'), findsOneWidget);
-    expect(find.text('كل منتجات Applaws'), findsNothing);
-    expect(find.text('نتيجتان'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    expect(catalog.queries.last.filters['line'], {'inaba_churu'});
+    // The saving belongs to the whole brand, not to a filtered view of it.
+    expect(find.text('العبوة الكبيرة أوفر'), findsNothing);
+    expect(find.text('كل منتجات INABA'), findsNothing);
 
-    // …and back to «الكل» brings it back, without a second page of the old query.
-    await tester.tap(find.text('الكل'));
+    // Another line moves the ring rather than stacking.
+    await tester.tap(find.text('داشي ديلايت'));
     await tester.pumpAndSettle();
+    expect(catalog.queries.last.filters['line'], {'inaba_dashi'});
 
-    expect(catalog.queries.last.category, isNull);
-    expect(find.text('مختارات Applaws'), findsOneWidget);
+    await tester.tap(find.text('داشي ديلايت'));
+    await tester.pumpAndSettle();
+    expect(catalog.queries.last.filters['line'] ?? const <String>{}, isEmpty);
+    expect(find.text('العبوة الكبيرة أوفر'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a fully synced boutique kit paints its extra layers', (tester) async {
-    final page = BrandPage(
-      brand: const BrandSummary(slug: _slug, name: 'Applaws', accent: '#0d9488'),
-      boutique: true,
-      tagline: 'طعام طبيعي بلا حشو',
-      story: 'ولدت في بريطانيا من فكرة واحدة: لحم حقيقي فقط.',
-      country: 'المملكة المتحدة',
-      founded: '1997',
-      productCount: 80,
-      tiles: const [BrandTile(image: 'https://x/1.jpg', headline: 'وجبات رطبة')],
-      categories: [_c(107, 'cat-main', 'قطط', 64)],
-      products: [_p(1), _p(2)],
-    );
+  testWidgets('a brand with its identity on file paints its facts and opens its story', (tester) async {
+    await _pump(tester, _host(_inaba(), _FakeCatalog()));
 
-    await _pump(tester, _host(page, _FakeCatalog()));
+    expect(find.text('المكافأة اليابانية الأولى عالميًا التي تُلعق'), findsOneWidget);
+    expect(find.text('اليابان · منذ 1958'), findsOneWidget);
+    expect(find.text('للقطط'), findsOneWidget);
+    expect(find.text('لطيف'), findsOneWidget);
 
-    expect(find.text('طعام طبيعي بلا حشو'), findsOneWidget);
-    expect(find.text('المملكة المتحدة'), findsOneWidget);
-    expect(find.text('منذ 1997'), findsOneWidget);
-    expect(find.text('وجبات رطبة'), findsOneWidget);
-    expect(find.textContaining('ولدت في بريطانيا'), findsOneWidget);
+    await tester.tap(find.text('عن INABA').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('لمن صُنعت'), findsOneWidget);
+    expect(find.textContaining('أصحاب القطط المدللون'), findsOneWidget);
+    expect(find.text('تأسست INABA'), findsOneWidget);
+    expect(find.text('تسوّق كل INABA'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
   test('the live payload maps onto the model, empty strings and all', () {
     final page = BrandPage.fromJson(_slug, {
-      'code': '1513',
+      'code': '199',
       'slug': _slug,
-      'name': 'Applaws',
+      'name': 'INABA',
       'boutique': false,
+      'has_kit': true,
       'hero': null,
       'logo': 'https://x/logo.png',
-      'kit': {'accent': '#0d9488', 'accent_dark': null, 'gold': null, 'tagline': ''},
-      'story': {'lead': '', 'country': '', 'founded': '', 'mood': ''},
+      'kit': {'accent': '#F39200', 'accent_dark': '#E2001A', 'gold': null, 'tagline': ''},
+      'story': {'lead': '', 'country': 'اليابان', 'founded': '1958', 'mood': 'لطيف·شهي', 'mood_words': ['لطيف', 'شهي'], 'specialty': 'للقطط'},
+      'species': 'cat',
       'tiles': [
         {'image': '', 'headline': 'ignored — a headline is not a tile'},
       ],
       'products': [
         {'id': 7, 'name': 'P7', 'item_code': 'C7', 'price': 12},
       ],
-      'categories': [
-        {'id': 107, 'slug': 'cat-main', 'name': 'قطط', 'count': 64},
+      'categories': [],
+      'product_count': 121,
+      'lines': [
+        {'group': 'line', 'key': 'inaba_churu', 'name': 'تشورو', 'count': 70, 'image': 'https://x/c.png', 'icon': null},
+        {'group': 'line', 'key': '', 'name': 'broken'},
       ],
-      'product_count': 80,
+      'shelves': [],
+      'value': {
+        'mode': 'unit',
+        'product': {'id': 9, 'name': 'P9', 'item_code': 'C9', 'price': 101.27},
+        'big': {'label': '50 × 14 جم', 'each': 2.03},
+        'small': {'label': '4 × 14 جم', 'each': 2.93, 'id': 3},
+        'saving': 31,
+      },
+      'shelf_total': 73,
+      'in_stock': 70,
     });
 
-    expect(page.name, 'Applaws');
-    expect(page.brand.code, '1513');
-    expect(page.brand.accent, '#0d9488');
-    expect(page.boutique, isFalse);
-    // Every empty string folds to null so the screen can test one thing.
-    expect(page.hero, isNull);
-    expect(page.tagline, isNull);
-    expect(page.story, isNull);
-    expect(page.country, isNull);
-    expect(page.founded, isNull);
-    expect(page.accentDark, isNull);
+    expect(page.brand.code, '199');
+    expect(page.brand.accent, '#F39200');
+    expect(page.hasKit, isTrue);
+    expect(page.tagline, isNull, reason: 'an empty string folds to null');
+    expect(page.lead, isNull);
+    expect(page.country, 'اليابان');
+    expect(page.founded, '1958');
+    expect(page.mood, ['لطيف', 'شهي']);
+    expect(page.specialty, 'للقطط');
+    expect(page.species, 'cat');
     expect(page.tiles, isEmpty);
-    expect(page.categories.single.slug, 'cat-main');
-    expect(page.products.single.id, 7);
-    expect(page.productCount, 80);
+    expect(page.lines.single.key, 'inaba_churu', reason: 'a line without a key is dropped');
+    expect(page.shelvesToShow, isEmpty, reason: 'one line is not a choice');
+    expect(page.value!.perUnit, isTrue);
+    expect(page.value!.saving, 31);
+    expect(page.value!.product.id, 9);
+    expect(page.shelfTotal, 73);
+    expect(page.inStock, 70);
   });
 }

@@ -7,10 +7,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/active_branch.dart';
 import '../../core/utils/haptics.dart';
 import '../../core/widgets/app_toast.dart';
+import '../../core/home_widget/pet_widget_sync.dart';
 import '../../features/cart/data/cart_controller.dart';
 import '../../features/cart/data/cart_models.dart';
 import 'glass_nav_bar.dart';
-import 'express_cart_bar.dart';
 import 'live_order_bar.dart';
 
 /// The four tab destinations, in bar order. Pushed pages use the same list to
@@ -46,6 +46,8 @@ class _MainShellState extends ConsumerState<MainShell> {
     // layer, and holding it anywhere shorter would quietly stop moving the
     // basket the moment that screen was popped.
     ref.watch(basketFollowsShelfProvider);
+    // «رفّ لولو» on the iPhone home screen follows the food gauge.
+    ref.watch(petWidgetSyncProvider);
     ref.listen<BasketMove?>(basketMoveProvider, (_, move) {
       if (move == null) return;
       // Said here rather than in the cart screen, because the thing that just
@@ -79,11 +81,9 @@ class _MainShellState extends ConsumerState<MainShell> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const LiveOrderBar(),
-          // The basket sits closest to the menu, under the order already on
-          // its way: one is what you are building, the other is what is
-          // already coming, and the nearer thumb belongs to the one you are
-          // still adding to.
-          const ExpressCartBar(),
+          // The basket's running total lives IN the menu's cart tab (see
+          // GlassNavBar): a second floating bar above the menu stacked three
+          // layers over the page and quoted a different number from the cart.
           GlassNavBar(
             index: index,
             // The bar under a pushed page hands the cart anchor to the bar on

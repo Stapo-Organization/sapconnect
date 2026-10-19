@@ -116,6 +116,7 @@ class PhotoPlate extends StatelessWidget {
       url: product.image,
       padding: EdgeInsets.all(inset),
       backgroundColor: ground,
+      photo: true,
     );
 
     return Container(

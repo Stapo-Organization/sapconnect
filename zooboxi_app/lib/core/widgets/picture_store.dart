@@ -58,16 +58,41 @@ class PictureStore {
   Future<Directory?>? _root;
   final Map<String, Future<Uint8List>> _inFlight = {};
 
+  /// Addresses the server said do not exist, and until when to believe it.
+  ///
+  /// Without this a dead picture was asked for again on every rebuild of
+  /// every card that showed it — one missing category image cost 39 requests
+  /// in a single session, each one a round trip the customer waited behind.
+  final Map<String, DateTime> _missing = {};
+
+  /// How long a 404/410 is trusted before the address is tried again: long
+  /// enough to stop the storm, short enough that a photo the store uploads
+  /// shows up within the session.
+  @visibleForTesting
+  Duration missingFor = const Duration(minutes: 15);
+
   /// The bytes for [url] — off disk when they are there, else fetched and
   /// kept. Concurrent asks for one URL share one fetch.
-  Future<Uint8List> bytes(String url) => _inFlight.putIfAbsent(
-        url,
-        // A block, not an arrow: `remove` hands back the very future being
-        // built, and `whenComplete` would wait on it — forever.
-        () => _load(url).whenComplete(() {
-          _inFlight.remove(url);
-        }),
-      );
+  Future<Uint8List> bytes(String url) {
+    final until = _missing[url];
+    if (until != null) {
+      if (DateTime.now().isBefore(until)) {
+        return Future.error(HttpException('known missing', uri: Uri.tryParse(url)));
+      }
+      _missing.remove(url);
+    }
+    return _inFlight.putIfAbsent(
+      url,
+      // A block, not an arrow: `remove` hands back the very future being
+      // built, and `whenComplete` would wait on it — forever.
+      () => _load(url).catchError((Object error) {
+        if (error is _Gone) _missing[url] = DateTime.now().add(missingFor);
+        throw error;
+      }).whenComplete(() {
+        _inFlight.remove(url);
+      }),
+    );
+  }
 
   Future<Uint8List> _load(String url) async {
     final file = await _fileFor(url);
@@ -105,6 +130,10 @@ class PictureStore {
     final response = await request.close().timeout(headersTimeout);
     if (response.statusCode != HttpStatus.ok) {
       await response.drain<void>().catchError((_) {});
+      // Gone is an answer, not a failure: remembered, never retried at once.
+      if (response.statusCode == HttpStatus.notFound || response.statusCode == HttpStatus.gone) {
+        throw _Gone('HTTP ${response.statusCode}', uri: uri);
+      }
       throw HttpException('HTTP ${response.statusCode}', uri: uri);
     }
     final data = await consolidateHttpClientResponseBytes(response).timeout(bodyTimeout);
@@ -220,4 +249,9 @@ class ZbPicture extends ImageProvider<ZbPicture> {
 
   @override
   String toString() => 'ZbPicture("$url", scale: $scale)';
+}
+
+/// The server said this picture does not exist (404 / 410).
+class _Gone extends HttpException {
+  const _Gone(super.message, {super.uri});
 }

@@ -190,7 +190,7 @@ void main() {
 
     expect(find.text('مشمش'), findsOneWidget);
     expect(find.text('مميّز'), findsOneWidget);
-    expect(find.text('1٬240'), findsOneWidget);
+    expect(find.text('1,240'), findsOneWidget);
     expect(find.text('3 طلبات تفصلك عن ذهبي'), findsOneWidget);
     expect(_events.events.single.payload?['variant'], 'tier');
   });

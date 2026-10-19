@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
+import '../../../../core/icons/facet_sticker.dart';
 import '../../../../core/motion/motion.dart';
 import '../../../../core/widgets/press_scale.dart';
 import '../../../../core/widgets/sparkles.dart';
@@ -28,6 +29,7 @@ class PetSection extends StatelessWidget {
     required this.palette,
     required this.revealed,
     required this.onOpen,
+    this.onNeed,
   });
 
   final CategoryNode pet;
@@ -36,6 +38,9 @@ class PetSection extends StatelessWidget {
 
   /// Called with the slug and the title to show on the listing screen.
   final void Function(CategoryNode node) onOpen;
+
+  /// «تسوّق حسب الاحتياج» — a condition tile was tapped.
+  final void Function(NeedNode need)? onNeed;
 
   /// Card text is sized from this ceiling; the layout must not be asked to
   /// absorb a larger one.
@@ -100,8 +105,95 @@ class PetSection extends StatelessWidget {
                 ],
               ),
           ],
+          if (pet.needs.isNotEmpty && onNeed != null) ...[
+            Gap.h20,
+            enter(_NeedsGrid(needs: pet.needs, palette: palette, onTap: onNeed!)),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// «تسوّق حسب الاحتياج»: the pet's conditions from the store's health tree,
+/// each a sticker in the character style — start from the problem (a picky
+/// eater, hairballs), not from the department.
+class _NeedsGrid extends StatelessWidget {
+  const _NeedsGrid({required this.needs, required this.palette, required this.onTap});
+
+  final List<NeedNode> needs;
+  final PetPalette palette;
+  final void Function(NeedNode need) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final cs = context.cs;
+    final shown = needs.take(needs.length >= 6 ? 6 : 3).toList();
+    if (shown.length < 3) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l.needsTitle, style: context.tt.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+        Text(l.needsSubtitle, style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+        Gap.h12,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 8.0;
+            final w = (constraints.maxWidth - gap * 2) / 3;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final need in shown)
+                  SizedBox(
+                    width: w,
+                    child: PressScale(
+                      onTap: () => onTap(need),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(6, 12, 6, 10),
+                        decoration: BoxDecoration(
+                          color: cs.surface,
+                          borderRadius: BorderRadius.circular(ZbTokens.rLg),
+                          border: Border.all(color: cs.outlineVariant),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 58,
+                              height: 58,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(color: palette.band.withValues(alpha: context.isDark ? 0.35 : 0.16), shape: BoxShape.circle),
+                              child: FacetSticker(need.icon, size: 42),
+                            ),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 36,
+                              child: Center(
+                                child: Text(
+                                  need.name,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.tt.labelLarge?.copyWith(fontWeight: FontWeight.w800, height: 1.25),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              l.filterProductCount(need.count),
+                              style: context.tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -536,7 +536,7 @@ class _AddressRow extends StatelessWidget {
 /// the address line rather than a badge beside it, because the address and
 /// the hour are one fact — this parcel, at this door, by then.
 class LocationChip extends ConsumerWidget {
-  const LocationChip({super.key, this.onCanvas = false, this.scope});
+  const LocationChip({super.key, this.onCanvas = false, this.scope, this.showWhen = true});
 
   /// Renders the chip for the hero canvas: every stroke turns light, since
   /// the canvas colors are deep by design.
@@ -545,6 +545,10 @@ class LocationChip extends ConsumerWidget {
   /// The active storefront's promise, so the زوبكسي tab says tomorrow even
   /// while standing inside an express zone.
   final CatalogScope? scope;
+
+  /// False where the hour is already said larger — the express header's
+  /// clock — so the chip names the place only.
+  final bool showWhen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -555,7 +559,7 @@ class LocationChip extends ConsumerWidget {
     // The full line a person recognises as *their* address: district, city.
     final detail = location.detailLabel(locale);
     final isSet = detail != null && detail.isNotEmpty;
-    final when = isSet
+    final when = isSet && showWhen
         ? deliveryWhenLabel(context, scope: scope, location: location)
         : '';
 

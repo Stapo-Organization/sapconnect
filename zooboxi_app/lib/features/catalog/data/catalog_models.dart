@@ -356,6 +356,15 @@ class BrandSummary {
     this.logo,
     this.accent,
     this.count = 0,
+    this.accentDark,
+    this.official = false,
+    this.tagline,
+    this.country,
+    this.founded,
+    this.lines = const [],
+    this.lastProduct,
+    this.bought = 0,
+    this.images = const [],
   });
 
   final String slug;
@@ -364,8 +373,28 @@ class BrandSummary {
   final String? logo;
   final String? accent;
 
-  /// Catalogue size — what the brands directory sorts and labels by.
+  /// Catalogue size — what the brands directory sorts and labels by. On a
+  /// narrowed shelf (إكسبريس) it is what that shelf can send.
   final int count;
+
+  /// The kit's second colour — the stripe beside the logo.
+  final String? accentDark;
+
+  /// Sold from the official distributor: the «من الموزّع الرسمي» seal.
+  final bool official;
+  final String? tagline;
+  final String? country;
+  final String? founded;
+
+  /// The brand's biggest product lines on this shelf, by name.
+  final List<String> lines;
+
+  /// «براندات لولو»: the last thing this customer bought from it, and how often.
+  final String? lastProduct;
+  final int bought;
+
+  /// A search card's product pictures — the brand's best sellers on this shelf.
+  final List<String> images;
 
   factory BrandSummary.fromJson(Map<String, dynamic> json) => BrandSummary(
         slug: asString(json['slug']),
@@ -374,7 +403,29 @@ class BrandSummary {
         logo: asStringOrNull(json['logo']),
         accent: asStringOrNull(json['accent']),
         count: asInt(json['count']),
+        accentDark: asStringOrNull(json['accent_dark']),
+        official: asBool(json['official']),
+        tagline: _blank(asStringOrNull(json['tagline'])),
+        country: _blank(asStringOrNull(json['country'])),
+        founded: _blank(asStringOrNull(json['founded'])),
+        lines: asStringList(json['lines']).where((e) => e.trim().isNotEmpty).toList(),
+        lastProduct: _blank(asStringOrNull(json['last_product'])),
+        bought: asInt(json['bought']),
+        images: asStringList(json['images']),
       );
+
+  /// A brand payload, or null when it is missing or has no slug.
+  static BrandSummary? maybe(dynamic json) {
+    final map = asMap(json);
+    if (map.isEmpty) return null;
+    final brand = BrandSummary.fromJson(map);
+    return brand.slug.isEmpty ? null : brand;
+  }
+
+  static List<BrandSummary> listFrom(dynamic json) =>
+      asMapList(json).map(BrandSummary.maybe).whereType<BrandSummary>().toList();
+
+  static String? _blank(String? s) => (s == null || s.trim().isEmpty) ? null : s;
 }
 
 /// What the app is allowed to show right now.
@@ -617,6 +668,7 @@ class HomePayload {
     this.brands = const [],
     this.layout = const [],
     this.scope,
+    this.brandsTotal = 0,
   });
 
   final List<HeroSlide> hero;
@@ -627,6 +679,9 @@ class HomePayload {
   final Map<String, List<NeedNavItem>> needNav;
   final List<ProductRail> rails;
   final List<BrandSummary> brands;
+
+  /// Every brand this shelf carries (the wall shows the biggest few).
+  final int brandsTotal;
 
   /// Empty means "use [defaultLayout]" — an older server, or a payload that
   /// predates the layout engine.
@@ -678,6 +733,7 @@ class HomePayload {
             .where((rail) => rail.products.isNotEmpty)
             .toList(),
         brands: asMapList(json['brands']).map(BrandSummary.fromJson).toList(),
+        brandsTotal: asInt(json['brands_total']),
         layout: asMapList(json['layout'])
             .map(HomeLayoutSlot.fromJson)
             .where((slot) => slot.type.isNotEmpty)
@@ -778,9 +834,13 @@ class HomeFeed {
     this.needs = NeedsHint.none,
     this.loginNudge = false,
     this.forPet,
+    this.myBrands = const [],
   });
 
   final PersonalSlot personal;
+
+  /// «براندات لولو» — the brands this customer buys that this shelf carries.
+  final List<BrandSummary> myBrands;
 
   /// «مختار لـ…» — the best of the store for the animal the page is arranged
   /// around. The app writes the pet's name over the store's title.
@@ -808,6 +868,7 @@ class HomeFeed {
         needs: NeedsHint.fromJson(asMap(json['needs'])),
         loginNudge: asBool(json['login_nudge']),
         forPet: FeedRail.maybe(json['forpet']),
+        myBrands: BrandSummary.listFrom(json['my_brands']),
       );
 }
 
@@ -822,11 +883,15 @@ class CategoryNode {
     this.icon,
     this.count = 0,
     this.children = const [],
+    this.needs = const [],
   });
 
   final int id;
   final String slug;
   final String name;
+
+  /// «تسوّق حسب الاحتياج» — only the four animal roots carry these.
+  final List<NeedNode> needs;
 
   /// Category artwork. The four animal roots carry a photographic tile; the
   /// children carry the illustrated set.
@@ -849,62 +914,347 @@ class CategoryNode {
         icon: asStringOrNull(json['icon']),
         count: asInt(json['count']),
         children: asMapList(json['children']).map(CategoryNode.fromJson).toList(),
+        needs: asMapList(json['needs']).map(NeedNode.fromJson).toList(),
       );
 }
 
+/// A condition a pet has («الانتقائية في الأكل», «كرات الشعر») — a real
+/// category on the store, so a tap is an ordinary listing.
 @immutable
-class FacetTerm {
-  const FacetTerm({required this.slug, required this.name, this.count = 0});
+class NeedNode {
+  const NeedNode({required this.id, required this.slug, required this.name, this.icon, this.count = 0});
 
+  final int id;
   final String slug;
   final String name;
+
+  /// A facet-sticker key.
+  final String? icon;
   final int count;
 
-  factory FacetTerm.fromJson(Map<String, dynamic> json) => FacetTerm(
+  factory NeedNode.fromJson(Map<String, dynamic> json) => NeedNode(
+        id: asInt(json['id']),
         slug: asString(json['slug']),
         name: asString(json['name']),
+        icon: asStringOrNull(json['icon']),
         count: asInt(json['count']),
       );
 }
 
-/// One filter axis, e.g. `pa_flavour` → "النكهة".
+/// One value of a facet, counted against every OTHER pick on the listing —
+/// the number is what the grid shows if this value is ticked.
+@immutable
+class FacetValue {
+  const FacetValue({
+    required this.key,
+    required this.label,
+    this.count = 0,
+    this.icon,
+    this.sub,
+    this.note,
+    this.selected = false,
+    this.short,
+  });
+
+  final String key;
+  final String label;
+  final int count;
+
+  /// A chip-sized name («ألعاب» for «الألعاب والخدّاشات»); null when [label] fits.
+  final String? short;
+
+  /// A facet-sticker key (`kitten`, `pouch`, `chicken`…), or null.
+  final String? icon;
+
+  /// A second line that explains the value («حتى 12 شهرًا»).
+  final String? sub;
+
+  /// Why an empty value is empty («غير متوفر مع قطط صغيرة»).
+  final String? note;
+  final bool selected;
+
+  /// Nothing to show with the other picks — drawn faded, not tappable.
+  bool get isEmpty => count == 0 && !selected;
+
+  factory FacetValue.fromJson(Map<String, dynamic> json) => FacetValue(
+        key: asString(json['key'] ?? json['slug']),
+        label: asString(json['label'] ?? json['name']),
+        count: asInt(json['count']),
+        icon: asStringOrNull(json['icon']),
+        sub: asStringOrNull(json['sub']),
+        note: asStringOrNull(json['note']),
+        selected: json['selected'] == true,
+        short: asStringOrNull(json['short']),
+      );
+}
+
+/// One filter axis — «العمر», «النكهة» — in the store's normalised vocabulary.
 @immutable
 class FacetGroup {
-  const FacetGroup({required this.taxonomy, required this.label, this.terms = const []});
+  const FacetGroup({
+    required this.key,
+    required this.label,
+    this.icon,
+    this.values = const [],
+    this.searchable = false,
+  });
 
-  final String taxonomy;
+  final String key;
   final String label;
-  final List<FacetTerm> terms;
+  final String? icon;
+  final List<FacetValue> values;
+
+  /// Long lists (brands) get a search field.
+  final bool searchable;
+
+  String? labelOf(String value) {
+    for (final v in values) {
+      if (v.key == value) return v.label;
+    }
+    return null;
+  }
 
   factory FacetGroup.fromJson(Map<String, dynamic> json) => FacetGroup(
-        taxonomy: asString(json['taxonomy']),
+        key: asString(json['key'] ?? json['taxonomy']),
         label: asString(json['label']),
-        terms: asMapList(json['terms']).map(FacetTerm.fromJson).toList(),
+        icon: asStringOrNull(json['icon']),
+        values: asMapList(json['values'] ?? json['terms']).map(FacetValue.fromJson).toList(),
+        searchable: json['search'] == true,
       );
 }
 
 @immutable
+class PriceBin {
+  const PriceBin({required this.from, required this.to, required this.count});
+
+  final double from;
+  final double to;
+  final int count;
+
+  factory PriceBin.fromJson(Map<String, dynamic> json) =>
+      PriceBin(from: asDouble(json['from']), to: asDouble(json['to']), count: asInt(json['count']));
+}
+
+/// A ready-made price window («أقل من 10»), its edges already rounded.
+@immutable
+class PriceBucket {
+  const PriceBucket({this.min, this.max, required this.label, this.count = 0});
+
+  final double? min;
+  final double? max;
+  final String label;
+  final int count;
+
+  factory PriceBucket.fromJson(Map<String, dynamic> json) => PriceBucket(
+        min: json['min'] == null ? null : asDouble(json['min']),
+        max: json['max'] == null ? null : asDouble(json['max']),
+        label: asString(json['label']),
+        count: asInt(json['count']),
+      );
+}
+
+/// The prices of THIS listing (not the store's): a histogram to draw over
+/// the slider and four buckets at its quartiles.
+@immutable
 class PriceFacet {
-  const PriceFacet({required this.min, required this.max});
+  const PriceFacet({
+    required this.min,
+    required this.max,
+    this.histogram = const [],
+    this.buckets = const [],
+  });
 
   final double min;
   final double max;
+  final List<PriceBin> histogram;
+  final List<PriceBucket> buckets;
 
   bool get isUsable => max > min;
 
-  factory PriceFacet.fromJson(Map<String, dynamic> json) =>
-      PriceFacet(min: asDouble(json['min']), max: asDouble(json['max']));
+  factory PriceFacet.fromJson(Map<String, dynamic> json) => PriceFacet(
+        min: asDouble(json['min']),
+        max: asDouble(json['max']),
+        histogram: asMapList(json['histogram']).map(PriceBin.fromJson).toList(),
+        buckets: asMapList(json['buckets']).map(PriceBucket.fromJson).toList(),
+      );
+}
+
+/// A value worth a chip above the list, one tap from applied.
+@immutable
+class PromotedFacet {
+  const PromotedFacet({
+    required this.group,
+    required this.value,
+    required this.label,
+    this.icon,
+    this.count = 0,
+  });
+
+  final String group;
+  final String value;
+  final String label;
+  final String? icon;
+  final int count;
+
+  factory PromotedFacet.fromJson(Map<String, dynamic> json) => PromotedFacet(
+        group: asString(json['group']),
+        value: asString(json['value']),
+        label: asString(json['label']),
+        icon: asStringOrNull(json['icon']),
+        count: asInt(json['count']),
+      );
+}
+
+/// What dropping one pick would bring back — the empty state's first aid.
+@immutable
+class RelaxOption {
+  const RelaxOption({required this.group, required this.value, required this.label, this.count = 0});
+
+  /// `price` for the price window.
+  final String group;
+  final String value;
+  final String label;
+  final int count;
+
+  factory RelaxOption.fromJson(Map<String, dynamic> json) => RelaxOption(
+        group: asString(json['group']),
+        value: asString(json['value']),
+        label: asString(json['label']),
+        count: asInt(json['count']),
+      );
+}
+
+/// Everything a listing knows about narrowing itself.
+@immutable
+class ListingFacets {
+  const ListingFacets({
+    this.groups = const [],
+    this.price,
+    this.promoted = const [],
+    this.relax = const [],
+    this.species,
+    this.speakAs,
+    this.baseTotal = 0,
+    this.locked,
+  });
+
+  static const empty = ListingFacets();
+
+  final List<FacetGroup> groups;
+  final PriceFacet? price;
+  final List<PromotedFacet> promoted;
+  final List<RelaxOption> relax;
+
+  /// `cat`, `dog`, `bird`, `small` — the aisle's pet; null when mixed.
+  final String? species;
+
+  /// The pet the labels are written for: the aisle's, else the one pet
+  /// picked in the «الأليف» facet. Null over a mix.
+  final String? speakAs;
+
+  /// Products in the scope before any pick.
+  final int baseTotal;
+
+  /// Facets held back until the list is about food (on «كل المنتجات»).
+  final LockedFacets? locked;
+
+  bool get isEmpty => groups.isEmpty && (price == null || !price!.isUsable);
+
+  FacetGroup? group(String key) {
+    for (final g in groups) {
+      if (g.key == key) return g;
+    }
+    return null;
+  }
+
+  factory ListingFacets.fromJson(Map<String, dynamic> json) {
+    final priceJson = asMap(json['price']);
+    return ListingFacets(
+      groups: asMapList(json['groups']).map(FacetGroup.fromJson).where((g) => g.values.isNotEmpty).toList(),
+      price: priceJson.isEmpty ? null : PriceFacet.fromJson(priceJson),
+      promoted: asMapList(json['promoted']).map(PromotedFacet.fromJson).toList(),
+      relax: asMapList(json['relax']).map(RelaxOption.fromJson).toList(),
+      species: asStringOrNull(json['species']),
+      speakAs: asStringOrNull(json['speak_as']) ?? asStringOrNull(json['species']),
+      baseTotal: asInt(json['base_total']),
+      locked: LockedFacets.maybe(asMap(json['locked'])),
+    );
+  }
+}
+
+/// «العمر · النكهة · القوام — تظهر عند اختيار الطعام»: the food facets the
+/// store holds back on a mixed list, and the one pick that opens them.
+@immutable
+class LockedFacets {
+  const LockedFacets({
+    required this.label,
+    required this.hint,
+    required this.unlockGroup,
+    required this.unlockValue,
+    this.unlockCount = 0,
+  });
+
+  final String label;
+  final String hint;
+  final String unlockGroup;
+  final String unlockValue;
+  final int unlockCount;
+
+  static LockedFacets? maybe(Map<String, dynamic> json) {
+    final unlock = asMap(json['unlock']);
+    final group = asString(unlock['group']);
+    final value = asString(unlock['value']);
+    if (group.isEmpty || value.isEmpty) return null;
+    return LockedFacets(
+      label: asString(json['label']),
+      hint: asString(json['hint']),
+      unlockGroup: group,
+      unlockValue: value,
+      unlockCount: asInt(unlock['count']),
+    );
+  }
 }
 
 @immutable
 class SortOption {
-  const SortOption({required this.key, required this.label});
+  const SortOption({required this.key, required this.label, this.sub, this.icon});
 
   final String key;
   final String label;
+  final String? sub;
 
-  factory SortOption.fromJson(Map<String, dynamic> json) =>
-      SortOption(key: asString(json['key']), label: asString(json['label']));
+  /// A facet-sticker key, or `spark` for the house ranking.
+  final String? icon;
+
+  factory SortOption.fromJson(Map<String, dynamic> json) => SortOption(
+        key: asString(json['key']),
+        label: asString(json['label']),
+        sub: asStringOrNull(json['sub']),
+        icon: asStringOrNull(json['icon']),
+      );
+}
+
+/// Where a listing sits in the tree: the department chips above it.
+@immutable
+class ListingContext {
+  const ListingContext({required this.node, this.parent, this.chips = const [], this.chipsAreSiblings = false});
+
+  final CategoryNode node;
+  final CategoryNode? parent;
+  final List<CategoryNode> chips;
+
+  /// True when [chips] are the node's siblings (so «الكل» is the parent).
+  final bool chipsAreSiblings;
+
+  factory ListingContext.fromJson(Map<String, dynamic> json) {
+    final parent = asMap(json['parent']);
+    return ListingContext(
+      node: CategoryNode.fromJson(asMap(json['node'])),
+      parent: parent.isEmpty ? null : CategoryNode.fromJson(parent),
+      chips: asMapList(json['chips']).map(CategoryNode.fromJson).toList(),
+      chipsAreSiblings: json['chips_of'] == 'siblings',
+    );
+  }
 }
 
 /// One page of `GET /catalog/products`, with the facets and sorts that apply
@@ -916,32 +1266,31 @@ class ListingResult {
     this.total = 0,
     this.pages = 1,
     this.page = 1,
-    this.facets = const [],
-    this.price,
+    this.facets = ListingFacets.empty,
     this.sortOptions = const [],
+    this.context,
   });
 
   final List<ProductCard> products;
   final int total;
   final int pages;
   final int page;
-  final List<FacetGroup> facets;
-  final PriceFacet? price;
+  final ListingFacets facets;
   final List<SortOption> sortOptions;
+  final ListingContext? context;
 
   bool get hasMore => page < pages;
 
   factory ListingResult.fromJson(Map<String, dynamic> json) {
-    final facetsJson = asMap(json['facets']);
-    final priceJson = asMap(facetsJson['price']);
+    final contextJson = asMap(json['context']);
     return ListingResult(
       products: ProductCard.listFrom(json['products']),
       total: asInt(json['total']),
       pages: asInt(json['pages'], fallback: 1),
       page: asInt(json['page'], fallback: 1),
-      facets: asMapList(facetsJson['groups']).map(FacetGroup.fromJson).toList(),
-      price: priceJson.isEmpty ? null : PriceFacet.fromJson(priceJson),
+      facets: ListingFacets.fromJson(asMap(json['facets'])),
       sortOptions: asMapList(json['sort_options']).map(SortOption.fromJson).toList(),
+      context: contextJson.isEmpty ? null : ListingContext.fromJson(contextJson),
     );
   }
 }
@@ -956,21 +1305,34 @@ class ListingQuery {
     this.q,
     this.sku,
     this.rail,
-    this.attributes = const {},
+    this.filters = const {},
     this.minPrice,
     this.maxPrice,
     this.orderBy,
     this.perPage = 20,
   });
 
-  /// Rebuilds a query from a deep link / `context.push` URL.
-  factory ListingQuery.fromJson(Map<String, String> params) => ListingQuery(
-        category: asStringOrNull(params['category']),
-        brand: asStringOrNull(params['brand']),
-        q: asStringOrNull(params['q']),
-        sku: asStringOrNull(params['sku']),
-        rail: asStringOrNull(params['rail']),
-      );
+  /// Rebuilds a query from a deep link / `context.push` URL — filters and
+  /// sort included, so a shared link opens the same list.
+  factory ListingQuery.fromJson(Map<String, String> params) {
+    final filters = <String, Set<String>>{};
+    for (final entry in params.entries) {
+      if (!entry.key.startsWith('f_')) continue;
+      final values = entry.value.split(',').map((v) => v.trim()).where((v) => v.isNotEmpty).toSet();
+      if (values.isNotEmpty) filters[entry.key.substring(2)] = values;
+    }
+    return ListingQuery(
+      category: asStringOrNull(params['category']),
+      brand: asStringOrNull(params['brand']),
+      q: asStringOrNull(params['q']),
+      sku: asStringOrNull(params['sku']),
+      rail: asStringOrNull(params['rail']),
+      filters: filters,
+      minPrice: double.tryParse(params['min_price'] ?? ''),
+      maxPrice: double.tryParse(params['max_price'] ?? ''),
+      orderBy: asStringOrNull(params['orderby']),
+    );
+  }
 
   final String? category;
   final String? brand;
@@ -982,27 +1344,32 @@ class ListingQuery {
   /// otherwise page 2 of "الأكثر مبيعًا" would be sorted by date.
   final String? rail;
 
-  /// `pa_*` taxonomy → selected term slugs.
-  final Map<String, Set<String>> attributes;
+  /// Facet key (`life`, `flavor`…) → selected values. OR inside a facet,
+  /// AND across facets.
+  final Map<String, Set<String>> filters;
   final double? minPrice;
   final double? maxPrice;
   final String? orderBy;
   final int perPage;
 
+  bool get hasPrice => minPrice != null || maxPrice != null;
+
   int get activeFilterCount =>
-      attributes.values.fold<int>(0, (sum, terms) => sum + terms.length) +
-      ((minPrice != null || maxPrice != null) ? 1 : 0);
+      filters.values.fold<int>(0, (sum, values) => sum + values.length) + (hasPrice ? 1 : 0);
 
   bool get hasFilters => activeFilterCount > 0;
+
+  bool isSelected(String group, String value) => filters[group]?.contains(value) ?? false;
 
   ListingQuery copyWith({
     String? category,
     String? brand,
     String? q,
-    Map<String, Set<String>>? attributes,
+    Map<String, Set<String>>? filters,
     double? minPrice,
     double? maxPrice,
     String? orderBy,
+    int? perPage,
     bool clearPrice = false,
     bool clearOrderBy = false,
     bool clearCategory = false,
@@ -1013,12 +1380,36 @@ class ListingQuery {
         q: q ?? this.q,
         sku: sku,
         rail: rail,
-        attributes: attributes ?? this.attributes,
+        filters: filters ?? this.filters,
         minPrice: clearPrice ? null : (minPrice ?? this.minPrice),
         maxPrice: clearPrice ? null : (maxPrice ?? this.maxPrice),
         orderBy: clearOrderBy ? null : (orderBy ?? this.orderBy),
-        perPage: perPage,
+        perPage: perPage ?? this.perPage,
       );
+
+  /// Ticks or unticks one value.
+  ListingQuery toggled(String group, String value) {
+    final next = {for (final e in filters.entries) e.key: {...e.value}};
+    final values = next[group] ?? <String>{};
+    if (!values.remove(value)) values.add(value);
+    if (values.isEmpty) {
+      next.remove(group);
+    } else {
+      next[group] = values;
+    }
+    return copyWith(filters: next);
+  }
+
+  /// Replaces one facet's picks (an empty set clears it).
+  ListingQuery withGroup(String group, Set<String> values) {
+    final next = {for (final e in filters.entries) e.key: {...e.value}};
+    if (values.isEmpty) {
+      next.remove(group);
+    } else {
+      next[group] = {...values};
+    }
+    return copyWith(filters: next);
+  }
 
   /// Drops facet + price filters, keeping the scope (category/brand/query).
   ListingQuery cleared() => ListingQuery(
@@ -1032,13 +1423,15 @@ class ListingQuery {
       );
 
   Map<String, dynamic> toQueryParameters(int page) => {
+        // The store answers from «فهرس الفلاتر» only when asked to.
+        'fv': 2,
         if (category != null) 'category': category,
         if (brand != null) 'brand': brand,
         if (q != null && q!.isNotEmpty) 'q': q,
         if (sku != null) 'sku': sku,
         if (rail != null) 'rail': rail,
-        for (final entry in attributes.entries)
-          if (entry.value.isNotEmpty) entry.key: entry.value.join(','),
+        for (final entry in filters.entries)
+          if (entry.value.isNotEmpty) 'f_${entry.key}': (entry.value.toList()..sort()).join(','),
         if (minPrice != null) 'min_price': minPrice,
         if (maxPrice != null) 'max_price': maxPrice,
         if (orderBy != null) 'orderby': orderBy,
@@ -1058,11 +1451,11 @@ class ListingQuery {
       other.maxPrice == maxPrice &&
       other.orderBy == orderBy &&
       other.perPage == perPage &&
-      _sameAttributes(other.attributes);
+      _sameFilters(other.filters);
 
-  bool _sameAttributes(Map<String, Set<String>> other) {
-    if (other.length != attributes.length) return false;
-    for (final entry in attributes.entries) {
+  bool _sameFilters(Map<String, Set<String>> other) {
+    if (other.length != filters.length) return false;
+    for (final entry in filters.entries) {
       final mine = entry.value;
       final theirs = other[entry.key];
       if (theirs == null || theirs.length != mine.length || !theirs.containsAll(mine)) {
@@ -1084,7 +1477,7 @@ class ListingQuery {
         orderBy,
         perPage,
         Object.hashAllUnordered(
-          attributes.entries.map((e) => Object.hash(e.key, Object.hashAllUnordered(e.value))),
+          filters.entries.map((e) => Object.hash(e.key, Object.hashAllUnordered(e.value))),
         ),
       );
 }
@@ -1100,6 +1493,8 @@ class MetaConfig {
     this.currency,
     this.features = const {},
     this.maintenance = false,
+    this.supportWhatsapp,
+    this.supportHours,
   });
 
   final String? minIosVersion;
@@ -1111,6 +1506,14 @@ class MetaConfig {
   final String? currency;
   final Map<String, bool> features;
   final bool maintenance;
+
+  /// Digits only, international form (9665…). Null while the store has not
+  /// set one — the app then shows no support button at all rather than a
+  /// «قريباً» that promises help and gives none.
+  final String? supportWhatsapp;
+
+  /// «يومياً 9 ص – 11 م», in the store's words, when it said.
+  final String? supportHours;
 
   bool feature(String key, {bool fallback = false}) => features[key] ?? fallback;
 
@@ -1129,6 +1532,8 @@ class MetaConfig {
       currency: asStringOrNull(json['currency']),
       features: features,
       maintenance: asBool(json['maintenance']),
+      supportWhatsapp: asStringOrNull(asMap(json['support'])['whatsapp']),
+      supportHours: asStringOrNull(asMap(json['support'])['hours']),
     );
   }
 }
@@ -1163,16 +1568,26 @@ class BrandPage {
   const BrandPage({
     required this.brand,
     this.boutique = false,
+    this.hasKit = false,
     this.accentDark,
     this.tagline,
     this.hero,
     this.story,
+    this.lead,
     this.country,
     this.founded,
+    this.specialty,
+    this.mood = const [],
+    this.species = '',
     this.tiles = const [],
     this.categories = const [],
     this.products = const [],
     this.productCount = 0,
+    this.lines = const [],
+    this.shelves = const [],
+    this.value,
+    this.shelfTotal = 0,
+    this.inStock = 0,
   });
 
   final BrandSummary brand;
@@ -1191,6 +1606,38 @@ class BrandPage {
 
   final String? country;
   final String? founded;
+
+  /// Whether the brand has an identity on file (colours, story) — false means
+  /// the page wears the store's own look.
+  final bool hasKit;
+
+  /// Who the brand is made for, in its kit's words (Arabic only).
+  final String? lead;
+
+  /// «للقطط», «لكل الأليفة» — the kit's category, said.
+  final String? specialty;
+
+  /// The brand's mood as up to four short words.
+  final List<String> mood;
+
+  /// The pet the brand is for — `cat`, `dog`, `bird`, `small`, `fish`,
+  /// `multi` or empty — which decides who stands on its stage.
+  final String species;
+
+  /// The brand's own product lines (Churu, Dashi…), counted on this shelf.
+  /// Empty when the brand has none curated.
+  final List<BrandShelf> lines;
+
+  /// The automatic split when there are no lines: by pet, food type or need.
+  final List<BrandShelf> shelves;
+
+  /// Where a bigger pack is honestly cheaper, or null.
+  final BrandValue? value;
+
+  /// How many of its products this shelf serves, and how many are in stock.
+  final int shelfTotal;
+  final int inStock;
+
   final List<BrandTile> tiles;
 
   /// The categories this brand actually sells into, biggest first — at most
@@ -1206,6 +1653,9 @@ class BrandPage {
 
   String get slug => brand.slug;
   String get name => brand.name;
+
+  /// The tiles under the stage: lines first, the automatic split otherwise.
+  List<BrandShelf> get shelvesToShow => lines.length >= 2 ? lines : shelves;
 
   factory BrandPage.fromJson(String slug, Map<String, dynamic> json) {
     final kit = asMap(json['kit']);
@@ -1237,6 +1687,19 @@ class BrandPage {
           : (json['story'] is Map ? null : asStringOrNull(json['story'])),
       country: asStringOrNull(storyJson['country']),
       founded: asStringOrNull(storyJson['founded']),
+      hasKit: asBool(json['has_kit']),
+      lead: asStringOrNull(storyJson['lead']),
+      specialty: asStringOrNull(storyJson['specialty']),
+      mood: [
+        for (final word in (storyJson['mood_words'] is List ? storyJson['mood_words'] as List : const []))
+          if (word is String && word.trim().isNotEmpty) word.trim(),
+      ],
+      species: asString(json['species']),
+      lines: asMapList(json['lines']).map(BrandShelf.fromJson).where((s) => s.key.isNotEmpty).toList(),
+      shelves: asMapList(json['shelves']).map(BrandShelf.fromJson).where((s) => s.key.isNotEmpty).toList(),
+      value: BrandValue.maybe(asMap(json['value'])),
+      shelfTotal: asInt(json['shelf_total']),
+      inStock: asInt(json['in_stock']),
       tiles: [
         for (final tile in asMapList(json['tiles'])) ?BrandTile.maybe(tile),
       ],
@@ -1245,6 +1708,81 @@ class BrandPage {
       productCount: asInt(json['product_count']),
     );
   }
+}
+
+/// One tile under a brand's stage: a product line or a facet value, and the
+/// filter a tap applies (`group` is a facet key — `line`, `form`, `species`…).
+@immutable
+class BrandShelf {
+  const BrandShelf({
+    required this.group,
+    required this.key,
+    required this.name,
+    this.count = 0,
+    this.image,
+    this.icon,
+  });
+
+  factory BrandShelf.fromJson(Map<String, dynamic> json) => BrandShelf(
+        group: asString(json['group']),
+        key: asString(json['key']),
+        name: asString(json['name']),
+        count: asInt(json['count']),
+        image: asStringOrNull(json['image']),
+        icon: asStringOrNull(json['icon']),
+      );
+
+  final String group;
+  final String key;
+  final String name;
+  final int count;
+  final String? image;
+
+  /// A facet sticker name, when the tile has no product picture.
+  final String? icon;
+}
+
+/// «العبوة الكبيرة أوفر»: the brand's bigger pack against its smallest of
+/// the same kind, per piece (`unit`) or per kilo (`kg`).
+@immutable
+class BrandValue {
+  const BrandValue({
+    required this.perUnit,
+    required this.product,
+    required this.bigLabel,
+    required this.bigEach,
+    required this.smallLabel,
+    required this.smallEach,
+    required this.saving,
+  });
+
+  static BrandValue? maybe(Map<String, dynamic> json) {
+    final product = asMap(json['product']);
+    final big = asMap(json['big']);
+    final small = asMap(json['small']);
+    if (product.isEmpty || big.isEmpty || small.isEmpty) return null;
+    final saving = asInt(json['saving']);
+    if (saving <= 0) return null;
+    return BrandValue(
+      perUnit: asString(json['mode']) == 'unit',
+      product: ProductCard.fromJson(product),
+      bigLabel: asString(big['label']),
+      bigEach: asDouble(big['each']),
+      smallLabel: asString(small['label']),
+      smallEach: asDouble(small['each']),
+      saving: saving,
+    );
+  }
+
+  final bool perUnit;
+  final ProductCard product;
+  final String bigLabel;
+  final double bigEach;
+  final String smallLabel;
+  final double smallEach;
+
+  /// Whole percent.
+  final int saving;
 }
 
 /// One category walked as an aisle — `GET /catalog/aisle/{id|slug}`.

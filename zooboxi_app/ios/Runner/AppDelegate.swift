@@ -2,6 +2,7 @@ import Flutter
 import GoogleMaps
 import UIKit
 import UserNotifications
+import WidgetKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -115,6 +116,30 @@ import UserNotifications
       default:
         result(FlutterMethodNotImplemented)
       }
+    }
+
+    // `zb/widget` — «رفّ لولو» on the home screen. The app hands the widget a
+    // small JSON summary (the pet, the food, the day it runs out) through the
+    // App Group both targets already share; the widget counts the days down
+    // on its own, so it stays right on a morning the app was never opened.
+    let widgetChannel = FlutterMethodChannel(
+      name: "zb/widget",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    widgetChannel.setMethodCallHandler { call, result in
+      guard call.method == "setPetShelf" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      let defaults = UserDefaults(suiteName: "group.com.zooboxi.app")
+      let json = (call.arguments as? [String: Any])?["json"] as? String
+      if let json = json {
+        defaults?.set(json, forKey: "zb.petShelf")
+      } else {
+        defaults?.removeObject(forKey: "zb.petShelf")
+      }
+      WidgetCenter.shared.reloadTimelines(ofKind: "ZooboxiPetWidget")
+      result(nil)
     }
   }
 }

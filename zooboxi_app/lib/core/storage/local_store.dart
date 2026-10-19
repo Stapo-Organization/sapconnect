@@ -23,8 +23,11 @@ class LocalStore {
   static const _kShopsForOthers = 'pets.shops_for_others';
   static const _kShoppingFor = 'pets.shopping_for';
   static const _kHouseholdWelcomed = 'pets.welcomed';
+  static const _kTrackingPrimed = 'analytics.tracking_primed';
   static const _kWeightNudgePrefix = 'pets.weight_nudge.';
   static const _kHouseholdInvite = 'pets.invite_dismissed';
+  static const _kPetLifePrefix = 'pets.life.';
+  static const _kSplashCompanion = 'splash.companion';
   static const _kRecentIds = 'catalog.recent_ids';
   static const _kRecentSearches = 'catalog.recent_searches';
   static const _kHomeCache = 'catalog.home_cache';
@@ -191,6 +194,28 @@ class LocalStore {
     }
   }
 
+  // ── Splash ───────────────────────────────────────────────────────────
+
+  /// Who greets the customer on the next cold start: the animal the app
+  /// speaks to (`cast` = a drawn cast member, `name` as the customer wrote
+  /// it). Written whenever the household is known for certain and read
+  /// synchronously by the splash, which never waits on the network. Null
+  /// means nobody — the splash then plays the brand's own burst.
+  Map<String, String>? get splashCompanion {
+    final raw = _prefs.getString(_kSplashCompanion);
+    if (raw == null) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return null;
+      return {for (final e in decoded.entries) if (e.value is String) '${e.key}': e.value as String};
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> setSplashCompanion(Map<String, String>? value) =>
+      value == null ? _prefs.remove(_kSplashCompanion) : _prefs.setString(_kSplashCompanion, jsonEncode(value));
+
   // ── «مين معك في البيت؟» ─────────────────────────────────────────────
 
   /// A guest's household as they described it in the welcome journey — the
@@ -230,6 +255,14 @@ class LocalStore {
   Future<void> dismissWeightNudge(int petId) =>
       _prefs.setInt('$_kWeightNudgePrefix$petId', DateTime.now().millisecondsSinceEpoch);
 
+  /// A pet's life stage as its owner answered it on a listing («كم عمر
+  /// مشمش؟»): `young` | `adult` | `senior`. Keyed by household member key,
+  /// used only when the pet has no birth date on the server.
+  String? petLifeStage(String memberKey) => _prefs.getString('$_kPetLifePrefix$memberKey');
+
+  Future<void> setPetLifeStage(String memberKey, String value) =>
+      _prefs.setString('$_kPetLifePrefix$memberKey', value);
+
   /// «ليس الآن» on the home's «مين معك في البيت؟» card.
   DateTime? get householdInviteDismissed {
     final ms = _prefs.getInt(_kHouseholdInvite);
@@ -241,6 +274,10 @@ class LocalStore {
   /// The one-time «رتّبنا الرئيسية على مقاس…» card has been seen.
   bool get householdWelcomed => _prefs.getBool(_kHouseholdWelcomed) ?? false;
   Future<void> setHouseholdWelcomed() => _prefs.setBool(_kHouseholdWelcomed, true);
+
+  /// The tracking primer has been shown (whatever the answer): it never asks twice.
+  bool get trackingPrimed => _prefs.getBool(_kTrackingPrimed) ?? false;
+  Future<void> setTrackingPrimed() => _prefs.setBool(_kTrackingPrimed, true);
 
   // ── Analytics batch (survives a cold kill) ───────────────────────────
 

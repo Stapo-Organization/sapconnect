@@ -776,6 +776,9 @@ IconData _phaseIcon(ActiveOrder active) => switch (active.tracking?.phase) {
       null => Icons.inventory_2_rounded,
     };
 
+/// The order's state in a phrase — what the bar and the header's route say.
+String liveOrderHeadline(BuildContext context, ActiveOrder active) => _headline(context, active);
+
 String _headline(BuildContext context, ActiveOrder active) {
   final l = L.of(context);
   final tracking = active.tracking;
@@ -798,8 +801,8 @@ Color _tone(BuildContext context, ActiveOrder active) {
 
 /// How far along, as a fraction. Preparation is deliberately given the first
 /// third: a customer who has waited ten minutes for a box to be packed has not
-/// made no progress, and a bar stuck at zero says they have.
-@visibleForTesting
+/// made no progress, and a bar stuck at zero says they have. The express
+/// header's route reads the same number, so the two can never disagree.
 double liveOrderProgress(ActiveOrder active) => switch (active.tracking?.phase) {
   LivePhase.searching => 0.4,
   LivePhase.assigned => 0.6,

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/envelope.dart';
+import '../../catalog/data/catalog_models.dart';
 import '../../catalog/data/product_models.dart';
 import '../../loyalty/data/loyalty_models.dart';
 import 'pet_models.dart';
@@ -205,6 +206,7 @@ class PetCare {
     this.reminders = const [],
     this.supply = const [],
     this.pawsEarned = 0,
+    this.brands = const [],
   });
 
   final Pet pet;
@@ -222,6 +224,9 @@ class PetCare {
   /// What the write that produced this payload paid (a weigh-in mission).
   final int pawsEarned;
 
+  /// «براندات لولو»: the brands in this pet's gauge, each with its soonest line.
+  final List<PetBrand> brands;
+
   int get dueCount => reminders.where((r) => r.needsAttention).length;
 
   factory PetCare.fromJson(Map<String, dynamic> json) {
@@ -235,7 +240,27 @@ class PetCare {
       reminders: CareReminder.listFrom(json['reminders']),
       supply: SupplyItem.listFrom(json['supply']),
       pawsEarned: asInt(json['paws_earned']),
+      brands: PetBrand.listFrom(json['brands']),
     );
+  }
+}
+
+/// One of a pet's brands and the gauge line of it that runs out first.
+@immutable
+class PetBrand {
+  const PetBrand({required this.brand, required this.supply});
+
+  final BrandSummary brand;
+  final SupplyItem supply;
+
+  static List<PetBrand> listFrom(dynamic json) {
+    final out = <PetBrand>[];
+    for (final row in asMapList(json)) {
+      final brand = BrandSummary.maybe(row['brand']);
+      final supply = SupplyItem.listFrom([row['supply']]);
+      if (brand != null && supply.isNotEmpty) out.add(PetBrand(brand: brand, supply: supply.first));
+    }
+    return out;
   }
 }
 

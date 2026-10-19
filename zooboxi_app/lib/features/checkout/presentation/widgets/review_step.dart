@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/zb_colors.dart';
 import '../../../../app/theme/zooboxi_tokens.dart';
@@ -7,6 +8,7 @@ import '../../../../core/widgets/totals_card.dart';
 import '../../../../core/widgets/zb_image.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../account/data/account_models.dart';
+import '../../../cart/data/cart_controller.dart';
 import '../../../cart/data/cart_models.dart';
 import '../../../cart/presentation/widgets/coupon_field.dart';
 import '../../../cart/presentation/widgets/free_shipping_bar.dart';
@@ -76,7 +78,15 @@ class _CheckoutBodyState extends State<CheckoutBody> {
         Gap.h16,
 
         if (review.freeShipping.isActive) ...[
-          FreeShippingBar(freeShipping: review.freeShipping),
+          // The same line the cart just showed: checkout's payload has no
+          // shelf, the basket the shell keeps warm does.
+          Consumer(
+            builder: (context, ref, _) {
+              final basket = ref.watch(cartControllerProvider).value?.basket ?? CartBasket.none;
+              final pick = freeDeliveryLine(review.freeShipping, basket);
+              return FreeShippingBar(freeShipping: pick.line, express: pick.express);
+            },
+          ),
           Gap.h16,
         ],
 

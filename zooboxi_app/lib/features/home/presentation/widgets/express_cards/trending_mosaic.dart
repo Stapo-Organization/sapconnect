@@ -62,7 +62,7 @@ abstract final class TrendingMosaic {
               (context, index) => Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  ProductCardView(product: rest[index], onAdd: onAdd, zone: zone),
+                  ProductCardView(product: rest[index], onAdd: onAdd, zone: zone, ranked: true),
                   // Bottom-start of the artwork: the one corner nothing else
                   // claims (badges top-start, heart top-end, add bottom-end).
                   PositionedDirectional(

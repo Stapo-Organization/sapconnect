@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/events_buffer.dart';
+import '../../../core/analytics/tracking_primer.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/envelope.dart';
 import '../../../core/widgets/bottom_sheet_scaffold.dart';
@@ -194,6 +197,9 @@ Future<bool> _post(
     } else if (!quiet) {
       AppToast.success(context, l.pdpAddedToCart);
     }
+    // First thing in the basket: the moment to explain, once, what the iOS
+    // tracking permission is for (a no-op everywhere else, and ever after).
+    unawaited(maybeAskTracking(context, ref));
     return true;
   }
 }

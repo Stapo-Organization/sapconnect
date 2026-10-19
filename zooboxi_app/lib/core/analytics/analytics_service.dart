@@ -60,11 +60,24 @@ class AnalyticsService {
     }
   }
 
+  /// Whether iOS has yet to hear the customer's answer about the ad
+  /// identifier — the only time a primer before the system sheet makes sense.
+  Future<bool> trackingUndecided() async {
+    if (_attAsked || kIsWeb || !Platform.isIOS) return false;
+    try {
+      return await AppTrackingTransparency.trackingAuthorizationStatus ==
+          TrackingStatus.notDetermined;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Asks iOS for the ad identifier, once, and only when the OS has not
   /// already recorded an answer. Android and the web have nothing to ask.
   ///
-  /// Called after the first home frame — never on the splash — so the
-  /// system sheet lands on a screen the customer already recognises.
+  /// Called from the tracking primer after the customer's first add to the
+  /// basket — never cold on the first home frame, where the system sheet
+  /// arrived before the customer had seen a single product.
   Future<void> requestTrackingAuthorization() async {
     if (_attAsked || kIsWeb || !Platform.isIOS) return;
     _attAsked = true;

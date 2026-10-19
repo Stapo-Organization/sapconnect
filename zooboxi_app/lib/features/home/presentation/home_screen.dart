@@ -40,7 +40,7 @@ import '../../pets/data/household.dart';
 import '../../wishlist/data/wishlist_controller.dart';
 import 'widgets/address_nav_bar.dart';
 import 'widgets/animal_nav.dart';
-import 'widgets/brand_strip.dart';
+import '../../brand/presentation/widgets/brand_activation_widgets.dart';
 import 'widgets/campaign_banner.dart';
 import 'widgets/express_asleep_band.dart';
 import 'widgets/express_interlude.dart';
@@ -66,7 +66,7 @@ import 'widgets/home_header.dart';
 import 'widgets/missions_strip.dart';
 import 'widgets/need_nav.dart';
 import 'widgets/promise_header.dart';
-import 'widgets/replenish_tile.dart';
+import 'widgets/pet_shelf_card.dart';
 import 'widgets/shelf_tabs.dart';
 import 'widgets/trust_strip.dart';
 
@@ -149,9 +149,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeOfferDrift();
-      // iOS's ad-identifier sheet, once, on a screen the customer already
-      // recognises — never on the splash.
-      unawaited(ref.analytics.requestTrackingAuthorization());
+      // iOS's ad-identifier sheet is no longer asked here: see
+      // tracking_primer.dart — it follows the first add to the basket.
     });
   }
 
@@ -624,13 +623,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final shown = <int>{};
     final express = payload.scope?.shelf == 'express';
 
+    // Product lines already on the page. Five flavours of one treat share a
+    // packshot: spread over four shelves they read as the same card again and
+    // again. A line shows once per shelf and twice per page (the store applies
+    // the same rule to its rails; this carries it across the personal feed).
+    final lines = <String, int>{};
+
     List<ProductCard>? claim(List<ProductCard> products, {int minimum = 3}) {
-      final kept = [
-        for (final product in products)
-          if (!shown.contains(product.id)) product,
-      ];
-      if (kept.length < minimum) return null;
+      final here = <String>{};
+      final kept = <ProductCard>[];
+      for (final product in products) {
+        if (shown.contains(product.id)) continue;
+        final line = productLineOf(product.name);
+        if (line != null && (here.contains(line) || (lines[line] ?? 0) >= 2)) continue;
+        if (line != null) here.add(line);
+        kept.add(product);
+      }
+      // A shelf thinned below its minimum by the line rule keeps its
+      // duplicates rather than vanishing — an empty gap is worse than a twin.
+      if (kept.length < minimum) {
+        final byId = [
+          for (final product in products)
+            if (!shown.contains(product.id)) product,
+        ];
+        if (byId.length < minimum) return null;
+        shown.addAll(byId.map((product) => product.id));
+        return byId;
+      }
       shown.addAll(kept.map((product) => product.id));
+      for (final line in here) {
+        lines[line] = (lines[line] ?? 0) + 1;
+      }
       return kept;
     }
 
@@ -690,7 +713,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // One interlude per page: finishing a pet's profile outranks the
     // إكسبريس invitation — it is about their animal, not our storefront.
     final weightPet = WeightNudge.candidate(ref);
-    final askHousehold = HouseholdInvite.owed(ref);
+    // «مين معك في البيت؟» and the family card's «من هو صديقك؟» are the same
+    // question; the page asks it once. When the family card is going to ask
+    // (with its 50-paw reason attached), the household invite stands down.
+    final familyAsks = payload.slots.any((slot) => slot.type == 'family') &&
+        switch (FamilyCard.variantOf(ref.watch(loyaltySummaryProvider).value, feedData)) {
+          FamilyCardVariant.guest || FamilyCardVariant.noPet => true,
+          _ => false,
+        };
+    final askHousehold = !familyAsks && HouseholdInvite.owed(ref);
     var invited = false;
     void interlude() {
       if (invited || sections < 2) return;
@@ -822,7 +853,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             final heading = ProductGridSliver.heading(rail.title);
             if (heading != null) slivers.add(heading);
             slivers.add(
-              ProductGridSliver(products: products, zone: rail.key, onAdd: add),
+              ProductGridSliver(
+                products: products,
+                zone: rail.key,
+                onAdd: add,
+                // A rail titled «الأكثر طلباً» / «رائج الآن» already says it
+                // of every card in it.
+                ranked: rail.key == 'bestsellers' || rail.key == 'trending',
+              ),
             );
           }
           slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 24)));
@@ -1047,9 +1085,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           );
 
+        // «براندات لولو» — the brands this customer buys, in their own colours.
+        case 'my_brands':
+          final mine = feedData?.myBrands ?? const <BrandSummary>[];
+          if (mine.isEmpty) break;
+          emit(MyBrandsRow(brands: mine, petName: household.focus?.name));
+
+        // Every brand this shelf carries, under the official-distributor seal.
         case 'brands':
           if (payload.brands.isEmpty) break;
-          emit(BrandStrip(brands: payload.brands));
+          emit(BrandWall(brands: payload.brands, total: payload.brandsTotal));
 
         case 'trust':
           emit(const TrustStrip(), bottom: 12);
@@ -1100,9 +1145,11 @@ class _ReplenishSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // «رفّ لولو» when the pet has two or more usual lines; the single-line
+    // replenish tile otherwise (PetShelfCard decides).
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
-      child: ReplenishTile(express: express),
+      child: PetShelfCard(express: express),
     );
   }
 }
@@ -1301,4 +1348,18 @@ class _EndOfShelf extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A product's line: the first three words of its name with sizes, counts and
+/// punctuation removed — «زولكس سويتيز مكافآت» for every flavour of Sweeties.
+/// Null for names too short to say.
+@visibleForTesting
+String? productLineOf(String name) {
+  final words = name
+      .replaceAll(RegExp(r'[0-9٠-٩]+|[×*+·\-–—()]|\bx\b'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((w) => w.isNotEmpty)
+      .toList();
+  if (words.length < 3) return null;
+  return words.take(3).join(' ').toLowerCase();
 }

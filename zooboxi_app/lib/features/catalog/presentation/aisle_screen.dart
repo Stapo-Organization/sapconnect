@@ -895,10 +895,10 @@ class _Shelf extends ConsumerWidget {
 
   /// The studio sweeps the polaroids stand on — light and dark of each.
   static const List<(Color, Color)> washes = [
-    (Color(0xFFF3EADB), Color(0xFF3A3225)),
-    (Color(0xFFE3EFE7), Color(0xFF24332A)),
-    (Color(0xFFF9E6E1), Color(0xFF3B2A27)),
-    (Color(0xFFE4EDF6), Color(0xFF25313C)),
+    (ZbTokens.sweepSand, ZbTokens.sweepSandDark),
+    (ZbTokens.sweepSage, ZbTokens.sweepSageDark),
+    (ZbTokens.sweepBlush, ZbTokens.sweepBlushDark),
+    (ZbTokens.sweepSky, ZbTokens.sweepSkyDark),
   ];
 
   @override

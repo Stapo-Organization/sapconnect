@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/zb_colors.dart';
+import '../../app/theme/zooboxi_tokens.dart';
 import 'picture_store.dart';
 
 /// How wide an image is decoded, in device pixels.
@@ -34,8 +35,9 @@ abstract final class ZbDecode {
 }
 
 /// Product imagery: kept on disk by [PictureStore], fading in, and never leaving a raw broken-image
-/// icon in a commerce grid. Missing art falls back to a soft paw mark, which
-/// reads as "no photo yet" rather than "the app is broken".
+/// icon in a commerce grid. While a photo travels a soft paw holds its place;
+/// a photo that does not exist is stood in for by the sleeping cat, which reads
+/// as "this picture is napping" rather than as an empty grey box.
 class ZbImage extends StatelessWidget {
   const ZbImage({
     super.key,
@@ -46,6 +48,7 @@ class ZbImage extends StatelessWidget {
     this.padding,
     this.fallback,
     this.decodeWidth = ZbDecode.card,
+    this.photo = false,
   });
 
   /// A surface that must not cap its decode at all: the product gallery, whose
@@ -61,6 +64,7 @@ class ZbImage extends StatelessWidget {
     this.backgroundColor,
     this.padding,
     this.fallback,
+    this.photo = false,
   }) : decodeWidth = null;
 
   final String? url;
@@ -80,13 +84,19 @@ class ZbImage extends StatelessWidget {
   /// stand-in for a cat than a generic mark is.
   final Widget? fallback;
 
+  /// A product photograph rather than artwork. In dark mode it sits on
+  /// [ZbTokens.photoMatDark] whatever [backgroundColor] says — see there.
+  final bool photo;
+
   @override
   Widget build(BuildContext context) {
     final cs = context.cs;
-    final background = backgroundColor ??
-        (context.isDark ? cs.surfaceContainerHigh : cs.surfaceContainerLow);
+    final background = photo && context.isDark
+        ? ZbTokens.photoMatDark
+        : backgroundColor ??
+            (context.isDark ? cs.surfaceContainerHigh : cs.surfaceContainerLow);
 
-    Widget missing() => fallback ?? _Placeholder(background: background);
+    Widget missing() => fallback ?? _Missing(background: background);
 
     Widget image;
     final source = url;
@@ -134,6 +144,40 @@ class ZbImage extends StatelessWidget {
 
     final content = ColoredBox(color: background, child: Center(child: image));
     return radius == null ? content : ClipRRect(borderRadius: radius!, child: content);
+  }
+}
+
+/// No photo at all: the sleeping cat, small and quiet, on the card's ground.
+class _Missing extends StatelessWidget {
+  const _Missing({required this.background});
+
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: ColoredBox(
+        color: background,
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final side = (box.biggest.shortestSide * 0.46).clamp(24.0, 96.0);
+            return Center(
+              child: Opacity(
+                opacity: context.isDark ? 0.5 : 0.62,
+                child: Image.asset(
+                  'assets/characters/cat-sleep.webp',
+                  width: side,
+                  height: side,
+                  fit: BoxFit.contain,
+                  cacheWidth: 192,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 

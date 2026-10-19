@@ -7,12 +7,14 @@ import '../../l10n/app_localizations.dart';
 import '../icons/zb_icons.dart';
 import '../utils/formatters.dart';
 
-/// Subtotal → discount → delivery → tax → total.
+/// Items → discount → delivery → total, every figure VAT included, and the VAT
+/// named underneath as a part of the total rather than added to it.
 ///
 /// One widget for the cart, the checkout review and the order receipt: a
 /// customer who sees three different money layouts in one purchase stops
 /// trusting the number, and the three would drift apart the first time a line
-/// was added to only one of them.
+/// was added to only one of them. The first row is the sum of the lines above
+/// it, so the page adds up the way a till receipt does.
 class TotalsCard extends StatelessWidget {
   const TotalsCard({
     super.key,
@@ -40,7 +42,7 @@ class TotalsCard extends StatelessWidget {
 
     final rows = Column(
       children: [
-        _TotalRow(label: l.cartSubtotal, value: Fmt.price(totals.subtotal, locale: locale)),
+        _TotalRow(label: l.cartItemsTotal, value: Fmt.price(totals.subtotal, locale: locale)),
         if (totals.discount > 0)
           _TotalRow(
             label: l.cartDiscount,
@@ -54,14 +56,25 @@ class TotalsCard extends StatelessWidget {
               : Fmt.price(totals.shipping, locale: locale),
           highlight: totals.shipping <= 0 ? context.zb.success : null,
         ),
-        if (totals.tax > 0)
-          _TotalRow(label: l.cartTax, value: Fmt.price(totals.tax, locale: locale)),
+        if (totals.fees > 0)
+          _TotalRow(label: l.cartFees, value: Fmt.price(totals.fees, locale: locale)),
         Divider(height: 20, color: cs.outlineVariant),
         _TotalRow(
-          label: l.cartTotal,
+          label: l.cartTotalInclVat,
           value: Fmt.price(totals.total, locale: locale),
           bold: true,
         ),
+        if (totals.tax > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                l.cartVatIncluded(Fmt.price(totals.tax, locale: locale)),
+                style: context.tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
+            ),
+          ),
         if (pawsToEarn > 0) ...[
           const SizedBox(height: 8),
           _PawsEarnRow(paws: pawsToEarn),

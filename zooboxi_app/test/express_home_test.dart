@@ -33,15 +33,26 @@ void main() {
 
     test('it parses the nested express block and keeps value equality', () {
       final a = FreeShipping.fromJson({
-        'min': 200, 'remaining': 164, 'qualified': false,
+        'min': 200, 'remaining': 164, 'qualified': false, 'basis': 'incl_vat',
         'express': {'min': 79, 'remaining': 43, 'qualified': false},
       });
       final b = FreeShipping.fromJson({
-        'min': 200, 'remaining': 164, 'qualified': false,
+        'min': 200, 'remaining': 164, 'qualified': false, 'basis': 'incl_vat',
         'express': {'min': 79, 'remaining': 43, 'qualified': false},
       });
       expect(a.express?.remaining, 43);
       expect(a, equals(b));
+    });
+
+    test('a store that measured the gap ex-VAT is read in shelf prices', () {
+      // Before 2026-09-24 the store sent the ex-VAT gap; what the customer
+      // actually has to add at shelf prices is 15% more.
+      final line = FreeShipping.fromJson({
+        'min': 150, 'remaining': 103.43, 'qualified': false,
+        'express': {'min': 150, 'remaining': 103.43, 'qualified': false},
+      });
+      expect(line.remaining, 118.94);
+      expect(line.express?.remaining, 118.94);
     });
   });
 

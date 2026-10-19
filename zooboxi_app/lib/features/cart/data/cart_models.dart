@@ -84,7 +84,7 @@ class CartItem {
         qty: asInt(json['qty'], fallback: 1),
         maxReachable: asIntOrNull(json['max_reachable']),
         unitPrice: asDouble(json['unit_price']),
-        lineTotal: asDouble(json['line_total']),
+        lineTotal: lineTotalOf(json),
         fulfillment: asMap(json['fulfillment']).isEmpty
             ? null
             : LineFulfillment.fromJson(asMap(json['fulfillment'])),
@@ -92,6 +92,19 @@ class CartItem {
         grantId: asIntOrNull(json['grant_id']),
         lockedQty: asBool(json['locked_qty']),
       );
+
+  /// The line as the customer reads it: shelf price × quantity, VAT included.
+  ///
+  /// The store's `line_total` is WooCommerce's ex-VAT figure, which made the
+  /// scoop cost 3.15 on its page and 2.74 in the basket. `line_total_incl`
+  /// carries the honest number; a store that predates it still sends
+  /// `unit_price`, which is the shelf price, so the product is the same figure.
+  static double lineTotalOf(Map<String, dynamic> json) {
+    if (json.containsKey('line_total_incl')) {
+      return asDouble(json['line_total_incl']);
+    }
+    return roundMoney(asDouble(json['unit_price']) * asInt(json['qty'], fallback: 1));
+  }
 
   /// Used for the optimistic update: the line total is recomputed locally so
   /// the number moves the instant the customer taps, then the server's
@@ -106,7 +119,7 @@ class CartItem {
         qty: newQty,
         maxReachable: maxReachable,
         unitPrice: unitPrice,
-        lineTotal: unitPrice * newQty,
+        lineTotal: roundMoney(unitPrice * newQty),
         fulfillment: fulfillment,
         isGift: isGift,
         grantId: grantId,
@@ -174,30 +187,98 @@ class CartTotals {
     this.subtotal = 0,
     this.discount = 0,
     this.shipping = 0,
+    this.fees = 0,
     this.tax = 0,
     this.total = 0,
   });
 
+  /// The products at shelf price, VAT included, before any discount — the sum
+  /// of the lines above it, so the customer can add the page up.
   final double subtotal;
+
+  /// Coupon and reward discounts, VAT included.
   final double discount;
+
+  /// Delivery, VAT included.
   final double shipping;
+
+  /// Any other fee on the order, VAT included.
+  final double fees;
+
+  /// The VAT inside [total]. Named as a part of it, never added to it.
   final double tax;
+
   final double total;
 
-  factory CartTotals.fromJson(Map<String, dynamic> json) => CartTotals(
-        subtotal: asDouble(json['subtotal']),
-        discount: asDouble(json['discount']),
-        shipping: asDouble(json['shipping']),
-        tax: asDouble(json['tax']),
-        total: asDouble(json['total']),
+  /// Saudi VAT, used only to read a store that still sends ex-VAT parts.
+  static const double _vat = 1.15;
+
+  /// [itemsIncl] is the sum of the lines when the caller has them: exact, so
+  /// the first row always equals what the lines above it add up to.
+  factory CartTotals.fromJson(Map<String, dynamic> json, {double? itemsIncl}) {
+    final display = asMap(json['display']);
+    if (display.isNotEmpty) {
+      return CartTotals(
+        subtotal: asDouble(display['items']),
+        discount: asDouble(display['discount']),
+        shipping: asDouble(display['shipping']),
+        fees: asDouble(display['fees']),
+        tax: asDouble(display['tax']),
+        total: asDouble(display['total']),
+      );
+    }
+    // A store before 2026-09-24 sends WooCommerce's ex-VAT parts beside a
+    // VAT-inclusive total. Rebuild the shelf-price view from them: items from
+    // the lines when known, the discount lifted by VAT, and delivery as what is
+    // left of the total — so the rows still add up to the money charged.
+    final total = asDouble(json['total']);
+    final items = itemsIncl ?? roundMoney(asDouble(json['subtotal']) * _vat);
+    final discount = roundMoney(asDouble(json['discount']) * _vat);
+    final shipping = roundMoney(total - items + discount);
+    return CartTotals(
+      subtotal: items,
+      discount: discount,
+      shipping: shipping < 0 ? 0 : shipping,
+      tax: asDouble(json['tax']),
+      total: total,
+    );
+  }
+
+  /// The same totals with the products moved by [delta] — the optimistic echo
+  /// of a stepper tap, before the store's own figures arrive.
+  CartTotals shifted(double delta) => CartTotals(
+        subtotal: roundMoney(subtotal + delta),
+        discount: discount,
+        shipping: shipping,
+        fees: fees,
+        tax: tax,
+        total: roundMoney(total + delta),
       );
 }
+
+/// The one free-delivery line a basket is measured against: the express
+/// basket's own, lower line on إكسبريس, the national one everywhere else.
+///
+/// Home, the cart and checkout all ask here. Checkout used to take the national
+/// line because its payload carries no shelf, so the same basket read «باقي
+/// 103 ﷼» in the cart and «أضف 153 ﷼» one screen later.
+({FreeShipping line, bool express}) freeDeliveryLine(FreeShipping lines, CartBasket basket) {
+  final shelf = basket.effectiveShelf.isNotEmpty ? basket.effectiveShelf : basket.shelf;
+  final line = lines.forShelf(shelf);
+  return (line: line, express: shelf == 'express' && !identical(line, lines));
+}
+
+/// Money to the halala, so a sum of lines never shows 53.550000001.
+double roundMoney(double value) => (value * 100).roundToDouble() / 100;
 
 /// Free-shipping progress. The threshold comes from the server so the app and
 /// the website can never disagree about it.
 @immutable
 class FreeShipping {
   const FreeShipping({this.min = 0, this.remaining = 0, this.qualified = false, this.express});
+
+  /// Saudi VAT, used only to read a store that still measured the gap ex-VAT.
+  static const double _vat = 1.15;
 
   final double min;
   final double remaining;
@@ -220,12 +301,21 @@ class FreeShipping {
     return ((min - remaining) / min).clamp(0.0, 1.0);
   }
 
-  factory FreeShipping.fromJson(Map<String, dynamic> json) => FreeShipping(
-        min: asDouble(json['min']),
-        remaining: asDouble(json['remaining']),
-        qualified: asBool(json['qualified']),
-        express: json['express'] is Map ? FreeShipping.fromJson(asMap(json['express'])) : null,
-      );
+  /// `remaining` is in shelf prices, VAT included — what the customer has to
+  /// add. A store that says so sends `basis: incl_vat`; an older one measured
+  /// the gap on ex-VAT prices, and that gap costs the customer 15% more.
+  factory FreeShipping.fromJson(Map<String, dynamic> json, {bool? inclVat}) {
+    final incl = inclVat ?? json['basis'] == 'incl_vat';
+    final remaining = asDouble(json['remaining']);
+    return FreeShipping(
+      min: asDouble(json['min']),
+      remaining: incl ? remaining : roundMoney(remaining * _vat),
+      qualified: asBool(json['qualified']),
+      express: json['express'] is Map
+          ? FreeShipping.fromJson(asMap(json['express']), inclVat: incl)
+          : null,
+    );
+  }
 
   // Value equality, because Home listens for this and nothing else about the
   // cart. Every basket answer decodes a fresh instance, so without this the
@@ -471,10 +561,12 @@ class CartData {
 
   static const CartData empty = CartData();
 
-  factory CartData.fromJson(Map<String, dynamic> json) => CartData(
-        items: asMapList(json['items']).map(CartItem.fromJson).toList(),
+  factory CartData.fromJson(Map<String, dynamic> json) {
+    final items = asMapList(json['items']).map(CartItem.fromJson).toList();
+    return CartData(
+        items: items,
         shipments: asMapList(json['shipments']).map(Shipment.fromJson).toList(),
-        totals: CartTotals.fromJson(asMap(json['totals'])),
+        totals: CartTotals.fromJson(asMap(json['totals']), itemsIncl: itemsTotal(items)),
         freeShipping: FreeShipping.fromJson(asMap(json['free_shipping'])),
         coupons: asMapList(json['coupons']).map(CartCoupon.fromJson).toList(),
         notices: asMapList(json['notices']).map(CartNotice.fromJson).toList(),
@@ -482,6 +574,11 @@ class CartData {
         loyalty: CartLoyalty.fromJson(asMap(json['loyalty'])),
         basket: CartBasket.fromJson(asMap(json['basket'])),
       );
+  }
+
+  /// The lines added up — the first row of every totals card.
+  static double itemsTotal(List<CartItem> items) =>
+      roundMoney(items.fold(0.0, (sum, item) => sum + item.lineTotal));
 
   /// Local echo of a quantity change, used between the tap and the server's
   /// answer. Totals shift by the line delta only — shipping and tax are the
@@ -497,13 +594,7 @@ class CartData {
     return CartData(
       items: nextItems,
       shipments: shipments,
-      totals: CartTotals(
-        subtotal: totals.subtotal + delta,
-        discount: totals.discount,
-        shipping: totals.shipping,
-        tax: totals.tax,
-        total: totals.total + delta,
-      ),
+      totals: totals.shifted(delta),
       freeShipping: freeShipping,
       coupons: coupons,
       notices: const [],
@@ -521,13 +612,7 @@ class CartData {
     return CartData(
       items: nextItems,
       shipments: shipments,
-      totals: CartTotals(
-        subtotal: totals.subtotal - removed.lineTotal,
-        discount: totals.discount,
-        shipping: totals.shipping,
-        tax: totals.tax,
-        total: totals.total - removed.lineTotal,
-      ),
+      totals: totals.shifted(-removed.lineTotal),
       freeShipping: freeShipping,
       coupons: coupons,
       notices: const [],

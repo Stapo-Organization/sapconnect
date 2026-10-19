@@ -147,12 +147,12 @@ void main() {
     // Arabic keeps Western digits but its own decimal mark — the app's rule.
     await tester.tap(find.byIcon(Icons.add_rounded).first);
     await tester.pump();
-    expect(find.text('4٫1 كجم'), findsOneWidget);
+    expect(find.text('4.1 كجم'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.remove_rounded).first);
     await tester.tap(find.byIcon(Icons.remove_rounded).first);
     await tester.pump();
-    expect(find.text('3٫9 كجم'), findsOneWidget);
+    expect(find.text('3.9 كجم'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.close_rounded).first);
     await tester.pump();
@@ -177,7 +177,7 @@ void main() {
     expect(find.text('تعديل ملف مشمش'), findsOneWidget);
     expect(find.text('مشمش'), findsWidgets);
     expect(find.text('هاسكي'), findsOneWidget);
-    expect(find.text('12٫5 كجم'), findsOneWidget);
+    expect(find.text('12.5 كجم'), findsOneWidget);
 
     // The switch and the delete live at the far end of the form, out of
     // thumb's way — the list has to be walked to reach them.

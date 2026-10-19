@@ -3,247 +3,218 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/settings/app_settings.dart';
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/config/app_version.dart';
 import '../../../core/config/env.dart';
-import '../../../core/location/location_controller.dart';
 import '../../../core/session/session_controller.dart';
+import '../../../core/support/support_chat.dart';
 import '../../../core/utils/haptics.dart';
-import '../../../core/widgets/app_toast.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_sheet.dart';
-import '../../location/presentation/location_sheet.dart';
+import '../../catalog/data/product_models.dart';
 import '../../loyalty/data/loyalty_repository.dart';
 import '../../notifications/data/push_repository.dart';
-import '../../orders/data/live_tracking.dart';
 import '../../orders/data/orders_repository.dart';
-import '../../orders/presentation/widgets/order_status_pill.dart';
-import 'widgets/account_hero.dart';
-import 'widgets/account_quick_actions.dart';
+import '../../wishlist/data/wishlist_controller.dart';
+import '../data/account_repository.dart';
+import '../data/addresses_controller.dart';
+import 'widgets/account_dashboard.dart';
 import 'widgets/settings_tile.dart';
 
-/// The account tab.
+/// The account tab — «حسابي».
 ///
-/// It opens with **who you are and what you have** — a canvas carrying the
-/// name, the standing, and three counts that are each a door — then the four
-/// things people actually come here to do, and only then the settings. The old
-/// screen was eleven identical rows in a list; a customer scanning it had to
-/// read every one to find «طلباتي», and nothing on it said the shop knew them.
+/// It is about the customer, not the app: the membership card the characters
+/// sit on, the parcel on its way, a card per pet with its food, and tiles that
+/// carry their own numbers. Preferences, help and signing out are one tap
+/// away behind the gear (see AccountSettingsScreen).
 ///
-/// Everything on the canvas is real: the counts come from the loyalty summary
-/// and the orders feed. Nothing is invented to fill a tile — a figure the shop
-/// cannot stand behind is worse than an empty space.
+/// Everything drawn here is real — the loyalty summary, the orders feed, the
+/// household, the wishlist and the address book. A member who has not ordered
+/// yet never sees a row of zeros: the card says what the first order starts,
+/// and the pets' place asks who lives with them.
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
-    final cs = context.cs;
     final session = ref.watch(sessionProvider);
-    final settings = ref.watch(appSettingsProvider);
-    // Read, never awaited: the account tab renders in full whether or not the
-    // loyalty layer answers.
-    final loyalty = ref.watch(loyaltySummaryProvider).value;
+    final authed = session.isAuthenticated;
+    // Read, never awaited: the tab renders in full whether or not the loyalty
+    // layer answers.
+    final loyalty = authed ? ref.watch(loyaltySummaryProvider).value : null;
     final active = ref.watch(topActiveOrderProvider);
+    final orders = loyalty?.counters.ordersTotal ?? 0;
+    final pets = loyalty?.pets ?? const [];
 
-    // The canvas runs behind the status bar and a pinned bar keeps a teal
-    // ground up there after it scrolls away, so the clock is light for the
-    // whole screen instead of flickering at one scroll offset.
+    final top = <Widget>[
+      _TopBar(
+        unread: authed ? (ref.watch(inboxProvider).value?.unread ?? 0) : 0,
+        onInbox: () => _requireAuth(context, ref, () => context.push('/inbox')),
+        onSettings: () => context.push('/account/settings'),
+      ),
+      if (authed)
+        MemberCard(
+          name: session.user?.name.trim().isNotEmpty == true ? session.user!.name.trim() : l.accountMemberFallback,
+          tier: loyalty?.tier,
+          paws: loyalty?.paws.balance ?? 0,
+          pending: loyalty?.paws.pending ?? 0,
+          onTap: () => context.push('/family'),
+          onRewards: () => context.push('/family/rewards'),
+        )
+      else
+        GuestInviteCard(onSignIn: () => showAuthSheet(context, reason: l.accountGuestHint)),
+      // The one thing that outranks everything else here: a parcel moving now.
+      if (active != null) ...[
+        Gap.h16,
+        LiveOrderTile(active: active, onTap: () => context.push('/orders/${active.order.id}')),
+      ],
+    ];
+
+    final List<Widget> rest;
+    if (!authed) {
+      rest = [Gap.h16, const GuestPerks()];
+    } else {
+      final List<ProductCard> buyAgain = orders > 0 ? (ref.watch(buyAgainProvider).value ?? const []) : const [];
+      final wishlist = ref.watch(wishlistControllerProvider);
+      final wishlistImages = wishlist.isEmpty
+          ? const <String>[]
+          : <String>[
+              for (final ProductCard p in ref.watch(wishlistProductsProvider).value ?? const <ProductCard>[])
+                if (p.image != null) p.image!,
+            ];
+      final addresses = ref.watch(addressesControllerProvider).value ?? const [];
+      final referral = loyalty?.referral;
+      final dark = context.isDark;
+
+      rest = [
+        _SectionTitle(l.accountShortcuts),
+        const SizedBox(height: 10),
+        if (orders == 0)
+          FirstOrderTile(onTap: () => context.go('/home'))
+        else if (buyAgain.isNotEmpty)
+          UsualTile(products: buyAgain, onOpen: () => context.push('/buy-again')),
+        const SizedBox(height: 10),
+        TilePair(
+          start: orders > 0
+              ? AccountTile(
+                  icon: Icons.receipt_long_rounded,
+                  tint: dark ? ZbTokens.tealContainerDark : ZbTokens.tealTint,
+                  color: dark ? ZbTokens.tealOnDark : ZbTokens.tealDark,
+                  title: l.ordersTitle,
+                  count: orders,
+                  images: <String>[for (final p in buyAgain) if (p.image != null) p.image!],
+                  onTap: () => context.push('/orders'),
+                )
+              : AccountTile(
+                  icon: Icons.place_rounded,
+                  tint: dark ? ZbTokens.amberContainerDark : ZbTokens.amberTintSoft,
+                  color: ZbTokens.cardboard,
+                  title: l.accountAddresses,
+                  count: addresses.length,
+                  hint: addresses.isEmpty ? l.accountAddressesHint : _labels(addresses.map((a) => a.label ?? ''), context),
+                  onTap: () => context.push('/addresses'),
+                ),
+          end: AccountTile(
+            icon: Icons.favorite_rounded,
+            tint: dark ? ZbTokens.coralContainerDark : ZbTokens.coralTintSoft,
+            color: ZbTokens.coral,
+            title: l.wishlistTitle,
+            count: wishlist.length,
+            hint: l.accountWishlistHint,
+            images: wishlistImages,
+            onTap: () => context.push('/wishlist'),
+          ),
+        ),
+        if (orders > 0 || referral != null) ...[
+          const SizedBox(height: 10),
+          TilePair(
+            start: orders > 0
+                ? AccountTile(
+                    icon: Icons.place_rounded,
+                    tint: dark ? ZbTokens.amberContainerDark : ZbTokens.amberTintSoft,
+                    color: ZbTokens.cardboard,
+                    title: l.accountAddresses,
+                    count: addresses.length,
+                    hint: addresses.isEmpty ? l.accountAddressesHint : _labels(addresses.map((a) => a.label ?? ''), context),
+                    onTap: () => context.push('/addresses'),
+                  )
+                : _friendsTile(context, referral!.rewarded),
+            end: orders > 0 && referral != null ? _friendsTile(context, referral.rewarded) : null,
+          ),
+        ],
+        if (referral != null) ...[
+          const SizedBox(height: 10),
+          InviteTile(rewardPaws: referral.rewardPaws, onTap: () => context.push('/family/referral')),
+        ],
+      ];
+    }
+
+    final number = ref.watch(supportWhatsappProvider);
+    final footer = <Widget>[
+      if (number != null) ...[
+        Gap.h16,
+        SettingsSection(
+          children: [
+            SettingsTile(
+              icon: Icons.chat_rounded,
+              label: l.accountHelp,
+              onTap: () {
+                Haptics.light();
+                openSupportChat(context, number: number, orderNumber: active?.order.number);
+              },
+            ),
+          ],
+        ),
+      ],
+      Gap.h12,
+      Center(
+        child: Text(
+          l.accountVersionFooter(Env.appVersion == kAppVersion ? '$kAppVersion ($kAppBuild)' : Env.appVersion),
+          style: context.tt.labelSmall?.copyWith(color: context.cs.onSurfaceVariant.withValues(alpha: 0.7)),
+        ),
+      ),
+    ];
+
+    const side = EdgeInsets.symmetric(horizontal: 16);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         body: CustomScrollView(
           slivers: [
-            SliverAppBar(
-              pinned: true,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              backgroundColor: heroTop(context),
-              surfaceTintColor: Colors.transparent,
-              foregroundColor: Colors.white,
-              title: Text(
-                l.accountTitle,
-                style: context.tt.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
+            SliverSafeArea(
+              bottom: false,
+              sliver: SliverPadding(
+                padding: side.copyWith(top: 12),
+                sliver: SliverList.list(children: top),
+              ),
+            ),
+            if (authed) ...[
+              SliverPadding(
+                padding: side.copyWith(top: 22, bottom: 10),
+                sliver: SliverToBoxAdapter(
+                  child: _SectionTitle(
+                    l.accountPetsTitle,
+                    action: pets.isEmpty ? null : l.petsTitle,
+                    onAction: () => context.push('/pets'),
+                  ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: AccountHero(
-                user: session.user,
-                onSignIn: () => showAuthSheet(context, reason: l.accountGuestHint),
-                tier: loyalty?.tier,
-                paws: loyalty?.paws.balance,
-                orders: loyalty?.counters.ordersTotal,
-                pets: loyalty?.pets.length,
-                onOpenFamily: () => context.push('/family'),
-                onOpenOrders: () =>
-                    _requireAuth(context, ref, () => context.push('/orders')),
-                onOpenPets: () => _requireAuth(context, ref, () => context.push('/pets')),
+              SliverToBoxAdapter(
+                child: pets.isEmpty
+                    ? Padding(
+                        padding: side,
+                        child: HouseholdInviteCard(onTap: () => context.push('/pets/new')),
+                      )
+                    : PetCardsRow(pets: pets, summary: loyalty),
               ),
-            ),
+            ],
             SliverPadding(
-              // The floating tab bar's height arrives as bottom padding, so sign
-              // out never ends up under the glass.
-              padding: EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                28 + MediaQuery.paddingOf(context).bottom,
-              ),
-              sliver: SliverList.list(
-                children: [
-                  // The one thing that outranks everything else on this screen:
-                  // a parcel that is moving right now.
-                  if (active != null) ...[
-                    _ActiveOrderCard(
-                      active: active,
-                      onTap: () => context.push('/orders/${active.order.id}'),
-                    ),
-                    Gap.h16,
-                  ],
-
-                  AccountQuickActions(
-                    actions: [
-                      QuickAction(
-                        icon: Icons.receipt_long_rounded,
-                        label: l.ordersTitle,
-                        tint: cs.primary,
-                        onTap: () =>
-                            _requireAuth(context, ref, () => context.push('/orders')),
-                      ),
-                      QuickAction(
-                        icon: Icons.replay_rounded,
-                        label: l.accountBuyAgainShort,
-                        tint: context.zb.success,
-                        onTap: () =>
-                            _requireAuth(context, ref, () => context.push('/buy-again')),
-                      ),
-                      QuickAction(
-                        icon: Icons.favorite_rounded,
-                        label: l.wishlistTitle,
-                        tint: context.zb.sale,
-                        onTap: () => context.push('/wishlist'),
-                      ),
-                      QuickAction(
-                        icon: Icons.place_rounded,
-                        label: l.accountAddresses,
-                        tint: context.zb.warning,
-                        onTap: () =>
-                            _requireAuth(context, ref, () => context.push('/addresses')),
-                      ),
-                    ],
-                  ),
-                  Gap.h20,
-
-                  SettingsSection(
-                    title: l.familyTitle,
-                    children: [
-                      SettingsTile(
-                        icon: Icons.workspace_premium_rounded,
-                        label: l.familyTitle,
-                        // No standing here: the canvas above already says it,
-                        // and a fact printed twice on one screen reads as two
-                        // facts that happen to agree.
-                        onTap: () => context.push('/family'),
-                      ),
-                      SettingsTile(
-                        icon: Icons.pets_rounded,
-                        label: l.petsTitle,
-                        onTap: () =>
-                            _requireAuth(context, ref, () => context.push('/pets')),
-                      ),
-                    ],
-                  ),
-                  Gap.h16,
-
-                  SettingsSection(
-                    title: l.accountPreferences,
-                    children: [
-                      SettingsTile(
-                        icon: Icons.notifications_none_rounded,
-                        label: l.notificationsTitle,
-                        // What is waiting in the inbox, when something is.
-                        // A failed read shows nothing at all: an unread count
-                        // is a promise, and a zero we are not sure of is a
-                        // worse answer than silence.
-                        trailingLabel:
-                            switch (ref.watch(inboxProvider).value?.unread ?? 0) {
-                              0 => null,
-                              final unread => l.inboxUnread(unread),
-                            },
-                        onTap: () => context.push('/notifications'),
-                      ),
-                      SettingsTile(
-                        icon: Icons.location_on_outlined,
-                        label: l.locationDeliverTo,
-                        trailingLabel:
-                            ref
-                                .watch(currentLocationProvider)
-                                .cityFor(settings.languageCode) ??
-                            l.locationUnknownCity,
-                        onTap: () => showLocationSheet(context),
-                      ),
-                      SettingsTile(
-                        icon: Icons.translate_rounded,
-                        label: l.accountLanguage,
-                        trailingLabel: settings.languageCode == 'ar'
-                            ? l.accountLanguageArabic
-                            : l.accountLanguageEnglish,
-                        onTap: () => _pickLanguage(context, ref, settings),
-                      ),
-                      SettingsTile(
-                        icon: Icons.brightness_6_outlined,
-                        label: l.accountTheme,
-                        trailingLabel: switch (settings.themeMode) {
-                          ThemeMode.light => l.accountThemeLight,
-                          ThemeMode.dark => l.accountThemeDark,
-                          ThemeMode.system => l.accountThemeSystem,
-                        },
-                        onTap: () => _pickTheme(context, ref, settings),
-                      ),
-                    ],
-                  ),
-                  Gap.h16,
-
-                  SettingsSection(
-                    title: l.accountSupport,
-                    children: [
-                      SettingsTile(
-                        icon: Icons.support_agent_rounded,
-                        label: l.accountSupport,
-                        trailingLabel: l.accountSoon,
-                        onTap: () => _soon(context),
-                      ),
-                      SettingsTile(
-                        icon: Icons.info_outline_rounded,
-                        label: l.accountAbout,
-                        trailingLabel: l.accountVersion(Env.appVersion),
-                        onTap: null,
-                      ),
-                      if (session.isAuthenticated) ...[
-                        SettingsTile(
-                          icon: Icons.logout_rounded,
-                          label: l.accountLogout,
-                          destructive: true,
-                          onTap: () => _confirmLogout(context, ref),
-                        ),
-                        // App Store rule 5.1.1(v): an app that creates accounts
-                        // must let the person delete one from inside it.
-                        SettingsTile(
-                          icon: Icons.person_off_outlined,
-                          label: l.accountDelete,
-                          destructive: true,
-                          onTap: () => _confirmDelete(context, ref),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
+              // The floating tab bar's height arrives as bottom padding, so the
+              // last row never ends up under the glass.
+              padding: side.copyWith(top: 20, bottom: 28 + MediaQuery.paddingOf(context).bottom),
+              sliver: SliverList.list(children: [...rest, ...footer]),
             ),
           ],
         ),
@@ -251,11 +222,24 @@ class AccountScreen extends ConsumerWidget {
     );
   }
 
-  static Future<void> _requireAuth(
-    BuildContext context,
-    WidgetRef ref,
-    VoidCallback then,
-  ) async {
+  static Widget _friendsTile(BuildContext context, int joined) {
+    final l = L.of(context);
+    final dark = context.isDark;
+    return AccountTile(
+      icon: Icons.card_giftcard_rounded,
+      tint: dark ? ZbTokens.tealContainerDark : ZbTokens.tealTintSoft,
+      color: dark ? ZbTokens.tealOnDark : ZbTokens.tealDeep,
+      title: l.accountFriends,
+      count: joined,
+      hint: joined > 0 ? l.accountFriendsJoined(joined) : l.accountFriendsNone,
+      onTap: () => context.push('/family/referral'),
+    );
+  }
+
+  static String _labels(Iterable<String> labels, BuildContext context) =>
+      labels.where((s) => s.trim().isNotEmpty).take(2).join(' · ');
+
+  static Future<void> _requireAuth(BuildContext context, WidgetRef ref, VoidCallback then) async {
     if (ref.read(sessionProvider).isAuthenticated) {
       then();
       return;
@@ -263,229 +247,123 @@ class AccountScreen extends ConsumerWidget {
     final signedIn = await showAuthSheet(context, reason: L.of(context).authRequired);
     if (signedIn && context.mounted) then();
   }
-
-  static void _soon(BuildContext context) {
-    Haptics.light();
-    AppToast.info(context, L.of(context).commonComingSoon);
-  }
-
-  static Future<void> _pickLanguage(
-    BuildContext context,
-    WidgetRef ref,
-    AppSettings settings,
-  ) async {
-    final l = L.of(context);
-    final chosen = await showModalBottomSheet<String>(
-      context: context,
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final entry in [
-              ('ar', l.accountLanguageArabic),
-              ('en', l.accountLanguageEnglish),
-            ])
-              ListTile(
-                title: Text(entry.$2),
-                trailing: settings.languageCode == entry.$1
-                    ? Icon(Icons.check_rounded, color: context.cs.primary)
-                    : null,
-                onTap: () => Navigator.of(context).pop(entry.$1),
-              ),
-            Gap.h8,
-          ],
-        ),
-      ),
-    );
-    if (chosen == null) return;
-    Haptics.selection();
-    // Also swaps the type family and re-lays the whole app out RTL/LTR.
-    await ref.read(appSettingsProvider.notifier).setLocale(chosen);
-  }
-
-  static Future<void> _pickTheme(
-    BuildContext context,
-    WidgetRef ref,
-    AppSettings settings,
-  ) async {
-    final l = L.of(context);
-    final chosen = await showModalBottomSheet<ThemeMode>(
-      context: context,
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final entry in [
-              (ThemeMode.light, l.accountThemeLight, Icons.light_mode_rounded),
-              (ThemeMode.dark, l.accountThemeDark, Icons.dark_mode_rounded),
-              (ThemeMode.system, l.accountThemeSystem, Icons.brightness_auto_rounded),
-            ])
-              ListTile(
-                leading: Icon(entry.$3),
-                title: Text(entry.$2),
-                trailing: settings.themeMode == entry.$1
-                    ? Icon(Icons.check_rounded, color: context.cs.primary)
-                    : null,
-                onTap: () => Navigator.of(context).pop(entry.$1),
-              ),
-            Gap.h8,
-          ],
-        ),
-      ),
-    );
-    if (chosen == null) return;
-    Haptics.selection();
-    await ref.read(appSettingsProvider.notifier).setThemeMode(chosen);
-  }
-
-  /// Two honest sentences and a red button. No "are you really sure" cascade:
-  /// the person read the words, and the words say exactly what goes and what
-  /// stays.
-  static Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final l = L.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l.accountDeleteConfirmTitle),
-        content: Text(l.accountDeleteConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: context.cs.error),
-            child: Text(l.accountDelete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-    Haptics.light();
-    try {
-      await ref.read(sessionProvider.notifier).deleteAccount();
-      if (context.mounted) AppToast.info(context, l.accountDeleted);
-    } catch (_) {
-      if (context.mounted) AppToast.error(context, l.accountDeleteFailed);
-    }
-  }
-
-  static Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
-    final l = L.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l.accountLogoutConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: context.cs.error),
-            child: Text(l.accountLogout),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await ref.read(sessionProvider.notifier).logout();
-  }
 }
 
-/// The parcel that is moving right now.
-///
-/// It is above the shortcuts because it expires: everything else on this
-/// screen will still be true tomorrow, and this will not.
-class _ActiveOrderCard extends StatelessWidget {
-  const _ActiveOrderCard({required this.active, required this.onTap});
+/// «مساء الخير / حسابي», with the inbox bell and the settings gear.
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.unread, required this.onInbox, required this.onSettings});
 
-  final ActiveOrder active;
-  final VoidCallback onTap;
+  final int unread;
+  final VoidCallback onInbox;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final cs = context.cs;
-    final order = active.order;
-
-    return Material(
-      color: cs.primaryContainer.withValues(alpha: context.isDark ? 0.45 : 0.5),
-      borderRadius: BorderRadius.circular(ZbTokens.rLg),
-      child: InkWell(
-        onTap: () {
-          Haptics.selection();
-          onTap();
-        },
-        borderRadius: BorderRadius.circular(ZbTokens.rLg),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
+    final hour = DateTime.now().hour;
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: cs.surface.withValues(alpha: 0.7),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  active.hasCourier
-                      ? Icons.delivery_dining_rounded
-                      : Icons.inventory_2_rounded,
-                  size: 22,
-                  color: cs.primary,
-                ),
+              Text(
+                hour < 12 ? l.accountGreetMorning : l.accountGreetEvening,
+                style: context.tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant, fontWeight: FontWeight.w600),
               ),
-              Gap.w12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l.accountActiveOrder,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.tt.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.onPrimaryContainer,
+              Text(l.accountTitle, style: context.tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+            ],
+          ),
+        ),
+        _RoundButton(
+          icon: Icons.notifications_none_rounded,
+          label: l.notificationsTitle,
+          dot: unread > 0,
+          onTap: onInbox,
+        ),
+        Gap.w8,
+        _RoundButton(icon: Icons.settings_rounded, label: l.accountSettings, onTap: onSettings),
+      ],
+    );
+  }
+}
+
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({required this.icon, required this.label, required this.onTap, this.dot = false});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool dot;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.cs;
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: cs.surface,
+        shape: CircleBorder(side: BorderSide(color: context.isDark ? ZbTokens.lineDark : ZbTokens.line)),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () {
+            Haptics.selection();
+            onTap();
+          },
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(icon, size: 22, color: cs.onSurface),
+                if (dot)
+                  PositionedDirectional(
+                    top: 10,
+                    end: 11,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: ZbTokens.coral,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: cs.surface, width: 2),
                       ),
                     ),
-                    Gap.h4,
-                    Row(
-                      children: [
-                        OrderStatusPill(order: order, compact: true),
-                        Gap.w6,
-                        Flexible(
-                          child: Text(
-                            '#${order.number}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textDirection: TextDirection.ltr,
-                            style: context.tt.bodySmall?.copyWith(
-                              color: cs.onPrimaryContainer.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Gap.w8,
-              Icon(
-                context.isRtl
-                    ? Icons.keyboard_arrow_left_rounded
-                    : Icons.keyboard_arrow_right_rounded,
-                color: cs.onPrimaryContainer,
-              ),
-            ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title, {this.action, this.onAction});
+
+  final String title;
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(title, style: context.tt.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+        ),
+        if (action != null)
+          TextButton(
+            onPressed: onAction,
+            style: TextButton.styleFrom(minimumSize: const Size(44, 36)),
+            child: Text(action!),
+          ),
+      ],
+    );
+  }
+}
+

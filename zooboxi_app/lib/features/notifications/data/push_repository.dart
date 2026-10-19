@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../catalog/data/catalog_models.dart';
 import '../../../core/network/envelope.dart';
 import '../../../core/providers.dart';
 
@@ -263,6 +264,24 @@ class PushRepository {
         '/push/waitlist/remove',
         body: {'product_id': productId, 'kind': kind},
       )));
+
+  /// A list's picks as the store keys a filter watch: the scope and the
+  /// filters, never the page or the sort.
+  static Map<String, dynamic> _question(ListingQuery query) => {
+        for (final e in query.toQueryParameters(1).entries)
+          if (!const {'fv', 'page', 'per_page', 'orderby', 'rail', 'sku'}.contains(e.key)) e.key: e.value,
+      };
+
+  /// Is this empty list already being watched for?
+  Future<bool> filterWatching(ListingQuery query) async =>
+      asMap(await _api.get('/push/filter-watch', query: _question(query)))['watching'] == true;
+
+  /// «نبّهني إذا وصل…» — [label] is the picks in words, for the push itself.
+  Future<bool> watchFilter(ListingQuery query, {required String label}) async =>
+      asMap(await _api.post('/push/filter-watch', body: {..._question(query), 'label': label}))['watching'] == true;
+
+  Future<bool> unwatchFilter(ListingQuery query) async =>
+      asMap(await _api.post('/push/filter-watch/remove', body: _question(query)))['watching'] == true;
 }
 
 final pushRepositoryProvider =

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/zb_colors.dart';
 import '../../../app/theme/zooboxi_tokens.dart';
+import '../../../core/support/support_chat.dart';
 import '../../../core/utils/error_text.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/haptics.dart';
@@ -208,6 +209,20 @@ class _DetailState extends ConsumerState<_Detail> {
                 : const Icon(Icons.replay_rounded, size: 20),
             label: Text(l.orderReorder),
             style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
+          ),
+        ],
+
+        // Help with THIS order, the number already in the message.
+        if (ref.watch(supportWhatsappProvider) case final number?) ...[
+          Gap.h12,
+          OutlinedButton.icon(
+            onPressed: () {
+              Haptics.light();
+              openSupportChat(context, number: number, orderNumber: summary.number);
+            },
+            icon: const Icon(Icons.chat_rounded, size: 20),
+            label: Text(l.supportOrderHelp),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
           ),
         ],
 

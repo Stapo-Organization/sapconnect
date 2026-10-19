@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart' show CancelToken;
+import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
@@ -178,6 +179,18 @@ class CatalogRepository {
   Future<Aisle> aisle(String key) async =>
       Aisle.fromJson(asMap(await _api.get('/catalog/aisle/$key')));
 
+  /// `GET /search/popular` — up to six chips for the empty search screen.
+  /// [PopularSearches.fromSearches] is true only when real searches carry the
+  /// list; otherwise the store filled it with its biggest brands, and the
+  /// screen must not call them «الأكثر بحثاً».
+  Future<PopularSearches> popularSearches() async {
+    final data = asMap(await _api.get('/search/popular'));
+    return PopularSearches(
+      queries: asStringList(data['queries']),
+      fromSearches: data['source'] == 'searches',
+    );
+  }
+
   Future<ListingResult> clearance(int page) async {
     final data = await _api.get('/clearance', query: {'page': page});
     return ListingResult.fromJson(asMap(data));
@@ -302,4 +315,22 @@ final aisleProvider = FutureProvider.autoDispose.family<Aisle, String>((ref, key
   ref.watch(catalogRevisionProvider);
   ref.watch(shelfRevisionProvider);
   return ref.watch(catalogRepositoryProvider).aisle(key);
+});
+
+/// What the empty search screen offers to tap.
+@immutable
+class PopularSearches {
+  const PopularSearches({this.queries = const [], this.fromSearches = false});
+
+  final List<String> queries;
+  final bool fromSearches;
+}
+
+/// Read once per session; a store without the endpoint simply offers none.
+final popularSearchesProvider = FutureProvider<PopularSearches>((ref) async {
+  try {
+    return await ref.watch(catalogRepositoryProvider).popularSearches();
+  } catch (_) {
+    return const PopularSearches();
+  }
 });

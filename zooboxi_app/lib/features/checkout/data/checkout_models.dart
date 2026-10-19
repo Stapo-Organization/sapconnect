@@ -104,10 +104,12 @@ class CheckoutReview {
     return addresses.isEmpty ? null : addresses.first;
   }
 
-  factory CheckoutReview.fromJson(Map<String, dynamic> json) => CheckoutReview(
+  factory CheckoutReview.fromJson(Map<String, dynamic> json) {
+    final items = asMapList(json['items']).map(CartItem.fromJson).toList();
+    return CheckoutReview(
         shipments: asMapList(json['shipments']).map(Shipment.fromJson).toList(),
-        items: asMapList(json['items']).map(CartItem.fromJson).toList(),
-        totals: CartTotals.fromJson(asMap(json['totals'])),
+        items: items,
+        totals: CartTotals.fromJson(asMap(json['totals']), itemsIncl: CartData.itemsTotal(items)),
         freeShipping: FreeShipping.fromJson(asMap(json['free_shipping'])),
         coupons: asMapList(json['coupons']).map(CartCoupon.fromJson).toList(),
         notices: asMapList(json['notices']).map(CartNotice.fromJson).toList(),
@@ -116,6 +118,7 @@ class CheckoutReview {
         addresses: asMapList(json['addresses']).map(Address.fromJson).toList(),
         promise: DeliveryPromise.fromJson(asMap(json['promise'])),
       );
+  }
 }
 
 /// `POST /checkout` — the order exists now. [orderKey] is what lets an

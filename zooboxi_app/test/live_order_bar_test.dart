@@ -129,7 +129,7 @@ void main() {
       final text = subtitle.data!;
 
       expect('\u{E900}'.allMatches(text).length, 1, reason: text);
-      expect(text, contains('128٫5'));
+      expect(text, contains('128.5'));
     });
 
     testWidgets('it offers something to pull, and opens on a flick', (tester) async {

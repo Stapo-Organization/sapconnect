@@ -36,9 +36,15 @@ class ProductCardView extends ConsumerWidget {
     this.onAdd,
     this.width,
     this.zone,
+    this.ranked = false,
   });
 
   final ProductCard product;
+
+  /// The card is already wearing a rank (a coin, a podium step): a «الأكثر
+  /// طلباً» or «رائج الآن» chip beside the number would say it twice, and a
+  /// grid where every card says it stops meaning anything.
+  final bool ranked;
 
   /// Supplied by screens that own an add-to-cart action. Variable products
   /// always open the page instead — a variant has to be chosen first.
@@ -72,7 +78,7 @@ class ProductCardView extends ConsumerWidget {
           // pixel lands on the artwork, where nobody can see it, instead of
           // on a control, where it would clip.
           Expanded(
-            child: _Media(product: product, onAdd: onAdd, outOfStock: outOfStock),
+            child: _Media(product: product, onAdd: onAdd, outOfStock: outOfStock, ranked: ranked),
           ),
           SizedBox(
             height: ProductCardMetrics.bodyHeight(context),
@@ -114,20 +120,26 @@ class _Media extends StatelessWidget {
     required this.product,
     required this.onAdd,
     required this.outOfStock,
+    this.ranked = false,
   });
 
   final ProductCard product;
   final Future<bool> Function(ProductCard product)? onAdd;
   final bool outOfStock;
+  final bool ranked;
+
+  /// Badges that are rankings, which a ranked card already shows as a number.
+  static const Set<String> _rankTypes = {'hot', 'trend', 'bestseller', 'trending'};
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final cs = context.cs;
-    final badge = product.badge;
+    final raw = product.badge;
+    final badge = ranked && raw != null && _rankTypes.contains(raw.type) ? null : raw;
     final discount = product.discountPercent;
 
-    final image = ZbImage(url: product.image, padding: const EdgeInsets.all(10));
+    final image = ZbImage(url: product.image, padding: const EdgeInsets.all(10), photo: true);
 
     return DecoratedBox(
       // A hairline under the image gives the card structure in light mode,

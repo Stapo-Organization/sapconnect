@@ -3913,4 +3913,966 @@ class LAr extends L {
   String distanceM(String value) {
     return '$value م';
   }
+
+  @override
+  String get storyDetailsTitle => 'تفاصيل المنتج';
+
+  @override
+  String get storyOverview => 'عن المنتج';
+
+  @override
+  String get storyFeatures => 'المميزات';
+
+  @override
+  String get storyFeeding => 'كم أقدّم؟';
+
+  @override
+  String get storyIngredients => 'مما يتكوّن؟';
+
+  @override
+  String get storyAnalysis => 'التحليل الغذائي';
+
+  @override
+  String get storySpecs => 'المواصفات';
+
+  @override
+  String get storyContents => 'محتويات العبوة';
+
+  @override
+  String get storyBreeds => 'السلالات المناسبة';
+
+  @override
+  String get storyUsage => 'طريقة الاستخدام';
+
+  @override
+  String get storyStorage => 'التخزين';
+
+  @override
+  String get storySafety => 'تنبيهات السلامة';
+
+  @override
+  String get storyOther => 'تفاصيل';
+
+  @override
+  String get storyCalcCta => 'احسب لحيوانك';
+
+  @override
+  String get storyReadAll => 'اقرأ الوصف كاملًا';
+
+  @override
+  String get storyPetWeight => 'وزن حيوانك';
+
+  @override
+  String get storyDailyAmount => 'الكمية اليومية';
+
+  @override
+  String get storyFeedingNote =>
+      'الكميات إرشادية من الشركة المصنّعة — عدّلها حسب نشاط حيوانك ووزنه.';
+
+  @override
+  String get storyIngredientsInOrder => 'المكونات بالترتيب';
+
+  @override
+  String storyStepsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count خطوة',
+      few: '$count خطوات',
+      two: 'خطوتان',
+      one: 'خطوة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyWarningsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنبيهًا',
+      few: '$count تنبيهات',
+      two: 'تنبيهان',
+      one: 'تنبيه واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyTipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نصيحة',
+      few: '$count نصائح',
+      two: 'نصيحتان',
+      one: 'نصيحة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String storyCartonLasts(int units, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'الكرتون ($units حبة) يكفيه نحو $_temp0';
+  }
+
+  @override
+  String storyCartonLastsShort(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'الكرتون يكفيه نحو $_temp0';
+  }
+
+  @override
+  String storyPackLasts(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'العبوة تكفيه نحو $_temp0';
+  }
+
+  @override
+  String storyMoreItems(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get storyClose => 'إغلاق';
+
+  @override
+  String get storyEyebrow => 'كل ما تحتاج معرفته';
+
+  @override
+  String get storyAnalysisShort => 'التحليل';
+
+  @override
+  String get storyUsageShort => 'الاستخدام';
+
+  @override
+  String get storyBreedsShort => 'السلالات';
+
+  @override
+  String get storySafetyShort => 'السلامة';
+
+  @override
+  String get storyFullTable => 'الجدول الكامل';
+
+  @override
+  String get storyReadMore => 'اقرأ المزيد';
+
+  @override
+  String get storyReadLess => 'عرض أقل';
+
+  @override
+  String get storyPerDay => 'يوميًا';
+
+  @override
+  String get storyNutritionLabel => 'القيم الغذائية';
+
+  @override
+  String storyMoreBreeds(int count) {
+    return '+$count سلالات';
+  }
+
+  @override
+  String get storyAllSteps => 'كل الخطوات';
+
+  @override
+  String get storyGuideEyebrow => 'دليل زوبكسي';
+
+  @override
+  String storyGuideTitle(String species) {
+    String _temp0 = intl.Intl.selectLogic(species, {
+      'cat': 'كل ما يهمّ قطتك',
+      'dog': 'كل ما يهمّ كلبك',
+      'bird': 'كل ما يهمّ طائرك',
+      'fish': 'كل ما يهمّ أسماكك',
+      'other': 'كل ما يهمّ أليفك',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get storyPer100g => 'في كل 100 جم';
+
+  @override
+  String get storyNutritionRest => 'ألياف ومعادن وغيرها';
+
+  @override
+  String get storyDryMatter => 'بعد استبعاد الماء';
+
+  @override
+  String get storyDryMatterHint =>
+      'هكذا يقارن الأطباء البيطريون الأطعمة الرطبة بالجافة';
+
+  @override
+  String get storyChartHint => 'اضغط على الوزن لتعرف الكمية';
+
+  @override
+  String get storySignoff => 'رتّبنا لك التفاصيل بعناية';
+
+  @override
+  String get storySignoffSub => 'لأن أليفك يستاهل';
+
+  @override
+  String get filterButton => 'فلترة';
+
+  @override
+  String get filterSheetTitle => 'فلترة النتائج';
+
+  @override
+  String get filterClearAll => 'مسح الكل';
+
+  @override
+  String get filterApplied => 'مُطبّق:';
+
+  @override
+  String get filterLiveHint => 'الأرقام تتغيّر مع اختياراتك';
+
+  @override
+  String get filterNoneSelected => 'كل المنتجات';
+
+  @override
+  String get filterBrandSearch => 'ابحث عن علامة';
+
+  @override
+  String get filterPrice => 'السعر';
+
+  @override
+  String get filterPriceFrom => 'من';
+
+  @override
+  String get filterPriceTo => 'إلى';
+
+  @override
+  String get filterPriceHint => 'أسعار هذه القائمة فقط';
+
+  @override
+  String get filterNoResults => 'لا نتائج — عدّل اختياراتك';
+
+  @override
+  String filterShowResults(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count منتج',
+      many: 'عرض $count منتجًا',
+      few: 'عرض $count منتجات',
+      two: 'عرض منتجين',
+      one: 'عرض منتج واحد',
+      zero: 'لا توجد نتائج',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String filterProductCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      many: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+      zero: 'لا منتجات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String filterPriceChip(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String filterPriceUpTo(String to) {
+    return 'حتى $to';
+  }
+
+  @override
+  String filterPriceFromOnly(String from) {
+    return 'من $from';
+  }
+
+  @override
+  String get petFilterKicker => 'نعرض المناسب لـ';
+
+  @override
+  String petFilterMatch(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج يناسب $name',
+      many: '$count منتجًا يناسب $name',
+      few: '$count منتجات تناسب $name',
+      two: 'منتجان يناسبان $name',
+      one: 'منتج واحد يناسب $name',
+      zero: 'لا شيء يناسب $name هنا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String petFilterOf(int total) {
+    return 'من $total';
+  }
+
+  @override
+  String get petFilterShowAll => 'عرض الكل';
+
+  @override
+  String get petFilterOff => 'متوقف — نعرض الكل';
+
+  @override
+  String petAskAge(String name) {
+    return 'كم عمر $name؟';
+  }
+
+  @override
+  String get petAskAgeHint => 'نعرض لك الأكل المناسب لعمره فقط';
+
+  @override
+  String get petYourCat => 'قطتك';
+
+  @override
+  String get petYourDog => 'كلبك';
+
+  @override
+  String get petYourPet => 'أليفك';
+
+  @override
+  String petFilterSwitch(String name) {
+    return 'المناسب لـ $name';
+  }
+
+  @override
+  String get emptyFilteredTitle => 'ما لقينا شيئًا بهذه الاختيارات';
+
+  @override
+  String get emptyFilteredBody => 'جرّب واحدًا من هذه — كلها تفتح نتائج فورًا';
+
+  @override
+  String emptyRemove(String label) {
+    return 'أزل «$label»';
+  }
+
+  @override
+  String get emptyRemovePrice => 'أزل حدود السعر';
+
+  @override
+  String emptySwap(String label) {
+    return 'جرّب $label بدلًا منها';
+  }
+
+  @override
+  String get emptyClearAll => 'مسح كل الفلاتر';
+
+  @override
+  String get needsTitle => 'تسوّق حسب الاحتياج';
+
+  @override
+  String get needsSubtitle => 'ابدأ من المشكلة، مو من القسم';
+
+  @override
+  String brandLinesTitle(String brand) {
+    return 'خطوط $brand';
+  }
+
+  @override
+  String brandShelvesTitle(String brand) {
+    return 'تسوّق $brand حسب';
+  }
+
+  @override
+  String brandAbout(String brand) {
+    return 'عن $brand';
+  }
+
+  @override
+  String get brandFactOrigin => 'بلد المنشأ';
+
+  @override
+  String get brandFactFounded => 'التأسيس';
+
+  @override
+  String get brandFactProducts => 'في زوبكسي';
+
+  @override
+  String get brandFactSpecialty => 'التخصص';
+
+  @override
+  String get brandFactInStock => 'متوفر الآن';
+
+  @override
+  String brandInStock(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count متوفر',
+      zero: 'لا شيء متوفر الآن',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String brandExpressReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجًا جاهزة للتوصيل خلال ساعتين',
+      few: '$count منتجات جاهزة للتوصيل خلال ساعتين',
+      two: 'منتجان جاهزان للتوصيل خلال ساعتين',
+      one: 'منتج واحد جاهز للتوصيل خلال ساعتين',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get brandExpressPill => 'إكسبريس · يوصلك خلال ساعتين';
+
+  @override
+  String get brandValueKicker => 'العبوة الكبيرة أوفر';
+
+  @override
+  String get brandValueEachUnit => 'للحبة';
+
+  @override
+  String get brandValueEachKg => 'للكيلو';
+
+  @override
+  String brandValueSave(int percent) {
+    return 'توفّر $percent%';
+  }
+
+  @override
+  String get brandAboutMadeFor => 'لمن صُنعت';
+
+  @override
+  String get brandAboutStory => 'الحكاية';
+
+  @override
+  String brandAboutFounded(String brand) {
+    return 'تأسست $brand';
+  }
+
+  @override
+  String get brandAboutToday => 'اليوم في زوبكسي';
+
+  @override
+  String brandShopAllCta(String brand) {
+    return 'تسوّق كل $brand';
+  }
+
+  @override
+  String get brandMoodTitle => 'طابعها';
+
+  @override
+  String get allProductsTitle => 'كل المنتجات';
+
+  @override
+  String get allProductsEveryPet => 'الكل';
+
+  @override
+  String get allProductsEveryShelf => 'كل الأقسام';
+
+  @override
+  String get allProductsCardHint => 'كل الأقسام لكل الأليفات، بفلاترها';
+
+  @override
+  String get searchBrowseAllTitle => 'تصفّح كل المنتجات';
+
+  @override
+  String get searchBrowseAllHint => 'لا تعرف الاسم؟ ابدأ من الأليف والقسم';
+
+  @override
+  String emptyNotify(String what) {
+    return 'نبّهني إذا وصل $what';
+  }
+
+  @override
+  String get emptyNotifyOn => 'سننبّهك أول ما يصل';
+
+  @override
+  String get emptyNotifyCancel => 'إلغاء التنبيه';
+
+  @override
+  String get emptyNotifyRemoved => 'ألغينا التنبيه';
+
+  @override
+  String get brandsOfficialTitle => 'أصلي 100٪ — من الموزّع الرسمي مباشرة';
+
+  @override
+  String brandsOfficialBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count براندًا عالميًا',
+      few: '$count براندات عالمية',
+      two: 'براندان عالميان',
+      one: 'براند عالمي واحد',
+    );
+    return '$_temp0 · ضمان الأصالة على كل منتج';
+  }
+
+  @override
+  String get brandsOfficialSeal => 'من الموزّع الرسمي';
+
+  @override
+  String get brandsWallTitle => 'كل البراندات';
+
+  @override
+  String get brandsWallAll => 'الدليل';
+
+  @override
+  String myBrandsTitle(String name) {
+    return 'براندات $name';
+  }
+
+  @override
+  String get myBrandsTitleAny => 'براندات تحبها';
+
+  @override
+  String get myBrandsSub => 'من طلباتك';
+
+  @override
+  String myBrandsBought(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'طلبته $count مرة',
+      few: 'طلبته $count مرات',
+      two: 'طلبته مرتين',
+      one: 'طلبته مرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get brandFollow => 'تابِع';
+
+  @override
+  String get brandFollowing => 'تتابعه';
+
+  @override
+  String brandFollowTooltip(String brand) {
+    return 'تابِع $brand';
+  }
+
+  @override
+  String brandFollowedToast(String brand) {
+    return 'تابعت $brand: يصلك جديده وعروضه ورجوع منتجاته';
+  }
+
+  @override
+  String brandUnfollowedToast(String brand) {
+    return 'ألغيت متابعة $brand';
+  }
+
+  @override
+  String get brandFollowSignIn => 'سجّل دخولك لتتابع البراندات وتعرف جديدها';
+
+  @override
+  String brandSearchLinesExpress(String brand) {
+    return 'خطوط $brand الجاهزة خلال ساعتين';
+  }
+
+  @override
+  String brandSearchEnter(String brand) {
+    return 'ادخل متجر $brand';
+  }
+
+  @override
+  String cartSubOutExpress(String name) {
+    return '$name نفد في إكسبريس';
+  }
+
+  @override
+  String cartSubOut(String name) {
+    return '$name غير متوفر للتوصيل الآن';
+  }
+
+  @override
+  String get cartSubKicker => 'البديل من نفس الخط';
+
+  @override
+  String get cartSubSamePrice => 'نفس السعر';
+
+  @override
+  String get cartSubSwap => 'استبدل';
+
+  @override
+  String cartSubSwapped(String name) {
+    return 'استبدلناه بـ $name';
+  }
+
+  @override
+  String cartUpgradeEach(String big, String each, String unit, String small) {
+    return '$big: $each $unit بدل $small';
+  }
+
+  @override
+  String get cartUpgradeSwap => 'بدّل للكبيرة';
+
+  @override
+  String cartCompleteTitle(String brand) {
+    return 'أكمل من $brand';
+  }
+
+  @override
+  String get cartCompleteSub => 'مع نفس الطلب';
+
+  @override
+  String get petBrandsSub => 'من مقياس الأكل';
+
+  @override
+  String petBrandLast(String product) {
+    return 'آخر طلب: $product';
+  }
+
+  @override
+  String get petBrandRenew => 'جدّد';
+
+  @override
+  String get petFollowedNew => 'جديد من براندات تتابعها';
+
+  @override
+  String get cartItemsTotal => 'المنتجات';
+
+  @override
+  String get cartFees => 'رسوم إضافية';
+
+  @override
+  String get cartTotalInclVat => 'الإجمالي شامل الضريبة';
+
+  @override
+  String cartVatIncluded(String amount) {
+    return 'منها ضريبة القيمة المضافة $amount';
+  }
+
+  @override
+  String get checkoutAddAddressCta => 'أضف عنوان التوصيل';
+
+  @override
+  String get checkoutChangeAddressCta => 'اختر عنواناً يصله طلبك';
+
+  @override
+  String get checkoutNoPaymentCta => 'لا توجد طريقة دفع متاحة الآن';
+
+  @override
+  String get supportWhatsapp => 'كلّمنا على واتساب';
+
+  @override
+  String get supportAvailable => 'متاح';
+
+  @override
+  String get supportChatHello => 'مرحباً زوبكسي، أحتاج مساعدة';
+
+  @override
+  String supportChatAboutOrder(String number) {
+    return 'مرحباً زوبكسي، أحتاج مساعدة بخصوص طلبي رقم $number';
+  }
+
+  @override
+  String get supportOrderHelp => 'مساعدة في هذا الطلب';
+
+  @override
+  String get trackingPrimerTitle => 'عروض تناسب حيوانك';
+
+  @override
+  String get trackingPrimerBody =>
+      'بعد قليل يسألك الآيفون عن السماح بالتتبّع. نستخدمه فقط لنعرف أي إعلاناتنا أوصلتك إلينا ولنعرض لك عروضاً تناسب حيوانك. لا نبيع بياناتك، وتقدر تغيّر رأيك من الإعدادات في أي وقت.';
+
+  @override
+  String get trackingPrimerContinue => 'متابعة';
+
+  @override
+  String get trackingPrimerLater => 'ليس الآن';
+
+  @override
+  String searchForPet(String name) {
+    return 'لـ $name 🐾';
+  }
+
+  @override
+  String get searchPopular => 'الأكثر بحثاً';
+
+  @override
+  String get searchTry => 'جرّب البحث عن';
+
+  @override
+  String get searchScanTitle => 'صوّر الكيس الفاضي';
+
+  @override
+  String get searchScanHint => 'ونطلب لك نفسه — امسح الباركود';
+
+  @override
+  String petShelfTitle(String name) {
+    return 'رفّ $name';
+  }
+
+  @override
+  String petShelfFoodDays(String name, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوماً',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوماً واحداً',
+    );
+    return 'طعام $name يكفي $_temp0';
+  }
+
+  @override
+  String petShelfFoodOut(String name) {
+    return 'طعام $name خلص';
+  }
+
+  @override
+  String get petShelfFood => 'طعامه المعتاد';
+
+  @override
+  String get petShelfLitter => 'رمله';
+
+  @override
+  String get petShelfTreat => 'مكافأته';
+
+  @override
+  String get petShelfOrderAll => 'اطلبها كلها';
+
+  @override
+  String get petShelfOrderAllExpress => 'اطلبها كلها · خلال ساعتين';
+
+  @override
+  String petShelfAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أضفنا $count منتجاً إلى السلة',
+      few: 'أضفنا $count منتجات إلى السلة',
+      two: 'أضفنا منتجين إلى السلة',
+      one: 'أضفنا منتجاً واحداً إلى السلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get petShelfPickPack => 'اختر الحجم من صفحة المنتج أولاً';
+
+  @override
+  String pdpLastsPet(String name, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوماً',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوماً واحداً',
+    );
+    return 'يكفي $name $_temp0';
+  }
+
+  @override
+  String pdpPerDay(String price) {
+    return '$price لليوم';
+  }
+
+  @override
+  String get accountGreetMorning => 'صباح الخير';
+
+  @override
+  String get accountGreetEvening => 'مساء الخير';
+
+  @override
+  String accountPawsPending(int count) {
+    return '+$count بعد وصول طلبك';
+  }
+
+  @override
+  String get accountFirstPaws => 'أول طلب يبدأ رصيد بصماتك';
+
+  @override
+  String get accountRewards => 'المكافآت';
+
+  @override
+  String get accountTopTier => 'وصلت أعلى مستوى في العائلة';
+
+  @override
+  String get accountArrives => 'يصلك';
+
+  @override
+  String get accountStepReceived => 'استلمناه';
+
+  @override
+  String get accountStepPacked => 'جهّزناه';
+
+  @override
+  String get accountStepOnWay => 'في الطريق';
+
+  @override
+  String get accountStepDelivered => 'وصل';
+
+  @override
+  String get accountPetsTitle => 'حيواناتي';
+
+  @override
+  String get accountPetOrderExpress => 'اطلبه خلال ساعتين';
+
+  @override
+  String get accountPetOrder => 'اطلبه';
+
+  @override
+  String accountPetProfile(String name) {
+    return 'ملف $name';
+  }
+
+  @override
+  String get accountPetNoFood => 'سجّل طعامه ونذكّرك قبل ما يخلص';
+
+  @override
+  String get accountAddPet => 'أضف حيواناً';
+
+  @override
+  String get accountHouseholdBody =>
+      'عرّفنا على حيوانك، ونذكّرك قبل ما يخلص طعامه ونجهّز له هدية عيد ميلاده';
+
+  @override
+  String get accountHouseholdCta => 'أضف حيوانك';
+
+  @override
+  String get accountUsualTitle => 'مشترياتك المعتادة';
+
+  @override
+  String get accountUsualAll => 'كل مشترياتي';
+
+  @override
+  String get accountAddAll => 'أضفها كلها';
+
+  @override
+  String get accountFirstOrderTitle => 'أول طلب يبدأ رحلتك';
+
+  @override
+  String get accountFirstOrderBody =>
+      'تكسب بصمات مع كل طلب، وتتابعه لحظة بلحظة';
+
+  @override
+  String get accountStartShopping => 'ابدأ التسوّق';
+
+  @override
+  String get accountWishlistHint => 'اضغط القلب على أي منتج';
+
+  @override
+  String get accountAddressesHint => 'أضف عنوان التوصيل';
+
+  @override
+  String get accountFriends => 'أصدقائي';
+
+  @override
+  String accountFriendsJoined(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'انضم $count صديقاً',
+      few: 'انضم $count أصدقاء',
+      two: 'انضم صديقان',
+      one: 'انضم صديق واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get accountFriendsNone => 'ادعُ أول صديق';
+
+  @override
+  String get accountInviteTitle => 'ادعُ صديقاً لزوبوكسي';
+
+  @override
+  String accountInviteBody(int count) {
+    return 'ولك $count بصمة لما يطلب أول مرة';
+  }
+
+  @override
+  String get accountInviteCta => 'شارك رمزك';
+
+  @override
+  String get accountHelp => 'تحتاج مساعدة؟ كلمنا على واتساب';
+
+  @override
+  String get accountSettings => 'الإعدادات';
+
+  @override
+  String get accountSettingsAccount => 'الحساب';
+
+  @override
+  String get accountSettingsHelp => 'المساعدة';
+
+  @override
+  String accountVersionFooter(String version) {
+    return 'زوبوكسي $version';
+  }
+
+  @override
+  String get accountGuestTitle => 'انضم لعائلة زوبوكسي';
+
+  @override
+  String get accountGuestBody =>
+      'بصمات مع كل طلب، هدايا حسب نوع حيوانك، وتذكير قبل ما يخلص طعامه';
+
+  @override
+  String get accountGuestCta => 'سجّل برقم جوالك';
+
+  @override
+  String get accountGuestNote => 'رمز تحقق واحد، بدون كلمة مرور';
+
+  @override
+  String get accountPerkTrack => 'تتبّع طلبك لحظة بلحظة';
+
+  @override
+  String get accountPerkTrackBody => 'وتعرف وقت الوصول قبل ما تطلب';
+
+  @override
+  String get accountPerkReorder => 'اطلب مشترياتك بلمسة';
+
+  @override
+  String get accountPerkReorderBody => 'كل ما اشتريته محفوظ لك';
+
+  @override
+  String get accountPerkPet => 'ملف لحيوانك';
+
+  @override
+  String get accountPerkPetBody => 'طعامه، وزنه، وعيد ميلاده';
+
+  @override
+  String get splashMorning => 'صباح الخير';
+
+  @override
+  String get splashEvening => 'مساء الخير';
+
+  @override
+  String splashPetWaiting(String name) {
+    return '$name بانتظارك';
+  }
+
+  @override
+  String get splashWelcomeBack => 'أهلاً من جديد';
 }

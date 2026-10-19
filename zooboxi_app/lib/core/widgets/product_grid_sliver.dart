@@ -25,6 +25,7 @@ class ProductGridSliver extends StatelessWidget {
     this.onAdd,
     this.zone,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
+    this.ranked = false,
   });
 
   final List<ProductCard> products;
@@ -36,6 +37,10 @@ class ProductGridSliver extends StatelessWidget {
   final String? zone;
   final EdgeInsets padding;
 
+  /// The grid IS a ranking (its title says «الأكثر طلباً»): see
+  /// [ProductCardView.ranked].
+  final bool ranked;
+
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -46,6 +51,7 @@ class ProductGridSliver extends StatelessWidget {
             product: products[index],
             onAdd: onAdd,
             zone: zone,
+            ranked: ranked,
           ),
           childCount: products.length,
         ),

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:zooboxi_app/features/catalog/data/catalog_models.dart';
 import 'package:zooboxi_app/app/theme/app_theme.dart';
 import 'package:zooboxi_app/core/widgets/empty_state.dart';
 import 'package:zooboxi_app/features/notifications/data/push_repository.dart';
@@ -48,6 +49,15 @@ class _StubPush implements PushRepository {
   @override
   Future<WaitlistState> unwatch({required int productId, String kind = ''}) async =>
       (restock: false, price: false);
+
+  @override
+  Future<bool> filterWatching(ListingQuery query) async => false;
+
+  @override
+  Future<bool> watchFilter(ListingQuery query, {required String label}) async => true;
+
+  @override
+  Future<bool> unwatchFilter(ListingQuery query) async => false;
 
   @override
   Future<PushPreferences> register({

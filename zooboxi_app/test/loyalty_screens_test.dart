@@ -172,7 +172,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
 
     expect(find.text('مميّز'), findsWidgets);
-    expect(find.text('1٬240'), findsWidgets);
+    expect(find.text('1,240'), findsWidgets);
     expect(find.byType(SealedScratchTile), findsNothing);
     expect(find.byType(MissionCard), findsNothing);
     expect(find.text('مهمات الشهر'), findsNothing);

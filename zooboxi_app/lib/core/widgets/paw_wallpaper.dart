@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../app/theme/zooboxi_tokens.dart';
 
 /// The faint paw wallpaper the express home's coloured surfaces wear.
 ///
@@ -20,7 +21,7 @@ class PawWallpaper extends StatelessWidget {
 
   /// The wallpaper on paper: the brand ink at a whisper.
   const PawWallpaper.onPaper({super.key, this.tile = 66})
-    : color = const Color(0xFF2C3E2D),
+    : color = ZbTokens.ink,
       opacity = 0.045;
 
   final Color color;

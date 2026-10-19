@@ -4,6 +4,7 @@ import '../../app/theme/zb_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../characters/characters.dart';
 import '../characters/companion.dart';
+import '../../app/theme/zooboxi_tokens.dart';
 
 /// How the section titles under it are dressed. The home page is a store, so
 /// its titles stand on shelves — a thin kraft plank under each — and the
@@ -61,11 +62,11 @@ class _Plank extends StatelessWidget {
     return Container(
       height: 6,
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF4A3A2C) : const Color(0xFFE9C9A0),
+        color: dark ? ZbTokens.kraftTapeDark : ZbTokens.kraftTape,
         borderRadius: BorderRadius.circular(3),
         boxShadow: [
-          BoxShadow(color: dark ? const Color(0xFF33281F) : const Color(0xFFD4A976), offset: const Offset(0, 2)),
-          BoxShadow(color: const Color(0xFF5A2C2F).withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 5)),
+          BoxShadow(color: dark ? ZbTokens.kraftTapeEdgeDark : ZbTokens.kraftTapeEdge, offset: const Offset(0, 2)),
+          BoxShadow(color: ZbTokens.inkWarm.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 5)),
         ],
       ),
     );

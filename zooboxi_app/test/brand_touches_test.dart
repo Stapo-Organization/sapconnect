@@ -16,6 +16,7 @@ import 'package:zooboxi_app/core/analytics/events_buffer.dart';
 import 'package:zooboxi_app/features/checkout/data/checkout_models.dart';
 import 'package:zooboxi_app/features/checkout/presentation/success_screen.dart';
 import 'package:zooboxi_app/features/home/presentation/widgets/home_header.dart';
+import 'package:zooboxi_app/features/onboarding/presentation/splash/splash_stage.dart';
 import 'package:zooboxi_app/features/onboarding/presentation/splash_screen.dart';
 import 'package:zooboxi_app/features/cart/data/cart_repository.dart';
 import 'package:zooboxi_app/l10n/app_localizations.dart';
@@ -318,8 +319,10 @@ void main() {
     );
     await tester.pump();
 
+    // The boot route shows the native launch picture — the whole logo at the
+    // launch size — under the stage that animates above the navigator.
     expect(_assetImage(_logo), findsOneWidget);
-    expect(find.byType(SparkleField), findsOneWidget);
+    expect(find.byType(SplashBackdrop), findsOneWidget);
 
     // Drains the minimum-splash timer so the boot hand-off doesn't outlive
     // the test.

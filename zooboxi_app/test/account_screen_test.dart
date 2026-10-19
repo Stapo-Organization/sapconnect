@@ -9,7 +9,9 @@ import 'package:zooboxi_app/core/providers.dart';
 import 'package:zooboxi_app/core/session/session_controller.dart';
 import 'package:zooboxi_app/core/storage/local_store.dart';
 import 'package:zooboxi_app/features/account/presentation/account_screen.dart';
-import 'package:zooboxi_app/features/account/presentation/widgets/account_quick_actions.dart';
+import 'package:zooboxi_app/features/account/data/account_repository.dart';
+import 'package:zooboxi_app/features/account/data/account_models.dart';
+import 'package:zooboxi_app/features/account/data/addresses_controller.dart';
 import 'package:zooboxi_app/features/loyalty/data/loyalty_models.dart';
 import 'package:zooboxi_app/features/pets/data/pet_models.dart';
 import 'package:zooboxi_app/features/loyalty/data/loyalty_repository.dart';
@@ -20,6 +22,11 @@ import 'package:zooboxi_app/l10n/app_localizations.dart';
 
 /// «حسابي» in the states it actually ships in: a guest, a member with a
 /// standing and a wallet, and a member with a parcel on the way.
+
+class _NoAddresses extends AddressesController {
+  @override
+  Future<List<Address>> build() async => const [];
+}
 
 class _Session extends SessionController {
   _Session({required this.signedIn});
@@ -78,6 +85,8 @@ Future<void> _pump(
         sessionProvider.overrideWith(() => _Session(signedIn: signedIn)),
         loyaltySummaryProvider.overrideWith((ref) => Future.value(summary)),
         activeOrderProvider.overrideWith((ref) => Stream.value([?active])),
+        buyAgainProvider.overrideWith((ref) => Future.value(const [])),
+        addressesControllerProvider.overrideWith(_NoAddresses.new),
         ...extra,
       ],
       child: MaterialApp(
@@ -107,32 +116,46 @@ Future<void> _pump(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('a guest is invited, never shown empty counters', (tester) async {
+  testWidgets('a guest is invited to join, never shown empty counters', (tester) async {
     await _pump(tester, signedIn: false);
 
-    expect(find.text('زائر'), findsOneWidget);
-    expect(find.text('تسجيل الدخول'), findsOneWidget);
+    expect(find.text('انضم لعائلة زوبوكسي'), findsOneWidget);
+    expect(find.text('سجّل برقم جوالك'), findsOneWidget);
     // Nothing is counted for someone the shop has never served.
-    expect(find.text('طلب'), findsNothing);
     expect(find.text('بصمة'), findsNothing);
-    // The shortcuts are still there — a guest may browse their wishlist.
-    expect(find.byType(AccountQuickActions), findsOneWidget);
+    expect(find.text('0'), findsNothing);
+    // What signing in gives, in plain lines.
+    expect(find.text('تتبّع طلبك لحظة بلحظة'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a member sees their name, standing and three real counts',
+  testWidgets('a member sees their card: name, standing, paws and the next rung',
       (tester) async {
     await _pump(tester, signedIn: true, summary: _summary);
 
     expect(find.text('محمد المهجوب'), findsOneWidget);
     expect(find.text('صديق'), findsOneWidget);
-    // orders / paws / pets, from the summary — not invented.
-    expect(find.text('12'), findsOneWidget);
-    expect(find.text('1٬240'), findsOneWidget);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('1,240'), findsOneWidget);
     // Two orders short of «مميّز», said in words rather than as a percentage.
     expect(find.textContaining('مميّز'), findsWidgets);
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    // Her cat has a card of its own.
+    expect(find.text('لونا'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('طلباتي'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('طلباتي'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a member who has not ordered yet sees no zeros', (tester) async {
+    await _pump(
+      tester,
+      signedIn: true,
+      summary: const LoyaltySummary(tier: TierInfo(key: 'start', name: 'بداية الرحلة')),
+    );
+
+    expect(find.text('أول طلب يبدأ رصيد بصماتك'), findsOneWidget);
+    expect(find.text('مين معك في البيت؟'), findsOneWidget);
+    expect(find.text('أول طلب يبدأ رحلتك'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -140,16 +163,15 @@ void main() {
     await _pump(tester, signedIn: true, summary: _summary, active: _active);
 
     expect(find.text('طلبك في الطريق'), findsOneWidget);
-    expect(find.text('قيد التجهيز'), findsOneWidget);
 
-    // Above the shortcuts, because it is the thing that expires.
+    // Above the pets and the shortcuts, because it is the thing that expires.
     final order = tester.getTopLeft(find.text('طلبك في الطريق')).dy;
-    final shortcuts = tester.getTopLeft(find.byType(AccountQuickActions)).dy;
-    expect(order, lessThan(shortcuts));
+    final pets = tester.getTopLeft(find.text('حيواناتي')).dy;
+    expect(order, lessThan(pets));
   });
 
-  // The four shortcuts sit in one row; Arabic labels at accessibility text
-  // sizes are exactly where a row like that breaks.
+  // Tiles sit two to a row and the card carries a big number; Arabic labels
+  // at accessibility text sizes are exactly where rows like that break.
   testWidgets('the screen holds together at large text', (tester) async {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;

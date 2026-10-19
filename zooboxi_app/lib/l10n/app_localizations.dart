@@ -6138,6 +6138,1392 @@ abstract class L {
   /// In ar, this message translates to:
   /// **'{value} م'**
   String distanceM(String value);
+
+  /// No description provided for @storyDetailsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل المنتج'**
+  String get storyDetailsTitle;
+
+  /// No description provided for @storyOverview.
+  ///
+  /// In ar, this message translates to:
+  /// **'عن المنتج'**
+  String get storyOverview;
+
+  /// No description provided for @storyFeatures.
+  ///
+  /// In ar, this message translates to:
+  /// **'المميزات'**
+  String get storyFeatures;
+
+  /// No description provided for @storyFeeding.
+  ///
+  /// In ar, this message translates to:
+  /// **'كم أقدّم؟'**
+  String get storyFeeding;
+
+  /// No description provided for @storyIngredients.
+  ///
+  /// In ar, this message translates to:
+  /// **'مما يتكوّن؟'**
+  String get storyIngredients;
+
+  /// No description provided for @storyAnalysis.
+  ///
+  /// In ar, this message translates to:
+  /// **'التحليل الغذائي'**
+  String get storyAnalysis;
+
+  /// No description provided for @storySpecs.
+  ///
+  /// In ar, this message translates to:
+  /// **'المواصفات'**
+  String get storySpecs;
+
+  /// No description provided for @storyContents.
+  ///
+  /// In ar, this message translates to:
+  /// **'محتويات العبوة'**
+  String get storyContents;
+
+  /// No description provided for @storyBreeds.
+  ///
+  /// In ar, this message translates to:
+  /// **'السلالات المناسبة'**
+  String get storyBreeds;
+
+  /// No description provided for @storyUsage.
+  ///
+  /// In ar, this message translates to:
+  /// **'طريقة الاستخدام'**
+  String get storyUsage;
+
+  /// No description provided for @storyStorage.
+  ///
+  /// In ar, this message translates to:
+  /// **'التخزين'**
+  String get storyStorage;
+
+  /// No description provided for @storySafety.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنبيهات السلامة'**
+  String get storySafety;
+
+  /// No description provided for @storyOther.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل'**
+  String get storyOther;
+
+  /// No description provided for @storyCalcCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'احسب لحيوانك'**
+  String get storyCalcCta;
+
+  /// No description provided for @storyReadAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'اقرأ الوصف كاملًا'**
+  String get storyReadAll;
+
+  /// No description provided for @storyPetWeight.
+  ///
+  /// In ar, this message translates to:
+  /// **'وزن حيوانك'**
+  String get storyPetWeight;
+
+  /// No description provided for @storyDailyAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكمية اليومية'**
+  String get storyDailyAmount;
+
+  /// No description provided for @storyFeedingNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكميات إرشادية من الشركة المصنّعة — عدّلها حسب نشاط حيوانك ووزنه.'**
+  String get storyFeedingNote;
+
+  /// No description provided for @storyIngredientsInOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'المكونات بالترتيب'**
+  String get storyIngredientsInOrder;
+
+  /// No description provided for @storyStepsCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{خطوة واحدة} =2{خطوتان} few{{count} خطوات} other{{count} خطوة}}'**
+  String storyStepsCount(int count);
+
+  /// No description provided for @storyWarningsCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{تنبيه واحد} =2{تنبيهان} few{{count} تنبيهات} other{{count} تنبيهًا}}'**
+  String storyWarningsCount(int count);
+
+  /// No description provided for @storyTipsCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{نصيحة واحدة} =2{نصيحتان} few{{count} نصائح} other{{count} نصيحة}}'**
+  String storyTipsCount(int count);
+
+  /// No description provided for @storyCartonLasts.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكرتون ({units} حبة) يكفيه نحو {days, plural, =1{يوم واحد} =2{يومين} few{{days} أيام} other{{days} يومًا}}'**
+  String storyCartonLasts(int units, int days);
+
+  /// No description provided for @storyCartonLastsShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكرتون يكفيه نحو {days, plural, =1{يوم واحد} =2{يومين} few{{days} أيام} other{{days} يومًا}}'**
+  String storyCartonLastsShort(int days);
+
+  /// No description provided for @storyPackLasts.
+  ///
+  /// In ar, this message translates to:
+  /// **'العبوة تكفيه نحو {days, plural, =1{يوم واحد} =2{يومين} few{{days} أيام} other{{days} يومًا}}'**
+  String storyPackLasts(int days);
+
+  /// No description provided for @storyMoreItems.
+  ///
+  /// In ar, this message translates to:
+  /// **'+{count}'**
+  String storyMoreItems(int count);
+
+  /// No description provided for @storyClose.
+  ///
+  /// In ar, this message translates to:
+  /// **'إغلاق'**
+  String get storyClose;
+
+  /// No description provided for @storyEyebrow.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل ما تحتاج معرفته'**
+  String get storyEyebrow;
+
+  /// No description provided for @storyAnalysisShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'التحليل'**
+  String get storyAnalysisShort;
+
+  /// No description provided for @storyUsageShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاستخدام'**
+  String get storyUsageShort;
+
+  /// No description provided for @storyBreedsShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'السلالات'**
+  String get storyBreedsShort;
+
+  /// No description provided for @storySafetyShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'السلامة'**
+  String get storySafetyShort;
+
+  /// No description provided for @storyFullTable.
+  ///
+  /// In ar, this message translates to:
+  /// **'الجدول الكامل'**
+  String get storyFullTable;
+
+  /// No description provided for @storyReadMore.
+  ///
+  /// In ar, this message translates to:
+  /// **'اقرأ المزيد'**
+  String get storyReadMore;
+
+  /// No description provided for @storyReadLess.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض أقل'**
+  String get storyReadLess;
+
+  /// No description provided for @storyPerDay.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوميًا'**
+  String get storyPerDay;
+
+  /// No description provided for @storyNutritionLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'القيم الغذائية'**
+  String get storyNutritionLabel;
+
+  /// No description provided for @storyMoreBreeds.
+  ///
+  /// In ar, this message translates to:
+  /// **'+{count} سلالات'**
+  String storyMoreBreeds(int count);
+
+  /// No description provided for @storyAllSteps.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل الخطوات'**
+  String get storyAllSteps;
+
+  /// No description provided for @storyGuideEyebrow.
+  ///
+  /// In ar, this message translates to:
+  /// **'دليل زوبكسي'**
+  String get storyGuideEyebrow;
+
+  /// No description provided for @storyGuideTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'{species, select, cat{كل ما يهمّ قطتك} dog{كل ما يهمّ كلبك} bird{كل ما يهمّ طائرك} fish{كل ما يهمّ أسماكك} other{كل ما يهمّ أليفك}}'**
+  String storyGuideTitle(String species);
+
+  /// No description provided for @storyPer100g.
+  ///
+  /// In ar, this message translates to:
+  /// **'في كل 100 جم'**
+  String get storyPer100g;
+
+  /// No description provided for @storyNutritionRest.
+  ///
+  /// In ar, this message translates to:
+  /// **'ألياف ومعادن وغيرها'**
+  String get storyNutritionRest;
+
+  /// No description provided for @storyDryMatter.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد استبعاد الماء'**
+  String get storyDryMatter;
+
+  /// No description provided for @storyDryMatterHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'هكذا يقارن الأطباء البيطريون الأطعمة الرطبة بالجافة'**
+  String get storyDryMatterHint;
+
+  /// No description provided for @storyChartHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اضغط على الوزن لتعرف الكمية'**
+  String get storyChartHint;
+
+  /// No description provided for @storySignoff.
+  ///
+  /// In ar, this message translates to:
+  /// **'رتّبنا لك التفاصيل بعناية'**
+  String get storySignoff;
+
+  /// No description provided for @storySignoffSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'لأن أليفك يستاهل'**
+  String get storySignoffSub;
+
+  /// No description provided for @filterButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'فلترة'**
+  String get filterButton;
+
+  /// No description provided for @filterSheetTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'فلترة النتائج'**
+  String get filterSheetTitle;
+
+  /// No description provided for @filterClearAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسح الكل'**
+  String get filterClearAll;
+
+  /// No description provided for @filterApplied.
+  ///
+  /// In ar, this message translates to:
+  /// **'مُطبّق:'**
+  String get filterApplied;
+
+  /// No description provided for @filterLiveHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأرقام تتغيّر مع اختياراتك'**
+  String get filterLiveHint;
+
+  /// No description provided for @filterNoneSelected.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل المنتجات'**
+  String get filterNoneSelected;
+
+  /// No description provided for @filterBrandSearch.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابحث عن علامة'**
+  String get filterBrandSearch;
+
+  /// No description provided for @filterPrice.
+  ///
+  /// In ar, this message translates to:
+  /// **'السعر'**
+  String get filterPrice;
+
+  /// No description provided for @filterPriceFrom.
+  ///
+  /// In ar, this message translates to:
+  /// **'من'**
+  String get filterPriceFrom;
+
+  /// No description provided for @filterPriceTo.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلى'**
+  String get filterPriceTo;
+
+  /// No description provided for @filterPriceHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أسعار هذه القائمة فقط'**
+  String get filterPriceHint;
+
+  /// No description provided for @filterNoResults.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا نتائج — عدّل اختياراتك'**
+  String get filterNoResults;
+
+  /// No description provided for @filterShowResults.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا توجد نتائج} =1{عرض منتج واحد} =2{عرض منتجين} few{عرض {count} منتجات} many{عرض {count} منتجًا} other{عرض {count} منتج}}'**
+  String filterShowResults(int count);
+
+  /// No description provided for @filterProductCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا منتجات} =1{منتج واحد} =2{منتجان} few{{count} منتجات} many{{count} منتجًا} other{{count} منتج}}'**
+  String filterProductCount(int count);
+
+  /// No description provided for @filterPriceChip.
+  ///
+  /// In ar, this message translates to:
+  /// **'{from} – {to}'**
+  String filterPriceChip(String from, String to);
+
+  /// No description provided for @filterPriceUpTo.
+  ///
+  /// In ar, this message translates to:
+  /// **'حتى {to}'**
+  String filterPriceUpTo(String to);
+
+  /// No description provided for @filterPriceFromOnly.
+  ///
+  /// In ar, this message translates to:
+  /// **'من {from}'**
+  String filterPriceFromOnly(String from);
+
+  /// No description provided for @petFilterKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'نعرض المناسب لـ'**
+  String get petFilterKicker;
+
+  /// No description provided for @petFilterMatch.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا شيء يناسب {name} هنا} =1{منتج واحد يناسب {name}} =2{منتجان يناسبان {name}} few{{count} منتجات تناسب {name}} many{{count} منتجًا يناسب {name}} other{{count} منتج يناسب {name}}}'**
+  String petFilterMatch(int count, String name);
+
+  /// No description provided for @petFilterOf.
+  ///
+  /// In ar, this message translates to:
+  /// **'من {total}'**
+  String petFilterOf(int total);
+
+  /// No description provided for @petFilterShowAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض الكل'**
+  String get petFilterShowAll;
+
+  /// No description provided for @petFilterOff.
+  ///
+  /// In ar, this message translates to:
+  /// **'متوقف — نعرض الكل'**
+  String get petFilterOff;
+
+  /// No description provided for @petAskAge.
+  ///
+  /// In ar, this message translates to:
+  /// **'كم عمر {name}؟'**
+  String petAskAge(String name);
+
+  /// No description provided for @petAskAgeHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'نعرض لك الأكل المناسب لعمره فقط'**
+  String get petAskAgeHint;
+
+  /// No description provided for @petYourCat.
+  ///
+  /// In ar, this message translates to:
+  /// **'قطتك'**
+  String get petYourCat;
+
+  /// No description provided for @petYourDog.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلبك'**
+  String get petYourDog;
+
+  /// No description provided for @petYourPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'أليفك'**
+  String get petYourPet;
+
+  /// No description provided for @petFilterSwitch.
+  ///
+  /// In ar, this message translates to:
+  /// **'المناسب لـ {name}'**
+  String petFilterSwitch(String name);
+
+  /// No description provided for @emptyFilteredTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ما لقينا شيئًا بهذه الاختيارات'**
+  String get emptyFilteredTitle;
+
+  /// No description provided for @emptyFilteredBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'جرّب واحدًا من هذه — كلها تفتح نتائج فورًا'**
+  String get emptyFilteredBody;
+
+  /// No description provided for @emptyRemove.
+  ///
+  /// In ar, this message translates to:
+  /// **'أزل «{label}»'**
+  String emptyRemove(String label);
+
+  /// No description provided for @emptyRemovePrice.
+  ///
+  /// In ar, this message translates to:
+  /// **'أزل حدود السعر'**
+  String get emptyRemovePrice;
+
+  /// No description provided for @emptySwap.
+  ///
+  /// In ar, this message translates to:
+  /// **'جرّب {label} بدلًا منها'**
+  String emptySwap(String label);
+
+  /// No description provided for @emptyClearAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسح كل الفلاتر'**
+  String get emptyClearAll;
+
+  /// No description provided for @needsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوّق حسب الاحتياج'**
+  String get needsTitle;
+
+  /// No description provided for @needsSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابدأ من المشكلة، مو من القسم'**
+  String get needsSubtitle;
+
+  /// No description provided for @brandLinesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'خطوط {brand}'**
+  String brandLinesTitle(String brand);
+
+  /// No description provided for @brandShelvesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوّق {brand} حسب'**
+  String brandShelvesTitle(String brand);
+
+  /// No description provided for @brandAbout.
+  ///
+  /// In ar, this message translates to:
+  /// **'عن {brand}'**
+  String brandAbout(String brand);
+
+  /// No description provided for @brandFactOrigin.
+  ///
+  /// In ar, this message translates to:
+  /// **'بلد المنشأ'**
+  String get brandFactOrigin;
+
+  /// No description provided for @brandFactFounded.
+  ///
+  /// In ar, this message translates to:
+  /// **'التأسيس'**
+  String get brandFactFounded;
+
+  /// No description provided for @brandFactProducts.
+  ///
+  /// In ar, this message translates to:
+  /// **'في زوبكسي'**
+  String get brandFactProducts;
+
+  /// No description provided for @brandFactSpecialty.
+  ///
+  /// In ar, this message translates to:
+  /// **'التخصص'**
+  String get brandFactSpecialty;
+
+  /// No description provided for @brandFactInStock.
+  ///
+  /// In ar, this message translates to:
+  /// **'متوفر الآن'**
+  String get brandFactInStock;
+
+  /// No description provided for @brandInStock.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =0{لا شيء متوفر الآن} other{{count} متوفر}}'**
+  String brandInStock(int count);
+
+  /// No description provided for @brandExpressReady.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{منتج واحد جاهز للتوصيل خلال ساعتين} =2{منتجان جاهزان للتوصيل خلال ساعتين} few{{count} منتجات جاهزة للتوصيل خلال ساعتين} other{{count} منتجًا جاهزة للتوصيل خلال ساعتين}}'**
+  String brandExpressReady(int count);
+
+  /// No description provided for @brandExpressPill.
+  ///
+  /// In ar, this message translates to:
+  /// **'إكسبريس · يوصلك خلال ساعتين'**
+  String get brandExpressPill;
+
+  /// No description provided for @brandValueKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'العبوة الكبيرة أوفر'**
+  String get brandValueKicker;
+
+  /// No description provided for @brandValueEachUnit.
+  ///
+  /// In ar, this message translates to:
+  /// **'للحبة'**
+  String get brandValueEachUnit;
+
+  /// No description provided for @brandValueEachKg.
+  ///
+  /// In ar, this message translates to:
+  /// **'للكيلو'**
+  String get brandValueEachKg;
+
+  /// No description provided for @brandValueSave.
+  ///
+  /// In ar, this message translates to:
+  /// **'توفّر {percent}%'**
+  String brandValueSave(int percent);
+
+  /// No description provided for @brandAboutMadeFor.
+  ///
+  /// In ar, this message translates to:
+  /// **'لمن صُنعت'**
+  String get brandAboutMadeFor;
+
+  /// No description provided for @brandAboutStory.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحكاية'**
+  String get brandAboutStory;
+
+  /// No description provided for @brandAboutFounded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأسست {brand}'**
+  String brandAboutFounded(String brand);
+
+  /// No description provided for @brandAboutToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'اليوم في زوبكسي'**
+  String get brandAboutToday;
+
+  /// No description provided for @brandShopAllCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوّق كل {brand}'**
+  String brandShopAllCta(String brand);
+
+  /// No description provided for @brandMoodTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طابعها'**
+  String get brandMoodTitle;
+
+  /// No description provided for @allProductsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل المنتجات'**
+  String get allProductsTitle;
+
+  /// No description provided for @allProductsEveryPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get allProductsEveryPet;
+
+  /// No description provided for @allProductsEveryShelf.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل الأقسام'**
+  String get allProductsEveryShelf;
+
+  /// No description provided for @allProductsCardHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل الأقسام لكل الأليفات، بفلاترها'**
+  String get allProductsCardHint;
+
+  /// No description provided for @searchBrowseAllTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصفّح كل المنتجات'**
+  String get searchBrowseAllTitle;
+
+  /// No description provided for @searchBrowseAllHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا تعرف الاسم؟ ابدأ من الأليف والقسم'**
+  String get searchBrowseAllHint;
+
+  /// No description provided for @emptyNotify.
+  ///
+  /// In ar, this message translates to:
+  /// **'نبّهني إذا وصل {what}'**
+  String emptyNotify(String what);
+
+  /// No description provided for @emptyNotifyOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'سننبّهك أول ما يصل'**
+  String get emptyNotifyOn;
+
+  /// No description provided for @emptyNotifyCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء التنبيه'**
+  String get emptyNotifyCancel;
+
+  /// No description provided for @emptyNotifyRemoved.
+  ///
+  /// In ar, this message translates to:
+  /// **'ألغينا التنبيه'**
+  String get emptyNotifyRemoved;
+
+  /// No description provided for @brandsOfficialTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصلي 100٪ — من الموزّع الرسمي مباشرة'**
+  String get brandsOfficialTitle;
+
+  /// No description provided for @brandsOfficialBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{براند عالمي واحد} =2{براندان عالميان} few{{count} براندات عالمية} other{{count} براندًا عالميًا}} · ضمان الأصالة على كل منتج'**
+  String brandsOfficialBody(int count);
+
+  /// No description provided for @brandsOfficialSeal.
+  ///
+  /// In ar, this message translates to:
+  /// **'من الموزّع الرسمي'**
+  String get brandsOfficialSeal;
+
+  /// No description provided for @brandsWallTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل البراندات'**
+  String get brandsWallTitle;
+
+  /// No description provided for @brandsWallAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدليل'**
+  String get brandsWallAll;
+
+  /// No description provided for @myBrandsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'براندات {name}'**
+  String myBrandsTitle(String name);
+
+  /// No description provided for @myBrandsTitleAny.
+  ///
+  /// In ar, this message translates to:
+  /// **'براندات تحبها'**
+  String get myBrandsTitleAny;
+
+  /// No description provided for @myBrandsSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'من طلباتك'**
+  String get myBrandsSub;
+
+  /// No description provided for @myBrandsBought.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{طلبته مرة} =2{طلبته مرتين} few{طلبته {count} مرات} other{طلبته {count} مرة}}'**
+  String myBrandsBought(int count);
+
+  /// No description provided for @brandFollow.
+  ///
+  /// In ar, this message translates to:
+  /// **'تابِع'**
+  String get brandFollow;
+
+  /// No description provided for @brandFollowing.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتابعه'**
+  String get brandFollowing;
+
+  /// No description provided for @brandFollowTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تابِع {brand}'**
+  String brandFollowTooltip(String brand);
+
+  /// No description provided for @brandFollowedToast.
+  ///
+  /// In ar, this message translates to:
+  /// **'تابعت {brand}: يصلك جديده وعروضه ورجوع منتجاته'**
+  String brandFollowedToast(String brand);
+
+  /// No description provided for @brandUnfollowedToast.
+  ///
+  /// In ar, this message translates to:
+  /// **'ألغيت متابعة {brand}'**
+  String brandUnfollowedToast(String brand);
+
+  /// No description provided for @brandFollowSignIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل دخولك لتتابع البراندات وتعرف جديدها'**
+  String get brandFollowSignIn;
+
+  /// No description provided for @brandSearchLinesExpress.
+  ///
+  /// In ar, this message translates to:
+  /// **'خطوط {brand} الجاهزة خلال ساعتين'**
+  String brandSearchLinesExpress(String brand);
+
+  /// No description provided for @brandSearchEnter.
+  ///
+  /// In ar, this message translates to:
+  /// **'ادخل متجر {brand}'**
+  String brandSearchEnter(String brand);
+
+  /// No description provided for @cartSubOutExpress.
+  ///
+  /// In ar, this message translates to:
+  /// **'{name} نفد في إكسبريس'**
+  String cartSubOutExpress(String name);
+
+  /// No description provided for @cartSubOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'{name} غير متوفر للتوصيل الآن'**
+  String cartSubOut(String name);
+
+  /// No description provided for @cartSubKicker.
+  ///
+  /// In ar, this message translates to:
+  /// **'البديل من نفس الخط'**
+  String get cartSubKicker;
+
+  /// No description provided for @cartSubSamePrice.
+  ///
+  /// In ar, this message translates to:
+  /// **'نفس السعر'**
+  String get cartSubSamePrice;
+
+  /// No description provided for @cartSubSwap.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدل'**
+  String get cartSubSwap;
+
+  /// No description provided for @cartSubSwapped.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدلناه بـ {name}'**
+  String cartSubSwapped(String name);
+
+  /// No description provided for @cartUpgradeEach.
+  ///
+  /// In ar, this message translates to:
+  /// **'{big}: {each} {unit} بدل {small}'**
+  String cartUpgradeEach(String big, String each, String unit, String small);
+
+  /// No description provided for @cartUpgradeSwap.
+  ///
+  /// In ar, this message translates to:
+  /// **'بدّل للكبيرة'**
+  String get cartUpgradeSwap;
+
+  /// No description provided for @cartCompleteTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكمل من {brand}'**
+  String cartCompleteTitle(String brand);
+
+  /// No description provided for @cartCompleteSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'مع نفس الطلب'**
+  String get cartCompleteSub;
+
+  /// No description provided for @petBrandsSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'من مقياس الأكل'**
+  String get petBrandsSub;
+
+  /// No description provided for @petBrandLast.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر طلب: {product}'**
+  String petBrandLast(String product);
+
+  /// No description provided for @petBrandRenew.
+  ///
+  /// In ar, this message translates to:
+  /// **'جدّد'**
+  String get petBrandRenew;
+
+  /// No description provided for @petFollowedNew.
+  ///
+  /// In ar, this message translates to:
+  /// **'جديد من براندات تتابعها'**
+  String get petFollowedNew;
+
+  /// No description provided for @cartItemsTotal.
+  ///
+  /// In ar, this message translates to:
+  /// **'المنتجات'**
+  String get cartItemsTotal;
+
+  /// No description provided for @cartFees.
+  ///
+  /// In ar, this message translates to:
+  /// **'رسوم إضافية'**
+  String get cartFees;
+
+  /// No description provided for @cartTotalInclVat.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإجمالي شامل الضريبة'**
+  String get cartTotalInclVat;
+
+  /// No description provided for @cartVatIncluded.
+  ///
+  /// In ar, this message translates to:
+  /// **'منها ضريبة القيمة المضافة {amount}'**
+  String cartVatIncluded(String amount);
+
+  /// No description provided for @checkoutAddAddressCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف عنوان التوصيل'**
+  String get checkoutAddAddressCta;
+
+  /// No description provided for @checkoutChangeAddressCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر عنواناً يصله طلبك'**
+  String get checkoutChangeAddressCta;
+
+  /// No description provided for @checkoutNoPaymentCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد طريقة دفع متاحة الآن'**
+  String get checkoutNoPaymentCta;
+
+  /// No description provided for @supportWhatsapp.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلّمنا على واتساب'**
+  String get supportWhatsapp;
+
+  /// No description provided for @supportAvailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'متاح'**
+  String get supportAvailable;
+
+  /// No description provided for @supportChatHello.
+  ///
+  /// In ar, this message translates to:
+  /// **'مرحباً زوبكسي، أحتاج مساعدة'**
+  String get supportChatHello;
+
+  /// No description provided for @supportChatAboutOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'مرحباً زوبكسي، أحتاج مساعدة بخصوص طلبي رقم {number}'**
+  String supportChatAboutOrder(String number);
+
+  /// No description provided for @supportOrderHelp.
+  ///
+  /// In ar, this message translates to:
+  /// **'مساعدة في هذا الطلب'**
+  String get supportOrderHelp;
+
+  /// No description provided for @trackingPrimerTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عروض تناسب حيوانك'**
+  String get trackingPrimerTitle;
+
+  /// No description provided for @trackingPrimerBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد قليل يسألك الآيفون عن السماح بالتتبّع. نستخدمه فقط لنعرف أي إعلاناتنا أوصلتك إلينا ولنعرض لك عروضاً تناسب حيوانك. لا نبيع بياناتك، وتقدر تغيّر رأيك من الإعدادات في أي وقت.'**
+  String get trackingPrimerBody;
+
+  /// No description provided for @trackingPrimerContinue.
+  ///
+  /// In ar, this message translates to:
+  /// **'متابعة'**
+  String get trackingPrimerContinue;
+
+  /// No description provided for @trackingPrimerLater.
+  ///
+  /// In ar, this message translates to:
+  /// **'ليس الآن'**
+  String get trackingPrimerLater;
+
+  /// No description provided for @searchForPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'لـ {name} 🐾'**
+  String searchForPet(String name);
+
+  /// No description provided for @searchPopular.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأكثر بحثاً'**
+  String get searchPopular;
+
+  /// No description provided for @searchTry.
+  ///
+  /// In ar, this message translates to:
+  /// **'جرّب البحث عن'**
+  String get searchTry;
+
+  /// No description provided for @searchScanTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'صوّر الكيس الفاضي'**
+  String get searchScanTitle;
+
+  /// No description provided for @searchScanHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ونطلب لك نفسه — امسح الباركود'**
+  String get searchScanHint;
+
+  /// No description provided for @petShelfTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفّ {name}'**
+  String petShelfTitle(String name);
+
+  /// No description provided for @petShelfFoodDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعام {name} يكفي {days, plural, =1{يوماً واحداً} =2{يومين} few{{days} أيام} other{{days} يوماً}}'**
+  String petShelfFoodDays(String name, int days);
+
+  /// No description provided for @petShelfFoodOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعام {name} خلص'**
+  String petShelfFoodOut(String name);
+
+  /// No description provided for @petShelfFood.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعامه المعتاد'**
+  String get petShelfFood;
+
+  /// No description provided for @petShelfLitter.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمله'**
+  String get petShelfLitter;
+
+  /// No description provided for @petShelfTreat.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكافأته'**
+  String get petShelfTreat;
+
+  /// No description provided for @petShelfOrderAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلبها كلها'**
+  String get petShelfOrderAll;
+
+  /// No description provided for @petShelfOrderAllExpress.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلبها كلها · خلال ساعتين'**
+  String get petShelfOrderAllExpress;
+
+  /// No description provided for @petShelfAdded.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{أضفنا منتجاً واحداً إلى السلة} =2{أضفنا منتجين إلى السلة} few{أضفنا {count} منتجات إلى السلة} other{أضفنا {count} منتجاً إلى السلة}}'**
+  String petShelfAdded(int count);
+
+  /// No description provided for @petShelfPickPack.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الحجم من صفحة المنتج أولاً'**
+  String get petShelfPickPack;
+
+  /// No description provided for @pdpLastsPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'يكفي {name} {days, plural, =1{يوماً واحداً} =2{يومين} few{{days} أيام} other{{days} يوماً}}'**
+  String pdpLastsPet(String name, int days);
+
+  /// No description provided for @pdpPerDay.
+  ///
+  /// In ar, this message translates to:
+  /// **'{price} لليوم'**
+  String pdpPerDay(String price);
+
+  /// No description provided for @accountGreetMorning.
+  ///
+  /// In ar, this message translates to:
+  /// **'صباح الخير'**
+  String get accountGreetMorning;
+
+  /// No description provided for @accountGreetEvening.
+  ///
+  /// In ar, this message translates to:
+  /// **'مساء الخير'**
+  String get accountGreetEvening;
+
+  /// No description provided for @accountPawsPending.
+  ///
+  /// In ar, this message translates to:
+  /// **'+{count} بعد وصول طلبك'**
+  String accountPawsPending(int count);
+
+  /// No description provided for @accountFirstPaws.
+  ///
+  /// In ar, this message translates to:
+  /// **'أول طلب يبدأ رصيد بصماتك'**
+  String get accountFirstPaws;
+
+  /// No description provided for @accountRewards.
+  ///
+  /// In ar, this message translates to:
+  /// **'المكافآت'**
+  String get accountRewards;
+
+  /// No description provided for @accountTopTier.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصلت أعلى مستوى في العائلة'**
+  String get accountTopTier;
+
+  /// No description provided for @accountArrives.
+  ///
+  /// In ar, this message translates to:
+  /// **'يصلك'**
+  String get accountArrives;
+
+  /// No description provided for @accountStepReceived.
+  ///
+  /// In ar, this message translates to:
+  /// **'استلمناه'**
+  String get accountStepReceived;
+
+  /// No description provided for @accountStepPacked.
+  ///
+  /// In ar, this message translates to:
+  /// **'جهّزناه'**
+  String get accountStepPacked;
+
+  /// No description provided for @accountStepOnWay.
+  ///
+  /// In ar, this message translates to:
+  /// **'في الطريق'**
+  String get accountStepOnWay;
+
+  /// No description provided for @accountStepDelivered.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصل'**
+  String get accountStepDelivered;
+
+  /// No description provided for @accountPetsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حيواناتي'**
+  String get accountPetsTitle;
+
+  /// No description provided for @accountPetOrderExpress.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلبه خلال ساعتين'**
+  String get accountPetOrderExpress;
+
+  /// No description provided for @accountPetOrder.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلبه'**
+  String get accountPetOrder;
+
+  /// No description provided for @accountPetProfile.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملف {name}'**
+  String accountPetProfile(String name);
+
+  /// No description provided for @accountPetNoFood.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل طعامه ونذكّرك قبل ما يخلص'**
+  String get accountPetNoFood;
+
+  /// No description provided for @accountAddPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف حيواناً'**
+  String get accountAddPet;
+
+  /// No description provided for @accountHouseholdBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرّفنا على حيوانك، ونذكّرك قبل ما يخلص طعامه ونجهّز له هدية عيد ميلاده'**
+  String get accountHouseholdBody;
+
+  /// No description provided for @accountHouseholdCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف حيوانك'**
+  String get accountHouseholdCta;
+
+  /// No description provided for @accountUsualTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشترياتك المعتادة'**
+  String get accountUsualTitle;
+
+  /// No description provided for @accountUsualAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل مشترياتي'**
+  String get accountUsualAll;
+
+  /// No description provided for @accountAddAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضفها كلها'**
+  String get accountAddAll;
+
+  /// No description provided for @accountFirstOrderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أول طلب يبدأ رحلتك'**
+  String get accountFirstOrderTitle;
+
+  /// No description provided for @accountFirstOrderBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تكسب بصمات مع كل طلب، وتتابعه لحظة بلحظة'**
+  String get accountFirstOrderBody;
+
+  /// No description provided for @accountStartShopping.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابدأ التسوّق'**
+  String get accountStartShopping;
+
+  /// No description provided for @accountWishlistHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اضغط القلب على أي منتج'**
+  String get accountWishlistHint;
+
+  /// No description provided for @accountAddressesHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف عنوان التوصيل'**
+  String get accountAddressesHint;
+
+  /// No description provided for @accountFriends.
+  ///
+  /// In ar, this message translates to:
+  /// **'أصدقائي'**
+  String get accountFriends;
+
+  /// No description provided for @accountFriendsJoined.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{انضم صديق واحد} =2{انضم صديقان} few{انضم {count} أصدقاء} other{انضم {count} صديقاً}}'**
+  String accountFriendsJoined(int count);
+
+  /// No description provided for @accountFriendsNone.
+  ///
+  /// In ar, this message translates to:
+  /// **'ادعُ أول صديق'**
+  String get accountFriendsNone;
+
+  /// No description provided for @accountInviteTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ادعُ صديقاً لزوبوكسي'**
+  String get accountInviteTitle;
+
+  /// No description provided for @accountInviteBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'ولك {count} بصمة لما يطلب أول مرة'**
+  String accountInviteBody(int count);
+
+  /// No description provided for @accountInviteCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'شارك رمزك'**
+  String get accountInviteCta;
+
+  /// No description provided for @accountHelp.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحتاج مساعدة؟ كلمنا على واتساب'**
+  String get accountHelp;
+
+  /// No description provided for @accountSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإعدادات'**
+  String get accountSettings;
+
+  /// No description provided for @accountSettingsAccount.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحساب'**
+  String get accountSettingsAccount;
+
+  /// No description provided for @accountSettingsHelp.
+  ///
+  /// In ar, this message translates to:
+  /// **'المساعدة'**
+  String get accountSettingsHelp;
+
+  /// No description provided for @accountVersionFooter.
+  ///
+  /// In ar, this message translates to:
+  /// **'زوبوكسي {version}'**
+  String accountVersionFooter(String version);
+
+  /// No description provided for @accountGuestTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضم لعائلة زوبوكسي'**
+  String get accountGuestTitle;
+
+  /// No description provided for @accountGuestBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'بصمات مع كل طلب، هدايا حسب نوع حيوانك، وتذكير قبل ما يخلص طعامه'**
+  String get accountGuestBody;
+
+  /// No description provided for @accountGuestCta.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل برقم جوالك'**
+  String get accountGuestCta;
+
+  /// No description provided for @accountGuestNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز تحقق واحد، بدون كلمة مرور'**
+  String get accountGuestNote;
+
+  /// No description provided for @accountPerkTrack.
+  ///
+  /// In ar, this message translates to:
+  /// **'تتبّع طلبك لحظة بلحظة'**
+  String get accountPerkTrack;
+
+  /// No description provided for @accountPerkTrackBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'وتعرف وقت الوصول قبل ما تطلب'**
+  String get accountPerkTrackBody;
+
+  /// No description provided for @accountPerkReorder.
+  ///
+  /// In ar, this message translates to:
+  /// **'اطلب مشترياتك بلمسة'**
+  String get accountPerkReorder;
+
+  /// No description provided for @accountPerkReorderBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل ما اشتريته محفوظ لك'**
+  String get accountPerkReorderBody;
+
+  /// No description provided for @accountPerkPet.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملف لحيوانك'**
+  String get accountPerkPet;
+
+  /// No description provided for @accountPerkPetBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'طعامه، وزنه، وعيد ميلاده'**
+  String get accountPerkPetBody;
+
+  /// Splash greeting before noon
+  ///
+  /// In ar, this message translates to:
+  /// **'صباح الخير'**
+  String get splashMorning;
+
+  /// Splash greeting from noon on
+  ///
+  /// In ar, this message translates to:
+  /// **'مساء الخير'**
+  String get splashEvening;
+
+  /// Splash headline naming the customer's pet; name is as the customer wrote it
+  ///
+  /// In ar, this message translates to:
+  /// **'{name} بانتظارك'**
+  String splashPetWaiting(String name);
+
+  /// Splash headline when the pet has no name on file
+  ///
+  /// In ar, this message translates to:
+  /// **'أهلاً من جديد'**
+  String get splashWelcomeBack;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -15,6 +15,7 @@ export SHOREBIRD_TOKEN=$(cat ~/.zooboxi/shorebird-token.txt)
 
 ## إصدار جديد (مرة لكل رقم بناء)
 1. ارفع `version: X.Y.Z+N` في `pubspec.yaml`.
+   ومعه `lib/core/config/app_version.dart` بنفس الرقم — يظهر في «عن التطبيق» ويُرسل للمتجر، و`test/app_version_test.dart` يفشل إن اختلفا.
 2. Android: `shorebird release android --artifact apk --flutter-version 3.41.7 --no-confirm`
    → `build/app/outputs/bundle/release/app-release.aab` يُرفع إلى Play عبر `tool/play.rb` (انظر PLAY.md)، والـAPK إلى `dl/`.
 3. iOS: `shorebird release ios --flutter-version 3.41.7 --export-options-plist ios/ExportOptions.plist --no-confirm`

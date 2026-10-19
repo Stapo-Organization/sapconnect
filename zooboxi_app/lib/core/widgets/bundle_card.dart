@@ -94,20 +94,23 @@ class BundleCardView extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                Row(
+                // A Wrap, not a Row: beside the express chip the pieces line
+                // had room for one character and read «…1». It takes the next
+                // line instead of being cut.
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (express)
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 6),
-                        child: _chip(
-                          context,
-                          '⚡ ${product.deliveryChip?.label ?? l.bundleExpressChip}',
-                          fg: cs.primary,
-                          bg: cs.primaryContainer.withValues(alpha: .6),
-                        ),
+                      _chip(
+                        context,
+                        '⚡ ${product.deliveryChip?.label ?? l.bundleExpressChip}',
+                        fg: cs.primary,
+                        bg: cs.primaryContainer.withValues(alpha: .6),
                       ),
-                    Expanded(
-                      child: Text(
+                    if (tag?.giftLine != null || (tag != null && tag.pieces > 1))
+                      Text(
                         tag?.giftLine != null
                             ? '🎁 ${tag!.giftLine}'
                             : (tag != null && tag.pieces > 1
@@ -122,7 +125,6 @@ class BundleCardView extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -184,7 +186,7 @@ class BundleCardView extends ConsumerWidget {
 
   /// The composed artwork's own ground, repeated behind it so a `contain`
   /// fit shows the whole picture without a visible letterbox.
-  static const Color _artworkGround = Color(0xFFF4F7F6);
+  static const Color _artworkGround = ZbTokens.artworkGround;
 
   Widget _chip(BuildContext context, String text, {required Color bg, required Color fg}) {
     return Container(
@@ -301,9 +303,10 @@ class BundleRailView extends ConsumerWidget {
   final String? zone;
 
   static const double _cardWidth = 236;
-  /// Name (2 lines) + chip row + savings chip + price + compare line. Shared
-  /// with the «عرض الكل» grid so a rail card and a grid card are the same card.
-  static const double bodyHeight = 156;
+  /// Name (2 lines) + chip row (which may wrap to two on a narrow grid card)
+  /// + savings chip + price + compare line. Shared with the «عرض الكل» grid
+  /// so a rail card and a grid card are the same card.
+  static const double bodyHeight = 176;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

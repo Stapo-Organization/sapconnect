@@ -14,6 +14,7 @@ import '../data/catalog_models.dart';
 import '../../../core/shelf/shelf_controller.dart';
 import '../data/catalog_repository.dart';
 import 'pet_palette.dart';
+import 'widgets/all_products_head.dart';
 import 'widgets/pet_section.dart';
 import 'widgets/pet_strip.dart';
 
@@ -76,6 +77,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               path: '/listing',
               queryParameters: {'category': node.slug, 'title': node.name},
             ).toString(),
+    );
+  }
+
+  /// A condition from «تسوّق حسب الاحتياج» is a store category of its own.
+  void _openNeed(NeedNode need) {
+    context.push(
+      Uri(path: '/listing', queryParameters: {'category': need.slug, 'title': need.name}).toString(),
     );
   }
 
@@ -197,6 +205,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  sliver: SliverToBoxAdapter(
+                    child: AllProductsCard(onOpen: () => context.push('/listing?all=1')),
+                  ),
+                ),
                 SliverPersistentHeader(
                   pinned: true,
                   delegate: PetStripHeader(
@@ -234,6 +248,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                               ),
                               revealed: _revealed.contains(index),
                               onOpen: _open,
+                              onNeed: _openNeed,
                             ),
                           ),
                         ],

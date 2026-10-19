@@ -193,7 +193,11 @@ class OrderLine {
         variationId: asIntOrNull(json['variation_id']),
         image: asStringOrNull(json['image']),
         qty: asInt(json['qty'], fallback: 1),
-        total: asDouble(json['line_total'] ?? json['total']),
+        // VAT included, as the customer paid it. A store before 2026-09-24
+        // sends WooCommerce's ex-VAT line only; Saudi VAT lifts it back.
+        total: json.containsKey('line_total_incl')
+            ? asDouble(json['line_total_incl'])
+            : roundMoney(asDouble(json['line_total'] ?? json['total']) * 1.15),
       );
 }
 
@@ -223,11 +227,15 @@ class OrderDetail {
 
   factory OrderDetail.fromJson(Map<String, dynamic> json) {
     final addressJson = asMap(json['address']);
+    final items = asMapList(json['items']).map(OrderLine.fromJson).toList();
     return OrderDetail(
       summary: OrderSummary.fromJson(json),
-      items: asMapList(json['items']).map(OrderLine.fromJson).toList(),
+      items: items,
       address: addressJson.isEmpty ? null : Address.fromJson(addressJson),
-      totals: CartTotals.fromJson(asMap(json['totals'])),
+      totals: CartTotals.fromJson(
+        asMap(json['totals']),
+        itemsIncl: roundMoney(items.fold(0.0, (sum, line) => sum + line.total)),
+      ),
       timeline: asMapList(json['timeline']).map(OrderTimelineStep.fromJson).toList(),
       tracking: OrderTracking.maybe(json['tracking']),
       notes: asStringOrNull(json['notes']),

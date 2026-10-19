@@ -30,11 +30,15 @@ class ProductRailView extends ConsumerWidget {
     this.cardWidth = ProductCardMetrics.railCardWidth,
     this.zone,
     this.animate = true,
+    this.edge = 16,
   });
 
   final String title;
   final String? subtitle;
   final List<ProductCard> products;
+
+  /// The inset at both ends — 0 inside a list that is already padded.
+  final double edge;
   final VoidCallback? onSeeAll;
   final Future<bool> Function(ProductCard product)? onAdd;
   final double cardWidth;
@@ -51,7 +55,12 @@ class ProductRailView extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: title, subtitle: subtitle, onSeeAll: onSeeAll),
+        SectionHeader(
+          title: title,
+          subtitle: subtitle,
+          onSeeAll: onSeeAll,
+          padding: EdgeInsetsDirectional.only(start: edge, end: edge),
+        ),
         const SizedBox(height: 12),
         SizedBox(
           // Same slot math as the grid, so a rail card and a grid card are
@@ -59,7 +68,7 @@ class ProductRailView extends ConsumerWidget {
           height: ProductCardMetrics.height(context, cardWidth),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
+            padding: EdgeInsetsDirectional.only(start: edge, end: edge),
             physics: const BouncingScrollPhysics(),
             itemCount: products.length + (endCard ? 1 : 0),
             separatorBuilder: (_, _) => const SizedBox(width: 12),
@@ -77,6 +86,8 @@ class ProductRailView extends ConsumerWidget {
                   product: products[index],
                   onAdd: onAdd,
                   zone: zone,
+                  // «رائج الآن» / «الأكثر طلباً» say it of every card already.
+                  ranked: zone == 'trending' || zone == 'bestsellers',
                 ),
               );
               if (!stagger) return card;
