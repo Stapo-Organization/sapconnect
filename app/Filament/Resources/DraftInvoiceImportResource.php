@@ -4,8 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DraftInvoiceImportResource\Pages;
 use App\Filament\Traits\ReadOnlyStakeholder;
+use App\Models\DraftInvoiceChunk;
 use App\Models\DraftInvoiceRun;
+use App\Services\SAP\DraftInvoiceImportService;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -15,11 +18,13 @@ use Symfony\Component\Process\Process;
 /**
  * "تقرير مبيعات → مسودات فواتير SAP".
  *
- * Upload a flat sales report (one row = one sold line) and turn it into SAP
- * **draft** invoices (Drafts / oInvoices), one draft per warehouse-chunk, with
- * nearest-expiry (FEFO) batches attached for batch-managed items and freight
- * summed into the header. Drafts never post to the ledger until a human opens
- * them in SAP and clicks Add. The heavy work runs in a background CLI worker.
+ * Upload a flat sales report (one row = one sold line). Every upload is first
+ * ANALYSED (nothing is written to SAP): customers split, returns netted off
+ * the sales, customers/items checked in SAP, duplicates listed, an Excel
+ * report built. A clean analysis then gets an «ارفع إلى SAP» button that
+ * creates the **draft** invoices (Drafts / oInvoices) with the same file and
+ * settings. Drafts never post to the ledger until a human opens them in SAP
+ * and clicks Add. The heavy work runs in a background CLI worker.
  */
 class DraftInvoiceImportResource extends Resource
 {
@@ -65,82 +70,262 @@ class DraftInvoiceImportResource extends Resource
         return $table
             ->poll('10s')
             ->defaultSort('id', 'desc')
+            ->recordAction('review')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
-                Tables\Columns\TextColumn::make('source_file')->label('الملف')->limit(28)->tooltip(fn ($record) => $record->source_file)->searchable(),
-                Tables\Columns\TextColumn::make('company_db')->label('قاعدة SAP')->badge()->color('gray'),
-                Tables\Columns\TextColumn::make('mode')->label('النوع')->badge()
-                    ->formatStateUsing(fn ($state) => $state === 'post' ? 'ترحيل (POST)' : 'معاينة')
+                Tables\Columns\TextColumn::make('source_file')->label('الملف')->limit(34)->tooltip(fn ($record) => $record->source_file)->searchable()->weight('medium'),
+                Tables\Columns\TextColumn::make('mode')->label('العملية')->badge()
+                    ->formatStateUsing(fn ($state) => $state === 'post' ? 'رفع إلى SAP' : 'تحليل')
+                    ->icon(fn ($state) => $state === 'post' ? 'heroicon-m-cloud-arrow-up' : 'heroicon-m-magnifying-glass')
                     ->color(fn ($state) => $state === 'post' ? 'warning' : 'gray'),
-                Tables\Columns\TextColumn::make('warehouse_filter')->label('مستودع')->default('الكل')->badge(),
                 Tables\Columns\TextColumn::make('status')->label('الحالة')->badge()
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'pending' => 'بالانتظار', 'running' => 'يعمل…', 'done' => 'تم', 'failed' => 'فشل', default => $state,
+                    ->formatStateUsing(fn ($state, $record) => match ($state) {
+                        'pending' => 'بالانتظار', 'running' => 'يعمل…', 'failed' => 'فشل',
+                        'done' => static::blockingErrors($record) ? 'فيه أخطاء' : 'تم',
+                        default => $state,
                     })
-                    ->color(fn ($state) => match ($state) {
-                        'running' => 'info', 'done' => 'success', 'failed' => 'danger', default => 'gray',
+                    ->color(fn ($state, $record) => match ($state) {
+                        'running', 'pending' => 'info', 'failed' => 'danger',
+                        'done' => static::blockingErrors($record) ? 'danger' : 'success',
+                        default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('totals')->label('النتيجة')->getStateUsing(function ($record) {
-                    $t = $record->totals;
-                    if (!$t) {
-                        return '—';
-                    }
-                    return sprintf(
-                        'مسودات %d · مرحّلة %d · تخطّي %d · فشل %d · استثناءات %d',
-                        $t['drafts'] ?? 0, $t['posted'] ?? 0, $t['skipped'] ?? 0, $t['failed'] ?? 0, $t['exceptions'] ?? 0
-                    );
-                })->wrap(),
-                Tables\Columns\TextColumn::make('created_at')->label('التاريخ')->dateTime('Y-m-d H:i')->sortable(),
+                Tables\Columns\TextColumn::make('customers')->label('العملاء')
+                    ->getStateUsing(fn ($record) => count($record->totals['warehouses'] ?? []) ?: '—')->alignCenter(),
+                Tables\Columns\TextColumn::make('drafts')->label('المسودات')
+                    ->getStateUsing(function ($record) {
+                        $t = $record->totals;
+                        if (!$t) {
+                            return '—';
+                        }
+                        return $record->mode === 'post'
+                            ? sprintf('%d / %d', ($t['posted'] ?? 0) + ($t['skipped'] ?? 0), $t['drafts'] ?? 0)
+                            : (string) ($t['drafts'] ?? 0);
+                    })
+                    ->description(fn ($record) => ($record->mode === 'post' && ($record->totals['failed'] ?? 0)) ? 'فشل ' . $record->totals['failed'] : null)
+                    ->alignCenter(),
+                Tables\Columns\TextColumn::make('net_total')->label('الصافي ﷼')
+                    ->getStateUsing(fn ($record) => isset($record->totals['net_total']) ? number_format((float) $record->totals['net_total'], 2) : '—')
+                    ->description(fn ($record) => ($record->totals['returns']['lines'] ?? 0) ? 'بعد خصم ' . $record->totals['returns']['lines'] . ' مرتجع' : null),
+                Tables\Columns\TextColumn::make('notes')->label('ملاحظات')
+                    ->getStateUsing(function ($record) {
+                        $t = $record->totals;
+                        if (!$t) {
+                            return null;
+                        }
+                        $e = static::blockingErrors($record);
+                        $w = $t['warnings'] ?? max(0, ($t['exceptions'] ?? 0) - $e);
+                        return array_values(array_filter([
+                            $e ? "أخطاء $e" : null,
+                            $w ? "تنبيهات $w" : null,
+                            ($t['duplicates']['extra_lines'] ?? 0) ? 'مكرر ' . $t['duplicates']['extra_lines'] : null,
+                        ]));
+                    })
+                    ->badge()
+                    ->color(fn ($state) => str_starts_with((string) $state, 'أخطاء') ? 'danger' : 'warning'),
+                Tables\Columns\TextColumn::make('created_at')->label('التاريخ')->dateTime('Y-m-d H:i')->sortable()->color('gray'),
             ])
             ->actions([
-                Tables\Actions\Action::make('details')
-                    ->label('تفاصيل')
+                Tables\Actions\Action::make('review')
+                    ->label('مراجعة')
                     ->icon('heroicon-o-eye')
-                    ->modalHeading(fn ($record) => "تفاصيل العملية #{$record->id}")
+                    ->slideOver()
+                    ->modalWidth('6xl')
+                    ->modalHeading(fn ($record) => ($record->mode === 'post' ? 'رفع' : 'تحليل') . " #{$record->id} — {$record->source_file}")
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('إغلاق')
-                    ->modalContent(fn ($record) => new \Illuminate\Support\HtmlString(static::detailsHtml($record))),
+                    ->modalContent(fn ($record) => view('filament.resources.draft-invoice-import.review', [
+                        'run' => $record,
+                        'notes' => static::notes($record),
+                        'logTail' => static::logTail($record),
+                    ])),
 
-                Tables\Actions\Action::make('download_preview')
-                    ->label('المعاينة')->icon('heroicon-o-document-magnifying-glass')->color('info')
-                    ->visible(fn ($record) => filled($record->preview_path))
-                    ->action(fn ($record) => static::downloadArtifact($record->preview_path)),
+                Tables\Actions\Action::make('post')
+                    ->label('ارفع إلى SAP')
+                    ->icon('heroicon-o-cloud-arrow-up')
+                    ->color('success')
+                    ->button()
+                    ->visible(fn ($record) => static::canPost($record))
+                    ->requiresConfirmation()
+                    ->modalIcon('heroicon-o-cloud-arrow-up')
+                    ->modalHeading('رفع المسودات إلى SAP')
+                    ->modalDescription(function ($record) {
+                        $t = $record->totals;
+                        $customers = count($t['warehouses'] ?? []);
+                        return sprintf(
+                            'سيتم إنشاء %d مسودة فاتورة لـ %d %s بصافي %s ﷼ في %s بتاريخ %s. المسودة لا تُرحّل محاسبياً ولا مخزنياً حتى تفتحها في SAP وتضغط Add. الرفع آمن من التكرار: أي مسودة رُفعت من قبل لنفس الملف تُتخطّى.',
+                            $t['drafts'] ?? 0, $customers, $customers === 1 ? 'عميل' : 'عملاء',
+                            number_format((float) ($t['net_total'] ?? 0), 2), $record->company_db, optional($record->doc_date)->format('Y-m-d')
+                        );
+                    })
+                    ->modalSubmitActionLabel('نعم، ارفع')
+                    ->action(function ($record) {
+                        $run = static::startPostFrom($record);
+                        Notification::make()
+                            ->title('بدأ الرفع #' . $run->id)
+                            ->body('يتم إنشاء المسودات في SAP بالخلفية. تابع التقدّم من «مراجعة».')
+                            ->success()
+                            ->send();
+                    }),
 
-                Tables\Actions\Action::make('download_exceptions')
-                    ->label('الاستثناءات')->icon('heroicon-o-exclamation-triangle')->color('warning')
-                    ->visible(fn ($record) => filled($record->exceptions_path))
-                    ->action(fn ($record) => static::downloadArtifact($record->exceptions_path)),
+                Tables\Actions\Action::make('report')
+                    ->label('تقرير Excel')
+                    ->icon('heroicon-o-table-cells')
+                    ->color('gray')
+                    ->visible(fn ($record) => filled($record->totals['report_path'] ?? null))
+                    ->action(fn ($record) => static::downloadArtifact($record->totals['report_path'], sprintf('تقرير_%s_%d.xlsx', $record->mode === 'post' ? 'رفع' : 'تحليل', $record->id))),
 
-                Tables\Actions\Action::make('download_result')
-                    ->label('النتيجة')->icon('heroicon-o-check-circle')->color('success')
-                    ->visible(fn ($record) => filled($record->result_path))
-                    ->action(fn ($record) => static::downloadArtifact($record->result_path)),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('download_preview')
+                        ->label('معاينة المسودات (JSON)')->icon('heroicon-o-code-bracket')
+                        ->visible(fn ($record) => filled($record->preview_path))
+                        ->action(fn ($record) => static::downloadArtifact($record->preview_path)),
+                    Tables\Actions\Action::make('download_exceptions')
+                        ->label('الملاحظات (JSON)')->icon('heroicon-o-exclamation-triangle')
+                        ->visible(fn ($record) => filled($record->exceptions_path))
+                        ->action(fn ($record) => static::downloadArtifact($record->exceptions_path)),
+                    Tables\Actions\Action::make('download_result')
+                        ->label('نتيجة الرفع (JSON)')->icon('heroicon-o-check-circle')
+                        ->visible(fn ($record) => filled($record->result_path))
+                        ->action(fn ($record) => static::downloadArtifact($record->result_path)),
+                    Tables\Actions\Action::make('ssh')
+                        ->label('أمر SSH')->icon('heroicon-o-command-line')
+                        ->visible(fn ($record) => filled($record->command))
+                        ->modalHeading('أمر التشغيل اليدوي')
+                        ->modalDescription('إذا بقيت العملية «بالانتظار» (مثلاً لو كان التشغيل بالخلفية معطّل)، شغّل هذا الأمر على السيرفر.')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('إغلاق')
+                        ->modalContent(fn ($record) => new \Illuminate\Support\HtmlString('<pre dir="ltr" style="white-space:pre-wrap;font-size:.75rem;background:#0f172a;color:#e2e8f0;padding:.75rem;border-radius:.5rem">' . e($record->command) . '</pre>')),
+                ])->icon('heroicon-m-ellipsis-vertical')->tooltip('ملفات تقنية'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
-    /** Create the run row + spawn the background worker. Returns the run. */
-    public static function startRun(array $data): DraftInvoiceRun
+    /** Blocking errors of a run (older runs predate the split, so they have none). */
+    public static function blockingErrors(DraftInvoiceRun $run): int
     {
-        $relPath = $data['file'];
-        $absPath = Storage::disk('local')->path($relPath);
+        return (int) ($run->totals['errors'] ?? 0);
+    }
 
-        $post = !($data['dry_run'] ?? true);
+    /**
+     * A finished, clean analysis can be uploaded once: not while another upload
+     * of the same file is running, and not after every draft is already in SAP.
+     */
+    public static function canPost(DraftInvoiceRun $run): bool
+    {
+        $t = $run->totals;
+        if ($run->mode !== 'dry_run' || $run->status !== 'done' || !$t || ($t['drafts'] ?? 0) < 1 || static::blockingErrors($run) || !isset($t['errors'])) {
+            return false;
+        }
+        if (!is_file($t['file_path'] ?? '')) {
+            return false;
+        }
+
+        $busy = DraftInvoiceRun::query()
+            ->where('file_hash', $run->file_hash)
+            ->where('mode', 'post')
+            ->whereIn('status', ['pending', 'running'])
+            ->exists();
+        if ($busy) {
+            return false;
+        }
+
+        $posted = DraftInvoiceChunk::query()->where('file_hash', $run->file_hash)->where('status', 'posted')->count();
+        return $posted < ($t['drafts'] ?? 0);
+    }
+
+    /** Grouped, labelled notes for the review screen. */
+    public static function notes(DraftInvoiceRun $run): array
+    {
+        $path = $run->exceptions_path ? Storage::disk('local')->path($run->exceptions_path) : null;
+        if (!$path || !is_file($path)) {
+            return [];
+        }
+        $labels = [
+            'missing_key' => 'أسطر بدون كود صنف أو مستودع',
+            'unknown_customer' => 'عملاء غير موجودين في SAP',
+            'unknown_item' => 'أصناف غير موجودة في SAP',
+            'zero_qty' => 'أسطر كميتها صفر (تجاهلناها)',
+            'return_unmatched' => 'مرتجعات ما لقينا لها مبيعات تُخصم منها',
+            'no_batch_in_warehouse' => 'أصناف بدون دفعة في المستودع',
+            'qty_over_onhand' => 'كميات أكبر من رصيد الدفعات',
+            'non_positive_qty' => 'أسطر كميتها صفر أو سالبة',
+        ];
+        $grouped = [];
+        foreach (json_decode((string) file_get_contents($path), true) ?: [] as $e) {
+            $type = $e['type'] ?? 'other';
+            $grouped[$type] ??= [
+                'label' => $labels[$type] ?? $type,
+                'blocking' => in_array($type, DraftInvoiceImportService::BLOCKING, true),
+                'count' => 0,
+            ];
+            $grouped[$type]['count']++;
+        }
+        uasort($grouped, fn ($a, $b) => [$b['blocking'], $b['count']] <=> [$a['blocking'], $a['count']]);
+
+        return array_values($grouped);
+    }
+
+    public static function logTail(DraftInvoiceRun $run, int $lines = 14): ?string
+    {
+        $file = storage_path("logs/draft_invoice_run_{$run->id}.log");
+        if (!is_file($file)) {
+            return null;
+        }
+        $all = preg_split('/\R/', trim((string) file_get_contents($file)));
+        return implode("\n", array_slice($all, -$lines));
+    }
+
+    /** Analyse an uploaded file (never writes to SAP). */
+    public static function startAnalysis(array $data): DraftInvoiceRun
+    {
+        return static::launch([
+            'file_path' => Storage::disk('local')->path($data['file']),
+            'card_code' => $data['card_code'] ?? null,
+            'doc_date' => $data['doc_date'] ?? null,
+            'chunk_size' => $data['chunk_size'] ?? 200,
+            'expense_code' => $data['expense_code'] ?? null,
+            'tax_code' => $data['tax_code'] ?? null,
+            'no_batches' => !($data['with_batches'] ?? false),
+            'warehouse_filter' => $data['warehouse_filter'] ?? null,
+        ], post: false);
+    }
+
+    /** Upload exactly what a clean analysis showed: same file, same settings. */
+    public static function startPostFrom(DraftInvoiceRun $analysis): DraftInvoiceRun
+    {
+        abort_unless(static::canPost($analysis), 422, 'This analysis cannot be uploaded.');
+
+        return static::launch([
+            'file_path' => $analysis->totals['file_path'],
+            'card_code' => $analysis->card_code,
+            'doc_date' => optional($analysis->doc_date)->format('Y-m-d'),
+            'chunk_size' => $analysis->chunk_size,
+            'expense_code' => $analysis->expense_code,
+            'tax_code' => $analysis->tax_code,
+            'no_batches' => $analysis->no_batches,
+            'warehouse_filter' => $analysis->warehouse_filter,
+        ], post: true);
+    }
+
+    /** Create the run row + spawn the background worker. */
+    protected static function launch(array $p, bool $post): DraftInvoiceRun
+    {
+        $absPath = $p['file_path'];
 
         $run = DraftInvoiceRun::create([
             'source_file' => basename($absPath),
             'file_hash' => '',
-            'company_db' => $data['company_db'] ?: config('draft_invoices.default_db'),
+            'company_db' => config('draft_invoices.default_db'),
             'mode' => $post ? 'post' : 'dry_run',
-            'card_code' => $data['card_code'] ?: null,
-            'doc_date' => $data['doc_date'] ?: now()->format('Y-m-d'),
-            'chunk_size' => (int) ($data['chunk_size'] ?: 200),
-            'expense_code' => $data['expense_code'] !== null && $data['expense_code'] !== '' ? (int) $data['expense_code'] : null,
-            'tax_code' => $data['tax_code'] ?: null,
-            'no_batches' => (bool) ($data['no_batches'] ?? false),
-            'warehouse_filter' => $data['warehouse_filter'] ?: null,
+            'card_code' => $p['card_code'] ?: null,
+            'doc_date' => $p['doc_date'] ?: now()->format('Y-m-d'),
+            'chunk_size' => (int) ($p['chunk_size'] ?: 200),
+            'expense_code' => filled($p['expense_code']) ? (int) $p['expense_code'] : null,
+            'tax_code' => $p['tax_code'] ?: null,
+            'no_batches' => (bool) $p['no_batches'],
+            'warehouse_filter' => $p['warehouse_filter'] ?: null,
             'status' => 'pending',
             'created_by' => auth()->id(),
         ]);
@@ -174,32 +359,11 @@ class DraftInvoiceImportResource extends Resource
         return $run;
     }
 
-    protected static function downloadArtifact(string $path)
+    protected static function downloadArtifact(string $path, ?string $name = null)
     {
         $abs = Storage::disk('local')->path($path);
         abort_unless(is_file($abs), 404);
-        return response()->download($abs, basename($path));
-    }
-
-    protected static function detailsHtml(DraftInvoiceRun $record): string
-    {
-        $t = $record->totals ?? [];
-        $rows = '';
-        foreach (($t['warehouses'] ?? []) as $wh => $w) {
-            $rows .= sprintf(
-                '<tr><td class="px-2 py-1 font-mono">%s</td><td class="px-2 py-1">%d</td><td class="px-2 py-1">%d</td><td class="px-2 py-1 text-green-600">%d</td><td class="px-2 py-1 text-gray-500">%d</td><td class="px-2 py-1 text-red-600">%d</td></tr>',
-                e($wh), $w['chunks'] ?? 0, $w['lines'] ?? 0, $w['posted'] ?? 0, $w['skipped'] ?? 0, $w['failed'] ?? 0
-            );
-        }
-
-        $whTable = $rows
-            ? '<table class="text-xs w-full border mt-1"><thead><tr class="bg-gray-100"><th class="px-2 py-1 text-right">مستودع</th><th class="px-2 py-1">مسودات</th><th class="px-2 py-1">أسطر</th><th class="px-2 py-1">مرحّلة</th><th class="px-2 py-1">تخطّي</th><th class="px-2 py-1">فشل</th></tr></thead><tbody>' . $rows . '</tbody></table>'
-            : '<div class="text-xs text-gray-400">لا توجد بيانات بعد.</div>';
-
-        $err = $record->error ? '<div class="mt-2 p-2 bg-red-50 text-red-700 text-xs rounded">' . e($record->error) . '</div>' : '';
-        $cmd = $record->command ? '<div class="mt-3 text-xs"><div class="text-gray-500 mb-1">إذا بقيت الحالة «بالانتظار»، شغّل هذا الأمر عبر SSH:</div><pre class="bg-gray-900 text-gray-100 p-2 rounded overflow-auto" style="font-size:0.7rem">' . e($record->command) . '</pre></div>' : '';
-
-        return '<div dir="rtl" class="space-y-2 text-sm">' . $whTable . $err . $cmd . '</div>';
+        return response()->download($abs, $name ?? basename($path));
     }
 
     public static function getPages(): array

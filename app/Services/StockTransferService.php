@@ -39,7 +39,7 @@ class StockTransferService
         $activeDb = $this->sap->getCompanyDb();
 
         // Determine Last Sync Date from the unified table
-        $lastUpdate = StockTransfer::where('sap_database', $activeDb)->max('update_date');
+        $lastUpdate = StockTransfer::where('sap_database', $activeDb)->where('doc_type', StockTransfer::TYPE_REQUEST)->max('update_date');
 
         // Build filter
         if ($lastUpdate && !$fullSync) {
@@ -96,7 +96,25 @@ class StockTransferService
                 $skip += $pageCount;
             } while ($pageCount > 0);
 
-            Log::info("StockTransferService: Complete. New: $newCount, Updated: $updatedCount, Skipped: $skippedCount.");
+            // Deliveries and closings SAP made without touching UpdateDate (transfers copied from requests).
+            $closedCount = 0;
+            if (\Illuminate\Support\Facades\Cache::add("stock-transfers:reconcile:$activeDb", 1, now()->addHour())) {
+                try {
+                    $closedCount = $this->reconcileClosed($activeDb);
+                } catch (\Exception $e) {
+                    Log::warning("StockTransferService: reconcile failed: " . $e->getMessage());
+                }
+            }
+
+            // Stock transfers SAP posted without a request.
+            $directCount = 0;
+            try {
+                $directCount = $this->importDirectTransfers($activeDb);
+            } catch (\Exception $e) {
+                Log::warning("StockTransferService: direct transfers failed: " . $e->getMessage());
+            }
+
+            Log::info("StockTransferService: Complete. New: $newCount, Updated: $updatedCount, Skipped: $skippedCount, Closed: $closedCount, Direct: $directCount.");
 
             // Notify sender warehouse users for new transfers
             if (!empty($newTransferIds)) {
@@ -109,6 +127,8 @@ class StockTransferService
                 'new' => $newCount,
                 'updated' => $updatedCount,
                 'skipped' => $skippedCount,
+                'closed' => $closedCount,
+                'direct' => $directCount,
                 'sample_date' => $lastUpdate,
             ];
 
@@ -116,6 +136,162 @@ class StockTransferService
             Log::error("StockTransferService: Failed: " . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * SAP leaves a request's UpdateDate alone when a stock transfer delivers part
+     * of it or closes it, so the incremental pull never sees either: the app showed
+     * nothing received and old requests stayed «New» for good. Re-read every
+     * request we hold open and store SAP's delivered quantities and status.
+     * Reads SAP only; returns how many SAP had closed.
+     */
+    protected function reconcileClosed(string $activeDb): int
+    {
+        $openHere = StockTransfer::where('sap_database', $activeDb)
+            ->where('doc_type', StockTransfer::TYPE_REQUEST)
+            ->where('document_status', 'bost_Open')
+            ->pluck('doc_entry');
+
+        $closed = 0;
+        foreach ($openHere->chunk(20) as $chunk) {
+            $rows = $this->sap->get('InventoryTransferRequests', [
+                '$filter' => $chunk->map(fn ($de) => 'DocEntry eq ' . (int) $de)->join(' or '),
+                '$top' => 20,
+            ])['value'] ?? [];
+            foreach ($rows as $row) {
+                $existing = StockTransfer::where('sap_database', $activeDb)->where('doc_type', StockTransfer::TYPE_REQUEST)->where('doc_entry', $row['DocEntry'])->first();
+                if (! $existing) {
+                    continue;
+                }
+                DB::transaction(fn () => $this->upsertTransfer($row, $activeDb, $existing));
+                if (($row['DocumentStatus'] ?? null) === 'bost_Close') {
+                    $closed++;
+                }
+            }
+        }
+        if ($closed) {
+            Log::info("StockTransferService: closed $closed requests SAP had closed.");
+        }
+        return $closed;
+    }
+
+
+    /**
+     * Stock transfers SAP posts with no request behind them never reached the
+     * app, so the receiving branch had nothing to confirm. Mirror each one into
+     * a branch that has app users as already shipped: the branch scans what
+     * arrived and confirms. Reads SAP only; returns how many were added.
+     */
+    protected function importDirectTransfers(string $activeDb): int
+    {
+        $floor = (string) config('sap.direct_transfers_since', '2026-10-18');
+        $last = StockTransfer::where('sap_database', $activeDb)->where('doc_type', StockTransfer::TYPE_TRANSFER)->max('doc_date');
+        $from = $last ? max(Carbon::parse($last)->subDays(2)->format('Y-m-d'), $floor) : $floor;
+
+        $receivers = $this->appWarehouses();
+        if (empty($receivers)) {
+            return 0;
+        }
+        $known = StockTransfer::where('sap_database', $activeDb)->where('doc_type', StockTransfer::TYPE_TRANSFER)
+            ->where('doc_date', '>=', $from)->pluck('doc_entry')->flip();
+
+        $added = 0;
+        $skip = 0;
+        do {
+            $page = $this->sap->get('StockTransfers', [
+                '$filter' => "DocDate ge '$from'",
+                '$select' => 'DocEntry,ToWarehouse',
+                '$orderby' => 'DocEntry',
+                '$skip' => $skip,
+                '$top' => 100,
+            ])['value'] ?? [];
+            $skip += count($page);
+
+            foreach ($page as $head) {
+                $de = (int) $head['DocEntry'];
+                $seenKey = "stock-transfers:direct-skip:$activeDb:$de";
+                if (isset($known[$de]) || ! in_array($head['ToWarehouse'] ?? null, $receivers, true) || \Illuminate\Support\Facades\Cache::has($seenKey)) {
+                    continue;
+                }
+                $doc = $this->sap->get("StockTransfers($de)", []);
+                $lines = $doc['StockTransferLines'] ?? [];
+                $fromRequest = collect($lines)->contains(fn ($l) => in_array((string) ($l['BaseType'] ?? ''), ['InventoryTransferRequest', '1250000001'], true));
+                if ($fromRequest || empty($lines)) {
+                    // Already followed through its request; remember so we stop re-reading it.
+                    \Illuminate\Support\Facades\Cache::put($seenKey, 1, now()->addDays(5));
+                    continue;
+                }
+                DB::transaction(fn () => $this->createDirectTransfer($doc, $lines, $activeDb));
+                $added++;
+            }
+        } while (! empty($page));
+
+        if ($added) {
+            Log::info("StockTransferService: added $added direct stock transfers.");
+        }
+        return $added;
+    }
+
+    protected function createDirectTransfer(array $doc, array $lines, string $activeDb): StockTransfer
+    {
+        $memo = trim(implode(' — ', array_filter([$doc['JournalMemo'] ?? null, $doc['Comments'] ?? null])));
+        $transfer = StockTransfer::create([
+            'sap_database' => $activeDb,
+            'doc_entry' => $doc['DocEntry'],
+            'doc_type' => StockTransfer::TYPE_TRANSFER,
+            'doc_num' => $doc['DocNum'],
+            'from_warehouse' => $doc['FromWarehouse'] ?? null,
+            'to_warehouse' => $doc['ToWarehouse'] ?? null,
+            'doc_date' => isset($doc['DocDate']) ? Carbon::parse($doc['DocDate'])->format('Y-m-d') : null,
+            'document_status' => $doc['DocumentStatus'] ?? null,
+            // SAP already moved the stock: nothing for the sender to do, the branch confirms receipt.
+            'internal_status' => StockTransfer::STATUS_SHIPPED,
+            'creation_date' => isset($doc['CreationDate']) ? Carbon::parse($doc['CreationDate']) : null,
+            'update_date' => isset($doc['UpdateDate']) ? Carbon::parse($doc['UpdateDate']) : null,
+            'sender_notes' => $memo !== '' ? $memo : null,
+        ]);
+
+        // One line per item, in pieces (SAP lines may be cartons and may repeat an item).
+        $byItem = [];
+        foreach ($lines as $l) {
+            $code = $l['ItemCode'];
+            $pcs = (float) ($l['InventoryQuantity'] ?? $l['Quantity'] ?? 0);
+            if (! isset($byItem[$code])) {
+                $byItem[$code] = [
+                    'item_code' => $code,
+                    'item_description' => $l['ItemDescription'] ?? null,
+                    'from_warehouse_code' => $l['FromWarehouseCode'] ?? null,
+                    'warehouse_code' => $l['WarehouseCode'] ?? null,
+                    'line_status' => $l['LineStatus'] ?? null,
+                    'quantity' => 0,
+                ];
+            }
+            $byItem[$code]['quantity'] += $pcs;
+        }
+        foreach ($byItem as $line) {
+            $transfer->lines()->create($line + [
+                'sent_quantity' => $line['quantity'],
+                'received_quantity' => $line['quantity'],
+                'actual_received_quantity' => 0,
+            ]);
+        }
+
+        return $transfer;
+    }
+
+    /** Warehouses that have someone on the app to receive. */
+    protected function appWarehouses(): array
+    {
+        $codes = [];
+        foreach (\App\Models\User::whereNotNull('warehouse_code')->pluck('warehouse_code') as $wc) {
+            $decoded = is_string($wc) ? json_decode($wc, true) : $wc;
+            foreach ((array) (is_array($decoded) ? $decoded : $wc) as $c) {
+                if (is_string($c) && $c !== '') {
+                    $codes[$c] = true;
+                }
+            }
+        }
+        return array_keys($codes);
     }
 
     protected function syncStockTransfer($row, $activeDb)
@@ -126,6 +302,7 @@ class StockTransferService
             $sapDocStatus = $row['DocumentStatus'] ?? null;
 
             $existing = StockTransfer::where('sap_database', $activeDb)
+                ->where('doc_type', StockTransfer::TYPE_REQUEST)
                 ->where('doc_entry', $docEntry)
                 ->first();
 

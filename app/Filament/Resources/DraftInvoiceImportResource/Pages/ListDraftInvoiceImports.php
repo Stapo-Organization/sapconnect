@@ -16,22 +16,25 @@ class ListDraftInvoiceImports extends ListRecords
     {
         return [
             Actions\Action::make('launch')
-                ->label('رفع تقرير → مسودات فواتير')
+                ->label('رفع تقرير مبيعات')
                 ->icon('heroicon-o-arrow-up-tray')
-                ->color('success')
-                ->modalHeading('استيراد تقرير مبيعات كمسودات فواتير SAP')
-                ->modalDescription('كل مستودع يُقسَّم لمسودات (chunk أسطر/مسودة). المسودة لا تترحّل في SAP حتى تفتحها وتضغط Add يدوياً.')
+                ->color('primary')
+                ->modalIcon('heroicon-o-document-arrow-up')
+                ->modalHeading('رفع تقرير مبيعات')
+                ->modalDescription('نحلّل الملف أولاً بدون ما نكتب أي شيء في SAP: نقسّمه على العملاء، نخصم المرتجعات من المبيعات، ونتأكد إن كل العملاء والأصناف موجودين. بعد ما تراجع الأرقام يظهر لك زر «ارفع إلى SAP».')
                 ->modalWidth('2xl')
-                ->modalSubmitActionLabel('ابدأ')
+                ->modalSubmitActionLabel('حلّل الملف')
                 ->form([
                     Forms\Components\FileUpload::make('file')
-                        ->label('ملف التقرير (Excel/CSV)')
+                        ->label('ملف التقرير (Excel أو CSV)')
+                        ->helperText('كل سطر = صنف مُباع. الأعمدة المطلوبة: كود الصنف، المستودع، الكمية، السعر. كود العميل (BP Code) ونسبة الخصم (Disc.%) تُقرأ إذا وُجدت.')
                         ->required()
                         ->disk('local')
                         ->directory('draft_invoices/uploads')
                         ->visibility('private')
                         ->preserveFilenames()
                         ->storeFiles(true)
+                        ->maxSize(12288) // Livewire temporary-upload cap (12 MB)
                         ->acceptedFileTypes([
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                             'application/vnd.ms-excel',
@@ -39,55 +42,53 @@ class ListDraftInvoiceImports extends ListRecords
                             'text/plain',
                         ]),
 
-                    Forms\Components\Grid::make(2)->schema([
-                        Forms\Components\TextInput::make('company_db')
-                            ->label('قاعدة بيانات SAP')
-                            ->default(fn () => session('sap_company_db', config('draft_invoices.default_db')))
-                            ->required(),
-                        Forms\Components\TextInput::make('card_code')
-                            ->label('كود العميل (BP)')
-                            ->placeholder('اتركه فاضي ليُؤخذ من عمود BP Code')
-                            ->helperText('مثال: CAPP0004'),
+                    Forms\Components\Grid::make(3)->schema([
                         Forms\Components\DatePicker::make('doc_date')
-                            ->label('تاريخ المستند')
+                            ->label('تاريخ المسودات')
                             ->default(now())
+                            ->native(false)
+                            ->displayFormat('Y-m-d')
                             ->required(),
                         Forms\Components\TextInput::make('chunk_size')
-                            ->label('أسطر لكل مسودة (chunk)')
-                            ->numeric()->minValue(1)->default(200)->required()
-                            ->helperText('27 ألف سطر لمستودع واحد لا تنفع في POST واحد.'),
+                            ->label('أسطر لكل مسودة')
+                            ->numeric()->minValue(1)->maxValue(500)->default(200)->required(),
                         Forms\Components\TextInput::make('expense_code')
-                            ->label('كود مصاريف الشحن (Freight)')
+                            ->label('كود مصروف الشحن')
                             ->numeric()
                             ->default(fn () => config('draft_invoices.default_expense_code'))
-                            ->helperText('يُجمع الشحن ويُرسل في هيدر كل مسودة. اتركه فاضي لتجاهل الشحن.'),
-                        Forms\Components\TextInput::make('tax_code')
-                            ->label('كود الضريبة (اختياري)')
-                            ->placeholder('اتركه فاضي ليستخدم الافتراضي في SAP'),
-                        Forms\Components\TextInput::make('warehouse_filter')
-                            ->label('مستودع واحد فقط (اختياري)')
-                            ->placeholder('مثال: UZH002 — جرّب الأصغر أولاً')
-                            ->helperText('ينفع تختبر مستودع صغير قبل تشغيل الكل.'),
+                            ->helperText('يُستخدم فقط إذا الملف فيه عمود شحن.'),
                     ]),
 
-                    Forms\Components\Toggle::make('no_batches')
-                        ->label('بدون باتشات (لا تُسند دفعات للأصناف)')
-                        ->default(false)
-                        ->helperText('فعّلها لملفات مثل Panda اللي ما تبي لها اختيار باتشات.'),
-
-                    Forms\Components\Toggle::make('dry_run')
-                        ->label('معاينة فقط (Dry Run) — لا يكتب أي شيء في SAP')
-                        ->default(true)
-                        ->helperText('شغّلها أول مرة دائماً عشان تراجع المخرجات قبل الترحيل الفعلي.'),
+                    Forms\Components\Section::make('خيارات متقدمة')
+                        ->collapsed()
+                        ->compact()
+                        ->schema([
+                            Forms\Components\Grid::make(2)->schema([
+                                Forms\Components\TextInput::make('card_code')
+                                    ->label('كود عميل واحد لكل الملف')
+                                    ->placeholder('فاضي = من عمود BP Code')
+                                    ->helperText('اتركه فاضي إذا الملف فيه أكثر من عميل؛ يُقسَّم تلقائياً.'),
+                                Forms\Components\TextInput::make('warehouse_filter')
+                                    ->label('مستودع واحد فقط')
+                                    ->placeholder('مثال: RUH003'),
+                                Forms\Components\TextInput::make('tax_code')
+                                    ->label('كود الضريبة')
+                                    ->placeholder('فاضي = الافتراضي في SAP'),
+                                Forms\Components\Placeholder::make('company_db')
+                                    ->label('قاعدة بيانات SAP')
+                                    ->content(fn () => config('draft_invoices.default_db')),
+                            ]),
+                            Forms\Components\Toggle::make('with_batches')
+                                ->label('إسناد أقرب دفعة انتهاءً (FEFO) للأصناف المُدارة بالدفعات')
+                                ->default(false),
+                        ]),
                 ])
                 ->action(function (array $data) {
-                    $run = DraftInvoiceImportResource::startRun($data);
+                    $run = DraftInvoiceImportResource::startAnalysis($data);
 
                     Notification::make()
-                        ->title('بدأت العملية #' . $run->id)
-                        ->body($run->mode === 'post'
-                            ? 'يتم إنشاء المسودات في SAP بالخلفية. حدّث الجدول لمتابعة الحالة.'
-                            : 'يتم تجهيز المعاينة بالخلفية. حمّل ملف «المعاينة» عند اكتمالها.')
+                        ->title('بدأ تحليل الملف #' . $run->id)
+                        ->body('يأخذ من دقيقة لعدة دقائق حسب حجم الملف. افتح «مراجعة» لمتابعة النتيجة.')
                         ->success()
                         ->send();
                 }),
@@ -100,20 +101,17 @@ class ListDraftInvoiceImports extends ListRecords
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('إغلاق')
                 ->modalContent(new \Illuminate\Support\HtmlString('
-                    <div dir="rtl" class="space-y-3 text-sm">
-                        <div class="p-3 bg-blue-50 border-r-4 border-blue-500 rounded">
-                            ترفع تقرير مبيعات مسطّح (كل سطر = صنف مُباع) فيتحوّل إلى <b>مسودات</b> فواتير SAP
-                            (Drafts / oInvoices). المسودة آمنة: لا تترحّل محاسبياً/مخزنياً حتى تفتحها وتضغط <b>Add</b> يدوياً في SAP.
-                        </div>
-                        <ul class="list-disc list-inside space-y-1 text-gray-700">
-                            <li>التجميع <b>لكل مستودع</b>، ويُقسَّم المستودع لمسودات بحجم «أسطر لكل مسودة».</li>
-                            <li><b>السعر</b> يُؤخذ كما هو من عمود Unit Price في الملف (بدون إعادة حساب من SAP).</li>
-                            <li>الأصناف المُدارة بالباتش: تُسند أقرب الباتشات انتهاءً (FEFO) من رصيد نفس المستودع.</li>
-                            <li>الشحن (Freight) يُجمع ويُرسل في <b>هيدر</b> كل مسودة كمصروف إضافي.</li>
-                            <li><b>Dry Run</b> أولاً: يولّد معاينة كاملة + تقرير استثناءات بدون أي كتابة في SAP.</li>
-                            <li>إعادة التشغيل آمنة: المسودات المُرحّلة سابقاً تُتخطّى تلقائياً (لا تكرار).</li>
-                            <li>للملفات الكبيرة (مثل RUH ~27 ألف سطر) يعمل العامل في الخلفية. لو بقيت الحالة «بالانتظار»، انسخ أمر SSH من «تفاصيل» وشغّله.</li>
-                        </ul>
+                    <div dir="rtl" style="line-height:1.9;font-size:.875rem">
+                        <ol style="list-style:decimal;padding-inline-start:1.25rem;margin:0">
+                            <li><b>ارفع التقرير</b> (Excel أو CSV، كل سطر = صنف مُباع). أول خطوة دائماً <b>تحليل</b> بدون أي كتابة في SAP.</li>
+                            <li><b>العملاء:</b> إذا الملف فيه أكثر من عميل (عمود BP Code) تُقسَّم المسودات لكل عميل، ولا تختلط مبيعات عميلين في مسودة واحدة.</li>
+                            <li><b>المرتجعات</b> (كمية بالسالب) ما تُرفع: تُخصم من مبيعات نفس العميل لنفس الصنف — بيع 100 ومرتجع 10 = 90 في المسودة. الأولوية لنفس الطلب، ثم نفس السعر.</li>
+                            <li><b>السعر</b> من عمود Unit Price كما هو، و<b>الخصم</b> من عمود Disc.% كنسبة خصم على السطر. الوحدة دائماً حبة، ومركز التكلفة = المستودع.</li>
+                            <li><b>الأسطر المكررة</b> حرفياً تُرفع كما هي، وتظهر في تقرير Excel (ورقة Duplicate lines بأعمدة الملف الأصلي) لتُرسل للعميل للمراجعة.</li>
+                            <li>إذا فيه <b>عميل أو صنف غير موجود في SAP</b> يتوقف الرفع حتى تصحّح الملف.</li>
+                            <li>راجع الأرقام من «مراجعة»، ثم اضغط <b>«ارفع إلى SAP»</b>. المسودة لا تُرحّل حتى تفتحها في SAP وتضغط Add.</li>
+                            <li>الرفع آمن من التكرار: لو انقطع أو فشلت مسودة، اضغط الرفع مرة ثانية وتُكمَل الناقصة فقط.</li>
+                        </ol>
                     </div>
                 ')),
         ];

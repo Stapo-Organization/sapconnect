@@ -16,10 +16,11 @@ class CustomerStatementPdf
     /**
      * @return array{pdf:string, filename:string, statement:array}
      */
-    public function render(ShipGoCustomer $customer, Carbon $from, Carbon $to): array
+    public function render(ShipGoCustomer $customer, Carbon $from, Carbon $to, ?ShipGoSapService $sap = null): array
     {
-        $statement = $this->sap->statement($customer->card_code, $from, $to);
-        $html      = $this->html($customer, $from, $to, $statement);
+        $sap       = $sap ?? $this->sap;
+        $statement = $sap->statement($customer->card_code, $from, $to);
+        $html      = $this->html($customer, $from, $to, $statement, $sap->brand());
 
         return [
             'pdf'       => $this->toPdf($html),
@@ -28,14 +29,15 @@ class CustomerStatementPdf
         ];
     }
 
-    public function html(ShipGoCustomer $customer, Carbon $from, Carbon $to, array $statement): string
+    public function html(ShipGoCustomer $customer, Carbon $from, Carbon $to, array $statement, ?array $brand = null): string
     {
+        $brand = $brand ?? $this->sap->brand();
         return view('shipgo.statement', [
             'customer'  => $customer,
             'from'      => $from,
             'to'        => $to,
             'statement' => $statement,
-            'company'   => config('sap.shipgo'),
+            'company'   => $brand,
             'generated' => now(),
         ])->render();
     }
@@ -46,8 +48,14 @@ class CustomerStatementPdf
         return "statement-{$code}-{$from->format('Ymd')}-{$to->format('Ymd')}.pdf";
     }
 
-    public function toPdf(string $html): string
+    public function toPdf(string $html, string $title = 'كشف حساب', string $footer = '{PAGENO} / {nbpg}'): string
     {
+        // Large statements (1000+ lines) need more than the default 128M.
+        if ((int) ini_get('memory_limit') > 0 && (int) ini_get('memory_limit') < 1024) {
+            @ini_set('memory_limit', '1024M');
+        }
+        @set_time_limit(300);
+
         $tmp = storage_path('app/mpdf');
         if (!is_dir($tmp)) {
             @mkdir($tmp, 0775, true);
@@ -80,8 +88,8 @@ class CustomerStatementPdf
         $mpdf->SetDirectionality('ltr');
         $mpdf->autoScriptToLang = true;
         $mpdf->autoLangToFont   = true;
-        $mpdf->SetTitle('كشف حساب');
-        $mpdf->SetFooter('{PAGENO} / {nbpg}');
+        $mpdf->SetTitle($title);
+        $mpdf->SetFooter($footer);
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);

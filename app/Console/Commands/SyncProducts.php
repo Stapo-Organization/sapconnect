@@ -51,7 +51,7 @@ class SyncProducts extends Command
 
                 // Fetch Items with select fields, including ItemPrices and ItemBarCodeCollection
                 $response = $sap->get('Items', [
-                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,ItemBarCodeCollection,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5,Mainsupplier',
+                    '$select' => 'ItemCode,ItemName,ForeignName,ItemsGroupCode,InventoryUOM,BarCode,ItemBarCodeCollection,InventoryUoMEntry,DefaultSalesUoMEntry,DefaultPurchasingUoMEntry,SalesItemsPerUnit,CreateDate,UpdateDate,ItemPrices,U_PortalSync,U_PROPRT1,U_PROPRT2,U_PROPRT3,U_PROPRT4,U_PROPRT5,Mainsupplier',
                     '$orderby' => 'ItemCode',
                     '$top' => $pageSize,
                     '$skip' => $skip
@@ -68,6 +68,11 @@ class SyncProducts extends Command
 
                 $envSource = 'production';
 
+                // Piece barcodes already stored for this page: kept when SAP lists several piece barcodes
+                $currentBarcodes = \App\Models\Product::where('source', $envSource)
+                    ->whereIn('item_code', array_column($items, 'ItemCode'))
+                    ->pluck('piece_barcode', 'item_code');
+
                 foreach ($items as $item) {
                     // Only sync products that start with "P" (e.g. P10000030)
                     if (!str_starts_with($item['ItemCode'], 'P')) {
@@ -76,29 +81,10 @@ class SyncProducts extends Command
 
                     $pricesData = $item['ItemPrices'] ?? [];
 
-                    // Determine piece barcode: prefer main BarCode, fallback to ItemBarCodeCollection
-                    $pieceBarcode = $item['BarCode'] ?? null;
-                    if (empty($pieceBarcode)) {
-                        $collection = $item['ItemBarCodeCollection'] ?? [];
-                        foreach ($collection as $bc) {
-                            // UoMEntry 58 = Piece unit, or FreeText indicates "Piece"
-                            if (($bc['UoMEntry'] ?? 0) === 58 || strtolower($bc['FreeText'] ?? '') === 'piece') {
-                                $pieceBarcode = $bc['Barcode'] ?? null;
-                                break;
-                            }
-                        }
-                        // If still empty and collection has entries, take first non-ItemCode barcode
-                        if (empty($pieceBarcode) && !empty($collection)) {
-                            foreach ($collection as $bc) {
-                                $bcVal = $bc['Barcode'] ?? '';
-                                // Skip if barcode is the same as ItemCode (not a real barcode)
-                                if ($bcVal && $bcVal !== $item['ItemCode']) {
-                                    $pieceBarcode = $bcVal;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    // Piece barcode = the SAP barcode registered on the inventory (piece) unit,
+                    // not the main BarCode field (empty for ~45% of items). See ItemBarcodeResolver.
+                    $barcodes = \App\Services\SAP\ItemBarcodeResolver::resolve($item, $currentBarcodes[$item['ItemCode']] ?? null);
+                    $pieceBarcode = $barcodes['piece'];
 
                     $data = [
                         'item_code' => $item['ItemCode'],
@@ -120,6 +106,10 @@ class SyncProducts extends Command
                         'u_proprt5' => $item['U_PROPRT5'] ?? null,
                     ];
 
+                    if ($pieceBarcode === null) {
+                        unset($data['piece_barcode']); // never blank a barcode we already have
+                    }
+
                     \App\Models\Product::updateOrCreate(
                         [
                             'item_code' => $data['item_code'],
@@ -127,7 +117,13 @@ class SyncProducts extends Command
                         ],
                         $data
                     );
-                    
+
+                    try {
+                        \App\Services\SAP\ItemBarcodeResolver::syncRows($item['ItemCode'], $barcodes['rows']);
+                    } catch (\Throwable $e) {
+                        Log::warning("Product barcode rows sync failed for {$item['ItemCode']}: " . $e->getMessage());
+                    }
+
                     $mainsupplier = $item['Mainsupplier'] ?? null;
                     if ($mainsupplier && $data['items_group_code']) {
                         $brandSupplierLinks[$mainsupplier][$data['items_group_code']] = true;

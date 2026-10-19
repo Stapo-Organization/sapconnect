@@ -29,7 +29,12 @@ class ShipGoCatalogController extends Controller
     /** GET /api/shipgo/catalog */
     public function catalog(Request $request): JsonResponse
     {
-        $priceList  = (int) config('services.shipgo.price_list', 1);
+        // ?price_list=N lets ShipGo ask for an explicit SAP price list (3 = «ShipGo PL»)
+        // instead of trusting this server's SHIPGO_PRICE_LIST; the list actually used is
+        // echoed in X-Price-List so the caller can refuse a mismatch.
+        $priceList  = $request->filled('price_list')
+            ? max(1, min(99, (int) $request->query('price_list')))
+            : (int) config('services.shipgo.price_list', 1);
         $includeAll = $request->boolean('all');
 
         // ~8k production items: stream with a lazy base-query cursor (no Eloquent
@@ -65,7 +70,7 @@ class ShipGoCatalogController extends Controller
             ];
         }
 
-        return response()->json($out);
+        return response()->json($out)->header('X-Price-List', (string) $priceList);
     }
 
     /**

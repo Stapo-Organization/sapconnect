@@ -14,6 +14,13 @@ class InventoryCountingLine extends Model
         'item_code',
         'item_name',
         'piece_barcode',
+        'location_code',
+        'counted_by',
+        'count_round',
+        'cartons',
+        'pack_size',
+        'loose',
+        'expiries',
         'counted_quantity',
         'system_quantity',
         'variance',
@@ -27,6 +34,11 @@ class InventoryCountingLine extends Model
         'system_quantity' => 'decimal:4',
         'variance' => 'decimal:4',
         'variance_percentage' => 'decimal:4',
+        'count_round' => 'integer',
+        'cartons' => 'float',
+        'pack_size' => 'float',
+        'loose' => 'float',
+        'expiries' => 'array',
     ];
 
     protected $appends = [
@@ -38,6 +50,11 @@ class InventoryCountingLine extends Model
     public function counting()
     {
         return $this->belongsTo(InventoryCounting::class, 'inventory_counting_id');
+    }
+
+    public function counter()
+    {
+        return $this->belongsTo(User::class, 'counted_by');
     }
 
     public function product()

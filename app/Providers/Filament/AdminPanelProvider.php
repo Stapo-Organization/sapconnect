@@ -33,12 +33,26 @@ class AdminPanelProvider extends PanelProvider
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->brandName('Muntajat Automation Platform')
             ->colors([
-                'primary' => Color::Amber,
+                // «مساحة العمل»: one deep-green accent on warm stone greys
+                'primary' => [
+                    50 => '238, 246, 242', 100 => '216, 235, 226', 200 => '179, 215, 198', 300 => '131, 188, 163',
+                    400 => '79, 156, 126', 500 => '42, 130, 99', 600 => '31, 111, 84', 700 => '26, 90, 69',
+                    800 => '23, 72, 56', 900 => '19, 59, 47', 950 => '10, 33, 26',
+                ],
+                'gray' => Color::Stone,
+                'danger' => Color::Red,
+                'warning' => Color::Amber,
+                'success' => Color::Emerald,
+                'info' => Color::Sky,
             ])
+            ->theme(\App\Support\AdminTheme::compiled())
+            ->sidebarWidth('17.5rem')
+            ->maxContentWidth(\Filament\Support\Enums\MaxWidth::Full)
+            ->globalSearch(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->discoverWidgets(in: app_path('Filament/RetailWidgets'), for: 'App\\Filament\\RetailWidgets')
@@ -71,7 +85,37 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(99)
                     ->visible(fn(): bool => !auth()->user()->hasAnyRole(['Branch Manager', 'Stakeholder']) && !\App\Support\PanelAccess::isLimited(auth()->user())),
             ])
-            ->font('Cairo')
+            ->font('Noto Sans Arabic', provider: \Filament\FontProviders\GoogleFontProvider::class)
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): string => view('filament.admin.head')->render()
+            )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                fn (): string => view('filament.admin.command-trigger')->render()
+            )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::BODY_END,
+                fn (): string => auth()->check() ? \Illuminate\Support\Facades\Blade::render('@livewire(\\App\\Livewire\\Admin\\CommandPalette::class, [], key(\'mt-palette\'))') : ''
+            )
+            ->renderHook(
+                \Filament\Tables\View\TablesRenderHook::TOOLBAR_START,
+                function (array $scopes): string {
+                    $page = collect($scopes)->first(fn ($s) => is_string($s) && is_subclass_of($s, \Filament\Resources\Pages\ListRecords::class));
+                    if (! $page) {
+                        return '';
+                    }
+
+                    return \Illuminate\Support\Facades\Blade::render(
+                        '@livewire(\\App\\Livewire\\Admin\\TableViews::class, ["pageClass" => $page, "baseUrl" => $url], key("mt-views"))',
+                        ['page' => $page, 'url' => $page::getResource()::getUrl('index')]
+                    );
+                }
+            )
+            ->renderHook(
+                \Filament\Tables\View\TablesRenderHook::TOOLBAR_TOGGLE_COLUMN_TRIGGER_AFTER,
+                fn (): string => view('filament.admin.density')->render()
+            )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn(): string => \Illuminate\Support\Facades\Blade::render('
@@ -106,12 +150,15 @@ class AdminPanelProvider extends PanelProvider
      */
     public function boot(): void
     {
+        // Every table column can be shown/hidden from the column manager.
+        \Filament\Tables\Columns\Column::configureUsing(fn (\Filament\Tables\Columns\Column $column) => $column->toggleable());
+
         \Filament\Facades\Filament::serving(function (): void {
             $user = auth()->user();
             if ($user && \App\Support\PanelAccess::isLimited($user)) {
                 \Filament\Facades\Filament::getCurrentPanel()?->navigation(
                     fn (\Filament\Navigation\NavigationBuilder $builder): \Filament\Navigation\NavigationBuilder => $builder
-                        ->items(\App\Support\PanelAccess::navigationItems($user))
+                        ->groups(\App\Support\PanelAccess::navigationGroups($user))
                 );
             }
         });

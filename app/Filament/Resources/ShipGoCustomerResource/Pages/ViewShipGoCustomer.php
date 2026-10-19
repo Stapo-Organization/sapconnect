@@ -16,14 +16,19 @@ class ViewShipGoCustomer extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            ShipGoCustomerResource::headerStatementAction(),
+            static::getResource()::headerStatementAction(),
+            Actions\Action::make('invoices')
+                ->label(__('Invoices'))
+                ->icon('heroicon-o-document-text')
+                ->color('gray')
+                ->url(fn () => static::getResource()::invoicesUrl($this->record)),
             Actions\Action::make('refresh')
                 ->label(__('Refresh from SAP'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
                 ->action(function () {
                     try {
-                        $bp = app(ShipGoSapService::class)->fetchCustomer($this->record->card_code);
+                        $bp = static::getResource()::sapService()->fetchCustomer($this->record->card_code);
                         if ($bp) {
                             $this->record->fill(ShipGoCustomer::attributesFromSap($bp))->save();
                             $this->refreshFormData(array_keys($this->record->getAttributes()));

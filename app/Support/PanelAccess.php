@@ -2,7 +2,11 @@
 
 namespace App\Support;
 
+use App\Filament\Resources\MuntajatCustomerResource;
+use App\Filament\Resources\MuntajatInvoiceResource;
 use App\Filament\Resources\ShipGoCustomerResource;
+use App\Filament\Resources\ShipGoInvoiceResource;
+use Filament\Navigation\NavigationGroup;
 use App\Models\User;
 use Filament\Navigation\NavigationItem;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +23,10 @@ class PanelAccess
 {
     /** role name => resource classes it may use */
     public const LIMITED_ROLES = [
-        'Accountant' => [ShipGoCustomerResource::class],
+        'Accountant' => [
+            ShipGoCustomerResource::class, ShipGoInvoiceResource::class,
+            MuntajatCustomerResource::class, MuntajatInvoiceResource::class,
+        ],
     ];
 
     public static function isLimited(?User $user): bool
@@ -77,6 +84,9 @@ class PanelAccess
             'filament.admin.auth.',      // logout, profile
             'livewire.',                 // component updates / uploads
             'shipgo.customers.statement',
+            'muntajat.customers.statement',
+            'shipgo.invoices.pdf',
+            'muntajat.invoices.pdf',
         ];
         foreach (self::allowedResources($user) as $resource) {
             $prefixes[] = $resource::getRouteBaseName();
@@ -104,15 +114,30 @@ class PanelAccess
         return $first ? $first::getUrl() : route('filament.admin.auth.profile');
     }
 
-    /** @return array<NavigationItem> sidebar for a limited user: only their resources */
+    /** @return array<NavigationItem> flat list of the limited user's items (kept for older callers) */
     public static function navigationItems(User $user): array
     {
         $items = [];
         foreach (self::allowedResources($user) as $resource) {
-            foreach ($resource::getNavigationItems() as $item) {
-                $items[] = $item;
-            }
+            array_push($items, ...$resource::getNavigationItems());
         }
         return $items;
+    }
+
+    /** @return array<NavigationGroup> sidebar for a limited user: only their resources, grouped */
+    public static function navigationGroups(User $user): array
+    {
+        $groups = [];
+        foreach (self::allowedResources($user) as $resource) {
+            $label = $resource::getNavigationGroup() ?? '';
+            foreach ($resource::getNavigationItems() as $item) {
+                $groups[$label][] = $item;
+            }
+        }
+        return array_map(
+            fn ($label, $items) => NavigationGroup::make($label ?: null)->items($items),
+            array_keys($groups),
+            $groups
+        );
     }
 }

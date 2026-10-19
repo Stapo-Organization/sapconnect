@@ -18,17 +18,28 @@ class SyncShipGoCustomers extends Command
     protected $signature   = 'shipgo:sync-customers';
     protected $description = 'Sync ShipGo (SHIPGO_LIVE_V1) customers from SAP into the local mirror (read-only)';
 
-    public function handle(ShipGoSapService $sap): int
+    protected function service(): ShipGoSapService
     {
+        return app(ShipGoSapService::class);
+    }
+
+    protected function label(): string
+    {
+        return 'ShipGo';
+    }
+
+    public function handle(): int
+    {
+        $sap = $this->service();
         $automation = Automation::where('command_signature', $this->signature)->first();
         $automation?->update(['last_run_at' => now(), 'last_run_status' => 'running']);
 
-        $this->info("Syncing ShipGo customers from {$sap->companyDb()}...");
+        $this->info("Syncing {$this->label()} customers from {$sap->companyDb()}...");
         DB::disableQueryLog();
 
         try {
             $result = $sap->syncCustomers();
-            $msg = "ShipGo customers synced from {$sap->companyDb()}: {$result['total']} read, {$result['created']} new, {$result['updated']} updated.";
+            $msg = "{$this->label()} customers synced from {$sap->companyDb()}: {$result['total']} read, {$result['created']} new, {$result['updated']} updated.";
             $this->info($msg);
             $automation?->update(['last_run_status' => 'success']);
             if ($automation) {
@@ -36,7 +47,7 @@ class SyncShipGoCustomers extends Command
             }
             return self::SUCCESS;
         } catch (\Throwable $e) {
-            $msg = 'Error syncing ShipGo customers: ' . $e->getMessage();
+            $msg = "Error syncing {$this->label()} customers: " . $e->getMessage();
             Log::error($msg);
             $this->error($msg);
             $automation?->update(['last_run_status' => 'failed']);

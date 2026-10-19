@@ -97,4 +97,35 @@ class ShipGoCustomerAdminTest extends TestCase
             ->get(route('shipgo.customers.statement', ['cardCode' => 'SG0001', 'from' => '2026-09-22', 'to' => '2026-01-01']))
             ->assertSessionHasErrors('to');
     }
+
+    public function test_muntajat_statement_route_uses_the_main_company(): void
+    {
+        \App\Models\MuntajatCustomer::create(['card_code' => 'MC0001', 'card_name' => 'عميل منتجات', 'currency' => 'SAR', 'synced_at' => now()]);
+        $this->app->instance(\App\Services\ShipGo\MuntajatSapService::class, new class extends \App\Services\ShipGo\MuntajatSapService {
+            public function statement(string $cardCode, Carbon $from, Carbon $to): array
+            {
+                return $this->buildStatement('ledger', [
+                    ['date' => '2026-02-01', 'due_date' => '2026-02-16', 'trans_id' => 7, 'trans_type' => '13', 'ref_no' => '261000001', 'offset_account' => '411101061', 'memo' => 'A/R Invoices - MC0001', 'debit' => 500.0, 'credit' => 0.0],
+                ], $from);
+            }
+        });
+
+        $this->actingAs($this->admin)
+            ->get(route('muntajat.customers.statement', ['cardCode' => 'MC0001', 'from' => '2026-01-01', 'to' => '2026-09-22', 'format' => 'html']))
+            ->assertOk()
+            ->assertSee('شركة منتجات')
+            ->assertSee('PPTC_V5_PROD')
+            ->assertSee('411101061')
+            ->assertSee('16.02.26');
+
+        $res = $this->actingAs($this->admin)
+            ->get(route('muntajat.customers.statement', ['cardCode' => 'MC0001', 'from' => '2026-01-01', 'to' => '2026-09-22']));
+        $res->assertOk();
+        $this->assertStringStartsWith('%PDF', $res->getContent());
+
+        // a ShipGo card code is not a Muntajat customer
+        $this->actingAs($this->admin)
+            ->get(route('muntajat.customers.statement', ['cardCode' => 'SG0001', 'from' => '2026-01-01', 'to' => '2026-09-22']))
+            ->assertNotFound();
+    }
 }

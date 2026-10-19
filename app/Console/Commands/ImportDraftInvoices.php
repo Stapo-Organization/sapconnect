@@ -114,8 +114,15 @@ class ImportDraftInvoices extends Command
             ['Failed', $totals['failed']],
             ['Total lines', $totals['lines']],
             ['Freight total', $totals['freight_total']],
-            ['Exceptions', $totals['exceptions']],
+            ['Net total (after discount, before VAT)', $totals['net_total']],
+            ['Returns netted (lines / qty / value)', sprintf('%d / %s / %s', $totals['returns']['lines'], $totals['returns']['qty'], $totals['returns']['value'])],
+            ['Duplicated lines in file (extra / value)', sprintf('%d / %s', $totals['duplicates']['extra_lines'], $totals['duplicates']['value'])],
+            ['Blocking errors', $totals['errors']],
+            ['Warnings', $totals['warnings']],
         ]);
+        if (!empty($totals['report_path'])) {
+            $this->info("Report: storage/app/private/{$totals['report_path']}");
+        }
         $this->info("Run #{$run->id} {$run->status}. Exceptions: " . ($run->exceptions_path ?: '-'));
         if (!$post && $run->preview_path) {
             $this->info("Preview: storage/app/private/{$run->preview_path}");

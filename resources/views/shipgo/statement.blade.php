@@ -2,7 +2,11 @@
     $cur   = $customer->currency ?: 'SAR';
     $amt   = fn ($v) => $cur . ' ' . ($v < 0 ? '-' : '') . number_format(abs((float) $v), 2);
     $d     = fn ($s) => $s ? \Carbon\Carbon::parse($s)->format('d.m.y') : '';
-    $logo  = resource_path('images/shipgo-logo.png');
+    $logo  = resource_path($company['logo'] ?? 'images/shipgo-logo.png');
+    $cPrimary = $company['color_primary'] ?? '#1F2358';
+    $cAccent  = $company['color_accent'] ?? '#F26A21';
+    $cOnAcc   = $company['color_on_accent'] ?? '#FFFFFF';
+    $cHead    = $company['color_head'] ?? '#D9E7F5';
 @endphp
 <!DOCTYPE html>
 <html lang="ar">
@@ -14,13 +18,13 @@
     table { border-collapse: collapse; }
     .band { width: 100%; }
     .band td { padding: 0; }
-    .navy { background: #1F2358; color: #fff; text-align: center; font-size: 14pt; font-weight: bold; height: 13mm; vertical-align: middle; }
-    .orange { background: #F26A21; color: #fff; text-align: center; font-size: 10.5pt; font-weight: bold; height: 9mm; vertical-align: middle; }
+    .navy { background: {{ $cPrimary }}; color: #fff; text-align: center; font-size: 14pt; font-weight: bold; height: 13mm; vertical-align: middle; }
+    .orange { background: {{ $cAccent }}; color: {{ $cOnAcc }}; text-align: center; font-size: 10.5pt; font-weight: bold; height: 9mm; vertical-align: middle; }
     .logo-cell { background: #fff; width: 34mm; text-align: center; vertical-align: middle; }
     .meta { width: 100%; margin: 2mm 0 1.5mm; color: #6b7280; font-size: 7pt; }
     .meta td { padding: 0 2mm; }
     table.lines { width: 100%; }
-    table.lines th { background: #D9E7F5; color: #111827; font-weight: bold; padding: 2.2mm 1.5mm; font-size: 7.5pt; text-align: center; border-bottom: 1px solid #c7d7ea; }
+    table.lines th { background: {{ $cHead }}; color: #111827; font-weight: bold; padding: 2.2mm 1.5mm; font-size: 7.5pt; text-align: center; border-bottom: 1px solid #c7d7ea; }
     table.lines td { padding: 1.6mm 1.5mm; border-bottom: 1px solid #eef1f5; font-size: 7.6pt; vertical-align: middle; }
     table.lines tr.alt td { background: #fafbfd; }
     td.c { text-align: center; }
@@ -28,7 +32,7 @@
     td.r, th.r { text-align: right; white-space: nowrap; }
     tr.ob td { font-weight: bold; }
     .total { width: 100%; margin-top: 2mm; }
-    .total td { background: #F26A21; color: #fff; font-weight: bold; font-size: 10pt; padding: 3mm 4mm; }
+    .total td { background: {{ $cAccent }}; color: {{ $cOnAcc }}; font-weight: bold; font-size: 10pt; padding: 3mm 4mm; }
     .note { margin-top: 3mm; color: #6b7280; font-size: 6.8pt; text-align: right; }
     .neg { color: #b91c1c; }
 </style>
@@ -38,9 +42,9 @@
 {{-- Header: logo box on the right spanning both bands, navy title + orange subtitle --}}
 <table class="band">
     <tr>
-        <td class="navy" dir="rtl">{{ $company['company_name_ar'] ?? 'شركة شيب قو' }} - {{ $company['company_name'] ?? 'ShipGo' }}</td>
+        <td class="navy" dir="rtl">{{ $company['company_name_ar'] ?? '' }} - {{ $company['company_name'] ?? '' }}</td>
         <td class="logo-cell" rowspan="2">
-            @if(is_file($logo))<img src="{{ $logo }}" style="width: 30mm;">@else <b style="color:#1F2358;font-size:14pt">ShipGo</b>@endif
+            @if(is_file($logo))<img src="{{ $logo }}" style="width: {{ $company['logo_width'] ?? '30mm' }};">@else <b style="color:{{ $cPrimary }};font-size:14pt">{{ $company['company_name'] ?? '' }}</b>@endif
         </td>
     </tr>
     <tr>
@@ -51,8 +55,8 @@
 <table class="meta" dir="rtl">
     <tr>
         <td style="text-align:right">الفترة: {{ $from->format('d.m.Y') }} – {{ $to->format('d.m.Y') }}</td>
-        <td style="text-align:center">{{ $customer->federal_tax_id ? 'الرقم الضريبي: ' . $customer->federal_tax_id : '' }}{{ $customer->city ? ' · ' . $customer->city : '' }}{{ $customer->cellular ? ' · ' . $customer->cellular : '' }}</td>
-        <td style="text-align:left">تاريخ الإصدار: {{ $generated->format('d.m.Y H:i') }} &nbsp;·&nbsp; {{ config('sap.shipgo_company_db') }}</td>
+        <td style="text-align:center">{{ implode(' · ', array_filter([$customer->federal_tax_id ? 'الرقم الضريبي: ' . $customer->federal_tax_id : null, $customer->city, $customer->cellular])) }}</td>
+        <td style="text-align:left">تاريخ الإصدار: {{ $generated->format('d.m.Y H:i') }} &nbsp;·&nbsp; {{ $company['db'] ?? '' }}</td>
     </tr>
 </table>
 

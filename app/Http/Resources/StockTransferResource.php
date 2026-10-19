@@ -57,8 +57,14 @@ class StockTransferResource extends JsonResource
             'id' => $this->id,
             'doc_entry' => $this->doc_entry,
             'doc_num' => $this->doc_num,
+            'doc_type' => $this->doc_type ?? 'request',
+            'is_direct' => $this->resource->isDirect(),
             'from_warehouse' => $this->from_warehouse,
             'to_warehouse' => $this->to_warehouse,
+            'from_warehouse_name_ar' => self::warehouseName($this->from_warehouse, 'ar'),
+            'from_warehouse_name_en' => self::warehouseName($this->from_warehouse, 'en'),
+            'to_warehouse_name_ar' => self::warehouseName($this->to_warehouse, 'ar'),
+            'to_warehouse_name_en' => self::warehouseName($this->to_warehouse, 'en'),
             'doc_date' => $this->doc_date?->format('Y-m-d'),
             'creation_date' => $this->creation_date,
 
@@ -90,9 +96,9 @@ class StockTransferResource extends JsonResource
             'sender_notes' => $this->sender_notes,
             'receiver_notes' => $this->receiver_notes,
 
-            // Permissions (for current user)
-            'can_send' => $this->resource->canSend(),
-            'can_receive' => $this->resource->canReceive(),
+            // Permissions (for current user): only the sending side sends, only the receiving side receives.
+            'can_send' => $this->resource->canSend() && $isOutgoing,
+            'can_receive' => $this->resource->canReceive() && $isIncoming,
 
             // Direction relative to the requesting user (Send / Receive tabs)
             'is_outgoing' => $isOutgoing,
@@ -105,5 +111,21 @@ class StockTransferResource extends JsonResource
             'lines' => StockTransferLineResource::collection($this->whenLoaded('lines')),
             'logs_count' => $this->logs_count ?? $this->logs()->count(),
         ];
+    }
+
+    /** @var array{ar: array<string, string>, en: array<string, string>}|null */
+    private static ?array $warehouseNames = null;
+
+    /** Branch names for the cards, loaded once per request: Arabic from the store's branch list, English from SAP. */
+    private static function warehouseName(?string $code, string $lang): ?string
+    {
+        self::$warehouseNames ??= [
+            'en' => \App\Models\Warehouse::pluck('warehouse_name', 'warehouse_code')->all(),
+            'ar' => \Illuminate\Support\Facades\DB::table('zooboxi_warehouses')->whereNotNull('display_name_ar')->pluck('display_name_ar', 'warehouse_code')->all(),
+        ];
+        if (! $code) {
+            return null;
+        }
+        return self::$warehouseNames[$lang][$code] ?? self::$warehouseNames['en'][$code] ?? null;
     }
 }

@@ -54,6 +54,23 @@ class SyncRecentStock extends Command
             $automation->update(['last_run_at' => now(), 'last_run_status' => 'running']);
         }
 
+        // A fatal error (out of memory, timeout) skips `finally`: the lock then held
+        // the sync off for two hours and the status stayed «running». Free both.
+        $finished = false;
+        register_shutdown_function(function () use (&$finished, $lock, $automation) {
+            if ($finished) {
+                return;
+            }
+            $lock->forceRelease();
+            $err = error_get_last();
+            $msg = 'Stock sync died: ' . ($err['message'] ?? 'unknown');
+            Log::error($msg);
+            if ($automation) {
+                $automation->update(['last_run_status' => 'failed']);
+                AutomationLog::create(['automation_id' => $automation->id, 'status' => 'failed', 'message' => $msg]);
+            }
+        });
+
         // Long catalogue passes OOM'd at the default 128M (query-log growth +
         // per-row Eloquent). Give headroom and stop buffering every query.
         @ini_set('memory_limit', '512M');
@@ -130,6 +147,12 @@ class SyncRecentStock extends Command
                 $count = count($items);
                 $totalItems += $count;
                 $skip += $count;
+                // Each SAP page (~1.5 MB of warehouse rows) leaves cyclic garbage the
+                // engine's automatic GC rarely reaches: memory climbed ~1.5 MB a page
+                // and every pass died at 512 MB around P17001046, so later items and
+                // zeroed-out rows never refreshed. Collect it every page.
+                unset($items, $rows);
+                gc_collect_cycles();
                 usleep(200000); // 0.2s — be gentle on SAP
             }
 
@@ -165,6 +188,7 @@ class SyncRecentStock extends Command
                 AutomationLog::create(['automation_id' => $automation->id, 'status' => 'failed', 'message' => $msg]);
             }
         } finally {
+            $finished = true;
             $lock->release();
         }
 

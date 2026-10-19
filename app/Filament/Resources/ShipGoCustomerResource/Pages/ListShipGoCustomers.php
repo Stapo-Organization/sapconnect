@@ -15,8 +15,9 @@ class ListShipGoCustomers extends ListRecords
 
     public function getSubheading(): ?string
     {
-        $last = ShipGoCustomer::max('synced_at');
-        $db   = config('sap.shipgo_company_db');
+        $model = static::getResource()::getModel();
+        $last  = $model::max('synced_at');
+        $db    = static::getResource()::sapService()->companyDb();
 
         return $last
             ? __('Source: :db · last sync :time', ['db' => $db, 'time' => \Carbon\Carbon::parse($last)->diffForHumans()])
@@ -32,12 +33,12 @@ class ListShipGoCustomers extends ListRecords
                 ->color('gray')
                 ->requiresConfirmation()
                 ->modalHeading(__('Sync from SAP'))
-                ->modalDescription(__('Reads the customer list from :db. Nothing is written to SAP.', ['db' => config('sap.shipgo_company_db')]))
+                ->modalDescription(__('Reads the customer list from :db. Nothing is written to SAP.', ['db' => static::getResource()::sapService()->companyDb()]))
                 ->visible(fn () => auth()->user()?->hasAnyRole(['Super Admin', 'Finance', 'Operator', 'Accountant']))
                 ->action(function () {
                     try {
-                        @set_time_limit(300);
-                        $r = app(ShipGoSapService::class)->syncCustomers();
+                        @set_time_limit(600);
+                        $r = static::getResource()::sapService()->syncCustomers();
                         Notification::make()
                             ->title(__('Sync complete'))
                             ->body(__(':total customers read — :created new, :updated updated.', $r))

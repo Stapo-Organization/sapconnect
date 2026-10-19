@@ -101,6 +101,31 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     Route::get('/inventory-countings/abc-summary/{warehouseCode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'abcSummary']);
     Route::get('/inventory-countings/cycle-progress/{warehouseCode}', [\App\Http\Controllers\Api\InventoryCountingController::class, 'cycleProgress']);
 
+    // ─── Full (wall-to-wall) count + showroom map ───────────────
+    Route::get('/stores/{wh}/locations', [\App\Http\Controllers\Api\FullCountController::class, 'locations']);
+    Route::post('/stores/{wh}/locations', [\App\Http\Controllers\Api\FullCountController::class, 'createUnit']);
+    Route::post('/stores/{wh}/locations/verify', [\App\Http\Controllers\Api\FullCountController::class, 'verifyLabel']);
+    Route::get('/stores/{wh}/locations/labels-link', [\App\Http\Controllers\Api\FullCountController::class, 'labelsLink']);
+    Route::put('/stores/{wh}/locations/{unit}', [\App\Http\Controllers\Api\FullCountController::class, 'updateUnit']);
+    Route::delete('/stores/{wh}/locations/{unit}', [\App\Http\Controllers\Api\FullCountController::class, 'deleteUnit']);
+    Route::post('/full-counts', [\App\Http\Controllers\Api\FullCountController::class, 'start']);
+    Route::get('/full-counts/active', [\App\Http\Controllers\Api\FullCountController::class, 'active']);
+    Route::get('/full-counts/{id}/board', [\App\Http\Controllers\Api\FullCountController::class, 'board'])->whereNumber('id');
+    Route::post('/full-counts/{id}/phase', [\App\Http\Controllers\Api\FullCountController::class, 'setPhase'])->whereNumber('id');
+    Route::post('/full-counts/{id}/units/{unit}/{action}', [\App\Http\Controllers\Api\FullCountController::class, 'unit'])->whereNumber('id');
+    Route::get('/full-counts/{id}/resolve', [\App\Http\Controllers\Api\FullCountController::class, 'resolve'])->whereNumber('id');
+    Route::post('/full-counts/{id}/count', [\App\Http\Controllers\Api\FullCountController::class, 'count'])->whereNumber('id');
+    Route::get('/full-counts/{id}/my-lines', [\App\Http\Controllers\Api\FullCountController::class, 'myLines'])->whereNumber('id');
+    Route::delete('/full-counts/{id}/lines/{lineId}', [\App\Http\Controllers\Api\FullCountController::class, 'deleteLine'])->whereNumber('id');
+    Route::post('/full-counts/{id}/recount/{item}/close', [\App\Http\Controllers\Api\FullCountController::class, 'closeRecount'])->whereNumber('id');
+    Route::get('/full-counts/{id}/recount-queue', [\App\Http\Controllers\Api\FullCountController::class, 'recountQueue'])->whereNumber('id');
+    Route::get('/full-counts/{id}/missing', [\App\Http\Controllers\Api\FullCountController::class, 'missing'])->whereNumber('id');
+    Route::post('/full-counts/{id}/missing', [\App\Http\Controllers\Api\FullCountController::class, 'markMissing'])->whereNumber('id');
+    Route::get('/full-counts/{id}/result', [\App\Http\Controllers\Api\FullCountController::class, 'result'])->whereNumber('id');
+    Route::get('/full-counts/{id}/export-link', [\App\Http\Controllers\Api\FullCountController::class, 'exportLink'])->whereNumber('id');
+    Route::post('/full-counts/{id}/approve', [\App\Http\Controllers\Api\FullCountController::class, 'approve'])->whereNumber('id');
+    Route::post('/full-counts/{id}/cancel', [\App\Http\Controllers\Api\FullCountController::class, 'cancel'])->whereNumber('id');
+
     // ─── Gamification ────────────────────────────────────────────
     Route::get('/gamification/me', [\App\Http\Controllers\Api\GamificationController::class, 'me']);
     Route::get('/gamification/badges', [\App\Http\Controllers\Api\GamificationController::class, 'badges']);
@@ -178,6 +203,7 @@ Route::middleware(['auth:sanctum', 'set.sap.env'])->group(function () {
     // every warehouse & showroom. Read-only; available to all app users.
     Route::get('/products/search', [\App\Http\Controllers\Api\ProductLookupController::class, 'search']);
     Route::get('/products/{itemCode}/detail', [\App\Http\Controllers\Api\ProductLookupController::class, 'detail']);
+    Route::get('/products/{itemCode}/batches', [\App\Http\Controllers\Api\ProductLookupController::class, 'batches']);
 
     // ─── Showroom Pulse / نبض المعرض (per-branch decision dashboard) ──
     Route::middleware('feature:showroom_pulse.view')->group(function () {
@@ -299,6 +325,8 @@ Route::middleware([\App\Http\Middleware\AuthenticateWooToken::class])
     // Brand boutique pages (/brand/<slug>/) — published brands + their AI banners
     Route::get('/brands', [\App\Http\Controllers\Api\BrandPageController::class, 'index']);
     Route::get('/brands/{code}/page', [\App\Http\Controllers\Api\BrandPageController::class, 'show']);
+    // Every brand identity on file (colours, story) — the app's brand page for all brands
+    Route::get('/brand-kits', [\App\Http\Controllers\Api\BrandPageController::class, 'kits']);
 
     // Sync Status
     Route::get('/sync-status', [\App\Http\Controllers\Api\WooSyncController::class, 'getSyncStatus']);
@@ -341,4 +369,8 @@ Route::middleware([\App\Http\Middleware\AuthenticateShipGoToken::class])
     ->group(function () {
         Route::get('/catalog', [\App\Http\Controllers\Api\ShipGoCatalogController::class, 'catalog']);
         Route::get('/stock', [\App\Http\Controllers\Api\ShipGoCatalogController::class, 'stock']);
+        // منتجات customer accounts (PPTC_V5_PROD) — read-only, to link ShipGo stores + show their balance
+        Route::get('/customers', [\App\Http\Controllers\Api\ShipGoCustomerController::class, 'index']);
+        Route::get('/customers/{cardCode}', [\App\Http\Controllers\Api\ShipGoCustomerController::class, 'show'])
+            ->where('cardCode', '[A-Za-z0-9_-]{2,30}');
     });

@@ -51,9 +51,33 @@ class ShipGoSapService
 
     protected ?SapClient $client = null;
 
+    /** Safety cap: a statement with more lines than this must use a shorter period. */
+    public const MAX_LINES = 3000;
+
+    /** Safety cap on raw ledger rows read (history incl.), e.g. the retail cash customer. */
+    public const MAX_LEDGER_ROWS = 60000;
+
     public function companyDb(): string
     {
         return (string) config('sap.shipgo_company_db', 'SHIPGO_LIVE_V1');
+    }
+
+    /** config key under `sap.` holding statement_query + PDF branding. */
+    public function configKey(): string
+    {
+        return 'shipgo';
+    }
+
+    /** @return class-string<\App\Models\ShipGoCustomer> local mirror model */
+    public function customerModel(): string
+    {
+        return \App\Models\ShipGoCustomer::class;
+    }
+
+    /** PDF branding + company header for the statement. */
+    public function brand(): array
+    {
+        return (array) config('sap.' . $this->configKey(), []) + ['db' => $this->companyDb()];
     }
 
     /**
@@ -64,7 +88,7 @@ class ShipGoSapService
     public function client(): SapClient
     {
         if (!$this->client) {
-            $this->client = new SapClient();
+            $this->client = new PagedSapClient();
             $this->client->setCompanyDb($this->companyDb());
         }
         return $this->client;
@@ -125,13 +149,102 @@ class ShipGoSapService
             if (empty($bp['CardCode'])) {
                 return;
             }
-            $row = \App\Models\ShipGoCustomer::firstOrNew(['card_code' => $bp['CardCode']]);
-            $row->fill(\App\Models\ShipGoCustomer::attributesFromSap($bp));
+            $model = $this->customerModel();
+            $row = $model::firstOrNew(['card_code' => $bp['CardCode']]);
+            $row->fill($model::attributesFromSap($bp));
             $row->exists ? $updated++ : $created++;
             $row->save();
         });
 
         return ['total' => $total, 'created' => $created, 'updated' => $updated];
+    }
+
+    // ------------------------------------------------------------------
+    // Invoices (A/R) — mirror of headers + full document on demand
+    // ------------------------------------------------------------------
+
+    public const INVOICE_SELECT = 'DocEntry,DocNum,CardCode,CardName,DocDate,DocTime,DocDueDate,TaxDate,DocTotal,VatSum,PaidToDate,DocCurrency,DocumentStatus,Cancelled,NumAtCard,Comments,FederalTaxID,UpdateDate,U_ZTRPTFLG,U_ZTRPTDT';
+
+    /** @return class-string<\App\Models\ShipGoInvoice> */
+    public function invoiceModel(): string
+    {
+        return \App\Models\ShipGoInvoice::class;
+    }
+
+    /** Customer codes whose invoices are not mirrored (e.g. the retail cash register). */
+    public function invoiceExcludedCards(): array
+    {
+        return (array) config('sap.' . $this->configKey() . '.invoice_exclude_cards', []);
+    }
+
+    /**
+     * Mirror invoice headers into the local table. Incremental by default
+     * (SAP UpdateDate since the newest mirrored one, minus 2 days, so edits,
+     * payments and cancellations are picked up); full when the table is
+     * empty or $full is set. Returns counts.
+     *
+     * @return array{total:int, created:int, updated:int}
+     */
+    public function syncInvoices(bool $full = false): array
+    {
+        $model = $this->invoiceModel();
+        $since = $full ? null : $model::max('sap_update_date');
+
+        $filters = [];
+        foreach ($this->invoiceExcludedCards() as $code) {
+            $filters[] = "CardCode ne '" . str_replace("'", "''", $code) . "'";
+        }
+        if ($since) {
+            $filters[] = "UpdateDate ge '" . \Carbon\Carbon::parse($since)->subDays(2)->toDateString() . "'";
+        }
+
+        $query = ['$select' => self::INVOICE_SELECT, '$orderby' => 'DocEntry'];
+        if ($filters) {
+            $query['$filter'] = implode(' and ', $filters);
+        }
+
+        $before = $model::count();
+        $total  = 0;
+        $batch  = [];
+        $flush  = function () use (&$batch, $model) {
+            if ($batch) {
+                $model::upsert($batch, ['doc_entry'], array_keys(array_diff_key($batch[0], ['doc_entry' => 1, 'created_at' => 1])));
+                $batch = [];
+            }
+        };
+
+        foreach ($this->pages('Invoices', $query, 1000) as $doc) {
+            $batch[] = $model::attributesFromSap($doc) + ['created_at' => now(), 'updated_at' => now()];
+            $total++;
+            if (count($batch) >= 500) {
+                $flush();
+            }
+        }
+        $flush();
+
+        $created = $model::count() - $before;
+        return ['total' => $total, 'created' => $created, 'updated' => $total - $created];
+    }
+
+    /** Full A/R invoice (lines, expenses, ZATCA UDFs) — read-only GET. */
+    public function fetchInvoice(int $docEntry): array
+    {
+        return $this->client()->get("Invoices({$docEntry})");
+    }
+
+    /** Name of an additional-expense code (freight …); cached per request. */
+    public function expenseName(int $code): ?string
+    {
+        static $cache = [];
+        $key = $this->companyDb() . ':' . $code;
+        if (!array_key_exists($key, $cache)) {
+            try {
+                $cache[$key] = $this->client()->get("AdditionalExpenses({$code})", ['$select' => 'Name'])['Name'] ?? null;
+            } catch (\Throwable) {
+                $cache[$key] = null;
+            }
+        }
+        return $cache[$key];
     }
 
     public function fetchCustomer(string $cardCode): ?array
@@ -165,6 +278,8 @@ class ShipGoSapService
     {
         try {
             $raw = $this->ledgerRows($cardCode, $from, $to);
+            $this->guardSize($raw, $from);
+            $this->enrichLedgerRows($cardCode, $raw, $from);
             return $this->buildStatement('ledger', $raw, $from);
         } catch (SapException $e) {
             if (!$this->isMissingQuery($e)) {
@@ -174,7 +289,69 @@ class ShipGoSapService
         }
 
         $raw = $this->documentRows($cardCode, $to);
+        $this->guardSize($raw, $from);
         return $this->buildStatement('documents', $raw, $from);
+    }
+
+    protected function guardSize(array $rows, Carbon $from): void
+    {
+        $fromStr = $from->toDateString();
+        $n = count(array_filter($rows, fn ($r) => $r['date'] === null || $r['date'] >= $fromStr));
+        if ($n > self::MAX_LINES) {
+            throw new StatementTooLargeException($n, self::MAX_LINES);
+        }
+    }
+
+    /**
+     * The ledger query returns no due date / offset account. Fill them from
+     * the journal entries themselves (the customer's JDT1 line: DueDate +
+     * ContraAccount), 55 entries per request (URL cap 2048). Rows before $from only feed
+     * the opening balance and are skipped.
+     */
+    protected function enrichLedgerRows(string $cardCode, array &$rows, Carbon $from): void
+    {
+        $fromStr = $from->toDateString();
+        $ids = [];
+        foreach ($rows as $r) {
+            if ($r['trans_id'] && $r['date'] >= $fromStr) {
+                $ids[(int) $r['trans_id']] = true;
+            }
+        }
+        if (!$ids) {
+            return;
+        }
+
+        $info = []; // JdtNum => [ [debit, credit, due, contra], ... ] customer lines
+        foreach (array_chunk(array_keys($ids), 55) as $chunk) {
+            $filter = implode(' or ', array_map(fn ($id) => "JdtNum eq {$id}", $chunk));
+            foreach ($this->pages('JournalEntries', ['$filter' => $filter, '$select' => 'JdtNum,DueDate,JournalEntryLines']) as $je) {
+                foreach ($je['JournalEntryLines'] ?? [] as $l) {
+                    if (($l['ShortName'] ?? null) === $cardCode) {
+                        $info[(int) $je['JdtNum']][] = [
+                            (float) ($l['Debit'] ?? 0), (float) ($l['Credit'] ?? 0),
+                            $this->sapDate($l['DueDate'] ?? $je['DueDate'] ?? null), $l['ContraAccount'] ?? null,
+                        ];
+                    }
+                }
+            }
+        }
+
+        foreach ($rows as &$r) {
+            $lines = $info[(int) $r['trans_id']] ?? [];
+            if (!$lines) {
+                continue;
+            }
+            $match = $lines[0];
+            foreach ($lines as $l) {
+                if (abs($l[0] - $r['debit']) < 0.005 && abs($l[1] - $r['credit']) < 0.005) {
+                    $match = $l;
+                    break;
+                }
+            }
+            $r['due_date']       = $match[2] ?: $r['date'];
+            $r['offset_account'] = $match[3];
+        }
+        unset($r);
     }
 
     /**
@@ -185,18 +362,34 @@ class ShipGoSapService
      */
     protected function ledgerRows(string $cardCode, Carbon $from, Carbon $to): array
     {
-        $query = config('sap.shipgo.statement_query', 'SqlCustomerStatementOCRD01');
+        $query = config('sap.' . $this->configKey() . '.statement_query', 'SqlCustomerStatementOCRD01');
         $code  = str_replace("'", "''", $cardCode);
 
-        $resp = $this->client()->get("SQLQueries('{$query}')/List", [
+        $params = [
             'FromDate' => "'" . $from->toDateString() . "'",
             'ToDate'   => "'" . $to->toDateString() . "'",
             'CardCode' => "'{$code}'",
-        ]);
+        ];
+
+        // Follow every page: the Service Layer pages query results too.
+        $raw  = [];
+        $skip = 0;
+        while (true) {
+            $resp = $this->client()->get("SQLQueries('{$query}')/List", $skip ? $params + ['$skip' => $skip] : $params);
+            $page = $resp['value'] ?? [];
+            array_push($raw, ...$page);
+            if (count($raw) > self::MAX_LEDGER_ROWS) {
+                throw new StatementTooLargeException(count($raw), self::MAX_LEDGER_ROWS);
+            }
+            if (empty($page) || empty($resp['odata.nextLink'])) {
+                break;
+            }
+            $skip = preg_match('/\$skip=(\d+)/', $resp['odata.nextLink'], $m) ? (int) $m[1] : $skip + count($page);
+        }
 
         $rows = [];
         $seen = [];
-        foreach ($resp['value'] ?? [] as $r) {
+        foreach ($raw as $r) {
             $date = $this->sapDate($r['RefDate'] ?? null);
             // The query returns the rows dated exactly $from twice (forwarded +
             // transaction); keep one copy per (TransId, amounts, ref).
@@ -358,11 +551,11 @@ class ShipGoSapService
     // ------------------------------------------------------------------
 
     /** Iterate every row of a paged Service Layer collection. */
-    protected function pages(string $resource, array $query): \Generator
+    protected function pages(string $resource, array $query, int $pageSize = self::PAGE): \Generator
     {
         $skip = 0;
         while (true) {
-            $resp = $this->client()->get($resource, $query + ['$top' => self::PAGE, '$skip' => $skip]);
+            $resp = $this->client()->get($resource, $query + ['$top' => $pageSize, '$skip' => $skip]);
             $rows = $resp['value'] ?? [];
             if (empty($rows)) {
                 return;

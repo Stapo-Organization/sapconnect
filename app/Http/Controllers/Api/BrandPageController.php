@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Models\BrandDesignKitModel;
 use App\Models\MarketingCampaign;
 use App\Services\Marketing\BrandDesignKit;
 use Illuminate\Http\JsonResponse;
@@ -76,6 +77,55 @@ class BrandPageController extends Controller
             ->live()->where('brand_code', $code)->where('scope', 'visibility')->get();
 
         return response()->json(['data' => $this->brandPayload($brand, $group)]);
+    }
+
+    /**
+     * GET /api/woo/brand-kits — every brand identity the owner has on file, keyed
+     * by SAP brand code. The app's brand page paints any brand in its own colours
+     * and tells its story from this, published boutique or not.
+     *
+     * Raw stored values only — no HOUSE defaults — so a brand without a kit is
+     * simply absent, and the store falls back to its own look instead of showing
+     * the house mood line as if the brand had said it.
+     */
+    public function kits(Request $request): JsonResponse
+    {
+        $rows = BrandDesignKitModel::where('is_active', true)->get();
+        $brands = Brand::all();
+        $byCode = $brands->keyBy(fn ($b) => (string) $b->code);
+        $byName = $brands->keyBy(fn ($b) => mb_strtolower(trim((string) $b->name)));
+
+        $data = [];
+        foreach ($rows as $row) {
+            $key = trim((string) $row->brand_key);
+            $brand = $byCode->get($key) ?? $byName->get(mb_strtolower($key));
+            $code = $brand ? (string) $brand->code : (ctype_digit($key) ? $key : null);
+            if ($code === null || $code === '') {
+                continue;
+            }
+            $data[$code] = [
+                'code' => $code,
+                'name' => $brand->name ?? $row->brand_name,
+                'accent' => $row->accent,
+                'accent_dark' => $row->accent_dark,
+                'gold' => $row->gold,
+                'tagline_ar' => $row->tagline_ar,
+                'tagline_en' => $row->tagline_en,
+                'audience_ar' => $row->audience_ar,
+                'mood_ar' => $row->mood_ar,
+                'country' => $row->country,
+                'founded' => $row->founded,
+                'category' => $row->category,
+                'positioning' => $row->positioning,
+                'logo_url' => $row->logo_url ?: null,
+            ];
+        }
+
+        return response()->json([
+            'count' => count($data),
+            'data' => (object) $data,
+            'synced_at' => now()->toIso8601String(),
+        ]);
     }
 
     /**

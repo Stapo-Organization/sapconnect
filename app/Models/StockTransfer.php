@@ -20,6 +20,10 @@ class StockTransfer extends Model
     const STATUS_RECEIVED = 'Received';
     const STATUS_COMPLETED = 'Completed';
 
+    // SAP document behind the row: a transfer request, or a stock transfer posted directly.
+    const TYPE_REQUEST = 'request';
+    const TYPE_TRANSFER = 'transfer';
+
     protected $casts = [
         'doc_date' => 'date',
         'creation_date' => 'datetime',
@@ -95,7 +99,23 @@ class StockTransfer extends Model
      */
     public function canReceive(): bool
     {
-        return $this->internal_status === self::STATUS_SHIPPED;
+        if ($this->internal_status === self::STATUS_SHIPPED) {
+            return true;
+        }
+        // Moved in SAP without the app's «shipped» step: the branch still confirms what arrived.
+        return $this->internal_status === self::STATUS_NEW && $this->sapDelivered() > 0;
+    }
+
+    /** Pieces SAP has delivered against this request (stock transfers copied from it). */
+    public function sapDelivered(): float
+    {
+        return (float) ($this->relationLoaded('lines') ? $this->lines->sum('received_quantity') : $this->lines()->sum('received_quantity'));
+    }
+
+    /** Stock moved by SAP with no request: only the receiving branch has a step. */
+    public function isDirect(): bool
+    {
+        return $this->doc_type === self::TYPE_TRANSFER;
     }
 
     /**

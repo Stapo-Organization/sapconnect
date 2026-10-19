@@ -32,6 +32,29 @@ class ShipGoCustomerResource extends Resource
     public static function getModelLabel(): string { return __('ShipGo Customer'); }
     public static function getPluralModelLabel(): string { return __('ShipGo Customers'); }
 
+    /** Company hooks — overridden by MuntajatCustomerResource. */
+    public static function sapService(): \App\Services\ShipGo\ShipGoSapService
+    {
+        return app(\App\Services\ShipGo\ShipGoSapService::class);
+    }
+
+    public static function statementRouteName(): string
+    {
+        return 'shipgo.customers.statement';
+    }
+
+    /** @return class-string<ShipGoInvoiceResource> */
+    public static function invoiceResource(): string
+    {
+        return ShipGoInvoiceResource::class;
+    }
+
+    /** Invoice list pre-filtered on one customer. */
+    public static function invoicesUrl($record): string
+    {
+        return static::invoiceResource()::getUrl('index', ['tableFilters' => ['card_code' => ['value' => $record->card_code]]]);
+    }
+
     public static function canViewAny(): bool
     {
         return auth()->check() && auth()->user()->hasAnyRole(['Super Admin', 'Finance', 'Stakeholder', 'Operator', 'Accountant']);
@@ -121,6 +144,11 @@ class ShipGoCustomerResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 static::statementAction(),
+                Tables\Actions\Action::make('invoices')
+                    ->label(__('Invoices'))
+                    ->icon('heroicon-o-document-text')
+                    ->color('gray')
+                    ->url(fn ($record) => static::invoicesUrl($record)),
             ])
             ->bulkActions([])
             ->emptyStateHeading(__('No ShipGo customers yet'))
@@ -204,7 +232,7 @@ class ShipGoCustomerResource extends Resource
                     ->afterOrEqual('from'),
             ])
             ->action(function (array $data, $record, $livewire) {
-                $url = route('shipgo.customers.statement', [
+                $url = route(static::statementRouteName(), [
                     'cardCode' => $record->card_code,
                     'from'     => $data['from'],
                     'to'       => $data['to'],

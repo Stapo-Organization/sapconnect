@@ -30,6 +30,7 @@ class AccountantPanelAccessTest extends TestCase
         $this->accountant->assignRole('Accountant');
 
         ShipGoCustomer::create(['card_code' => 'SG0001', 'card_name' => 'عميل', 'currency' => 'SAR']);
+        \App\Models\MuntajatCustomer::create(['card_code' => 'MC0001', 'card_name' => 'عميل منتجات', 'currency' => 'SAR']);
     }
 
     public function test_migration_seeded_role_and_first_user(): void
@@ -51,7 +52,19 @@ class AccountantPanelAccessTest extends TestCase
             ->assertSee('SG0001')
             ->assertDontSee('Supply Chain')
             ->assertDontSee('SAP Management')
-            ->assertDontSee('Master Data');
+            ->assertDontSee('Master Data')
+            ->assertSee('muntajat-customers');     // second allowed section in the sidebar
+    }
+
+    public function test_accountant_can_open_muntajat_customers(): void
+    {
+        $this->withSession([auth()->guard('web')->getName() => $this->accountant->getAuthIdentifier()])
+            ->get('/admin/muntajat-customers')
+            ->assertOk()
+            ->assertSee('MC0001')
+            ->assertSee('ship-go-customers')
+            ->assertDontSee('SAP Management');
+        $this->assertNull(PanelAccess::gate($this->accountant, 'viewAny', [\App\Models\MuntajatCustomer::class]));
     }
 
     public function test_accountant_is_redirected_away_from_everything_else(): void

@@ -102,5 +102,43 @@ return [
         'company_vat'     => env('SHIPGO_COMPANY_VAT', ''),
         'company_phone'   => env('SHIPGO_COMPANY_PHONE', ''),
         'company_email'   => env('SHIPGO_COMPANY_EMAIL', ''),
+        // statement PDF branding (ShipGo official statement layout)
+        'logo'            => 'images/shipgo-logo.png',
+        'color_primary'   => '#1F2358',   // navy title band
+        'color_accent'    => '#F26A21',   // orange subtitle + total band
+        'color_on_accent' => '#FFFFFF',
+        'color_head'      => '#D9E7F5',   // table header row
+        // customer codes whose invoices are NOT mirrored in the Invoices section
+        'invoice_exclude_cards' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Muntajat Customers (main company, read-only)
+    |--------------------------------------------------------------------------
+    |
+    | Same screen + statement as ShipGo, reading the main company. The ledger
+    | query SqlCustomerStatementOCRD01 exists here, so statements come from
+    | the journal (JDT1), including manual journal entries.
+    |
+    */
+    'muntajat_company_db' => env('SAP_MUNTAJAT_DB', 'PPTC_V5_PROD'),
+
+    'muntajat' => [
+        'statement_query' => env('SAP_MUNTAJAT_STATEMENT_QUERY', 'SqlCustomerStatementOCRD01'),
+        'company_name'    => 'Muntajat',
+        'company_name_ar' => 'شركة منتجات',
+        'company_address' => 'الرياض، المملكة العربية السعودية',
+        'company_vat'     => env('MUNTAJAT_COMPANY_VAT', ''),
+        'company_phone'   => '',
+        'company_email'   => '',
+        'logo'            => 'images/muntajat-logo.png',
+        'logo_width'      => '22mm',
+        'color_primary'   => '#3C72B6',   // brand blue
+        'color_accent'    => '#F0BC49',   // brand yellow
+        'color_on_accent' => '#1F2937',
+        'color_head'      => '#FBF1DE',   // warm cream
+        // C0000001 = retail cash register (≈400k POS invoices, printed by the POS)
+        'invoice_exclude_cards' => ['C0000001'],
     ],
 ];

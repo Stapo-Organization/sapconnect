@@ -132,10 +132,8 @@ class InventoryCountingController extends Controller
 
         $barcode = $request->barcode;
 
-        // Search by piece_barcode or item_code
-        $product = Product::where('piece_barcode', $barcode)
-            ->orWhere('item_code', $barcode)
-            ->first();
+        // Search by piece_barcode or item_code (tolerant: leading zeros, UPC-A/EAN-13 forms, extra barcodes)
+        $product = $this->findProductByCode($barcode);
 
         if (!$product) {
             return response()->json([
@@ -301,11 +299,16 @@ class InventoryCountingController extends Controller
             ], 422);
         }
 
+        // Pull fresh system quantities for the counted items from SAP (read-only) so
+        // the variance is measured against SAP, not a possibly stale mirror row.
+        $refresh = $this->refreshStockFromSap($counting);
+
         $counting->markAsCompleted();
 
         // Calculate variances automatically
         $varianceService = new VarianceCalculationService();
         $varianceSummary = $varianceService->calculateForSession($counting);
+        $varianceSummary['stock_refresh'] = $refresh;
 
         // Gamification: award points/badges/streak (never blocks completion).
         $gamification = null;
@@ -354,9 +357,7 @@ class InventoryCountingController extends Controller
      */
     public function lookupBarcode(Request $request, $barcode)
     {
-        $product = Product::where('piece_barcode', $barcode)
-            ->orWhere('item_code', $barcode)
-            ->first();
+        $product = $this->findProductByCode($barcode);
 
         if (!$product) {
             return response()->json([
@@ -379,6 +380,100 @@ class InventoryCountingController extends Controller
     }
 
     // ─── Helpers ────────────────────────────────────────────────
+
+    /**
+     * Resolve a scanned/typed code to a product. Exact match on piece_barcode or
+     * item_code first; then digit-normalised forms (a camera often drops or adds the
+     * leading zero of a 12-digit UPC-A; SAP stores some as 13-digit EAN); then any
+     * extra barcode in product_barcodes when that table exists (carton/legacy codes).
+     */
+    protected function findProductByCode(string $raw): ?Product
+    {
+        $code = trim($raw);
+        if ($code === '') {
+            return null;
+        }
+        $product = Product::where('piece_barcode', $code)->orWhere('item_code', $code)->first();
+        if ($product) {
+            return $product;
+        }
+        $digits = preg_replace('/\D+/', '', $code);
+        if ($digits !== '' && strlen($digits) >= 6) {
+            $stripped = ltrim($digits, '0');
+            $candidates = array_values(array_unique(array_filter([
+                $digits,
+                $stripped,
+                '0' . $digits,
+                '00' . $digits,
+                strlen($digits) === 13 && $digits[0] === '0' ? substr($digits, 1) : null,
+            ])));
+            $product = Product::whereIn('piece_barcode', $candidates)->first();
+            if ($product) {
+                return $product;
+            }
+            if ($stripped !== '') {
+                $expr = \Illuminate\Support\Facades\DB::getDriverName() === 'sqlite'
+                    ? "LTRIM(piece_barcode, '0') = ?"
+                    : "TRIM(LEADING '0' FROM piece_barcode) = ?";
+                $product = Product::whereNotNull('piece_barcode')->whereRaw($expr, [$stripped])->first();
+                if ($product) {
+                    return $product;
+                }
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('product_barcodes')) {
+                // Every barcode the item answers to (SAP piece/carton/other + POS-observed), leading-zero tolerant
+                $itemCode = \App\Services\SAP\ItemBarcodeResolver::lookupItemCode($code);
+                if ($itemCode) {
+                    return Product::where('item_code', $itemCode)->first();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Before computing variances, refresh the system quantity of the counted items
+     * straight from SAP (GET only) so a stale mirror row does not become a false
+     * variance. Best effort: bounded time, never blocks completion.
+     */
+    protected function refreshStockFromSap(InventoryCounting $counting): array
+    {
+        $codes = $counting->lines()->distinct()->pluck('item_code')->all();
+        $stats = ['items' => count($codes), 'updated' => 0, 'skipped' => 0];
+        if (empty($codes)) {
+            return $stats;
+        }
+        $deadline = microtime(true) + 40;
+        try {
+            $sap = new \App\Services\SAP\SapClient();
+            $sap->setCompanyDb('PPTC_V5_PROD');
+            foreach ($codes as $code) {
+                if (microtime(true) > $deadline) {
+                    $stats['skipped']++;
+                    continue;
+                }
+                try {
+                    $item = $sap->get("Items('" . str_replace("'", "''", $code) . "')", ['$select' => 'ItemCode,ItemWarehouseInfoCollection']);
+                    foreach (($item['ItemWarehouseInfoCollection'] ?? []) as $w) {
+                        if (($w['WarehouseCode'] ?? null) !== $counting->warehouse_code) {
+                            continue;
+                        }
+                        WarehouseItemStock::updateOrCreate(
+                            ['item_code' => $code, 'warehouse_code' => $counting->warehouse_code],
+                            ['in_stock' => (float) ($w['InStock'] ?? 0), 'committed' => (float) ($w['Committed'] ?? 0), 'ordered' => (float) ($w['Ordered'] ?? 0)]
+                        );
+                        $stats['updated']++;
+                    }
+                } catch (\Throwable $e) {
+                    $stats['skipped']++;
+                    \Illuminate\Support\Facades\Log::warning("counting stock refresh failed for {$code}: " . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('counting stock refresh unavailable: ' . $e->getMessage());
+        }
+        return $stats;
+    }
 
     protected function getUserWarehouseCodes($user): array
     {

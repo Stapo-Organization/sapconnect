@@ -4,5 +4,17 @@
   "description": "Node deps for the ad-creative banner compositor (resvg-js renders the Arabic SVG to PNG).",
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.20",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "postcss-import": "^17.0.0",
+    "postcss-nesting": "^14.0.1",
+    "tailwindcss": "^3.4.19"
+  },
+  "scripts": {
+    "build:admin-theme": "tailwindcss --postcss -i resources/css/filament/admin/theme.css -o public/css/filament/admin/theme.css --minify"
   }
 }

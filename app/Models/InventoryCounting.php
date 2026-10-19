@@ -25,6 +25,16 @@ class InventoryCounting extends Model
         'cycle_plan_id',
         'target_items',
         'total_target_items',
+        'phase',
+        'unit_assignments',
+        'recount_assignments',
+        'recount_progress',
+        'sales_cutoff_at',
+        'sales_corrections',
+        'snapshot_status',
+        'snapshot_at',
+        'approved_by',
+        'approved_at',
     ];
 
     protected $casts = [
@@ -33,7 +43,22 @@ class InventoryCounting extends Model
         'scheduled_date' => 'date',
         'target_items' => 'array',
         'total_target_items' => 'integer',
+        'unit_assignments' => 'array',
+        'recount_assignments' => 'array',
+        'recount_progress' => 'array',
+        'sales_cutoff_at' => 'datetime',
+        'sales_corrections' => 'array',
+        'snapshot_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
+
+    // Full-count phases (counting_type = full)
+    const PHASE_COUNTING = 'counting';
+    const PHASE_RECOUNT = 'recount';
+    const PHASE_MISSING = 'missing';
+    const PHASE_REVIEW = 'review';
+    const PHASE_APPROVED = 'approved';
+    const PHASES = ['counting', 'recount', 'missing', 'review', 'approved'];
 
     const TYPE_FULL = 'full';
     const TYPE_CYCLE = 'cycle';
@@ -60,6 +85,16 @@ class InventoryCounting extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_code', 'warehouse_code');
+    }
+
+    public function snapshots()
+    {
+        return $this->hasMany(InventoryCountingSnapshot::class);
+    }
+
+    public function isFullCount(): bool
+    {
+        return $this->counting_type === self::TYPE_FULL;
     }
 
     public function cyclePlan()

@@ -8,6 +8,7 @@ use App\Models\WarehouseItemStock;
 use App\Services\Branch\BranchInsightsService;
 use App\Services\Intelligence\DemandReconstructionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -273,5 +274,56 @@ class ProductLookupController extends Controller
     protected function imageUrl(string $code): string
     {
         return 'https://ppte.sa/imghd/' . substr($code, 0, 4) . '/' . $code . '.png';
+    }
+
+    /**
+     * Batches and expiry dates of an item, per warehouse, live from SAP's saved
+     * `batchesitems` query (GET only; ~0.1 s, cached 5 min). Nearest expiry
+     * first in each warehouse. Not batch-managed → batch_managed=false.
+     */
+    public function batches(Request $request, string $itemCode)
+    {
+        abort_unless(preg_match('/^[A-Za-z0-9._-]{1,50}$/', $itemCode), 404);
+
+        $rows = Cache::remember("product-batches:$itemCode", 300, function () use ($itemCode) {
+            $sap = new \App\Services\ShipGo\PagedSapClient(5000);
+            $value = $sap->get("SQLQueries('batchesitems')/List", ['ItemCode' => "'$itemCode'"])['value'] ?? [];
+            return collect($value)
+                ->filter(fn ($r) => ! empty($r['WhsCode']) && ! empty($r['BatchNumber']) && (float) ($r['Quantity'] ?? 0) > 0)
+                ->map(fn ($r) => [
+                    'warehouse_code' => $r['WhsCode'],
+                    'batch' => (string) $r['BatchNumber'],
+                    'expiry_date' => preg_match('/^(\d{4})(\d{2})(\d{2})$/', (string) ($r['ExpiryDate'] ?? ''), $m) ? "{$m[1]}-{$m[2]}-{$m[3]}" : null,
+                    'quantity' => (float) $r['Quantity'],
+                ])
+                ->values()->all();
+        });
+
+        $names = DB::table('warehouses')->where('source', 'production')->pluck('warehouse_name', 'warehouse_code');
+        $mine = array_values(array_filter(array_map('trim', explode(',', (string) $request->query('branches', '')))));
+        $today = now()->startOfDay();
+
+        $warehouses = collect($rows)->groupBy('warehouse_code')->map(function ($bs, $wh) use ($names, $today) {
+            $batches = $bs->map(function ($b) use ($today) {
+                $b['days_left'] = $b['expiry_date'] ? (int) $today->diffInDays(\Carbon\Carbon::parse($b['expiry_date']), false) : null;
+                return $b;
+            })->sortBy(fn ($b) => $b['expiry_date'] ?? '9999-12-31')->values();
+            return [
+                'warehouse_code' => $wh,
+                'warehouse_name' => $names[$wh] ?? $wh,
+                'quantity' => (float) $bs->sum('quantity'),
+                'nearest_expiry' => $batches->first()['expiry_date'] ?? null,
+                'batches' => $batches->map(fn ($b) => collect($b)->except('warehouse_code')->all())->all(),
+            ];
+        })
+            // The caller's branches first, then the most stock.
+            ->sortBy(fn ($w) => [in_array($w['warehouse_code'], $mine, true) ? 0 : 1, -$w['quantity']])
+            ->values();
+
+        return response()->json([
+            'item_code' => $itemCode,
+            'batch_managed' => $warehouses->isNotEmpty(),
+            'warehouses' => $warehouses,
+        ]);
     }
 }
