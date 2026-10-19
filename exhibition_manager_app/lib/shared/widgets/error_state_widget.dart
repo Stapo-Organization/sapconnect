@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import '../../core/design_system/tokens/colors.dart';
 import '../../core/design_system/tokens/typography.dart';
 import '../../core/design_system/tokens/spacing.dart';
-import '../../core/design_system/tokens/radius.dart';
 import '../../core/design_system/widgets/animated_icons.dart';
+import '../../core/design_system/widgets/app_button.dart';
 import '../../core/localization/app_localizations.dart';
 
-/// Reusable error state widget with retry capability.
-///
-/// Shows a friendly illustration (icon), title, subtitle, and retry button.
-/// Use this instead of silently hiding loading states.
+/// Error state with retry («المتجر»): the same shape as [EmptyState] — a soft
+/// critical-tinted disc, a calm title, one line of help and a secondary
+/// "retry" button. Errors inform; they don't shout.
 class ErrorStateWidget extends StatelessWidget {
   final String? title;
   final String? subtitle;
@@ -28,68 +27,45 @@ class ErrorStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // تدخل بنبضة ثم تهتز اهتزازة تنبيهية متضائلة — خطأ يلفت لا يزعج.
-            PopIn(
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.xl),
+        child: PopIn(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GlowIconChip(
+                icon: icon,
+                color: AppColors.error,
+                size: 64,
+                iconSize: 30,
+                borderRadius: BorderRadius.circular(32),
+              ),
+              const SizedBox(height: AppSpacing.base),
+              Text(
+                title ?? context.tr('error_title'),
+                textAlign: TextAlign.center,
+                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 300),
+                child: Text(
+                  subtitle ?? context.tr('error_subtitle'),
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
                 ),
-                child: WiggleIcon(
-                  delay: const Duration(milliseconds: 350),
-                  child: Icon(
-                    icon,
-                    size: 64,
-                    color: AppColors.error.withValues(alpha: 0.6),
-                  ),
-                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              title ?? context.tr('error_title'),
-              textAlign: TextAlign.center,
-              style: AppTypography.titleLarge.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              subtitle ?? context.tr('error_subtitle'),
-              textAlign: TextAlign.center,
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: AppSpacing.xl),
-              SizedBox(
-                width: 200,
-                child: ElevatedButton.icon(
+              if (onRetry != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                AppButton(
+                  label: context.tr('retry'),
+                  icon: Icons.refresh_rounded,
                   onPressed: onRetry,
-                  icon: const Icon(Icons.refresh_rounded, size: 20),
-                  label: Text(
-                    context.tr('retry'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.textOnPrimary,
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppRadius.borderMd,
-                    ),
-                  ),
+                  expand: false,
+                  variant: AppButtonVariant.tonal,
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

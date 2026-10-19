@@ -181,7 +181,7 @@ class _SalesProfitChartState extends State<SalesProfitChart> with SingleTickerPr
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
-          Text(value, style: AppTypography.titleSmall.copyWith(color: color, fontWeight: FontWeight.w800)),
+          Text(value, style: AppTypography.titleSmall.copyWith(color: color, fontWeight: FontWeight.w700)),
         ],
       );
 

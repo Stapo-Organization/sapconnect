@@ -64,7 +64,7 @@ class CompactPromotionCard extends StatelessWidget {
                 children: [
                   Text(
                     campaign.displayName,
-                    style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800, height: 1.25),
+                    style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, height: 1.25),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -139,7 +139,7 @@ class CompactPromotionCard extends StatelessWidget {
             Icon(campaignTypeIcon(campaign.campaignType), color: Colors.white, size: 11),
             const SizedBox(width: 3),
             Text(campaignTypeLabel(context, campaign.campaignType),
-                style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
+                style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 10)),
           ],
         ),
       );
@@ -166,7 +166,7 @@ class CompactPromotionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
+      child: Text(label, style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 10)),
     );
   }
 

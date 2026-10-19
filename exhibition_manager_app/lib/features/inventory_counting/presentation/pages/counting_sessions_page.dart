@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:exhibition_manager_app/features/full_count/presentation/pages/fc_board_page.dart';
+import 'package:exhibition_manager_app/features/full_count/presentation/widgets/fc_entry_card.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
@@ -7,8 +9,6 @@ import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
-import 'package:exhibition_manager_app/core/network/api_client.dart';
-import 'package:exhibition_manager_app/core/network/api_endpoints.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/counting_repository.dart';
 import 'package:exhibition_manager_app/features/inventory_counting/data/models/counting_session.dart';
@@ -38,35 +38,10 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
   String _typeFilter = 'cycle'; // 'cycle' (دوري) or 'full' (سنوي) — no "all"
   final TextEditingController _searchController = TextEditingController();
 
-  /// Map of warehouse_code → warehouse_name (fetched from API)
-  Map<String, String> _warehouseNames = {};
-
   @override
   void initState() {
     super.initState();
     _loadSessions();
-    _loadWarehouseNames();
-  }
-
-  Future<void> _loadWarehouseNames() async {
-    final result = await ApiClient().get(ApiEndpoints.warehouses);
-    if (result.isSuccess && mounted) {
-      final List data = result.data['data'] ?? [];
-      final Map<String, String> names = {};
-      for (final wh in data) {
-        final code = wh['warehouse_code']?.toString() ?? '';
-        final name = wh['warehouse_name']?.toString() ?? code;
-        // Only include warehouses the user has access to
-        if (widget.warehouseCodes.contains(code)) {
-          names[code] = name;
-        }
-      }
-      // If API didn't return some codes, add them with code as name
-      for (final code in widget.warehouseCodes) {
-        names.putIfAbsent(code, () => code);
-      }
-      setState(() => _warehouseNames = names);
-    }
   }
 
   @override
@@ -109,63 +84,6 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
     }
   }
 
-  Future<void> _createNewSession() async {
-    // If user has only 1 warehouse, skip the picker
-    if (widget.warehouseCodes.length == 1) {
-      await _doCreateSession(widget.warehouseCodes.first);
-      return;
-    }
-
-    // Show warehouse picker bottom sheet
-    final selectedCode = await showModalBottomSheet<String>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Directionality(
-        textDirection: AppLocalizations.isArabic ? TextDirection.rtl : TextDirection.ltr,
-        child: _WarehousePickerSheet(
-          warehouseNames: _warehouseNames,
-          warehouseCodes: widget.warehouseCodes,
-        ),
-      ),
-    );
-
-    if (selectedCode != null) {
-      await _doCreateSession(selectedCode);
-    }
-  }
-
-  Future<void> _doCreateSession(String warehouseCode) async {
-    // Show loading dialog
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final result = await _repo.createSession(warehouseCode: warehouseCode);
-
-    if (mounted) {
-      Navigator.pop(context); // dismiss loading
-    }
-
-    if (result.success && result.session != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CountingDetailPage(sessionId: result.session!.id),
-        ),
-      ).then((_) => _loadSessions());
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.error ?? context.tr('ic_create_session_error'))),
-      );
-    }
-  }
-
   static String _statusFilterLabel(BuildContext context, String status) {
     switch (status) {
       case 'in_progress':
@@ -205,18 +123,10 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
         ),
         // Cycle counts are system-generated — only annual (full) counts are
         // created manually, so the "New Count" button shows on the سنوي tab only.
-        floatingActionButton: _typeFilter == 'full'
-            ? FloatingActionButton.extended(
-                onPressed: _createNewSession,
-                icon: const Icon(Icons.add_rounded),
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                label: Text(
-                  context.tr('new_count_btn'),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              )
-            : null,
+        // The full (annual) count now runs through the full-count flow
+        // (map → book snapshot → zones → recount → approval), started from the
+        // card at the top of the سنوي tab — no more free-form manual sessions.
+        floatingActionButton: null,
         body: Column(
           children: [
             // ─── Search + Filter button ─────────────────────
@@ -300,6 +210,12 @@ class _CountingSessionsPageState extends State<CountingSessionsPage> {
               ),
 
             const SizedBox(height: AppSpacing.sm),
+
+            if (_typeFilter == 'full' && widget.warehouseCodes.isNotEmpty)
+              FcEntryCard(
+                key: ValueKey('fc-${widget.warehouseCodes.first}'),
+                warehouseCode: widget.warehouseCodes.first,
+              ),
 
             // ─── List Section ───────────────────────────────
             Expanded(
@@ -518,7 +434,9 @@ class _SessionCard extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => session.isCycleCount
               ? CycleCountDetailPage(sessionId: session.id)
-              : CountingDetailPage(sessionId: session.id),
+              : session.isBoardCount
+                  ? FcBoardPage(sessionId: session.id)
+                  : CountingDetailPage(sessionId: session.id),
         ),
       ).then((_) => onRefresh()),
       child: Container(
@@ -616,31 +534,19 @@ class _SessionCard extends StatelessWidget {
             // Continue button if in_progress
             if (session.isInProgress) ...[
               const SizedBox(height: AppSpacing.base),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => session.isCycleCount
-              ? CycleCountDetailPage(sessionId: session.id)
-              : CountingDetailPage(sessionId: session.id),
-                    ),
-                  ).then((_) => onRefresh()),
-                  icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                  label: Text(
-                    context.tr('continue_counting'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+              AppButton(
+                label: context.tr('continue_counting'),
+                icon: Icons.play_arrow_rounded,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => session.isCycleCount
+                        ? CycleCountDetailPage(sessionId: session.id)
+                        : session.isBoardCount
+                            ? FcBoardPage(sessionId: session.id)
+                            : CountingDetailPage(sessionId: session.id),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.success,
-                    side: BorderSide(color: AppColors.success, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppRadius.borderMd,
-                    ),
-                    minimumSize: const Size(double.infinity, 44),
-                  ),
-                ),
+                ).then((_) => onRefresh()),
               ),
             ],
           ],
@@ -684,124 +590,3 @@ class _StatPill extends StatelessWidget {
 }
 
 // ─── Warehouse Picker Bottom Sheet ────────────────────────
-class _WarehousePickerSheet extends StatelessWidget {
-  final Map<String, String> warehouseNames;
-  final List<String> warehouseCodes;
-
-  const _WarehousePickerSheet({
-    required this.warehouseNames,
-    required this.warehouseCodes,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: AppSpacing.lg,
-        bottom: MediaQuery.of(context).padding.bottom + AppSpacing.base,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: AppRadius.borderFull,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.base),
-
-          // Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Row(
-              children: [
-                GlowIconChip(
-                  icon: Icons.inventory_2_rounded,
-                  color: AppColors.primary,
-                  size: 38,
-                  iconSize: 22,
-                  borderRadius: AppRadius.borderSm,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr('start_new_count'),
-                        style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        context.tr('choose_warehouse'),
-                        style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.base),
-          const Divider(height: 1),
-          const SizedBox(height: AppSpacing.sm),
-
-          // Warehouse list
-          ...warehouseCodes.map((code) {
-            final name = warehouseNames[code] ?? code;
-            return Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => Navigator.pop(context, code),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.md,
-                  ),
-                  child: Row(
-                    children: [
-                      GlowIconChip(
-                        icon: Icons.warehouse_rounded,
-                        color: AppColors.primary,
-                        size: 44,
-                        iconSize: 22,
-                        borderRadius: AppRadius.borderMd,
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: AppTypography.bodyMedium.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              code,
-                              style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        AppLocalizations.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
-                        color: AppColors.textTertiary,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-      ),
-    );
-  }
-}

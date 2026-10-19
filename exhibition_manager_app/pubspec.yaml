@@ -1,7 +1,7 @@
 name: exhibition_manager_app
 description: "Muntajat HUB — منصة فروع ومعارض منتجات"
 publish_to: 'none'
-version: 1.0.0+6
+version: 1.0.2+20
 
 environment:
   sdk: ^3.11.5
@@ -62,7 +62,8 @@ flutter_launcher_icons:
   background_color_ios: "#F8EDDF"
   min_sdk_android: 21
   adaptive_icon_background: "#F8EDDF"
-  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  adaptive_icon_foreground: "assets/icon/app_icon_adaptive_fg.png"
+  adaptive_icon_foreground_inset: 0
 
 flutter:
   uses-material-design: true
@@ -72,15 +73,24 @@ flutter:
     - assets/svgs/
 
   fonts:
-    - family: Cairo
+    # IBM Plex Sans Arabic — the HUB's single UI face (Arabic + Latin, real 400–700).
+    - family: IBMPlexSansArabic
       fonts:
-        - asset: assets/fonts/Cairo-Regular.ttf
-        - asset: assets/fonts/Cairo-Medium.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Cairo-SemiBold.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Cairo-Bold.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
           weight: 700
+    # IBM Plex Mono — item codes, shelf codes, barcodes, quantities in tables.
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
+          weight: 600
     - family: SaudiRiyal
       fonts:
         - asset: assets/fonts/SaudiRiyal.otf

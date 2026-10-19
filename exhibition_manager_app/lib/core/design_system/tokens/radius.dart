@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
-/// Muntajat Exhibition Manager — Design Tokens: Border Radius
+/// Muntajat HUB — Design Tokens: Border Radius («المتجر»).
+///
+/// Three working sizes: 8 (chips, badges, small boxes), 12 (cards, buttons,
+/// inputs), 16 (sheets, dialogs). The older names stay as aliases so existing
+/// call sites land on one of the three instead of eight different curves.
 class AppRadius {
   AppRadius._();
 
-  static const double xs = 4;
+  static const double xs = 6;
   static const double sm = 8;
   static const double md = 12;
-  static const double lg = 16;
-  static const double xl = 20;
-  static const double xxl = 24;
-  static const double xxxl = 28;
+  static const double lg = 12;
+  static const double xl = 12;
+  static const double xxl = 16;
+  static const double xxxl = 16;
   static const double full = 999;
 
   static BorderRadius get borderXs => BorderRadius.circular(xs);

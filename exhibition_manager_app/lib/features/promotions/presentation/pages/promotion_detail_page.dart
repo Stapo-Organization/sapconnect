@@ -282,7 +282,7 @@ class _PromotionDetailPageState extends State<PromotionDetailPage> {
                   steps[i].$2,
                   style: AppTypography.labelSmall.copyWith(
                     color: i <= step ? accent : AppColors.textTertiary,
-                    fontWeight: i == step ? FontWeight.w800 : FontWeight.w600,
+                    fontWeight: i == step ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
               ],
@@ -708,13 +708,13 @@ class _PromotionDetailPageState extends State<PromotionDetailPage> {
               children: [
                 Flexible(
                   child: Text(m.$1,
-                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: AppRadius.borderFull),
-                  child: Text(m.$2, style: AppTypography.labelSmall.copyWith(color: accent, fontWeight: FontWeight.w800)),
+                  child: Text(m.$2, style: AppTypography.labelSmall.copyWith(color: accent, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),

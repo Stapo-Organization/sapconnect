@@ -137,7 +137,7 @@ class ChannelComparison extends StatelessWidget {
               curve: Curves.easeOutCubic,
               builder: (_, v, _) => Text(
                 sarCompact(v),
-                style: AppTypography.titleMedium.copyWith(color: color, fontWeight: FontWeight.w900),
+                style: AppTypography.titleMedium.copyWith(color: color, fontWeight: FontWeight.w700),
               ),
             ),
             const SizedBox(height: 5),
@@ -288,7 +288,7 @@ class ChannelComparison extends StatelessWidget {
           pctLabel(share * 100),
           style: AppTypography.labelSmall.copyWith(
             color: SalesChannel.color(channel),
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],

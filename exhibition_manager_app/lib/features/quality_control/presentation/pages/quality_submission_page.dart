@@ -149,7 +149,7 @@ class _QualitySubmissionPageState extends State<QualitySubmissionPage> {
             children: [
               Icon(Icons.sticky_note_2_rounded, size: 18, color: _accent),
               const SizedBox(width: AppSpacing.sm),
-              Text(context.tr('qs_notes'), style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800)),
+              Text(context.tr('qs_notes'), style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -189,14 +189,14 @@ class _QualitySubmissionPageState extends State<QualitySubmissionPage> {
           decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Text(title, style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800)),
+        Text(title, style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
         const Spacer(),
         if (count > 0)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
             decoration: BoxDecoration(color: _accent.withValues(alpha: 0.12), borderRadius: AppRadius.borderFull),
             child: Text('$count ${context.tr('qs_photos_count')}',
-                style: AppTypography.labelSmall.copyWith(color: _accent, fontWeight: FontWeight.w800)),
+                style: AppTypography.labelSmall.copyWith(color: _accent, fontWeight: FontWeight.w700)),
           ),
       ],
     );

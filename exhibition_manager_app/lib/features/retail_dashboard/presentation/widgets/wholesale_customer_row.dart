@@ -64,7 +64,7 @@ class WholesaleCustomerRow extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(sarAmount(customer.net),
-                        style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w800)),
+                        style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w700)),
                   ],
                 ),
                 const SizedBox(height: 7),
@@ -154,7 +154,7 @@ class WholesaleCustomerRow extends StatelessWidget {
         '$rank',
         style: AppTypography.labelMedium.copyWith(
           color: top3 ? Colors.white : _rankColor,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -193,13 +193,13 @@ class WholesaleCustomerRow extends StatelessWidget {
             child: Text(compactNum(customer.profit),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTypography.labelMedium.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
+                style: AppTypography.labelMedium.copyWith(color: AppColors.success, fontWeight: FontWeight.w700)),
           ),
           const SizedBox(width: 5),
           Container(width: 3, height: 3, decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
           const SizedBox(width: 5),
           Text(pctLabel(customer.marginPct!),
-              style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
+              style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w700)),
         ],
       ),
     );

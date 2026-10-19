@@ -67,7 +67,7 @@ class DecisionQueueCard extends StatelessWidget {
                   context.tr('owner_queue_title'),
                   style: AppTypography.titleSmall.copyWith(
                     color: OwnerTheme.textHi,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -100,7 +100,7 @@ class DecisionQueueCard extends StatelessWidget {
           '$total',
           style: AppTypography.labelSmall.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           ),
         ),
       );
@@ -142,7 +142,7 @@ class DecisionQueueCard extends StatelessWidget {
                 '${item.count}',
                 style: AppTypography.labelMedium.copyWith(
                   color: item.color,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

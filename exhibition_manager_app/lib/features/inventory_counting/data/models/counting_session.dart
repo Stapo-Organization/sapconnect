@@ -7,6 +7,8 @@ class CountingSession {
   final String? warehouseName;
   final String status;
   final String countingType;
+  /// Set only on wall-to-wall counts run from the HUB board (counting → … → approved).
+  final String? phase;
   final String priority;
   final String? scheduledDate;
   final int totalTargetItems;
@@ -24,6 +26,7 @@ class CountingSession {
     this.warehouseName,
     required this.status,
     this.countingType = 'full',
+    this.phase,
     this.priority = 'medium',
     this.scheduledDate,
     this.totalTargetItems = 0,
@@ -43,6 +46,7 @@ class CountingSession {
       warehouseName: json['warehouse_name'],
       status: json['status'] ?? 'in_progress',
       countingType: json['counting_type'] ?? 'full',
+      phase: json['phase'],
       priority: json['priority'] ?? 'medium',
       scheduledDate: json['scheduled_date'],
       totalTargetItems: json['total_target_items'] ?? 0,
@@ -63,6 +67,9 @@ class CountingSession {
   bool get isCompleted => status == 'completed';
   bool get isCancelled => status == 'cancelled';
   bool get isCycleCount => countingType == 'cycle';
+
+  /// A full count run on the shelf map (board, rounds, expiry dates) — never the old manual screen.
+  bool get isBoardCount => countingType == 'full' && phase != null;
 
   String get statusLabel {
     switch (status) {

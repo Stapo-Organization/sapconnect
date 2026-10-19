@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/features/home/data/models/home_overview.dart';
@@ -26,31 +27,27 @@ class ActionCenterPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: MuntajatAppBar(title: context.tr('action_center_title')),
-        body: groups.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
-                child: AllClearCard(),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.huge),
-                itemCount: groups.length,
-                itemBuilder: (context, i) {
-                  final g = groups[i];
-                  return ActionFeedItemCard(
-                    item: g.lead,
-                    repeat: g.count,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onItemTap(g.lead);
-                    },
-                  ).animate().fadeIn(delay: (40 * i).ms, duration: 300.ms).slideY(
-                        begin: 0.06,
-                        end: 0,
-                        curve: Curves.easeOut,
-                      );
-                },
-              ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, AppSpacing.huge),
+          children: [
+            groups.isEmpty
+                ? const AllClearCard()
+                : AppSection(
+                    dividerIndent: 64,
+                    children: [
+                      for (var i = 0; i < groups.length; i++)
+                        ActionFeedItemCard(
+                          item: groups[i].lead,
+                          repeat: groups[i].count,
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            onItemTap(groups[i].lead);
+                          },
+                        ).animate().fadeIn(delay: (30 * i).ms, duration: 220.ms),
+                    ],
+                  ),
+          ],
+        ),
       ),
     );
   }

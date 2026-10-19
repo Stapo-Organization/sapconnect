@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/design_system/theme/app_theme.dart';
 import 'core/design_system/theme/theme_controller.dart';
+import 'core/design_system/responsive.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/notifications/push_service.dart';
 import 'features/auth/presentation/pages/splash_page.dart';
@@ -110,11 +111,17 @@ class _MuntajatExhibitionAppState extends State<MuntajatExhibitionApp>
             // LocaleScope sits above the Navigator so every route (even ones
             // already pushed) that reads text via context.tr rebuilds when the
             // language changes — not just the global text direction.
-            return LocaleScope(
-              locale: currentLocale,
-              child: Directionality(
-                textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-                child: child!,
+            // Cap the system font scale: staff phones often run at 130%+,
+            // which broke rows (names cut, nav labels wrapping). Text still
+            // grows up to kMaxAppTextScale.
+            return MediaQuery.withClampedTextScaling(
+              maxScaleFactor: kMaxAppTextScale,
+              child: LocaleScope(
+                locale: currentLocale,
+                child: Directionality(
+                  textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                  child: child!,
+                ),
               ),
             );
           },

@@ -4,10 +4,7 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/theme_toggle_button.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/permissions/app_abilities.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
@@ -156,7 +153,7 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: AppColors.background,
           body: RefreshIndicator(
             onRefresh: _controller.refresh,
-            edgeOffset: MediaQuery.of(context).padding.top + 80,
+            edgeOffset: MediaQuery.of(context).padding.top,
             child: ListenableBuilder(
               listenable: _controller,
               builder: (context, _) => CustomScrollView(
@@ -195,18 +192,17 @@ class _HomePageState extends State<HomePage> {
         // Your-day strip (motivation only).
         if (_ov != null)
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             sliver: SliverToBoxAdapter(
               child: YourDayStrip(day: _ov!.yourDay, progress: _ov!.progress)
                   .animate()
-                  .fadeIn(duration: 350.ms)
-                  .slideY(begin: 0.08, end: 0, curve: Curves.easeOut),
+                  .fadeIn(duration: 250.ms),
             ),
           ),
 
         // Action Center — the ONE de-duplicated list of things to do now.
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           sliver: SliverToBoxAdapter(
             child: ActionCenter(
               groups: _foldedFeed,
@@ -236,36 +232,29 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
-  // ─── Quick Look — unified per-domain counter grid ───────────
+  // ─── Quick Look — one card of counters ──────────────────────
   Widget _quickLook(BuildContext context) {
     final tiles = _glanceTiles(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: AppSection(
+        title: context.tr('quick_look'),
         children: [
-          Text(
-            context.tr('quick_look'),
-            style: AppTypography.titleMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.base),
-          LayoutBuilder(
-            builder: (context, c) {
-              final tileW = (c.maxWidth - AppSpacing.md) / 2;
-              return Wrap(
-                spacing: AppSpacing.md,
-                runSpacing: AppSpacing.md,
+          for (var r = 0; r < tiles.length; r += 2)
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final t in tiles) SizedBox(width: tileW, child: t),
+                  Expanded(child: tiles[r]),
+                  if (r + 1 < tiles.length) ...[
+                    VerticalDivider(width: 1, thickness: 1, color: AppColors.borderLight),
+                    Expanded(child: tiles[r + 1]),
+                  ],
                 ],
-              );
-            },
-          ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOut),
+              ),
+            ),
         ],
-      ),
+      ).animate().fadeIn(duration: 250.ms),
     );
   }
 
@@ -345,332 +334,100 @@ class _HomePageState extends State<HomePage> {
     return tiles;
   }
 
-  // ─── Header — premium gradient hero with depth ──────────────
+  // ─── Header — calm page header (Shopify) ────────────────────
   Widget _header(BuildContext context) {
-    final topPad = MediaQuery.of(context).padding.top;
-    // Gamification is merged into the header (points + level + streak) when
-    // the user has the feature and the payload has loaded.
+    // Points + level + streak sit as one quiet line under the greeting when
+    // the user has gamification and the payload has loaded.
     final gam = _user.hasFeature(Feature.gamification) ? _m?.gamification : null;
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.xxxl)),
-      child: Stack(
-        children: [
-          // Base brand gradient.
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: AppColors.heroGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryDark.withValues(alpha: 0.25),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-            ),
+    return PageHeader(
+      title: _greeting(context),
+      subtitle: _user.name,
+      actions: [
+        HeaderIconButton(
+          icon: Icons.search_rounded,
+          tooltip: context.tr('product_search'),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => ProductSearchPage(myWarehouses: _user.warehouseCodes)),
           ),
-          // Decorative depth circles.
-          Positioned(top: -46, right: -34, child: _headerCircle(150, Colors.white.withValues(alpha: 0.07))),
-          Positioned(top: 24, right: 48, child: _headerCircle(70, AppColors.accent.withValues(alpha: 0.16))),
-          Positioned(bottom: -56, left: -40, child: _headerCircle(150, Colors.white.withValues(alpha: 0.05))),
-          // Content.
-          Padding(
-            padding: EdgeInsets.only(
-              top: topPad + AppSpacing.base,
-              left: AppSpacing.xl,
-              right: AppSpacing.xl,
-              bottom: AppSpacing.xl,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        HeaderIconButton(
+          icon: Icons.refresh_rounded,
+          onTap: _refresh,
+          child: _controller.loading
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textPrimary),
+                )
+              : null,
+        ),
+      ],
+      below: (_user.warehouseCodes.isEmpty && gam == null)
+          ? null
+          : Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _headerAvatar(level: gam?.level),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _greeting(context),
-                            style: AppTypography.labelLarge.copyWith(
-                              color: Colors.white.withValues(alpha: 0.82),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _user.name,
-                            style: AppTypography.headlineSmall.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              height: 1.1,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (gam != null) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            _headerGamChips(context, gam),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    const ThemeToggleButton(),
-                    const SizedBox(width: AppSpacing.sm),
-                    _headerSearchButton(),
-                    const SizedBox(width: AppSpacing.sm),
-                    _headerRefreshButton(),
-                  ],
-                ),
-                if (_user.warehouseCodes.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  _headerWarehousesBar(context),
-                ],
+                for (final code in _user.warehouseCodes) _headerTag(icon: Icons.storefront_outlined, text: code, mono: true),
+                if (gam != null) _headerGam(context, gam),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _headerCircle(double size, Color color) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      );
-
-  Widget _headerAvatar({int? level}) {
-    final avatar = Container(
-      width: 54,
-      height: 54,
-      alignment: Alignment.center,
+  Widget _headerTag({required IconData icon, required String text, bool mono = false, Color? iconColor}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        gradient: AppColors.goldGradient,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.38),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Text(
-        _user.name.isNotEmpty ? _user.name[0] : '?',
-        style: AppTypography.titleLarge.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-    if (level == null) return avatar;
-    // Rank badge — the user's level, tucked on the avatar's corner.
-    return SizedBox(
-      width: 54,
-      height: 54,
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          avatar,
-          Positioned(
-            bottom: -5,
-            right: -5,
-            child: Container(
-              width: 23,
-              height: 23,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: AppColors.goldGradient,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primaryDark, width: 2),
-              ),
-              child: Text(
-                '$level',
-                style: AppTypography.labelSmall.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 10,
-                  height: 1,
-                ),
-              ),
-            ),
+          Icon(icon, size: 15, color: iconColor ?? AppColors.textSecondary),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: (mono ? AppTypography.monoSmall : AppTypography.labelMedium)
+                .copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
           ),
         ],
       ),
     );
   }
 
-  /// Points + level + streak, merged into the header next to the greeting.
-  /// The whole strip taps through to the Achievements tab.
-  Widget _headerGamChips(BuildContext context, GamificationProfile g) {
-    final label = g.levelLabel.isNotEmpty
+  /// Points + level + streak as one tag; taps through to Achievements.
+  Widget _headerGam(BuildContext context, GamificationProfile g) {
+    final label = g.levelLabel.isNotEmpty && !context.isCompact
         ? '${g.pointsTotal} ${context.tr('points')} · ${g.levelLabel}'
         : '${g.pointsTotal} ${context.tr('points')}';
     return Pressable(
       onTap: () => widget.onNavigateToDomain?.call(AppDomain.achievements),
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: BorderRadius.circular(8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
-            child: _glassPill(
-              icon: Icons.stars_rounded,
-              iconColor: const Color(0xFFFFD27A),
-              text: label,
-            ),
-          ),
+          _headerTag(icon: Icons.star_rounded, text: label, iconColor: AppColors.accent),
           if (g.streak.current > 0) ...[
-            const SizedBox(width: 6),
-            _glassPill(
+            const SizedBox(width: 8),
+            _headerTag(
               icon: Icons.local_fire_department_rounded,
-              iconColor: const Color(0xFFFFB066),
               text: '${g.streak.current}',
+              iconColor: AppColors.warning,
             ),
           ],
-          const SizedBox(width: 2),
-          Icon(
-            AppLocalizations.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
-            color: Colors.white.withValues(alpha: 0.7),
-            size: 18,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _glassPill({
-    required IconData icon,
-    required Color iconColor,
-    required String text,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.20), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: iconColor),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.labelSmall.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Glass search button — opens product lookup (name / SAP code / barcode →
-  /// stock across every warehouse). A frequently-needed manager utility, so it
-  /// lives in the header, always one tap away.
-  Widget _headerSearchButton() {
-    return Pressable(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ProductSearchPage(myWarehouses: _user.warehouseCodes)),
-      ),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1),
-        ),
-        child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
-      ),
-    );
-  }
-
-  Widget _headerRefreshButton() {
-    return Pressable(
-      onTap: _refresh,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1),
-        ),
-        child: _controller.loading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Icon(Icons.refresh_rounded, color: Colors.white, size: 22),
-      ),
-    );
-  }
-
-  /// Frosted "glass" bar listing the user's warehouses as soft chips.
-  Widget _headerWarehousesBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 1),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18), width: 1),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.warehouse_rounded, color: Colors.white, size: 18),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final code in _user.warehouseCodes)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      code,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
-/// A single per-domain counter in the Quick Look grid — big number, domain-
-/// coloured icon chip, an optional overdue pill, tappable to its feature screen.
+/// One counter cell in the Quick Look card — label, big tabular number and an
+/// optional "late" badge; tappable to its feature screen. Neutral by design:
+/// a zero reads grey, a late count gets the critical badge.
 class _GlanceTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -678,8 +435,6 @@ class _GlanceTile extends StatelessWidget {
   final int overdue;
   final AppDomain domain;
   final VoidCallback onTap;
-
-  /// Position in the grid — staggers the icon chip's pop-in wave.
   final int index;
 
   const _GlanceTile({
@@ -694,70 +449,50 @@ class _GlanceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = domain.accent;
     final muted = value == 0;
     return Pressable(
       onTap: onTap,
-      borderRadius: AppRadius.borderXl,
+      pressedScale: 1,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.base),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.borderXl,
-          border: Border.all(color: AppColors.borderLight),
-          boxShadow: AppShadows.card,
-        ),
+        color: Colors.transparent,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                PopIn(
-                  delay: Duration(milliseconds: 60 * index.clamp(0, 10)),
-                  child: GlowIconChip(
-                    icon: icon,
-                    color: accent,
-                    size: 40,
-                    iconSize: 22,
-                    borderRadius: AppRadius.borderMd,
+                Icon(icon, size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary),
                   ),
                 ),
-                const Spacer(),
-                if (overdue > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      context.tr('feed_count_overdue').replaceAll('{n}', '$overdue'),
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '$value',
-              style: AppTypography.headlineSmall.copyWith(
-                color: muted ? AppColors.textTertiary : AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.labelMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-              ),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '$value',
+                  style: AppTypography.displayMedium.copyWith(
+                    fontSize: 24,
+                    color: muted ? AppColors.textTertiary : AppColors.textPrimary,
+                  ),
+                ),
+                if (overdue > 0) ...[
+                  const SizedBox(width: 8),
+                  StatusBadge(
+                    label: context.tr('feed_count_overdue').replaceAll('{n}', '$overdue'),
+                    color: AppColors.error,
+                  ),
+                ],
+              ],
             ),
           ],
         ),

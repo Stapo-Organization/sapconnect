@@ -66,7 +66,7 @@ class _BasketListPageState extends State<BasketListPage> {
           elevation: 0,
           title: Text(
             context.tr('sp_lever_basket_title'),
-            style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+            style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
           ),
         ),
         body: _loading

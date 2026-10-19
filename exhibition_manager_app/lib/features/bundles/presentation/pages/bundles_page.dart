@@ -117,7 +117,7 @@ class _BundlesPageState extends State<BundlesPage> {
           children: [
             Text(
               b.nameAr,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
             const SizedBox(height: AppSpacing.md),
             _moneyRow(sheetCtx.tr('bundle_sum_label'), b.sumRetail, struck: true),
@@ -161,7 +161,7 @@ class _BundlesPageState extends State<BundlesPage> {
             sarAmount(value),
             style: TextStyle(
               fontSize: bold ? 16 : 13,
-              fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+              fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
               color: dim
                   ? AppColors.textTertiary
                   : (bold ? AppColors.textPrimary : AppColors.textSecondary),
@@ -258,7 +258,7 @@ class _BundlesPageState extends State<BundlesPage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                     color: selected ? AppColors.textPrimary : AppColors.textSecondary,
                   ),
                 ),
@@ -299,15 +299,15 @@ class _BundleCard extends StatelessWidget {
   Color _templateColor() {
     switch (bundle.template) {
       case 'stacking':
-        return const Color(0xFF3B82F6);
+        return AppColors.textSecondary;
       case 'variety':
-        return const Color(0xFF8B5CF6);
+        return AppColors.textSecondary;
       case 'companion':
-        return const Color(0xFF10B981);
+        return AppColors.textSecondary;
       case 'smart_gift':
-        return const Color(0xFFF59E0B);
+        return AppColors.textSecondary;
       default:
-        return const Color(0xFF64748B);
+        return AppColors.textSecondary;
     }
   }
 
@@ -355,7 +355,7 @@ class _BundleCard extends StatelessWidget {
 
           Text(
             bundle.nameAr,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary, height: 1.5),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary, height: 1.5),
           ),
           if (bundle.subtitleAr != null && bundle.subtitleAr!.isNotEmpty) ...[
             const SizedBox(height: 2),
@@ -384,7 +384,7 @@ class _BundleCard extends StatelessWidget {
             children: [
               Text(
                 sarAmount(bundle.bundlePrice),
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
               ),
               const SizedBox(width: 8),
               Padding(
@@ -519,7 +519,7 @@ class _BundleCard extends StatelessWidget {
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
       child: Text(
         text,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: fg),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }

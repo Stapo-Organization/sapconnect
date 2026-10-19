@@ -2,71 +2,78 @@ import 'package:flutter/material.dart';
 
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/pressable.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/status_badge.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
 import '../../data/models/product_models.dart';
 
-const Color kProductAccent = Color(0xFF4C5FD5); // cobalt-indigo (AppDomain.productSearch)
+/// The product screens share the app's single accent (no section hue).
+Color get kProductAccent => AppColors.primary;
 
 /// Integer quantity, grouped with the locale-aware thousands separator.
 String fmtQty(num v) => intGrouped(v);
 
-/// Rounded product thumbnail with a graceful fallback icon.
+/// Product thumbnail on white with a hairline (Shopify media box) and a
+/// graceful fallback icon.
 Widget productThumb(String? url, {double size = 56, Color? accent}) {
   return Container(
     width: size,
     height: size,
     decoration: BoxDecoration(
-      color: const Color(0xFFF1F4F9),
-      borderRadius: AppRadius.borderMd,
-      border: Border.all(color: (accent ?? AppColors.border).withValues(alpha: 0.18)),
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(size >= 56 ? 10 : 8),
+      border: Border.all(color: AppColors.borderLight),
     ),
     clipBehavior: Clip.antiAlias,
     child: (url == null || url.isEmpty)
-        ? Icon(Icons.inventory_2_outlined, size: size * 0.46, color: AppColors.textTertiary)
+        ? Icon(Icons.image_outlined, size: size * 0.42, color: AppColors.textTertiary)
         : Image.network(
             url,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) =>
-                Icon(Icons.inventory_2_outlined, size: size * 0.46, color: AppColors.textTertiary),
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) => Icon(Icons.image_outlined, size: size * 0.42, color: AppColors.textTertiary),
           ),
   );
 }
 
-/// A single search result row — thumb, name, code/barcode, and a network-stock
-/// pill. The whole card taps through to the product detail page.
-class ProductHitTile extends StatelessWidget {
+/// A search result as a Shopify resource row — thumb, name (2 lines), code
+/// and barcode in mono, and the network stock as a tabular number (or an
+/// "out of stock" badge). Meant to sit inside an [AppSection].
+class ProductHitTile extends StatefulWidget {
   final ProductHit hit;
   final VoidCallback onTap;
 
   const ProductHitTile({super.key, required this.hit, required this.onTap});
 
   @override
+  State<ProductHitTile> createState() => _ProductHitTileState();
+}
+
+class _ProductHitTileState extends State<ProductHitTile> {
+  bool _down = false;
+
+  @override
   Widget build(BuildContext context) {
+    final hit = widget.hit;
     final inStock = hit.totalStock > 0;
-    return Pressable(
-      onTap: onTap,
-      borderRadius: AppRadius.borderXl,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.md),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.borderXl,
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 3)),
-          ],
-        ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 90),
+        color: _down ? AppColors.secondary : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         child: Row(
           children: [
-            productThumb(hit.imageUrl, size: 54, accent: kProductAccent),
-            const SizedBox(width: AppSpacing.md),
+            productThumb(hit.imageUrl, size: 46),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,19 +82,25 @@ class ProductHitTile extends StatelessWidget {
                     hit.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.titleSmall.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                      height: 1.25,
-                    ),
+                    style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary, height: 1.35),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   _codeLine(),
                 ],
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            _stockPill(context, inStock),
+            const SizedBox(width: 10),
+            inStock
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(fmtQty(hit.totalStock), style: AppTypography.numeric.copyWith(color: AppColors.textPrimary)),
+                      Text(context.tr('ps_network_stock'),
+                          style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 11)),
+                    ],
+                  )
+                : StatusBadge(label: context.tr('ps_out_of_stock'), color: AppColors.error),
           ],
         ),
       ),
@@ -95,51 +108,16 @@ class ProductHitTile extends StatelessWidget {
   }
 
   Widget _codeLine() {
-    final parts = <Widget>[
-      Icon(Icons.tag_rounded, size: 13, color: AppColors.textTertiary),
-      const SizedBox(width: 3),
-      Flexible(
-        child: Text(
-          hit.itemCode,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary),
-        ),
-      ),
-    ];
-    if (hit.barcode != null && hit.barcode!.isNotEmpty) {
-      parts.addAll([
-        const SizedBox(width: 10),
-        Icon(Icons.qr_code_2_rounded, size: 14, color: AppColors.textTertiary),
-        const SizedBox(width: 3),
-        Flexible(
-          child: Text(
-            hit.barcode!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary),
-          ),
-        ),
-      ]);
-    }
-    return Row(children: parts);
-  }
-
-  Widget _stockPill(BuildContext context, bool inStock) {
-    final c = inStock ? AppColors.success : AppColors.error;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: c.withValues(alpha: 0.12), borderRadius: AppRadius.borderMd),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            inStock ? fmtQty(hit.totalStock) : context.tr('ps_out_of_stock'),
-            style: AppTypography.titleSmall.copyWith(color: c, fontWeight: FontWeight.w800),
-          ),
-          Text(context.tr('ps_network_stock'), style: AppTypography.labelSmall.copyWith(color: c.withValues(alpha: 0.85), fontSize: 9)),
+    final hit = widget.hit;
+    final mono = AppTypography.monoSmall.copyWith(color: AppColors.textSecondary, fontSize: 11.5);
+    return Row(
+      children: [
+        Flexible(child: Text(hit.itemCode, maxLines: 1, overflow: TextOverflow.ellipsis, style: mono)),
+        if (hit.barcode != null && hit.barcode!.isNotEmpty) ...[
+          Text('  ·  ', style: mono.copyWith(color: AppColors.textTertiary)),
+          Flexible(child: Text(hit.barcode!, maxLines: 1, overflow: TextOverflow.ellipsis, style: mono)),
         ],
-      ),
+      ],
     );
   }
 }
@@ -148,18 +126,20 @@ class ProductHitTile extends StatelessWidget {
 class WarehouseStockTile extends StatelessWidget {
   final WarehouseStock row;
   final bool isMine; // one of the signed-in manager's branches
+  /// SAP batches here, nearest expiry first (empty: not batch-managed / none).
+  final List<ProductBatch> batches;
 
-  const WarehouseStockTile({super.key, required this.row, this.isMine = false});
+  const WarehouseStockTile({super.key, required this.row, this.isMine = false, this.batches = const []});
 
   @override
   Widget build(BuildContext context) {
-    final has = row.inStock > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isMine ? kProductAccent.withValues(alpha: 0.05) : AppColors.surface,
-        borderRadius: AppRadius.borderMd,
-        border: Border.all(color: isMine ? kProductAccent.withValues(alpha: 0.4) : AppColors.border.withValues(alpha: 0.6)),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderLg,
+        border: Border.all(color: isMine ? AppColors.textPrimary : AppColors.borderLight, width: isMine ? 1.4 : 1),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,31 +147,21 @@ class WarehouseStockTile extends StatelessWidget {
           // ── Header: warehouse identity ──
           Row(
             children: [
-              GlowIconChip(
-                icon: Icons.store_mall_directory_rounded,
-                color: has ? kProductAccent : AppColors.textTertiary,
-                size: 32,
-                iconSize: 17,
-                borderRadius: AppRadius.borderMd,
-              ),
+              GlowIconChip(icon: Icons.storefront_outlined, color: AppColors.primary, size: 32, iconSize: 18),
               const SizedBox(width: AppSpacing.sm),
               Flexible(
                 child: Text(
                   row.warehouseName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
+                  style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary),
                 ),
               ),
               const SizedBox(width: 6),
-              Text(row.warehouseCode, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
+              Text(row.warehouseCode, style: AppTypography.monoSmall.copyWith(color: AppColors.textTertiary, fontSize: 11)),
               if (isMine) ...[
                 const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(color: kProductAccent.withValues(alpha: 0.12), borderRadius: AppRadius.borderFull),
-                  child: Text(context.tr('ps_your_showroom'), style: AppTypography.labelSmall.copyWith(color: kProductAccent, fontWeight: FontWeight.w700)),
-                ),
+                StatusBadge(label: context.tr('ps_your_showroom'), color: AppColors.info),
               ],
             ],
           ),
@@ -208,12 +178,18 @@ class WarehouseStockTile extends StatelessWidget {
               _metric(context.tr('ps_available'), row.available, _availColor(row.available), emphasize: true),
             ],
           ),
+          if (batches.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Divider(height: 1, color: AppColors.borderLight),
+            const SizedBox(height: 8),
+            BatchList(batches: batches),
+          ],
         ],
       ),
     );
   }
 
-  Widget _vsep() => Container(width: 1, height: 26, color: AppColors.border.withValues(alpha: 0.6));
+  Widget _vsep() => Container(width: 1, height: 26, color: AppColors.borderLight);
 
   Widget _metric(String label, double value, Color color, {bool emphasize = false}) {
     return Expanded(
@@ -221,11 +197,10 @@ class WarehouseStockTile extends StatelessWidget {
         children: [
           Text(
             fmtQty(value),
-            style: (emphasize ? AppTypography.titleMedium : AppTypography.titleSmall)
-                .copyWith(color: color, fontWeight: FontWeight.w800),
+            style: AppTypography.numeric.copyWith(color: color, fontSize: emphasize ? 16 : 14),
           ),
           const SizedBox(height: 1),
-          Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
+          Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 11)),
         ],
       ),
     );
@@ -235,5 +210,98 @@ class WarehouseStockTile extends StatelessWidget {
     if (v > 0) return AppColors.success;
     if (v < 0) return AppColors.error;
     return AppColors.textTertiary;
+  }
+}
+
+/// A warehouse's batches: number, expiry date, time left (coloured by urgency)
+/// and quantity. Three shown, the rest one tap away.
+class BatchList extends StatefulWidget {
+  final List<ProductBatch> batches;
+  const BatchList({super.key, required this.batches});
+
+  @override
+  State<BatchList> createState() => _BatchListState();
+}
+
+class _BatchListState extends State<BatchList> {
+  bool _all = false;
+
+  static String _date(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  (String, Color) _left(BuildContext context, ProductBatch b) {
+    final d = b.daysLeft;
+    if (d == null) return (context.tr('ps_batch_no_date'), AppColors.textTertiary);
+    if (d < 0) return (context.tr('ps_batch_expired'), AppColors.error);
+    if (d <= 30) return (context.tr('ps_batch_days').replaceAll('{n}', '$d'), AppColors.error);
+    if (d <= 90) return (context.tr('ps_batch_days').replaceAll('{n}', '$d'), AppColors.warning);
+    return (context.tr('ps_batch_months').replaceAll('{n}', '${(d / 30).floor()}'), AppColors.success);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shown = _all ? widget.batches : widget.batches.take(3).toList();
+    final small = AppTypography.labelSmall;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(children: [
+          Icon(Icons.event_outlined, size: 14, color: AppColors.textTertiary),
+          const SizedBox(width: 4),
+          Text(context.tr('ps_batches_title').replaceAll('{n}', '${widget.batches.length}'),
+              style: small.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+        ]),
+        const SizedBox(height: 6),
+        for (final b in shown)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(children: [
+              Expanded(
+                flex: 4,
+                child: Text(b.batch,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.start,
+                    style: AppTypography.monoSmall.copyWith(color: AppColors.textPrimary, fontSize: 12)),
+              ),
+              Expanded(
+                flex: 3,
+                child: Text(b.expiry != null ? _date(b.expiry!) : '—',
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.center,
+                    style: small.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+              ),
+              Expanded(
+                flex: 3,
+                child: Builder(builder: (context) {
+                  final (label, color) = _left(context, b);
+                  return Align(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: AppRadius.borderFull),
+                      child: Text(label, maxLines: 1, style: small.copyWith(color: color, fontWeight: FontWeight.w700)),
+                    ),
+                  );
+                }),
+              ),
+              SizedBox(
+                width: 44,
+                child: Text(fmtQty(b.quantity),
+                    textAlign: TextAlign.end, style: AppTypography.numeric.copyWith(fontSize: 13, color: AppColors.textPrimary)),
+              ),
+            ]),
+          ),
+        if (widget.batches.length > 3)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 28), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              onPressed: () => setState(() => _all = !_all),
+              child: Text(_all ? context.tr('ps_batches_less') : context.tr('ps_batches_more').replaceAll('{n}', '${widget.batches.length}'),
+                  style: small.copyWith(fontWeight: FontWeight.w700)),
+            ),
+          ),
+      ],
+    );
   }
 }

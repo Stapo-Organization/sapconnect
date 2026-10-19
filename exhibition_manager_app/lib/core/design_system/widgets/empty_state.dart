@@ -4,16 +4,22 @@ import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
 import 'animated_icons.dart';
 import 'app_button.dart';
+import 'status_badge.dart';
 
-/// Friendly empty state with a floating icon inside soft halo rings, title,
-/// subtitle and optional CTA. Consistent across all list screens.
+/// Empty state («المتجر»): a quiet grey disc with the icon, a clear title in
+/// full ink, one line of help, and an optional action — the Shopify empty
+/// state. One shape for every list in the app.
 class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
+  /// Only a semantic colour (e.g. error) tints the disc; otherwise it is grey.
   final Color? color;
+
+  /// A custom action widget (used instead of [actionLabel]/[onAction]).
+  final Widget? trailing;
 
   const EmptyState({
     super.key,
@@ -23,87 +29,62 @@ class EmptyState extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.color,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.primary;
+    // The app accent is "no meaning" → neutral disc; only semantic colours tint.
+    final color = (this.color == AppColors.primary || this.color == AppColors.primaryDark) ? null : this.color;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // أيقونة طافية داخل هالتين متحدتَي المركز — تدخل بنبضة ثم تطفو بهدوء.
-            PopIn(
-              child: SizedBox(
-                width: 152,
-                height: 152,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 152,
-                      height: 152,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: c.withValues(alpha: 0.07), width: 1.5),
-                      ),
-                    ),
-                    Container(
-                      width: 122,
-                      height: 122,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: c.withValues(alpha: 0.12), width: 1.5),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [c.withValues(alpha: 0.13), c.withValues(alpha: 0.04)],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: FloatingIcon(
-                        child: Icon(icon, size: 48, color: c.withValues(alpha: 0.60)),
-                      ),
-                    ),
-                  ],
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.xl),
+        child: PopIn(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // White disc with a hairline: reads on the grey canvas and on cards.
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: color == null ? AppColors.surface : StatusBadge.fill(color),
+                  shape: BoxShape.circle,
+                  border: color == null ? Border.all(color: AppColors.border) : null,
                 ),
+                child: Icon(icon, size: 28, color: color == null ? AppColors.textSecondary : StatusBadge.ink(color)),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTypography.titleMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.base),
               Text(
-                subtitle!,
+                title,
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.textTertiary),
+                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
               ),
+              if (subtitle != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: Text(
+                    subtitle!,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
+              if (trailing != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                trailing!,
+              ] else if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                AppButton(
+                  label: actionLabel!,
+                  onPressed: onAction,
+                  expand: false,
+                  variant: AppButtonVariant.tonal,
+                ),
+              ],
             ],
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              AppButton(
-                label: actionLabel!,
-                onPressed: onAction,
-                expand: false,
-                icon: Icons.add_rounded,
-                color: c,
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );

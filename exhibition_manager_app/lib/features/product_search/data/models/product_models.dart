@@ -161,3 +161,21 @@ class ProductDetail {
             .toList(),
       );
 }
+
+/// One SAP batch of an item in one warehouse.
+class ProductBatch {
+  final String batch;
+  final DateTime? expiry;
+  final double quantity;
+  final int? daysLeft;
+  const ProductBatch({required this.batch, this.expiry, required this.quantity, this.daysLeft});
+  factory ProductBatch.fromJson(Map<String, dynamic> j) => ProductBatch(
+        batch: '${j['batch'] ?? ''}',
+        expiry: DateTime.tryParse('${j['expiry_date'] ?? ''}'),
+        quantity: (j['quantity'] as num?)?.toDouble() ?? 0,
+        daysLeft: (j['days_left'] as num?)?.toInt(),
+      );
+}
+
+/// warehouse_code → its batches, nearest expiry first.
+typedef BatchesByWarehouse = Map<String, List<ProductBatch>>;

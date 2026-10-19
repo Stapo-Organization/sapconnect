@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'package:exhibition_manager_app/features/auth/data/auth_repository.dart';
@@ -26,11 +27,9 @@ class _LoginPageState extends State<LoginPage> {
   final _repo = AuthRepository();
 
   // Figma-inspired palette
-  static const _creamBg = Color(0xFFF8EDDF);
-  static const _gold = Color(0xFFE4C88B);
-  static const _goldDark = Color(0xFFC9A55E);
-  static const _brandBlue = Color(0xFF3B6B9B);
-  static const _brandBlueDark = Color(0xFF2A4F73);
+  // «المتجر»: the login follows the app — grey canvas, white card, ink actions.
+  static Color get _creamBg => AppColors.background;
+  static Color get _brandBlueDark => AppColors.textPrimary;
 
 
   // 0 = email + password, 1 = phone + OTP
@@ -176,37 +175,6 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: _creamBg,
       body: Stack(
         children: [
-          // ─── Subtle Watermark Background ─────────────────────────
-          Positioned.fill(
-            child: RepaintBoundary(
-              child: Opacity(
-                opacity: 0.35,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final tileSize = 200.0;
-                    final cols = (constraints.maxWidth / tileSize).ceil() + 1;
-                    final rows = (constraints.maxHeight / tileSize).ceil() + 1;
-                    return Stack(
-                      children: [
-                        for (int r = 0; r < rows; r++)
-                          for (int c = 0; c < cols; c++)
-                            Positioned(
-                              left: c * tileSize,
-                              top: r * tileSize,
-                              child: SvgPicture.asset(
-                                'assets/svgs/splash_bg_pattern.svg',
-                                width: tileSize,
-                                height: tileSize,
-                              ),
-                            ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-
           // ─── Main Content ────────────────────────────────────────
           SafeArea(
             child: Column(
@@ -223,13 +191,14 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () => Navigator.of(context).pop(),
                         icon: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: _brandBlue,
-                          size: 22,
+                          color: AppColors.textPrimary,
+                          size: 20,
                         ),
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.7),
+                          backgroundColor: AppColors.surface,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(color: AppColors.border),
                           ),
                         ),
                       ),
@@ -252,31 +221,16 @@ class _LoginPageState extends State<LoginPage> {
                           Center(
                             child: Column(
                               children: [
-                                // Heart Logo (Figma node 1-13597)
                                 Image.asset(
                                   'assets/images/logo_transparent.png',
-                                  width: 100,
-                                  height: 100,
+                                  width: 64,
+                                  height: 64,
                                   fit: BoxFit.contain,
                                 ),
-                                const SizedBox(height: AppSpacing.md),
-                                // "Muntajat" English (Figma node 1-13708)
+                                const SizedBox(height: AppSpacing.sm),
                                 Text(
-                                  'Muntajat',
-                                  style: TextStyle(
-                                    fontFamily: 'Georgia',
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w400,
-                                    color: Color(0xFFF4BE2C),
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                // "منتجات" SVG (Figma node 1-13709)
-                                SvgPicture.asset(
-                                  'assets/svgs/logo.svg',
-                                  height: 22,
-                                  fit: BoxFit.contain,
+                                  'Muntajat HUB',
+                                  style: AppTypography.headlineSmall.copyWith(color: AppColors.textPrimary),
                                 ),
                               ],
                             ),
@@ -291,28 +245,17 @@ class _LoginPageState extends State<LoginPage> {
                           Container(
                             padding: const EdgeInsets.all(AppSpacing.xl),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: AppRadius.borderXxxl,
-                              border: Border.all(
-                                color: _gold.withValues(alpha: 0.3),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: _goldDark.withValues(alpha: 0.08),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
+                              color: AppColors.surface,
+                              borderRadius: AppRadius.borderXxl,
+                              border: Border.all(color: AppColors.borderLight),
+                              boxShadow: AppShadows.card,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
                                   context.tr('login'),
-                                  style: AppTypography.headlineSmall.copyWith(
-                                    color: _brandBlueDark,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: AppTypography.headlineSmall.copyWith(color: _brandBlueDark),
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 Text(
@@ -349,69 +292,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ─── Custom Segmented Control (Figma-inspired) ─────────────
+  // ─── Email / phone switch ──────────────────────────────────
   Widget _buildSegmentedControl() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: _creamBg,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          _segmentTab(0, context.tr('login_with_email'), Icons.email_outlined),
-          const SizedBox(width: 4),
-          _segmentTab(1, context.tr('login_with_phone'), Icons.sms_outlined),
-        ],
-      ),
-    );
-  }
-
-  Widget _segmentTab(int index, String label, IconData icon) {
-    final selected = _mode == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _switchMode(index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(11),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: _goldDark.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: selected ? _brandBlue : AppColors.textTertiary,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.labelMedium.copyWith(
-                    color: selected ? _brandBlue : AppColors.textTertiary,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return AppSegmentedControl(
+      selectedIndex: _mode,
+      onChanged: _switchMode,
+      items: [
+        SegmentItem(context.tr('login_with_email'), icon: Icons.email_outlined),
+        SegmentItem(context.tr('login_with_phone'), icon: Icons.sms_outlined),
+      ],
     );
   }
 
@@ -422,38 +311,13 @@ class _LoginPageState extends State<LoginPage> {
     required IconData icon,
     Widget? suffix,
   }) {
+    // Theme defaults (white field, grey stroke, blue focus ring).
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      prefixIcon: Icon(icon, color: _brandBlue.withValues(alpha: 0.6)),
+      prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
       suffixIcon: suffix,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.base,
-        vertical: AppSpacing.base,
-      ),
-      filled: true,
-      fillColor: _creamBg.withValues(alpha: 0.5),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: _gold.withValues(alpha: 0.3)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: _gold.withValues(alpha: 0.3)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: _brandBlue, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.error, width: 1.5),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.error, width: 1.5),
-      ),
-      labelStyle: TextStyle(color: AppColors.textSecondary),
+      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: 14),
     );
   }
 
@@ -463,45 +327,7 @@ class _LoginPageState extends State<LoginPage> {
     required VoidCallback? onPressed,
     required IconData icon,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 54,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _brandBlue,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: _brandBlue.withValues(alpha: 0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          elevation: 0,
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 20),
-                  const SizedBox(width: 10),
-                  Text(
-                    label,
-                    style: AppTypography.titleMedium.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
+    return AppButton(label: label, icon: icon, onPressed: onPressed, loading: _isLoading);
   }
 
   // ─── Email mode UI ─────────────────────────────────────────
@@ -634,27 +460,10 @@ class _LoginPageState extends State<LoginPage> {
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: AppTypography.headlineMedium.copyWith(
             color: _brandBlueDark,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             letterSpacing: 16,
           ),
-          decoration: InputDecoration(
-            counterText: '',
-            hintText: '••••',
-            filled: true,
-            fillColor: _creamBg.withValues(alpha: 0.5),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: _gold.withValues(alpha: 0.3)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: _gold.withValues(alpha: 0.3)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: _brandBlue, width: 1.5),
-            ),
-          ),
+          decoration: const InputDecoration(counterText: '', hintText: '••••'),
           onChanged: (v) {
             if (v.length == 4 && !_isLoading) _verifyOtp();
           },
@@ -680,7 +489,7 @@ class _LoginPageState extends State<LoginPage> {
                   _resendSeconds = 0;
                 });
               },
-              style: TextButton.styleFrom(foregroundColor: _brandBlue),
+              style: TextButton.styleFrom(foregroundColor: AppColors.link),
               child: Text(context.tr('change_number')),
             ),
             if (_resendSeconds > 0)
@@ -691,7 +500,7 @@ class _LoginPageState extends State<LoginPage> {
             else
               TextButton(
                 onPressed: _isLoading ? null : _sendOtp,
-                style: TextButton.styleFrom(foregroundColor: _goldDark),
+                style: TextButton.styleFrom(foregroundColor: AppColors.link),
                 child: Text(context.tr('resend_otp')),
               ),
           ],

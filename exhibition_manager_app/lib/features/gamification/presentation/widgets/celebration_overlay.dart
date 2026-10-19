@@ -101,7 +101,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                     const SizedBox(height: AppSpacing.base),
                     Text(
                       context.tr('gam_well_done'),
-                      style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800),
+                      style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(

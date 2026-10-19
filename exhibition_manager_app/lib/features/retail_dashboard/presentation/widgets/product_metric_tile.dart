@@ -67,7 +67,7 @@ class ProductMetricTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(value, style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w800)),
+            Text(value, style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w700)),
             Text(valueLabel,
                 style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
           ],
@@ -110,7 +110,7 @@ class ProductMetricTile extends StatelessWidget {
       child: Text('$rank',
           style: AppTypography.labelSmall.copyWith(
             color: gold ? Colors.white : accent,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           )),
     );
   }

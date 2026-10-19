@@ -5,9 +5,9 @@ import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
-const Color kBleedingColor = Color(0xFFE5484D); // 🔴 أوقف النزيف
-const Color kTrappedColor = Color(0xFFE0A012); // 🟡 حرّر فلوسك
-const Color kBasketColor = Color(0xFF12A150); // 🟢 كبّر السلة
+Color get kBleedingColor => AppColors.error; // 🔴 أوقف النزيف
+Color get kTrappedColor => AppColors.warning; // 🟡 حرّر فلوسك
+Color get kBasketColor => AppColors.success; // 🟢 كبّر السلة
 
 /// SAR amount — locale-aware grouping via the shared formatter.
 String sar(num v) => sarAmount(v);
@@ -32,7 +32,7 @@ String vitalLabel(String key) {
 }
 
 Color vitalColor(double pct, bool hasValue) {
-  if (!hasValue) return const Color(0xFFCBD5E1);
+  if (!hasValue) return AppColors.border;
   if (pct >= 80) return AppColors.success;
   if (pct >= 60) return AppColors.warning;
   return AppColors.error;
@@ -77,11 +77,9 @@ Widget productThumb(String? url, {double size = 56, Color? accent}) {
     width: size,
     height: size,
     decoration: BoxDecoration(
-      color: const Color(0xFFF1F4F9),
-      borderRadius: AppRadius.borderMd,
-      border: Border.all(
-        color: (accent ?? AppColors.border).withValues(alpha: 0.18),
-      ),
+      color: Colors.white,
+      borderRadius: AppRadius.borderSm,
+      border: Border.all(color: AppColors.borderLight),
     ),
     clipBehavior: Clip.antiAlias,
     child: (url == null || url.isEmpty)
@@ -92,7 +90,7 @@ Widget productThumb(String? url, {double size = 56, Color? accent}) {
           )
         : Image.network(
             url,
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
             errorBuilder: (_, _, _) => Icon(
               Icons.inventory_2_outlined,
               size: size * 0.46,

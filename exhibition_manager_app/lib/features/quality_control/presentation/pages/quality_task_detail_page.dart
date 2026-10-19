@@ -264,7 +264,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
                 context.tr('photos_progress').replaceAll('{x}', '${photos.length}').replaceAll('{min}', '${r.minPhotos}'),
                 style: AppTypography.labelSmall.copyWith(
                     color: photos.length >= r.minPhotos ? AppColors.success : AppDomain.quality.accent,
-                    fontWeight: FontWeight.w800),
+                    fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -302,7 +302,7 @@ class _QualityTaskDetailPageState extends State<QualityTaskDetailPage> {
               child: Text('$doneCount / ${items.length}',
                   style: AppTypography.labelSmall.copyWith(
                       color: doneCount == items.length ? AppColors.success : AppDomain.quality.accent,
-                      fontWeight: FontWeight.w800)),
+                      fontWeight: FontWeight.w700)),
             ),
           ],
         ),

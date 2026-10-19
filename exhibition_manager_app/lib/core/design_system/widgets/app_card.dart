@@ -4,9 +4,9 @@ import '../tokens/radius.dart';
 import '../tokens/shadows.dart';
 import 'pressable.dart';
 
-/// Modern surface card: soft floating shadow, rounded corners, optional
-/// gradient, border and tap (with press-scale). The building block of the
-/// refreshed UI — replaces ad-hoc `Container(decoration: …)` cards.
+/// The one surface card («المتجر»): white, 12px corners, a hairline border and
+/// a 1px lift — the Shopify card. Optional tap (with press feedback), fill or
+/// gradient for the rare summary panel.
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -27,20 +27,21 @@ class AppCard extends StatelessWidget {
     this.gradient,
     this.color,
     this.borderColor,
-    this.radius = AppRadius.xl,
+    this.radius = AppRadius.lg,
     this.shadow,
   });
 
   @override
   Widget build(BuildContext context) {
     final br = BorderRadius.circular(radius);
+    final filled = gradient != null || color != null;
     final card = Container(
       padding: padding,
       decoration: BoxDecoration(
         color: gradient == null ? (color ?? AppColors.surface) : null,
         gradient: gradient,
         borderRadius: br,
-        border: borderColor == null ? null : Border.all(color: borderColor!),
+        border: Border.all(color: borderColor ?? (filled ? Colors.transparent : AppColors.borderLight)),
         boxShadow: shadow ?? AppShadows.card,
       ),
       child: child,

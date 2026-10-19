@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
@@ -21,7 +22,6 @@ import 'package:exhibition_manager_app/features/public/data/public_repository.da
 import 'package:exhibition_manager_app/features/public/presentation/pages/brand_page.dart';
 import 'package:exhibition_manager_app/features/public/presentation/pages/news_detail_page.dart';
 import 'package:exhibition_manager_app/features/public/presentation/widgets/brand_logo.dart';
-import 'package:exhibition_manager_app/features/public/presentation/widgets/hero_decor.dart';
 import 'package:exhibition_manager_app/shared/utils/date_names.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_logo.dart';
 
@@ -211,77 +211,44 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
     );
   }
 
-  // ─── Slim top bar ────────────────────────────────────────────
+  // ─── Top bar: white, hairline, ink actions ───────────────────
   Widget _topBar() {
     final dark = AppThemeController.isDark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Container(
         width: double.infinity,
-        color: dark ? const Color(0xFF242734) : AppColors.primaryDeep,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border(bottom: BorderSide(color: AppColors.border)),
+        ),
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 10, AppSpacing.lg, 10),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.base, 8, AppSpacing.base, 8),
             child: Row(
               children: [
-                const MuntajatLogo(size: 30, showText: false, isDark: true),
+                Image.asset('assets/images/logo_transparent.png', width: 28, height: 28),
                 const SizedBox(width: AppSpacing.sm),
-                Text(
-                  _data?.companyName ?? context.tr('app_title'),
-                  style: AppTypography.titleMedium.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                Flexible(
+                  child: Text(
+                    _data?.companyName ?? context.tr('app_title'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
                   ),
                 ),
                 const Spacer(),
-                Pressable(
+                HeaderIconButton(
+                  icon: Icons.translate_rounded,
                   onTap: _toggleLanguage,
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.14),
-                      borderRadius: AppRadius.borderFull,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                    ),
-                    child: Center(
-                      child: Text(
-                        AppLocalizations.isArabic ? 'EN' : 'ع',
-                        style: AppTypography.labelLarge.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
+                  child: Text(
+                    AppLocalizations.isArabic ? 'EN' : 'ع',
+                    style: AppTypography.labelLarge.copyWith(color: AppColors.textPrimary),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Pressable(
-                  onTap: _goToLogin,
-                  child: Container(
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: AppRadius.borderFull,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.login_rounded, color: AppColors.primaryDark, size: 15),
-                        const SizedBox(width: 5),
-                        Text(
-                          context.tr('login'),
-                          style: AppTypography.labelMedium.copyWith(
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                AppButton(label: context.tr('login'), onPressed: _goToLogin, expand: false, dense: true),
               ],
             ),
           ),
@@ -290,59 +257,21 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
     );
   }
 
-  // ─── Identity band + stats bento riding its edge ─────────────
+  // ─── Page title + stats ──────────────────────────────────────
   Widget _heroBlock() {
-    const bandHeight = 128.0;
-    const overlap = 30.0;
-    return Stack(
-      children: [
-        Container(
-          height: bandHeight + overlap,
-          width: double.infinity,
-          decoration: BoxDecoration(gradient: AppColors.heroGradient),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              const DotsPattern(opacity: 0.045),
-              const Positioned(top: -80, right: -40, child: GlassCircle(size: 190, opacity: 0.05)),
-              Positioned.directional(
-                textDirection: Directionality.of(context),
-                start: AppSpacing.lg,
-                end: AppSpacing.lg,
-                top: AppSpacing.lg,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.tr('app_subtitle'),
-                      style: AppTypography.headlineSmall.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        height: 1.15,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: 46,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.goldGradient,
-                        borderRadius: AppRadius.borderFull,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.xl, AppSpacing.base, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.tr('app_subtitle'),
+            style: AppTypography.headlineLarge.copyWith(color: AppColors.textPrimary, height: 1.25),
           ),
-        ),
-        // Bento stats straddling the band's bottom edge.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, bandHeight - overlap, AppSpacing.lg, 0),
-          child: _statsBento(),
-        ),
-      ],
+          const SizedBox(height: AppSpacing.lg),
+          _statsBento(),
+        ],
+      ),
     );
   }
 
@@ -392,36 +321,18 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.13),
-              borderRadius: AppRadius.borderMd,
-            ),
-            child: Icon(icon, color: tint, size: 18),
-          ),
+          GlowIconChip(icon: icon, color: AppColors.primary, size: 34, iconSize: 18),
           const SizedBox(height: AppSpacing.sm),
           Text(
             value,
-            style: AppTypography.titleLarge.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
+            style: AppTypography.displayMedium.copyWith(color: AppColors.textPrimary, fontSize: 24, height: 1.1),
           ),
           const SizedBox(height: 3),
           Text(
@@ -543,7 +454,7 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
                     context.tr('about_company'),
                     style: AppTypography.labelLarge.copyWith(
                       color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -597,7 +508,7 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
           text,
           style: AppTypography.titleLarge.copyWith(
             color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           ),
         ),
         if (count != null) ...[
@@ -612,7 +523,7 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
               '$count',
               style: AppTypography.labelMedium.copyWith(
                 color: AppColors.primary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -642,7 +553,7 @@ class _PublicLandingPageState extends State<PublicLandingPage> {
             _data?.companyName ?? context.tr('app_title'),
             style: AppTypography.titleSmall.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 3),
@@ -800,7 +711,7 @@ class _NewsCard extends StatelessWidget {
                         context.tr('news_tag'),
                         style: AppTypography.labelSmall.copyWith(
                           color: AppColors.accentDark,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -831,7 +742,7 @@ class _NewsCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.titleSmall.copyWith(
                     color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     height: 1.3,
                   ),
                 ),
@@ -1099,7 +1010,7 @@ class _BranchInfoBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.titleSmall.copyWith(
                     color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 if (subtitle.isNotEmpty)

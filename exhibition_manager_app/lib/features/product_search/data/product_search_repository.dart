@@ -38,4 +38,20 @@ class ProductSearchRepository {
     }
     return (success: false, data: null, error: result.errorMessage);
   }
+
+  /// Batches & expiry per warehouse (live from SAP). Empty when the item is not batch-managed.
+  Future<BatchesByWarehouse> batches(String itemCode, {List<String> branches = const []}) async {
+    final result = await _api.get(
+      ApiEndpoints.productBatches(itemCode),
+      queryParams: branches.isEmpty ? null : {'branches': branches.join(',')},
+    );
+    if (!result.isSuccess || result.data is! Map) return {};
+    final out = <String, List<ProductBatch>>{};
+    for (final w in (result.data['warehouses'] as List?) ?? []) {
+      final m = Map<String, dynamic>.from(w as Map);
+      out['${m['warehouse_code']}'] =
+          ((m['batches'] as List?) ?? []).map((b) => ProductBatch.fromJson(Map<String, dynamic>.from(b as Map))).toList();
+    }
+    return out;
+  }
 }

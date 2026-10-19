@@ -112,10 +112,84 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
         ),
       ),
     );
-    if (newQty != null && newQty > 0) {
+    if (newQty != null && newQty >= 0) {
       await _repo.updateLine(widget.sessionId, line.id, newQty);
       await _load(); // refresh ring/by-class/records together
     }
+  }
+
+  /// Count a target without the camera: type the quantity, or mark it as not
+  /// found (recorded as 0 — the zero is information for the variance report).
+  Future<void> _manualCount(CycleTargetItem item) async {
+    final isArabic = AppLocalizations.isArabic;
+    final controller = TextEditingController();
+    final qty = await showModalBottomSheet<double>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item.localizedName(isArabic), style: AppTypography.titleMedium, maxLines: 2, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: AppSpacing.xs),
+              Text('${ctx.tr('ic_barcode_label')}: ${item.pieceBarcode ?? "—"}   ·   ${ctx.tr('ic_sap_code_label')}: ${item.itemCode}',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
+              const SizedBox(height: AppSpacing.base),
+              Text(ctx.tr('ic_manual_count_title'), style: AppTypography.labelLarge),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                style: AppTypography.titleLarge,
+                decoration: InputDecoration(
+                  labelText: ctx.tr('quantity'),
+                  border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
+                ),
+                onSubmitted: (v) => Navigator.pop(ctx, double.tryParse(v.trim())),
+              ),
+              const SizedBox(height: AppSpacing.base),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(ctx, 0.0),
+                      icon: const Icon(Icons.remove_shopping_cart_outlined),
+                      label: Text(ctx.tr('ic_not_found_zero')),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, double.tryParse(controller.text.trim())),
+                      child: Text(ctx.tr('ic_save_quantity')),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (qty == null || qty < 0 || !mounted) return;
+    final res = await _repo.addLine(widget.sessionId, item.itemCode, qty);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: res.success ? null : AppColors.error,
+      content: Text(res.success
+          ? (qty == 0 ? context.tr('ic_zero_recorded') : context.tr('product_saved').replaceAll('{name}', item.localizedName(isArabic)).replaceAll('{qty}', '${qty.toInt()}'))
+          : (res.error ?? context.tr('off_list_cannot_count'))),
+      duration: const Duration(seconds: 2),
+    ));
+    await _load();
   }
 
   Future<void> _deleteLine(CountingLine line) async {
@@ -230,16 +304,8 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
                       ],
                     ),
                   ),
-        floatingActionButton: (_data?.status == 'in_progress')
-            ? FloatingActionButton.extended(
-                onPressed: _openScanner,
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppDomain.counting.accentDark,
-                icon: const Icon(Icons.qr_code_scanner_rounded),
-                label: Text(context.tr('scan_to_count'),
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-              )
-            : null,
+        // Scan + complete share one bottom bar: a floating scan button used to
+        // cover list rows on small phones.
         bottomNavigationBar: _buildBottom(),
       ),
     );
@@ -359,7 +425,7 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
               ),
               child: Text(cls,
                   style: AppTypography.labelSmall.copyWith(
-                      color: color, fontWeight: FontWeight.w800, fontSize: 10)),
+                      color: color, fontWeight: FontWeight.w700, fontSize: 10)),
             ),
             const Spacer(),
             Text('${cp.counted}/${cp.total}',
@@ -477,7 +543,10 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
       sliver: SliverList.builder(
         itemCount: items.length,
-        itemBuilder: (context, i) => _TargetTile(item: items[i]),
+        itemBuilder: (context, i) => _TargetTile(
+          item: items[i],
+          onTap: (_data?.status == 'in_progress') ? () => _manualCount(items[i]) : null,
+        ),
       ),
     );
   }
@@ -491,14 +560,38 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
     // countedTargets alone could leave the button stuck when only off-list
     // legacy records are present.
     final canComplete = (_session?.lines.isNotEmpty ?? false) || p.countedTargets > 0;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.base),
-        child: AppButton(
-          label: '${context.tr('complete_count')} (${p.countedTargets}/${p.totalTargets})',
-          onPressed: canComplete ? _complete : null,
-          icon: Icons.check_circle_rounded,
-          color: AppColors.success,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.sm),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: AppButton(
+                  label: context.tr('scan_to_count'),
+                  onPressed: _openScanner,
+                  icon: Icons.qr_code_scanner_rounded,
+                  color: AppDomain.counting.accentDark,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                flex: 2,
+                child: AppButton(
+                  label: '${context.tr('complete_count')} ${p.countedTargets}/${p.totalTargets}',
+                  onPressed: canComplete ? _complete : null,
+                  icon: Icons.check_circle_rounded,
+                  color: AppColors.success,
+                  variant: AppButtonVariant.tonal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -527,7 +620,8 @@ class _CycleCountDetailPageState extends State<CycleCountDetailPage> {
 // ─── Target item tile ─────────────────────────────────────────
 class _TargetTile extends StatelessWidget {
   final CycleTargetItem item;
-  const _TargetTile({required this.item});
+  final VoidCallback? onTap;
+  const _TargetTile({required this.item, this.onTap});
 
   Color get _classColor {
     switch (item.abcClass) {
@@ -544,7 +638,10 @@ class _TargetTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
     final done = item.counted;
-    return Container(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.borderLg,
+      child: Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.sm + 2),
       decoration: BoxDecoration(
@@ -584,7 +681,7 @@ class _TargetTile extends StatelessWidget {
                 Text(
                   item.localizedName(isArabic),
                   style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
@@ -600,13 +697,26 @@ class _TargetTile extends StatelessWidget {
                       ),
                       child: Text(item.abcClass ?? '-',
                           style: AppTypography.labelSmall.copyWith(
-                              color: _classColor, fontWeight: FontWeight.w800, fontSize: 10)),
+                              color: _classColor, fontWeight: FontWeight.w700, fontSize: 10)),
                     ),
                     const SizedBox(width: 6),
+                    // Barcode and SAP code wrap onto two lines when narrow;
+                    // neither may be cut — the counter identifies items by them.
                     Flexible(
-                      child: Text(item.itemCode,
-                          style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 2,
+                        textDirection: TextDirection.ltr,
+                        children: [
+                          if (item.pieceBarcode != null && item.pieceBarcode!.isNotEmpty)
+                            Text(item.pieceBarcode!,
+                                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                                textDirection: TextDirection.ltr),
+                          Text(item.itemCode,
+                              style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                              textDirection: TextDirection.ltr),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -630,6 +740,7 @@ class _TargetTile extends StatelessWidget {
             Icon(Icons.radio_button_unchecked_rounded,
                 color: AppColors.textTertiary.withValues(alpha: 0.6), size: 24),
         ],
+      ),
       ),
     );
   }

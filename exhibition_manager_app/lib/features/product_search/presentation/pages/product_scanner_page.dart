@@ -17,7 +17,7 @@ class ProductScannerPage extends StatefulWidget {
 }
 
 class _ProductScannerPageState extends State<ProductScannerPage> {
-  static const Color _accent = Color(0xFF4C5FD5);
+  static const Color _accent = Colors.white;
 
   final MobileScannerController _camera = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,

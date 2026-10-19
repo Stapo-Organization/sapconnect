@@ -221,7 +221,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
               context.tr(key),
               style: AppTypography.titleSmall.copyWith(
                 color: OwnerTheme.textHi,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -442,7 +442,7 @@ class _OwnerCommandPageState extends State<OwnerCommandPage> {
                     '$attention',
                     style: AppTypography.labelMedium.copyWith(
                       color: OwnerTheme.caution,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),

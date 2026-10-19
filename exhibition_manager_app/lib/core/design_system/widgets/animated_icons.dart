@@ -2,7 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../tokens/radius.dart';
+import '../tokens/colors.dart';
+import 'status_badge.dart';
 
 /// ─── نظام الأيقونات الحيّة ───────────────────────────────────────────────
 /// أساسيات حركة صغيرة قابلة للتركيب تُستخدم في كامل التطبيق كي تقرأ الأيقونات
@@ -12,8 +13,8 @@ import '../tokens/radius.dart';
 ///   • [FloatingIcon] — طفو عمودي هادئ مستمر (أبطال الحالات الفارغة).
 ///   • [BreathingIcon]— تنفّس (تكبير/تصغير خفيف) للمؤشرات «الحيّة».
 ///   • [WiggleIcon]   — اهتزاز تنبيهي متضائل يعمل مرة عند الظهور (الأخطاء).
-///   • [GlowIconChip] — شارة الأيقونة القياسية: سكويركل متدرّج بتوهّج ملوّن.
-///   • [AnimatedNavIcon] — نبضة زنبركية لأيقونة التبويب عند اختياره.
+///   • [GlowIconChip] — صندوق الأيقونة القياسي: رمادي هادئ، أو مُلوَّن خفيفاً إن كان اللون معنى.
+///   • [AnimatedNavIcon] — استقرار هادئ لأيقونة التبويب عند اختياره.
 ///
 /// كل الحلقات المستمرة تحترم [MediaQuery.disableAnimations] وتغلَّف بـ
 /// [RepaintBoundary]. القاعدة: الحلقات المستمرة لعنصر بطل واحد في الشاشة،
@@ -237,61 +238,24 @@ class GlowIconChip extends StatefulWidget {
   State<GlowIconChip> createState() => _GlowIconChipState();
 }
 
-class _GlowIconChipState extends State<GlowIconChip>
-    with SingleTickerProviderStateMixin {
-  AnimationController? _c;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.pulseGlow) {
-      _c = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1800),
-      )..repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _c?.dispose();
-    super.dispose();
-  }
-
+class _GlowIconChipState extends State<GlowIconChip> {
   @override
   Widget build(BuildContext context) {
-    final animate = widget.pulseGlow && !_reduceMotion(context) && _c != null;
-    Widget chip(double glow) => Container(
-          width: widget.size,
-          height: widget.size,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color.lerp(widget.color, Colors.white, 0.14)!,
-                widget.color,
-                Color.lerp(widget.color, Colors.black, 0.20)!,
-              ],
-            ),
-            borderRadius: widget.borderRadius ?? AppRadius.borderLg,
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withValues(alpha: glow),
-                blurRadius: 12,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Icon(widget.icon, size: widget.iconSize, color: Colors.white),
-        );
-
-    if (!animate) return chip(0.32);
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _c!,
-        builder: (_, _) => chip(0.22 + 0.24 * _c!.value),
+    // «المتجر»: a quiet icon box. The single app accent (or its dark shade)
+    // reads as a neutral grey box with ink glyph; any other colour is meaning
+    // (late, done, failed…) and gets a soft tint of itself.
+    final c = widget.color;
+    final neutral = c == AppColors.primary || c == AppColors.primaryDark || c == AppColors.primaryLight;
+    final bg = neutral ? AppColors.secondary : StatusBadge.fill(c);
+    final fg = neutral ? AppColors.textPrimary : StatusBadge.ink(c);
+    return Container(
+      width: widget.size,
+      height: widget.size,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.size >= 40 ? 10 : 8),
       ),
+      child: Icon(widget.icon, size: widget.iconSize * 0.9, color: fg),
     );
   }
 }
@@ -311,7 +275,7 @@ class _AnimatedNavIconState extends State<AnimatedNavIcon>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 460),
+    duration: const Duration(milliseconds: 240),
   )..forward();
 
   @override
@@ -326,14 +290,9 @@ class _AnimatedNavIconState extends State<AnimatedNavIcon>
     return AnimatedBuilder(
       animation: _c,
       builder: (_, child) {
-        final t = Curves.easeOutBack.transform(_c.value);
-        // تبدأ مضغوطة قليلاً وتستقر على ١ بارتداد + ميل خاطف يذوب سريعاً.
-        final scale = 0.8 + 0.2 * t;
-        final tilt = math.sin(_c.value * math.pi) * 0.09;
-        return Transform.rotate(
-          angle: tilt,
-          child: Transform.scale(scale: scale, child: child),
-        );
+        // استقرار هادئ: تبدأ أصغر قليلاً وتصل لحجمها بلا ارتداد ولا ميل.
+        final t = Curves.easeOutCubic.transform(_c.value);
+        return Transform.scale(scale: 0.9 + 0.1 * t, child: child);
       },
       child: Icon(widget.icon),
     );

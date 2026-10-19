@@ -3,14 +3,22 @@ class StockTransfer {
   final int id;
   final String? docEntry;
   final String? docNum;
+  /// A stock transfer SAP posted directly, with no request: only the receiving side acts.
+  final bool isDirect;
   final String fromWarehouse;
   final String toWarehouse;
+  final String? fromWarehouseNameAr;
+  final String? fromWarehouseNameEn;
+  final String? toWarehouseNameAr;
+  final String? toWarehouseNameEn;
   final String? docDate;
   final double totalQty;
   final double totalSentQty;
   final double totalReceivedQty;
   final double sendingPercentage;
   final double receivingPercentage;
+  /// Pieces SAP delivered against this request (stock transfers made in SAP).
+  final double sapReceivedQty;
   final String? documentStatus;
   final String internalStatus;
   final Map<String, dynamic>? sentBy;
@@ -31,14 +39,20 @@ class StockTransfer {
     required this.id,
     this.docEntry,
     this.docNum,
+    this.isDirect = false,
     required this.fromWarehouse,
     required this.toWarehouse,
+    this.fromWarehouseNameAr,
+    this.fromWarehouseNameEn,
+    this.toWarehouseNameAr,
+    this.toWarehouseNameEn,
     this.docDate,
     required this.totalQty,
     required this.totalSentQty,
     required this.totalReceivedQty,
     required this.sendingPercentage,
     required this.receivingPercentage,
+    this.sapReceivedQty = 0,
     this.documentStatus,
     required this.internalStatus,
     this.sentBy,
@@ -61,14 +75,20 @@ class StockTransfer {
       id: json['id'] ?? 0,
       docEntry: json['doc_entry']?.toString(),
       docNum: json['doc_num']?.toString(),
+      isDirect: json['is_direct'] == true,
       fromWarehouse: json['from_warehouse'] ?? '',
       toWarehouse: json['to_warehouse'] ?? '',
+      fromWarehouseNameAr: json['from_warehouse_name_ar'],
+      fromWarehouseNameEn: json['from_warehouse_name_en'],
+      toWarehouseNameAr: json['to_warehouse_name_ar'],
+      toWarehouseNameEn: json['to_warehouse_name_en'],
       docDate: json['doc_date'],
       totalQty: (json['total_qty'] ?? 0).toDouble(),
       totalSentQty: (json['total_sent_qty'] ?? 0).toDouble(),
       totalReceivedQty: (json['total_received_qty'] ?? 0).toDouble(),
       sendingPercentage: (json['sending_percentage'] ?? 0).toDouble(),
       receivingPercentage: (json['receiving_percentage'] ?? 0).toDouble(),
+      sapReceivedQty: (json['sap_received_qty'] ?? 0).toDouble(),
       documentStatus: json['document_status'],
       internalStatus: json['internal_status'] ?? 'New',
       sentBy: json['sent_by'] is Map ? json['sent_by'] : null,
@@ -91,6 +111,12 @@ class StockTransfer {
   }
 }
 
+extension StockTransferNames on StockTransfer {
+  /// The branch's name in the app's language, else its SAP code.
+  String fromName(bool arabic) => (arabic ? fromWarehouseNameAr : fromWarehouseNameEn) ?? fromWarehouse;
+  String toName(bool arabic) => (arabic ? toWarehouseNameAr : toWarehouseNameEn) ?? toWarehouse;
+}
+
 /// Stock Transfer Line model
 class StockTransferLine {
   final int id;
@@ -103,6 +129,8 @@ class StockTransferLine {
   final double actualReceivedQuantity;
   final double remainingQuantity;
   final double receivingPercentage;
+  /// What SAP delivered on this line.
+  final double sapReceivedQuantity;
   final String? lineStatus;
 
   StockTransferLine({
@@ -116,6 +144,7 @@ class StockTransferLine {
     required this.actualReceivedQuantity,
     required this.remainingQuantity,
     required this.receivingPercentage,
+    this.sapReceivedQuantity = 0,
     this.lineStatus,
   });
 
@@ -131,6 +160,7 @@ class StockTransferLine {
       actualReceivedQuantity: (json['actual_received_quantity'] ?? 0).toDouble(),
       remainingQuantity: (json['remaining_quantity'] ?? 0).toDouble(),
       receivingPercentage: (json['receiving_percentage'] ?? 0).toDouble(),
+      sapReceivedQuantity: (json['received_quantity'] ?? 0).toDouble(),
       lineStatus: json['line_status'],
     );
   }

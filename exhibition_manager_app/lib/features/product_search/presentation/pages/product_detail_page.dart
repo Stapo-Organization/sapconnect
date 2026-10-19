@@ -4,8 +4,10 @@ import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/app_button.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
+import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
+import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 import '../../data/models/product_models.dart';
@@ -36,12 +38,11 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   final ProductSearchRepository _repo = ProductSearchRepository();
 
-  static const Color _accent = Color(0xFF4C5FD5);
-  static const Color _accentDark = Color(0xFF3A4BB0);
 
   bool _loading = true;
   String? _error;
   ProductDetail? _data;
+  BatchesByWarehouse _batches = const {};
   _StockFilter _filter = _StockFilter.withStock;
 
   @override
@@ -54,6 +55,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     setState(() {
       _loading = true;
       _error = null;
+    });
+    // Batches come live from SAP — fetched beside the detail, never blocking it.
+    _repo.batches(widget.itemCode, branches: widget.myWarehouses).then((b) {
+      if (mounted) setState(() => _batches = b);
     });
     final res = await _repo.detail(widget.itemCode, branches: widget.myWarehouses);
     if (!mounted) return;
@@ -71,21 +76,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: _accent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          title: Text(
-            context.tr('ps_detail_title'),
-            style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
-          ),
-        ),
+        appBar: MuntajatAppBar(title: context.tr('ps_detail_title')),
         body: _loading
-            ? const Center(child: CircularProgressIndicator(color: _accent))
+            ? const Center(child: CircularProgressIndicator())
             : (_data == null)
                 ? _errorState()
                 : RefreshIndicator(
-                    color: _accent,
                     onRefresh: _load,
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.xl),
@@ -105,34 +101,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   // ─── Smart transfer suggestion (shown for "transfer" bleeding items) ──
-  static const Color _transferAccent = Color(0xFF0E9F8E);
+  static Color get _transferAccent => AppColors.textPrimary;
 
   Widget _transferSuggestionCard(ProductDetail d) {
     final s = d.transferSuggestions;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
-        color: _transferAccent.withValues(alpha: 0.08),
+        color: AppColors.surface,
         borderRadius: AppRadius.borderLg,
-        border: Border.all(color: _transferAccent.withValues(alpha: 0.30)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.45)),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              GlowIconChip(
-                icon: Icons.swap_horiz_rounded,
-                color: _transferAccent,
-                size: 34,
-                iconSize: 20,
-                borderRadius: AppRadius.borderMd,
-                pulseGlow: true, // key decision card — the single loop on this screen
-              ),
+              GlowIconChip(icon: Icons.swap_horiz_rounded, color: AppColors.info, size: 34, iconSize: 20),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(context.tr('ps_smart_transfer_title'),
-                    style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+                    style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -141,7 +131,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: AppSpacing.md),
           for (var i = 0; i < s.length; i++) ...[
-            if (i > 0) Divider(height: AppSpacing.lg, color: _transferAccent.withValues(alpha: 0.15)),
+            if (i > 0) Divider(height: AppSpacing.lg, color: AppColors.borderLight),
             _suggestionRow(s[i]),
           ],
         ],
@@ -173,9 +163,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         const SizedBox(width: AppSpacing.sm),
         Column(
           children: [
-            Text(fmtQty(s.quantity),
-                style: AppTypography.titleMedium.copyWith(color: _transferAccent, fontWeight: FontWeight.w900)),
-            Text(context.tr('bd_units'), style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
+            Text(fmtQty(s.quantity), style: AppTypography.numeric.copyWith(color: AppColors.textPrimary, fontSize: 17)),
+            Text(context.tr('bd_units'), style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 11)),
           ],
         ),
       ],
@@ -187,8 +176,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-          decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: AppRadius.borderFull),
-          child: Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary, fontSize: 10)),
+          decoration: BoxDecoration(color: AppColors.secondary, borderRadius: AppRadius.borderXs),
+          child: Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary, fontSize: 11)),
         ),
         const SizedBox(width: AppSpacing.sm),
         Flexible(
@@ -204,98 +193,82 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   // ─── Hero (identity + headline stock) ───────────────────────
 
   Widget _heroCard(ProductDetail d) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.base),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [_accent, _accentDark],
-        ),
-        borderRadius: AppRadius.borderXl,
-        boxShadow: [
-          BoxShadow(color: _accentDark.withValues(alpha: 0.3), blurRadius: 18, offset: const Offset(0, 8)),
-        ],
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 76,
-                height: 76,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: AppRadius.borderLg),
-                child: (d.imageUrl.isEmpty)
-                    ? Icon(Icons.inventory_2_outlined, color: AppColors.textTertiary)
-                    : Image.network(
-                        d.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            Icon(Icons.inventory_2_outlined, color: AppColors.textTertiary),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.base),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                productThumb(d.imageUrl, size: 84),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        d.name,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, height: 1.35),
                       ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      d.name,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.titleMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        height: 1.25,
-                      ),
+                      const SizedBox(height: 6),
+                      _codeChips(d),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: AppColors.borderLight),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.md, AppSpacing.base, AppSpacing.base),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(context.tr('ps_total_stock_all_warehouses'),
+                    style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary)),
+                const SizedBox(height: 2),
+                Text(fmtQty(d.totalStock), style: AppTypography.displayMedium.copyWith(color: AppColors.textPrimary, height: 1.1)),
+                const SizedBox(height: AppSpacing.md),
+                // المحجوز / القادم / المتاح — turns "in stock" into "actually sellable":
+                // المتاح = المخزون − المحجوز + القادم (straight from SAP).
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: AppRadius.borderSm,
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        _heroStat(context.tr('ps_committed'), fmtQty(d.totalCommitted)),
+                        VerticalDivider(width: 1, color: AppColors.borderLight),
+                        _heroStat(context.tr('ps_incoming'), fmtQty(d.totalOrdered)),
+                        VerticalDivider(width: 1, color: AppColors.borderLight),
+                        _heroStat(context.tr('ps_available'), fmtQty(d.totalAvailable), emphasize: true),
+                      ],
                     ),
-                    const SizedBox(height: 6),
-                    _codeChips(d),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [
+                    StatChip(icon: Icons.storefront_outlined,
+                        label: context.tr('ps_available_in_n_showrooms').replaceAll('{n}', '${d.warehouseCount}')),
+                    if (d.retailPrice != null && d.retailPrice! > 0)
+                      StatChip(icon: Icons.sell_outlined, label: context.tr('ps_retail_price').replaceAll('{n}', _price(d.retailPrice!))),
+                    if (d.uom != null && d.uom!.isNotEmpty)
+                      StatChip(icon: Icons.straighten_rounded, label: context.tr('ps_uom_label').replaceAll('{n}', d.uom!)),
+                    if (d.brand != null && d.brand!.isNotEmpty) StatChip(icon: Icons.label_outline_rounded, label: d.brand!),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.base),
-          Container(height: 1, color: Colors.white.withValues(alpha: 0.18)),
-          const SizedBox(height: AppSpacing.base),
-          Text(
-            fmtQty(d.totalStock),
-            style: AppTypography.displayMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w900, height: 1),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            context.tr('ps_total_stock_all_warehouses'),
-            style: AppTypography.labelMedium.copyWith(color: Colors.white.withValues(alpha: 0.85)),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // المحجوز / القادم / المتاح — turns "in stock" into "actually sellable":
-          // المتاح = المخزون − المحجوز + القادم (straight from SAP).
-          Row(
-            children: [
-              _heroStat(context.tr('ps_committed'), fmtQty(d.totalCommitted)),
-              const SizedBox(width: AppSpacing.sm),
-              _heroStat(context.tr('ps_incoming'), fmtQty(d.totalOrdered)),
-              const SizedBox(width: AppSpacing.sm),
-              _heroStat(context.tr('ps_available'), fmtQty(d.totalAvailable), emphasize: true),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _glassPill(Icons.store_mall_directory_rounded,
-                  context.tr('ps_available_in_n_showrooms').replaceAll('{n}', '${d.warehouseCount}')),
-              if (d.retailPrice != null && d.retailPrice! > 0)
-                _glassPill(Icons.sell_outlined, context.tr('ps_retail_price').replaceAll('{n}', _price(d.retailPrice!))),
-              if (d.uom != null && d.uom!.isNotEmpty)
-                _glassPill(Icons.straighten_rounded, context.tr('ps_uom_label').replaceAll('{n}', d.uom!)),
-              if (d.brand != null && d.brand!.isNotEmpty) _glassPill(Icons.label_outline_rounded, d.brand!),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -303,76 +276,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _codeChips(ProductDetail d) {
-    final parts = <Widget>[
-      Icon(Icons.tag_rounded, size: 13, color: Colors.white.withValues(alpha: 0.8)),
-      const SizedBox(width: 3),
-      Flexible(
-        child: Text(
-          d.itemCode,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.labelMedium.copyWith(color: Colors.white.withValues(alpha: 0.85)),
-        ),
-      ),
-    ];
-    if (d.barcode != null && d.barcode!.isNotEmpty) {
-      parts.addAll([
-        const SizedBox(width: 12),
-        Icon(Icons.qr_code_2_rounded, size: 14, color: Colors.white.withValues(alpha: 0.8)),
-        const SizedBox(width: 3),
-        Flexible(
-          child: Text(
-            d.barcode!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.labelMedium.copyWith(color: Colors.white.withValues(alpha: 0.85)),
-          ),
-        ),
-      ]);
-    }
-    return Row(children: parts);
+    final mono = AppTypography.monoSmall.copyWith(color: AppColors.textSecondary);
+    return Wrap(
+      spacing: 10,
+      runSpacing: 2,
+      children: [
+        Text(d.itemCode, style: mono),
+        if (d.barcode != null && d.barcode!.isNotEmpty)
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.qr_code_2_rounded, size: 14, color: AppColors.textTertiary),
+            const SizedBox(width: 3),
+            Text(d.barcode!, style: mono),
+          ]),
+      ],
+    );
   }
 
   Widget _heroStat(String label, String value, {bool emphasize = false}) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: emphasize ? 0.26 : 0.13),
-          borderRadius: AppRadius.borderMd,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
             Text(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+              style: AppTypography.numeric.copyWith(
+                  color: emphasize ? AppColors.success : AppColors.textPrimary, fontSize: emphasize ? 17 : 15),
             ),
-            const SizedBox(height: 1),
-            Text(label, style: AppTypography.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.85))),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _glassPill(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        borderRadius: AppRadius.borderFull,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 5),
-          Text(text, style: AppTypography.labelMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
-        ],
       ),
     );
   }
@@ -388,12 +324,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       children: [
         Row(
           children: [
-            Icon(Icons.warehouse_rounded, size: 18, color: _accent),
-            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
                 context.tr('ps_stock_section_title'),
-                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800),
+                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
               ),
             ),
             Text(
@@ -420,7 +354,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           )
         else
           for (var i = 0; i < filtered.length; i++) ...[
-            WarehouseStockTile(row: filtered[i], isMine: mine.contains(filtered[i].warehouseCode)),
+            WarehouseStockTile(
+              row: filtered[i],
+              isMine: mine.contains(filtered[i].warehouseCode),
+              batches: _batches[filtered[i].warehouseCode] ?? const [],
+            ),
             if (i != filtered.length - 1) const SizedBox(height: AppSpacing.sm),
           ],
       ],
@@ -464,21 +402,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _chip(String label, _StockFilter f) {
-    final sel = _filter == f;
-    return ChoiceChip(
-      label: Text(label),
-      selected: sel,
-      onSelected: (_) => setState(() => _filter = f),
-      showCheckmark: false,
-      labelStyle: AppTypography.labelMedium.copyWith(
-        color: sel ? Colors.white : AppColors.textSecondary,
-        fontWeight: FontWeight.w700,
-      ),
-      backgroundColor: AppColors.surface,
-      selectedColor: _accent,
-      side: BorderSide(color: sel ? _accent : AppColors.border),
-      visualDensity: VisualDensity.compact,
-    );
+    return PillChip(label: label, selected: _filter == f, onTap: () => setState(() => _filter = f));
   }
 
   String _price(double v) {
@@ -487,24 +411,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _errorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.textTertiary),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              _error ?? context.tr('ps_load_failed'),
-              textAlign: TextAlign.center,
-              style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppButton(label: context.tr('retry'), icon: Icons.refresh_rounded, expand: false, onPressed: _load),
-          ],
-        ),
-      ),
-    );
+    return ErrorStateWidget(title: _error ?? context.tr('ps_load_failed'), onRetry: _load);
   }
 }

@@ -101,7 +101,7 @@ class MuntajatLogo extends StatelessWidget {
               color: subtextColor,
               fontSize: fontSize * 0.34,
               letterSpacing: 3,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

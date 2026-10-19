@@ -3,9 +3,10 @@ import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
+import 'animated_icons.dart';
 
-/// Consistent modal bottom-sheet shell: grabber handle, rounded top, optional
-/// title row with icon, and safe-area bottom padding.
+/// Modal bottom-sheet shell («المتجر»): small grabber, 16px top corners,
+/// optional title row with a quiet icon box, and safe-area bottom padding.
 class BottomSheetScaffold extends StatelessWidget {
   final Widget child;
   final String? title;
@@ -25,7 +26,7 @@ class BottomSheetScaffold extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxxl)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       padding: EdgeInsets.only(
         top: AppSpacing.md,
@@ -35,8 +36,8 @@ class BottomSheetScaffold extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 44,
-            height: 5,
+            width: 36,
+            height: 4,
             decoration: BoxDecoration(
               color: AppColors.border,
               borderRadius: AppRadius.borderFull,
@@ -49,14 +50,7 @@ class BottomSheetScaffold extends StatelessWidget {
               child: Row(
                 children: [
                   if (icon != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: AppRadius.borderSm,
-                      ),
-                      child: Icon(icon, color: AppColors.primary, size: 22),
-                    ),
+                    GlowIconChip(icon: icon!, color: AppColors.primary, size: 36, iconSize: 20),
                     const SizedBox(width: AppSpacing.md),
                   ],
                   Expanded(
@@ -64,7 +58,7 @@ class BottomSheetScaffold extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(title!,
-                            style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
+                            style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary)),
                         if (subtitle != null)
                           Text(subtitle!,
                               style: AppTypography.bodySmall

@@ -140,7 +140,7 @@ class OwnerHero extends StatelessWidget {
               sarAmount(v),
               style: AppTypography.displayMedium.copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.1,
               ),
             ),
@@ -304,7 +304,7 @@ class OwnerHero extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.titleSmall.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -315,7 +315,7 @@ class OwnerHero extends StatelessWidget {
                   '${up ? '▲' : '▼'} ${pctLabel(deltaPct.abs())}',
                   style: AppTypography.labelSmall.copyWith(
                     color: up ? OwnerTheme.positive : OwnerTheme.danger,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 10,
                   ),
                 ),
@@ -413,7 +413,7 @@ class OwnerHero extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.titleSmall.copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -443,7 +443,7 @@ class OwnerHero extends StatelessWidget {
         label,
         style: AppTypography.labelSmall.copyWith(
           color: Colors.white,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

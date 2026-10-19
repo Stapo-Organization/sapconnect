@@ -36,7 +36,7 @@ class YourDayStrip extends StatelessWidget {
                 children: [
                   Text(
                     '${progress.current}/${progress.target}',
-                    style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.w800),
+                    style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -132,7 +132,7 @@ class YourDayStrip extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 value,
-                style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800),
+                style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),

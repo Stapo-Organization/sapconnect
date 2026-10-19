@@ -34,7 +34,7 @@ class BrandLogo extends StatelessWidget {
         _initials(name),
         style: AppTypography.titleLarge.copyWith(
           color: AppColors.primary,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

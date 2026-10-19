@@ -142,7 +142,7 @@ class _ContainerTrackingPageState extends State<ContainerTrackingPage> {
             Text(label,
                 style: AppTypography.labelSmall.copyWith(
                   color: highlight ? AppColors.error : Colors.white,
-                  fontWeight: highlight ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight: highlight ? FontWeight.w700 : FontWeight.w600,
                 )),
           ],
         ),

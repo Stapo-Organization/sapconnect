@@ -77,6 +77,43 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
     final barcode = capture.barcodes.first.rawValue;
     if (barcode == null || barcode.isEmpty) return;
+    await _handleCode(barcode);
+  }
+
+  /// Manual entry: type a barcode or SAP code when the camera cannot read the
+  /// label (worn print, leading-zero mismatch, no barcode on the item).
+  Future<void> _manualEntry() async {
+    final isArabic = AppLocalizations.isArabic;
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          title: Text(ctx.tr('ic_manual_entry')),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.center,
+            style: AppTypography.titleMedium,
+            decoration: InputDecoration(hintText: ctx.tr('ic_manual_entry_hint')),
+            onSubmitted: (v) => Navigator.pop(ctx, v),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.tr('cancel'))),
+            ElevatedButton(onPressed: () => Navigator.pop(ctx, controller.text), child: Text(ctx.tr('search'))),
+          ],
+        ),
+      ),
+    );
+    final trimmed = code?.trim() ?? '';
+    if (trimmed.isEmpty || !mounted) return;
+    await _handleCode(trimmed);
+  }
+
+  Future<void> _handleCode(String barcode) async {
+    if (_isProcessing) return;
 
     setState(() {
       _isProcessing = true;
@@ -188,8 +225,10 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   }
 
   Future<void> _saveQuantity() async {
-    final qty = double.tryParse(_quantityController.text) ?? 0;
-    if (qty <= 0) return;
+    final qty = double.tryParse(_quantityController.text.trim()) ?? -1;
+    if (qty < 0) return;
+    // Zero is a valid blind-count answer ("not on the shelf"); transfers still need > 0.
+    if (qty == 0 && widget.mode != ScanMode.inventoryCounting) return;
 
     final product = _lastScanned!;
 
@@ -293,6 +332,12 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                     ),
                     Row(
                       children: [
+                        // Manual entry (barcode or SAP code)
+                        _CircleButton(
+                          icon: Icons.keyboard_alt_outlined,
+                          onTap: _manualEntry,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
                         // Flash toggle
                         _CircleButton(
                           icon: _flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
@@ -701,7 +746,7 @@ class _ProductSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.getLocalizedName(AppLocalizations.isArabic), style: AppTypography.titleMedium, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(product.getLocalizedName(AppLocalizations.isArabic), style: AppTypography.titleMedium, maxLines: 3, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: AppSpacing.xs),
                     Text('${context.tr('ic_barcode_label')}: ${product.pieceBarcode ?? "—"}',
                         style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),

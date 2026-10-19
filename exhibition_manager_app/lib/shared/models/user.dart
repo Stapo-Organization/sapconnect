@@ -38,9 +38,17 @@ class User {
       return [];
     }
 
+    // Roles/abilities arrive either as plain names or as role objects
+    // ({id, name, guard_name, pivot …}) depending on the endpoint — keep the
+    // name only, never the whole object's toString().
     List<String> parseRoles(dynamic value) {
       if (value == null) return [];
-      if (value is List) return value.map((e) => e.toString()).toList();
+      if (value is List) {
+        return value
+            .map((e) => e is Map ? (e['name'] ?? '').toString() : e.toString())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
       return [];
     }
 

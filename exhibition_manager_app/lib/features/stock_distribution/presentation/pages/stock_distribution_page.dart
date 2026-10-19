@@ -165,7 +165,7 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(context.tr('sd_title'),
-                    style: AppTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                    style: AppTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -370,7 +370,7 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
                 padding: const EdgeInsets.all(AppSpacing.base),
                 child: Row(
                   children: [
-                    Text(title, style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800)),
+                    Text(title, style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
@@ -404,7 +404,7 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
       title: Text(label,
           style: AppTypography.bodyMedium.copyWith(
             color: selected ? accent : AppColors.textPrimary,
-            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           )),
       trailing: selected ? Icon(Icons.check_rounded, color: accent, size: 20) : null,
     );
@@ -451,7 +451,7 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
                         ),
                         Flexible(
                           child: Text(lane.targetName,
-                              style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800),
+                              style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                         ),
@@ -469,7 +469,7 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
                 child: Column(
                   children: [
                     Text(intGrouped(lane.totalUnits),
-                        style: AppTypography.labelMedium.copyWith(color: accent, fontWeight: FontWeight.w800)),
+                        style: AppTypography.labelMedium.copyWith(color: accent, fontWeight: FontWeight.w700)),
                     Text(context.tr('sd_units'),
                         style: AppTypography.labelSmall.copyWith(color: accent, fontSize: 9)),
                   ],
@@ -513,7 +513,7 @@ class _StockDistributionPageState extends State<StockDistributionPage> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: AppRadius.borderMd),
             child: Text('${intGrouped(it.suggestedQuantity)} ${context.tr('sd_units')}',
-                style: AppTypography.labelMedium.copyWith(color: accent, fontWeight: FontWeight.w800)),
+                style: AppTypography.labelMedium.copyWith(color: accent, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

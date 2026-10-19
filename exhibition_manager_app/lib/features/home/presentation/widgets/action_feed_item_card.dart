@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/features/home/data/models/home_overview.dart';
 
-/// One prioritised item in the Action Center. Domain-coloured icon chip, a
-/// leading urgency band, title/subtitle from the server, and a contextual
-/// status badge. Tapping routes to the relevant feature screen.
+/// One prioritised item in the Action Center, as a Shopify resource row: a
+/// quiet icon box, server title/subtitle, and a status badge that carries the
+/// urgency (late / due today / ×n). Tapping routes to the feature screen.
 class ActionFeedItemCard extends StatelessWidget {
   final HomeFeedItem item;
   final VoidCallback onTap;
 
   /// How many items of the same type+title this row stands for. When > 1 the
-  /// card shows a "{n} overdue" count pill instead of a single status badge.
+  /// row shows a "{n} overdue" count badge instead of a single status badge.
   final int repeat;
 
   const ActionFeedItemCard({
@@ -27,63 +24,12 @@ class ActionFeedItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = item.appDomain.accent;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: AppCard(
-        onTap: onTap,
-        padding: const EdgeInsets.all(AppSpacing.base),
-        borderColor: item.bandColor.withValues(alpha: 0.25),
-        child: Row(
-          children: [
-            // Leading urgency band.
-            Container(
-              width: 4,
-              height: 44,
-              decoration: BoxDecoration(
-                color: item.bandColor,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            // Domain icon chip.
-            GlowIconChip(
-              icon: item.icon,
-              color: accent,
-              size: 42,
-              iconSize: 22,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            // Title + subtitle.
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (item.subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      item.subtitle,
-                      style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            _trailing(context),
-          ],
-        ),
-      ),
+    return AppListRow(
+      icon: item.icon,
+      title: item.title,
+      subtitle: item.subtitle,
+      trailing: _trailing(context),
+      onTap: onTap,
     );
   }
 
@@ -93,7 +39,7 @@ class ActionFeedItemCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (badge != null) ...[badge, const SizedBox(width: AppSpacing.xs)],
+        if (badge != null) ...[badge, const SizedBox(width: 4)],
         Icon(
           isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
           color: AppColors.textTertiary,
@@ -110,7 +56,6 @@ class ActionFeedItemCard extends StatelessWidget {
       return StatusBadge(
         label: context.tr('feed_count_overdue').replaceAll('{n}', '$repeat'),
         color: AppColors.error,
-        icon: Icons.layers_rounded,
         showDot: false,
       );
     }
@@ -121,21 +66,18 @@ class ActionFeedItemCard extends StatelessWidget {
         return StatusBadge(
           label: context.tr('feed_overdue_f'),
           color: AppColors.error,
-          icon: Icons.warning_amber_rounded,
           showDot: false,
         );
       case 'overdue_cycle':
         return StatusBadge(
           label: context.tr('feed_overdue'),
           color: AppColors.error,
-          icon: Icons.warning_amber_rounded,
           showDot: false,
         );
       case 'due_quality':
         return StatusBadge(
           label: context.tr('feed_due_today_f'),
           color: AppColors.warning,
-          icon: Icons.event_available_rounded,
           showDot: false,
         );
       default:

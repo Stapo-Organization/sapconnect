@@ -4,7 +4,8 @@ import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/typography.dart';
 
-/// Selectable rounded chip (filters). Replaces ad-hoc `_FilterChip`s.
+/// Filter chip («المتجر»): white with a hairline at rest, solid ink when
+/// selected (Shopify filter pills). Replaces ad-hoc `_FilterChip`s.
 class PillChip extends StatelessWidget {
   final String label;
   final bool selected;
@@ -23,6 +24,7 @@ class PillChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Section colours are gone; a semantic colour (passed explicitly) still wins.
     final c = color ?? AppColors.primary;
     return GestureDetector(
       onTap: () {
@@ -30,15 +32,12 @@ class PillChip extends StatelessWidget {
         onTap();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: selected ? c : AppColors.surface,
-          borderRadius: AppRadius.borderFull,
+          borderRadius: AppRadius.borderSm,
           border: Border.all(color: selected ? c : AppColors.border),
-          boxShadow: selected
-              ? [BoxShadow(color: c.withValues(alpha: 0.20), blurRadius: 10, offset: const Offset(0, 3))]
-              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -52,7 +51,7 @@ class PillChip extends StatelessWidget {
               label,
               style: AppTypography.labelMedium.copyWith(
                 color: selected ? Colors.white : AppColors.textSecondary,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],

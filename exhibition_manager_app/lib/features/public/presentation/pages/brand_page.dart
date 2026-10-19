@@ -211,7 +211,7 @@ class _BrandPageState extends State<BrandPage> {
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.titleMedium.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -300,7 +300,7 @@ class _BrandPageState extends State<BrandPage> {
                 brand.name,
                 style: AppTypography.headlineMedium.copyWith(
                   color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                   height: 1.1,
                 ),
               ).animate().fadeIn(duration: 350.ms, delay: 60.ms),
@@ -392,7 +392,7 @@ class _BrandPageState extends State<BrandPage> {
           text,
           style: AppTypography.titleLarge.copyWith(
             color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           ),
         ),
         if (count != null) ...[
@@ -407,7 +407,7 @@ class _BrandPageState extends State<BrandPage> {
               '$count',
               style: AppTypography.labelMedium.copyWith(
                 color: AppColors.primary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -503,7 +503,7 @@ class _FeaturedProductCard extends StatelessWidget {
                           context.tr('brand_featured'),
                           style: AppTypography.labelSmall.copyWith(
                             color: AppColors.accentDark,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -514,7 +514,7 @@ class _FeaturedProductCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.titleSmall.copyWith(
                           color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           height: 1.3,
                         ),
                       ),

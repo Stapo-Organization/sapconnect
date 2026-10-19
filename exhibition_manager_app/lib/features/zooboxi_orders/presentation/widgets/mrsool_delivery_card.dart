@@ -112,7 +112,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(context.tr('mrsool_title'),
-                  style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800)),
+                  style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
               Text(
                 d?.mrsoolOrderId != null
@@ -290,7 +290,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
                       ? context.tr('mrsool_searching')
                       : d.displayStatus,
               style: AppTypography.labelMedium
-                  .copyWith(color: accent, fontWeight: FontWeight.w800),
+                  .copyWith(color: accent, fontWeight: FontWeight.w700),
             ),
           ),
           if (at != null)
@@ -348,7 +348,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(context.tr('mrsool_call'),
                       style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.success, fontWeight: FontWeight.w800)),
+                          color: AppColors.success, fontWeight: FontWeight.w700)),
                 ],
               ),
             ),
@@ -386,7 +386,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(context.tr('mrsool_timeline'),
-            style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w800)),
+            style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: AppSpacing.sm),
         for (var i = 0; i < d.events.length; i++)
           _eventRow(d.events[i], accent, isFirst: i == 0, isLast: i == d.events.length - 1),
@@ -441,7 +441,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w800)),
+        Text(title, style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           height: 72,
@@ -500,7 +500,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
               children: [
                 Text(title,
                     style: AppTypography.labelMedium
-                        .copyWith(color: color, fontWeight: FontWeight.w800)),
+                        .copyWith(color: color, fontWeight: FontWeight.w700)),
                 if (body != null && body.isNotEmpty) ...[
                   const SizedBox(height: 3),
                   Text(body,
@@ -519,7 +519,7 @@ class MrsoolDeliveryCard extends StatelessWidget {
       children: [
         Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
         const Spacer(),
-        Text(value, style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w800)),
+        Text(value, style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w700)),
       ],
     );
   }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/core/notifications/push_service.dart';
 import 'package:exhibition_manager_app/shared/models/user.dart';
@@ -46,7 +45,8 @@ class OwnerShell extends StatefulWidget {
   State<OwnerShell> createState() => _OwnerShellState();
 }
 
-class _OwnerShellState extends State<OwnerShell> with SingleTickerProviderStateMixin {
+class _OwnerShellState extends State<OwnerShell>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   late final AnimationController _transition;
   late List<_OwnerTab> _tabs;
@@ -69,7 +69,9 @@ class _OwnerShellState extends State<OwnerShell> with SingleTickerProviderStateM
     _tabs = _buildTabs();
 
     PushService.instance.pendingType.addListener(_handlePendingNotification);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _handlePendingNotification());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _handlePendingNotification(),
+    );
   }
 
   /// يوجّه الإشعار المنقور إلى تبويب المالك المناسب. أنواع التشغيل التي لا تبويب
@@ -196,78 +198,35 @@ class _OwnerShellState extends State<OwnerShell> with SingleTickerProviderStateM
       builder: (context, _, _) {
         _tabs = _buildTabs();
         return Directionality(
-      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
-        backgroundColor: OwnerTheme.bg,
-        body: AnimatedBuilder(
-          animation: _transition,
-          builder: (context, child) {
-            final t = Curves.easeOutCubic.transform(_transition.value);
-            return Opacity(
-              opacity: t,
-              child: Transform.translate(
-                offset: Offset(0, (1 - t) * 14),
-                child: child,
-              ),
-            );
-          },
-          child: IndexedStack(
-            index: _currentIndex,
-            children: _tabs.map((t) => t.page).toList(),
-          ),
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: OwnerTheme.surface,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x33000000),
-                blurRadius: 20,
-                offset: Offset(0, -4),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: NavigationBarTheme(
-              data: NavigationBarThemeData(
-                backgroundColor: OwnerTheme.surface,
-                indicatorColor: OwnerTheme.accent.withValues(alpha: 0.22),
-                iconTheme: WidgetStateProperty.resolveWith((states) {
-                  final selected = states.contains(WidgetState.selected);
-                  return IconThemeData(
-                    size: 24,
-                    color: selected ? OwnerTheme.accent : OwnerTheme.textMuted,
-                  );
-                }),
-                labelTextStyle: WidgetStateProperty.resolveWith((states) {
-                  final selected = states.contains(WidgetState.selected);
-                  return TextStyle(
-                    fontFamily: AppTypography.fontFamily,
-                    fontSize: 11.5,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? OwnerTheme.textHi : OwnerTheme.textMuted,
-                    leadingDistribution: TextLeadingDistribution.even,
-                  );
-                }),
-              ),
-              child: NavigationBar(
-                selectedIndex: _currentIndex,
-                onDestinationSelected: _navigateToTab,
-                destinations: [
-                  for (final t in _tabs)
-                    NavigationDestination(
-                      icon: Icon(t.icon),
-                      // نبضة زنبركية لحظة اختيار التبويب (تعاد مع كل اختيار).
-                      selectedIcon: AnimatedNavIcon(icon: t.selectedIcon),
-                      label: context.tr(t.labelKey),
-                    ),
-                ],
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            backgroundColor: OwnerTheme.bg,
+            body: AnimatedBuilder(
+              animation: _transition,
+              builder: (context, child) {
+                final t = Curves.easeOutCubic.transform(_transition.value);
+                return Opacity(
+                  opacity: t,
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - t) * 14),
+                    child: child,
+                  ),
+                );
+              },
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _tabs.map((t) => t.page).toList(),
               ),
             ),
+            bottomNavigationBar: AppTabBar(
+              selectedIndex: _currentIndex,
+              onTap: _navigateToTab,
+              items: [
+                for (final t in _tabs)
+                  AppTabItem(icon: t.icon, selectedIcon: t.selectedIcon, label: context.tr(t.labelKey)),
+              ],
+            ),
           ),
-        ),
-      ),
         );
       },
     );

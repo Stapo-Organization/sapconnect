@@ -31,16 +31,16 @@ String campaignTypeLabel(BuildContext context, String type) {
 Color campaignTypeColor(String type) {
   switch (type) {
     case 'clearance':
-      return const Color(0xFFE0533B); // warm red
+      return AppColors.error; // clearance = urgency
     case 'express':
-      return const Color(0xFF0E9F8E); // teal
+      return AppColors.info;
     case 'bundle':
-      return const Color(0xFF2D7DD2); // blue
+      return AppColors.textSecondary;
     case 'new_arrival':
-      return const Color(0xFF3FA34D); // green
+      return AppColors.success;
     case 'spotlight':
     default:
-      return const Color(0xFF9333EA); // violet
+      return AppColors.textSecondary;
   }
 }
 
@@ -118,7 +118,7 @@ class PromotionCard extends StatelessWidget {
                 children: [
                   Text(
                     campaign.displayName,
-                    style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800, height: 1.3),
+                    style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700, height: 1.3),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -205,7 +205,7 @@ class PromotionCard extends StatelessWidget {
             Icon(campaignTypeIcon(campaign.campaignType), color: Colors.white, size: 14),
             const SizedBox(width: 4),
             Text(campaignTypeLabel(context, campaign.campaignType),
-                style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
           ],
         ),
       );
@@ -220,7 +220,7 @@ class PromotionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+      child: Text(label, style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
     );
   }
 

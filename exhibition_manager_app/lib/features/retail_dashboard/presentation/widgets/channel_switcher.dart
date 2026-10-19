@@ -120,7 +120,7 @@ class ChannelSwitcher extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           style: AppTypography.labelMedium.copyWith(
             color: isSelected ? SalesChannel.color(channel) : AppColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
           child: Text(context.tr(SalesChannel.labelKey(channel))),
         ),

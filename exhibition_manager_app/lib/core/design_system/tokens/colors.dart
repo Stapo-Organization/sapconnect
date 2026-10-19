@@ -1,123 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
 
-/// Muntajat HUB — Design Tokens: Colors
+/// Muntajat HUB — Design Tokens: Colors («المتجر», chosen 2026-10-08).
 ///
-/// Two curated palettes served through one API:
-///   • **Light — Modern Indigo:** a confident indigo signature on a clean, cool
-///     near-white canvas. Airy, professional, contemporary.
-///   • **Dark — Neutral Graphite:** a near-neutral graphite canvas where the
-///     indigo accent is the single strong colour. Calm, premium, timeless.
+/// Shopify-calm: a neutral grey canvas, white surfaces, near-black for actions
+/// and selection, and colour reserved for meaning (success / caution /
+/// critical / info). There is ONE accent — sections are told apart by their
+/// icons, not by hue.
 ///
-/// Every value is a getter keyed on [AppThemeController.isDark], so switching the
-/// mode and rebuilding recolours the whole app — no `Theme.of(context)` plumbing.
+///   • **Light:** canvas #F1F1F1, ink #303030, actions near-black.
+///   • **Dark:** graphite canvas #1A1A1A; actions take the Muntajat blue so a
+///     filled control (white label) and a tinted glyph both stay legible.
+///
+/// Every value is a getter keyed on [AppThemeController.isDark], so switching
+/// the mode and rebuilding recolours the whole app.
 class AppColors {
   AppColors._();
 
   static bool get _d => AppThemeController.isDark;
 
-  // ─── Brand ─────────────────────────────────────────────────
-  static Color get primary => _d ? const Color(0xFF5A8FC4) : const Color(0xFF3A71B3);
-  static Color get primaryLight => _d ? const Color(0xFF7BAAD4) : const Color(0xFF4A85C4);
-  static Color get primaryDark => _d ? const Color(0xFF4A7FB4) : const Color(0xFF2A5F9B);
-  static Color get primaryDeep => _d ? const Color(0xFF3A6FA4) : const Color(0xFF1E4D82);
-  static Color get primaryContainer => _d ? const Color(0xFF1E2A3C) : const Color(0xFFE3EDF7);
-  static Color get secondary => _d ? const Color(0xFF2A2C36) : const Color(0xFFEFF0FB);
-  static Color get accent => _d ? const Color(0xFFE0B25A) : const Color(0xFFF5A524);
-  static Color get accentDark => _d ? const Color(0xFFC89540) : const Color(0xFFD98A12);
-  static Color get accentSoft => _d ? const Color(0xFF2E2A20) : const Color(0xFFFDECD0);
+  // ─── Action / selection ────────────────────────────────────
+  static Color get primary => _d ? const Color(0xFF4F86C6) : const Color(0xFF303030);
+  static Color get primaryLight => _d ? const Color(0xFF6B9BD3) : const Color(0xFF4A4A4A);
+  static Color get primaryDark => _d ? const Color(0xFF3E72B0) : const Color(0xFF1A1A1A);
+  static Color get primaryDeep => _d ? const Color(0xFF2F5E96) : const Color(0xFF0F0F0F);
+  static Color get primaryContainer => _d ? const Color(0xFF243243) : const Color(0xFFEBEBEB);
+  static Color get secondary => _d ? const Color(0xFF303030) : const Color(0xFFF1F1F1);
 
-  // ─── Semantic ──────────────────────────────────────────────
-  static Color get success => _d ? const Color(0xFF46C08A) : const Color(0xFF10B981);
-  static Color get successLight => _d ? const Color(0xFF16241D) : const Color(0xFFE6F7F0);
-  static Color get warning => _d ? const Color(0xFFD9A44E) : const Color(0xFFF59E0B);
-  static Color get warningLight => _d ? const Color(0xFF2A2418) : const Color(0xFFFEF3C7);
-  static Color get error => _d ? const Color(0xFFE88089) : const Color(0xFFEF4444);
-  static Color get errorLight => _d ? const Color(0xFF2E1D1E) : const Color(0xFFFEE2E2);
-  static Color get info => _d ? const Color(0xFF6D74F0) : const Color(0xFF3B82F6);
-  static Color get infoLight => _d ? const Color(0xFF232A44) : const Color(0xFFDBEAFE);
+  /// Links and focus rings (the one place blue shows in light mode).
+  static Color get link => _d ? const Color(0xFF7FB0F0) : const Color(0xFF005BD3);
 
-  // ─── Surface & Background ──────────────────────────────────
-  static Color get background => _d ? const Color(0xFF141519) : const Color(0xFFF6F7FB);
-  static Color get surface => _d ? const Color(0xFF1D1F26) : const Color(0xFFFFFFFF);
-  static Color get surfaceVariant => _d ? const Color(0xFF282B34) : const Color(0xFFF1F2F8);
-  static Color get cardBackground => _d ? const Color(0xFF1D1F26) : const Color(0xFFFFFFFF);
+  /// Warm accent kept only for points / achievements.
+  static Color get accent => _d ? const Color(0xFFE0B04A) : const Color(0xFFB98900);
+  static Color get accentDark => _d ? const Color(0xFFC8962E) : const Color(0xFF8A6600);
+  static Color get accentSoft => _d ? const Color(0xFF332A14) : const Color(0xFFFFF3CC);
+
+  // ─── Semantic (meaning, never decoration) ──────────────────
+  static Color get success => _d ? const Color(0xFF4FBF86) : const Color(0xFF29845A);
+  static Color get successLight => _d ? const Color(0xFF15301F) : const Color(0xFFCDFEE1);
+  static Color get warning => _d ? const Color(0xFFE0B03A) : const Color(0xFFB07D00);
+  static Color get warningLight => _d ? const Color(0xFF3A3210) : const Color(0xFFFFF1B8);
+  static Color get error => _d ? const Color(0xFFF0827A) : const Color(0xFFD72C0D);
+  static Color get errorLight => _d ? const Color(0xFF3A1C1A) : const Color(0xFFFEE9E8);
+  static Color get info => _d ? const Color(0xFF6FA8FF) : const Color(0xFF005BD3);
+  static Color get infoLight => _d ? const Color(0xFF1A2A40) : const Color(0xFFEAF4FF);
+
+  // ─── Surfaces ──────────────────────────────────────────────
+  static Color get background => _d ? const Color(0xFF1A1A1A) : const Color(0xFFF1F1F1);
+  static Color get surface => _d ? const Color(0xFF262626) : const Color(0xFFFFFFFF);
+  static Color get surfaceVariant => _d ? const Color(0xFF303030) : const Color(0xFFF7F7F7);
+  static Color get cardBackground => surface;
 
   // ─── Text ──────────────────────────────────────────────────
-  static Color get textPrimary => _d ? const Color(0xFFF2F3F6) : const Color(0xFF13141D);
-  static Color get textSecondary => _d ? const Color(0xFF9CA0AC) : const Color(0xFF585C6C);
-  static Color get textTertiary => _d ? const Color(0xFF6E727E) : const Color(0xFF9CA0AE);
+  static Color get textPrimary => _d ? const Color(0xFFF1F1F1) : const Color(0xFF303030);
+  static Color get textSecondary => _d ? const Color(0xFFB5B5B5) : const Color(0xFF616161);
+  static Color get textTertiary => _d ? const Color(0xFF8F8F8F) : const Color(0xFF767676);
   static Color get textOnPrimary => const Color(0xFFFFFFFF);
   static Color get textOnDark => const Color(0xFFFFFFFF);
 
-  // ─── Border & Divider ──────────────────────────────────────
-  static Color get border => _d ? const Color(0xFF2C2F39) : const Color(0xFFE7E9F2);
-  static Color get borderLight => _d ? const Color(0xFF262932) : const Color(0xFFEEF0F7);
-  static Color get divider => _d ? const Color(0xFF2C2F39) : const Color(0xFFE7E9F2);
+  // ─── Lines ─────────────────────────────────────────────────
+  static Color get border => _d ? const Color(0xFF3A3A3A) : const Color(0xFFE3E3E3);
+  static Color get borderLight => _d ? const Color(0xFF333333) : const Color(0xFFEBEBEB);
+  static Color get divider => borderLight;
 
-  // ─── Status (badges) ───────────────────────────────────────
-  static Color get statusNew => primary;
+  /// Input outline at rest (Polaris uses a darker stroke than card borders).
+  static Color get inputBorder => _d ? const Color(0xFF555555) : const Color(0xFF8A8A8A);
+
+  // ─── Status (kept for existing call sites) ─────────────────
+  static Color get statusNew => info;
   static Color get statusShipped => warning;
   static Color get statusReceived => success;
-  static Color get statusCompleted => _d ? const Color(0xFF34D399) : const Color(0xFF059669);
+  static Color get statusCompleted => success;
   static Color get statusInProgress => warning;
   static Color get statusCancelled => error;
 
-  // ─── Gradients ─────────────────────────────────────────────
-  static LinearGradient get primaryGradient => LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [primary, primaryLight],
-      );
+  // ─── Fills (formerly gradients — kept flat on purpose) ─────
+  static LinearGradient get primaryGradient => LinearGradient(colors: [primary, primary]);
+  static LinearGradient get accentGradient => LinearGradient(colors: [accent, accent]);
 
-  static LinearGradient get accentGradient => LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [accent, primaryLight],
-      );
-
-  /// Hero header gradient. Light: a rich single-hue indigo. Dark: a subtle
-  /// graphite so white type + coloured accents read cleanly on top.
+  /// Dark summary panel — near-black in light mode, raised graphite in dark.
+  /// White type on top stays legible in both.
   static LinearGradient get heroGradient => _d
       ? const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Color(0xFF242734), Color(0xFF16171C)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2E2E2E), Color(0xFF262626)],
         )
       : const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Color(0xFF1E4D82), Color(0xFF3A71B3), Color(0xFF4A85C4)],
-          stops: [0.0, 0.55, 1.0],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF303030), Color(0xFF1F1F1F)],
         );
 
-  /// Warm accent gradient for points / celebration.
-  static LinearGradient get goldGradient => _d
-      ? const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Color(0xFFE0B25A), Color(0xFFC89540)],
-        )
-      : const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Color(0xFFF5A524), Color(0xFFD98A12)],
-        );
-
-  /// Success gradient (streaks, completion).
-  static LinearGradient get successGradient => _d
-      ? const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Color(0xFF46C08A), Color(0xFF34D399)],
-        )
-      : const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Color(0xFF34D399), Color(0xFF10B981)],
-        );
+  static LinearGradient get goldGradient => LinearGradient(colors: [accent, accentDark]);
+  static LinearGradient get successGradient => LinearGradient(colors: [success, success]);
 
   // ─── Shimmer (skeletons) ───────────────────────────────────
-  static Color get shimmerBase => _d ? const Color(0xFF242730) : const Color(0xFFE7E9F2);
-  static Color get shimmerHighlight => _d ? const Color(0xFF2E313B) : const Color(0xFFF5F6FB);
+  static Color get shimmerBase => _d ? const Color(0xFF2E2E2E) : const Color(0xFFEBEBEB);
+  static Color get shimmerHighlight => _d ? const Color(0xFF383838) : const Color(0xFFF7F7F7);
 }

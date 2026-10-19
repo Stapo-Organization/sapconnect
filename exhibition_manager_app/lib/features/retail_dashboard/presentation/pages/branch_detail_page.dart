@@ -229,13 +229,13 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
                         style: AppTypography.labelSmall.copyWith(color: AppColors.success)),
                     const Spacer(),
                     Text(sarAmount(d.profit.profit),
-                        style: AppTypography.titleSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w800)),
+                        style: AppTypography.titleSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.w700)),
                     const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(color: AppColors.success, borderRadius: AppRadius.borderFull),
                       child: Text('${context.tr('rd_margin')} ${pctLabel(d.profit.marginPct!)}',
-                          style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+                          style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ),
@@ -255,7 +255,7 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: AppTypography.titleMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
+            Text(value, style: AppTypography.titleMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
             Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
           ],
         ),
@@ -445,10 +445,10 @@ class _BranchDetailPageState extends State<BranchDetailPage> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(context.tr(titleKey),
-                    style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w800)),
+                    style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
               ),
               if (total != null)
-                Text(total, style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w900)),
+                Text(total, style: AppTypography.titleSmall.copyWith(color: accent, fontWeight: FontWeight.w700)),
             ],
           ),
           if (tiles.isEmpty)

@@ -96,7 +96,7 @@ class NewsDetailPage extends StatelessWidget {
                         context.tr('news_tag'),
                         style: AppTypography.labelSmall.copyWith(
                           color: AppColors.accentDark,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -116,7 +116,7 @@ class NewsDetailPage extends StatelessWidget {
                   item.title,
                   style: AppTypography.headlineSmall.copyWith(
                     color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
                     height: 1.25,
                   ),
                 ).animate().fadeIn(duration: 350.ms, delay: 100.ms),
@@ -160,7 +160,7 @@ class NewsDetailPage extends StatelessWidget {
                             context.tr('read_more'),
                             style: AppTypography.labelLarge.copyWith(
                               color: Colors.white,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
@@ -216,7 +216,7 @@ class NewsDetailPage extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.titleMedium.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),

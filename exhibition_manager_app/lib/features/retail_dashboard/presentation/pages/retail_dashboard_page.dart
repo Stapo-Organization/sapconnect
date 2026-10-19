@@ -157,7 +157,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
               sarAmount(v),
               style: AppTypography.displayMedium.copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.1,
               ),
             ),
@@ -242,7 +242,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
           Text(label,
               style: AppTypography.labelSmall.copyWith(
                 color: highlight ? AppColors.success : Colors.white,
-                fontWeight: highlight ? FontWeight.w800 : FontWeight.w600,
+                fontWeight: highlight ? FontWeight.w700 : FontWeight.w600,
               )),
         ],
       ),
@@ -293,7 +293,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
             context.tr('owner_section_leaderboard'),
             style: AppTypography.titleSmall.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -475,7 +475,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
               context.tr('rd_top_customers'),
               style: AppTypography.titleSmall.copyWith(
                 color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const Spacer(),
@@ -526,7 +526,7 @@ class _RetailDashboardPageState extends State<RetailDashboardPage> {
                 context.tr('rd_comparison_title'),
                 style: AppTypography.titleSmall.copyWith(
                   color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],

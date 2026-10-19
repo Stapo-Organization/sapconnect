@@ -106,7 +106,7 @@ class LeverItemCard extends StatelessWidget {
                   children: [
                     Text(
                       heroValue,
-                      style: AppTypography.titleLarge.copyWith(color: accent, fontWeight: FontWeight.w800),
+                      style: AppTypography.titleLarge.copyWith(color: accent, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 1),
                     Text(heroLabel, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),

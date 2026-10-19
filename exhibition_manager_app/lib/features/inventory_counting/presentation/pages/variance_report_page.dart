@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
@@ -51,22 +52,22 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(context.tr('ic_variance_report_title')),
-          backgroundColor: const Color(0xFF1E293B),
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.surface,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
         ),
         body: _loading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.tealAccent),
+            ? Center(
+                child: CircularProgressIndicator(color: AppColors.textPrimary),
               )
             : _error != null
             ? Center(
                 child: Text(
                   _error!,
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                  style: TextStyle(color: AppColors.error, fontSize: 16),
                 ),
               )
             : _buildReport(),
@@ -80,7 +81,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       return Center(
         child: Text(
           context.tr('ic_no_data'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       );
     }
@@ -91,7 +92,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
 
     return RefreshIndicator(
       onRefresh: _loadReport,
-      color: Colors.tealAccent,
+      color: AppColors.textPrimary,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -121,8 +122,8 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 context
                     .tr('ic_discrepancies_n')
                     .replaceAll('{n}', '${discrepancies.length}'),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -143,21 +144,21 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A5F), Color(0xFF1E293B)],
+        gradient: LinearGradient(
+          colors: [AppColors.surface, AppColors.surface],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             report['warehouse_name'] ?? report['warehouse_code'] ?? '',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -172,14 +173,14 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                       ? context.tr('cycle_count')
                       : context.tr('ic_full_count_type'),
                 ),
-            style: const TextStyle(color: Colors.white60, fontSize: 14),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.inventory_2_rounded,
-                color: Colors.tealAccent,
+                color: AppColors.textPrimary,
                 size: 18,
               ),
               const SizedBox(width: 6),
@@ -187,8 +188,8 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 context
                     .tr('ic_products_counted_n')
                     .replaceAll('{n}', '${summary['total_lines'] ?? 0}'),
-                style: const TextStyle(
-                  color: Colors.tealAccent,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -207,7 +208,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           child: _statCard(
             '✅ ${context.tr('ic_variance_match')}',
             '${summary['match'] ?? 0}',
-            Colors.green,
+            AppColors.success,
           ),
         ),
         const SizedBox(width: 8),
@@ -215,7 +216,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           child: _statCard(
             '⚡ ${context.tr('ic_variance_within_tolerance')}',
             '${summary['within_tolerance'] ?? 0}',
-            Colors.amber,
+            AppColors.warning,
           ),
         ),
         const SizedBox(width: 8),
@@ -223,7 +224,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           child: _statCard(
             '📈 ${context.tr('ic_variance_over')}',
             '${summary['over'] ?? 0}',
-            Colors.blue,
+            AppColors.info,
           ),
         ),
         const SizedBox(width: 8),
@@ -231,7 +232,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           child: _statCard(
             '📉 ${context.tr('ic_variance_short')}',
             '${summary['short'] ?? 0}',
-            Colors.redAccent,
+            AppColors.error,
           ),
         ),
       ],
@@ -242,9 +243,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -259,7 +260,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(color: color.withOpacity(0.8), fontSize: 11),
+            style: TextStyle(color: color.withValues(alpha: 0.8), fontSize: 11),
             textAlign: TextAlign.center,
           ),
         ],
@@ -270,17 +271,17 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
   Widget _buildAccuracyCard(Map<String, dynamic> summary) {
     final accuracy = (summary['accuracy_percentage'] ?? 100).toDouble();
     final color = accuracy >= 98
-        ? Colors.green
+        ? AppColors.success
         : accuracy >= 95
-        ? Colors.amber
-        : Colors.redAccent;
+        ? AppColors.warning
+        : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -300,7 +301,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               children: [
                 Text(
                   context.tr('ic_stock_accuracy'),
-                  style: const TextStyle(color: Colors.white60, fontSize: 13),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -321,13 +322,13 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 context
                     .tr('ic_counted_qty_label')
                     .replaceAll('{n}', '${summary['total_counted_qty'] ?? 0}'),
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
               ),
               Text(
                 context
                     .tr('ic_system_qty_label')
                     .replaceAll('{n}', '${summary['total_system_qty'] ?? 0}'),
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
               ),
             ],
           ),
@@ -340,15 +341,15 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
+        color: AppColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.warning_amber_rounded,
-            color: Colors.orange,
+            color: AppColors.warning,
             size: 28,
           ),
           const SizedBox(width: 12),
@@ -358,8 +359,8 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               children: [
                 Text(
                   context.tr('ic_uncounted_products'),
-                  style: const TextStyle(
-                    color: Colors.orange,
+                  style: TextStyle(
+                    color: AppColors.warning,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
@@ -369,7 +370,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                   context
                       .tr('ic_uncounted_products_note')
                       .replaceAll('{n}', '$count'),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
                 ),
               ],
             ),
@@ -384,10 +385,10 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     final variance = (d['variance'] ?? 0).toDouble();
     final variancePct = (d['variance_percentage'] ?? 0).toDouble();
     final color = status == 'short'
-        ? Colors.redAccent
+        ? AppColors.error
         : status == 'over'
-        ? Colors.blue
-        : Colors.amber;
+        ? AppColors.info
+        : AppColors.warning;
     final icon = status == 'short'
         ? Icons.trending_down_rounded
         : Icons.trending_up_rounded;
@@ -396,9 +397,9 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -411,17 +412,17 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               height: 50,
               fit: BoxFit.cover,
               placeholder: (context, url) => Shimmer.fromColors(
-                baseColor: Colors.grey[800]!,
-                highlightColor: Colors.grey[700]!,
+                baseColor: AppColors.shimmerBase,
+                highlightColor: AppColors.shimmerHighlight,
                 child: Container(width: 50, height: 50, color: Colors.white),
               ),
               errorWidget: (_, _, _) => Container(
                 width: 50,
                 height: 50,
-                color: Colors.grey[800],
-                child: const Icon(
+                color: AppColors.surfaceVariant,
+                child: Icon(
                   Icons.image_not_supported_rounded,
-                  color: Colors.grey,
+                  color: AppColors.textTertiary,
                   size: 24,
                 ),
               ),
@@ -435,8 +436,8 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               children: [
                 Text(
                   d['item_name'] ?? d['item_code'] ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -446,13 +447,13 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                 const SizedBox(height: 4),
                 Text(
                   d['item_code'] ?? '',
-                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
                 ),
                 if (d['investigation_note'] != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     '📝 ${d['investigation_note']}',
-                    style: const TextStyle(color: Colors.amber, fontSize: 11),
+                    style: TextStyle(color: AppColors.warning, fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -481,7 +482,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
               ),
               Text(
                 '${variancePct.toStringAsFixed(1)}%',
-                style: TextStyle(color: color.withOpacity(0.7), fontSize: 11),
+                style: TextStyle(color: color.withValues(alpha: 0.7), fontSize: 11),
               ),
               const SizedBox(height: 2),
               Text(
@@ -497,7 +498,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
                         0,
                       ),
                     ),
-                style: const TextStyle(color: Colors.white38, fontSize: 10),
+                style: TextStyle(color: AppColors.textTertiary, fontSize: 10),
               ),
             ],
           ),
@@ -510,25 +511,25 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           // بطل حالة النجاح — يطفو بهدوء (الحلقة المستمرة الوحيدة في الشاشة).
-          const FloatingIcon(
+          FloatingIcon(
             child: Icon(
               Icons.check_circle_rounded,
-              color: Colors.green,
+              color: AppColors.success,
               size: 48,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             context.tr('ic_no_discrepancies'),
-            style: const TextStyle(
-              color: Colors.green,
+            style: TextStyle(
+              color: AppColors.success,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -536,7 +537,7 @@ class _VarianceReportPageState extends State<VarianceReportPage> {
           const SizedBox(height: 4),
           Text(
             context.tr('ic_no_discrepancies_sub'),
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
             textAlign: TextAlign.center,
           ),
         ],

@@ -64,7 +64,7 @@ class OwnerKpiTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.titleMedium.copyWith(
                       color: OwnerTheme.textHi,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 2),

@@ -136,7 +136,7 @@ class _LeverListPageState extends State<LeverListPage> {
           elevation: 0,
           title: Text(
             widget.title,
-            style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+            style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
           ),
         ),
         body: _loading

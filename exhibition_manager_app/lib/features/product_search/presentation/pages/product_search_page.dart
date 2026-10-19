@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
+import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 
 import '../controllers/product_search_controller.dart';
@@ -20,7 +20,11 @@ class ProductSearchPage extends StatefulWidget {
   /// it can offer a "معارضي" stock filter.
   final List<String> myWarehouses;
 
-  const ProductSearchPage({super.key, this.myWarehouses = const []});
+  /// True when the page is the «البحث» tab root: large page title, no back
+  /// button, and no keyboard on launch (the tab is built with the shell).
+  final bool isTab;
+
+  const ProductSearchPage({super.key, this.myWarehouses = const [], this.isTab = false});
 
   @override
   State<ProductSearchPage> createState() => _ProductSearchPageState();
@@ -31,13 +35,11 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
   final TextEditingController _field = TextEditingController();
   final FocusNode _focus = FocusNode();
 
-  static const Color _accent = Color(0xFF4C5FD5);
-
   @override
   void initState() {
     super.initState();
-    // Open the keyboard the moment the screen settles.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
+    // Pushed from a button → open the keyboard the moment the screen settles.
+    if (!widget.isTab) WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
   }
 
   @override
@@ -78,80 +80,98 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
   @override
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.isArabic;
+    final field = _searchRow();
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: _accent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          titleSpacing: 0,
-          title: TextField(
-            controller: _field,
-            focusNode: _focus,
-            autofocus: true,
-            textInputAction: TextInputAction.search,
-            style: AppTypography.bodyLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
-            cursorColor: Colors.white,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: context.tr('ps_search_hint'),
-              hintStyle: AppTypography.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.7)),
+        appBar: widget.isTab ? null : MuntajatAppBar(title: context.tr('product_search')),
+        body: Column(
+          children: [
+            if (widget.isTab)
+              PageHeader(title: context.tr('nav_search'), below: field)
+            else
+              Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 0), child: field),
+            Expanded(
+              child: ListenableBuilder(
+                listenable: _controller,
+                builder: (context, _) => _body(),
+              ),
             ),
-            onChanged: _controller.onQuery,
-          ),
-          actions: [
-            ListenableBuilder(
-              listenable: _controller,
-              builder: (context, _) => _controller.query.isEmpty
-                  ? const SizedBox.shrink()
-                  : IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      tooltip: context.tr('ps_clear'),
-                      onPressed: () {
-                        _field.clear();
-                        _controller.clear();
-                        _focus.requestFocus();
-                      },
-                    ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.qr_code_scanner_rounded),
-              tooltip: context.tr('scan_to_count'),
-              onPressed: _onScan,
-            ),
-            const SizedBox(width: 4),
           ],
         ),
-        body: ListenableBuilder(
-          listenable: _controller,
-          builder: (context, _) => _body(),
-        ),
       ),
+    );
+  }
+
+  /// Polaris search field (white, grey stroke, blue focus) + a solid scan
+  /// button beside it.
+  Widget _searchRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) => TextField(
+              controller: _field,
+              focusNode: _focus,
+              textInputAction: TextInputAction.search,
+              style: AppTypography.bodyLarge.copyWith(color: AppColors.textPrimary, fontSize: 15),
+              decoration: InputDecoration(
+                hintText: context.tr('ps_search_hint'),
+                prefixIcon: Icon(Icons.search_rounded, size: 20, color: AppColors.textSecondary),
+                prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                suffixIcon: _controller.query.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: Icon(Icons.cancel_rounded, size: 18, color: AppColors.textTertiary),
+                        tooltip: context.tr('ps_clear'),
+                        onPressed: () {
+                          _field.clear();
+                          _controller.clear();
+                          _focus.requestFocus();
+                        },
+                      ),
+              ),
+              onChanged: _controller.onQuery,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: context.tr('scan_to_count'),
+          child: Material(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: _onScan,
+              child: const SizedBox(
+                width: 46,
+                height: 46,
+                child: Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _body() {
     // Initial state — nothing typed yet.
     if (!_controller.isSearching && _controller.results.isEmpty) {
-      if (_controller.loading) return const Center(child: CircularProgressIndicator(color: _accent));
+      if (_controller.loading) return const Center(child: CircularProgressIndicator());
       return _hint(
         icon: Icons.search_rounded,
-        float: true, // screen hero — the only continuous loop on this screen
         title: context.tr('ps_search_prompt_title'),
         subtitle: context.tr('ps_search_prompt_subtitle'),
-        action: OutlinedButton.icon(
+        action: AppButton(
+          label: context.tr('ps_scan_barcode_btn'),
+          icon: Icons.qr_code_scanner_rounded,
           onPressed: _onScan,
-          icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
-          label: Text(context.tr('ps_scan_barcode_btn')),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: _accent,
-            side: const BorderSide(color: _accent, width: 1.4),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.w700),
-          ),
+          expand: false,
+          variant: AppButtonVariant.tonal,
         ),
       );
     }
@@ -175,71 +195,34 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
     final results = _controller.results;
     return Column(
       children: [
-        if (_controller.loading)
-          const LinearProgressIndicator(minHeight: 2, color: _accent, backgroundColor: Color(0x114C5FD5)),
+        if (_controller.loading) const LinearProgressIndicator(minHeight: 2),
         Expanded(
-          child: ListView.builder(
+          child: ListView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.xl),
-            itemCount: results.length + 1,
-            itemBuilder: (context, i) {
-              if (i == 0) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: Text(
-                    context.tr('ps_results_count').replaceAll('{n}', '${results.length}'),
-                    style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary),
-                  ),
-                );
-              }
-              final hit = results[i - 1];
-              return PopIn(
-                delay: Duration(milliseconds: 60 * (i - 1).clamp(0, 10)),
-                child: ProductHitTile(hit: hit, onTap: () => _openDetail(hit.itemCode, hit.name)),
-              );
-            },
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, AppSpacing.xl),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(2, 0, 2, 8),
+                child: Text(
+                  context.tr('ps_results_count').replaceAll('{n}', '${results.length}'),
+                  style: AppTypography.labelMedium.copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+              AppSection(
+                dividerIndent: 72,
+                children: [
+                  for (final hit in results)
+                    ProductHitTile(hit: hit, onTap: () => _openDetail(hit.itemCode, hit.name)),
+                ],
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _hint({required IconData icon, required String title, required String subtitle, Widget? action, bool float = false}) {
-    final iconChip = Container(
-      width: 78,
-      height: 78,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: AppDomain.productSearch.soft, shape: BoxShape.circle),
-      child: Icon(icon, size: 38, color: _accent),
-    );
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            float ? FloatingIcon(child: iconChip) : iconChip,
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800),
-            ),
-            if (subtitle.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary, height: 1.4),
-              ),
-            ],
-            if (action != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              action,
-            ],
-          ],
-        ),
-      ),
-    );
+  Widget _hint({required IconData icon, required String title, required String subtitle, Widget? action}) {
+    return EmptyState(icon: icon, title: title, subtitle: subtitle.isEmpty ? null : subtitle, trailing: action);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../theme/theme_controller.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
 import '../tokens/typography.dart';
@@ -11,13 +12,14 @@ class SegmentItem {
   const SegmentItem(this.label, {this.icon, this.badge});
 }
 
-/// Modern animated segmented control (e.g. Full / Cycle, or A/B/C filters).
-/// A sliding pill highlights the selected segment.
+/// Segmented control («المتجر»): a grey track with a white sliding tab that
+/// carries the selected label in full ink — the Shopify/iOS segmented look.
+/// Colour stays neutral; [activeColor] only tints the selected icon/badge.
 class AppSegmentedControl extends StatelessWidget {
   final List<SegmentItem> items;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
-  /// Defaults to mode-aware [AppColors.primary] when null (resolved at build).
+  /// Kept for call-site compatibility; the control is neutral in this design.
   final Color? activeColor;
 
   const AppSegmentedControl({
@@ -30,18 +32,16 @@ class AppSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final active = activeColor ?? AppColors.primary;
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth / items.length;
         final isRtl = Directionality.of(context) == TextDirection.rtl;
         return Container(
-          height: 46,
-          padding: const EdgeInsets.all(4),
+          height: 40,
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
-            borderRadius: AppRadius.borderMd,
-            border: Border.all(color: AppColors.borderLight),
+            color: AppThemeController.isDark ? const Color(0xFF333333) : const Color(0xFFE8E8E8),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Stack(
             // Center non-positioned children vertically. Without this the Stack
@@ -62,14 +62,11 @@ class AppSegmentedControl extends StatelessWidget {
                 child: Container(
                   width: w - 8,
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: AppThemeController.isDark ? const Color(0xFF4A4A4A) : AppColors.surface,
                     borderRadius: AppRadius.borderSm,
                     boxShadow: [
-                      BoxShadow(
-                        color: active.withValues(alpha: 0.12),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 0, offset: const Offset(0, 1)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 3, offset: const Offset(0, 1)),
                     ],
                   ),
                 ),
@@ -85,21 +82,29 @@ class AppSegmentedControl extends StatelessWidget {
                         HapticFeedback.selectionClick();
                         onChanged(i);
                       },
-                      child: Row(
+                      // scaleDown keeps a long label («البريد وكلمة المرور») whole
+                      // on 360dp phones instead of clipping it at the segment edge.
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           if (item.icon != null) ...[
                             Icon(item.icon,
                                 size: 16,
-                                color: selected ? active : AppColors.textTertiary),
+                                color: selected ? AppColors.textPrimary : AppColors.textTertiary),
                             const SizedBox(width: 6),
                           ],
                           Text(
                             item.label,
                             style: AppTypography.labelMedium.copyWith(
-                              color: selected ? active : AppColors.textSecondary,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                              color: selected ? AppColors.textPrimary : AppColors.textSecondary,
+                              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                             ),
                           ),
                           if (item.badge != null && item.badge! > 0) ...[
@@ -107,13 +112,13 @@ class AppSegmentedControl extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                               decoration: BoxDecoration(
-                                color: selected ? active : AppColors.textTertiary,
+                                color: selected ? AppColors.textPrimary : AppColors.textTertiary,
                                 borderRadius: AppRadius.borderFull,
                               ),
                               child: Text(
                                 '${item.badge}',
                                 style: AppTypography.labelSmall.copyWith(
-                                  color: Colors.white,
+                                  color: AppColors.surface,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -121,6 +126,9 @@ class AppSegmentedControl extends StatelessWidget {
                             ),
                           ],
                         ],
+                      ),
+                          ),
+                        ),
                       ),
                     ),
                   );

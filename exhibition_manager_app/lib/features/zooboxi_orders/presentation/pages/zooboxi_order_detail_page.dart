@@ -342,7 +342,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage>
                             ? context.tr('mrsool_price_unavailable')
                             : '${price.toStringAsFixed(2)} ${context.tr('currency')}',
                         style: AppTypography.labelMedium.copyWith(
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           color: price == null ? AppColors.warning : AppColors.success,
                         ),
                       ),
@@ -501,7 +501,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage>
                 ),
                 child: Text('$pickedCount / ${o.lines.length}',
                     style: AppTypography.labelSmall.copyWith(
-                        color: _allPicked ? AppColors.success : _accent, fontWeight: FontWeight.w800)),
+                        color: _allPicked ? AppColors.success : _accent, fontWeight: FontWeight.w700)),
               )
             else
               Text('${o.lines.length} ${context.tr('items')}',
@@ -549,7 +549,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage>
                 borderRadius: AppRadius.borderMd,
               ),
               child: Text('${line.quantity.toInt()}×',
-                  style: AppTypography.labelMedium.copyWith(color: _accent, fontWeight: FontWeight.w800)),
+                  style: AppTypography.labelMedium.copyWith(color: _accent, fontWeight: FontWeight.w700)),
             ),
           const SizedBox(width: AppSpacing.md),
           ProductThumb(url: line.imageUrl, size: 48, accent: _accent),
@@ -576,7 +576,7 @@ class _ZooboxiOrderDetailPageState extends State<ZooboxiOrderDetailPage>
             ),
             child: Text('${context.tr('qty_short')} ${line.quantity.toInt()}',
                 style: AppTypography.labelSmall.copyWith(
-                    color: _accent, fontWeight: FontWeight.w800)),
+                    color: _accent, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

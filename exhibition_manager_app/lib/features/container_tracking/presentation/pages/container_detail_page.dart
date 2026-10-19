@@ -121,7 +121,7 @@ class _ContainerDetailPageState extends State<ContainerDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: AppRadius.borderFull),
                   child: Text(card.remainingLabel,
-                      style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
+                      style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text('${context.tr('ct_progress')} ${pctLabel(card.progressPercent)}',

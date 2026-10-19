@@ -5,13 +5,11 @@ import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/stock_transfer_repository.dart';
 import 'package:exhibition_manager_app/features/stock_transfer/data/models/stock_transfer.dart';
 import 'transfer_detail_page.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 import 'package:exhibition_manager_app/shared/widgets/skeleton_card.dart';
 import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
@@ -102,7 +100,7 @@ class _TransfersListPageState extends State<TransfersListPage> {
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) => _StatusFilterSheet(current: _status),
     );
@@ -125,7 +123,7 @@ class _TransfersListPageState extends State<TransfersListPage> {
             // ─── Search + Filter button ─────────────────────
             Container(
               color: AppColors.surface,
-              padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.xs),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.md, AppSpacing.base, AppSpacing.xs),
               child: Row(
                 children: [
                   Expanded(
@@ -145,13 +143,6 @@ class _TransfersListPageState extends State<TransfersListPage> {
                                 },
                               )
                             : null,
-                        filled: true,
-                        fillColor: AppColors.background,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.sm),
-                        border: OutlineInputBorder(
-                          borderRadius: AppRadius.borderFull,
-                          borderSide: BorderSide.none,
-                        ),
                       ),
                     ),
                   ),
@@ -164,7 +155,7 @@ class _TransfersListPageState extends State<TransfersListPage> {
             // ─── Send / Receive tabs ────────────────────────
             Container(
               color: AppColors.surface,
-              padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.xs, AppSpacing.base, AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.sm, AppSpacing.base, AppSpacing.md),
               child: AppSegmentedControl(
                 activeColor: AppDomain.transfers.accent,
                 items: [
@@ -198,7 +189,7 @@ class _TransfersListPageState extends State<TransfersListPage> {
             // ─── List ───────────────────────────────────────
             Expanded(
               child: _isLoading
-                  ? const SkeletonList(itemCount: 6, cardHeight: 168)
+                  ? const SkeletonList(itemCount: 8, cardHeight: 84)
                   : _hasError
                       ? ErrorStateWidget(onRetry: _loadTransfers)
                       : visible.isEmpty
@@ -260,17 +251,17 @@ class _FilterButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 48,
-        height: 48,
+        width: 46,
+        height: 46,
         decoration: BoxDecoration(
-          color: active ? AppColors.primary : AppColors.background,
-          borderRadius: AppRadius.borderFull,
-          border: Border.all(color: active ? AppColors.primary : AppColors.borderLight),
+          color: active ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: active ? AppColors.primary : AppColors.inputBorder),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Icon(Icons.tune_rounded, size: 22, color: active ? Colors.white : AppColors.textSecondary),
+            Icon(Icons.tune_rounded, size: 21, color: active ? Colors.white : AppColors.textPrimary),
             if (active)
               Positioned(
                 top: 9,
@@ -334,7 +325,7 @@ class _StatusFilterSheet extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                   child: Material(
-                    color: selected ? o.color.withValues(alpha: 0.10) : Colors.transparent,
+                    color: selected ? AppColors.secondary : Colors.transparent,
                     borderRadius: AppRadius.borderMd,
                     child: InkWell(
                       borderRadius: AppRadius.borderMd,
@@ -349,9 +340,9 @@ class _StatusFilterSheet extends StatelessWidget {
                               child: Text(o.label,
                                   style: AppTypography.bodyMedium.copyWith(
                                       fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                                      color: selected ? o.color : AppColors.textPrimary)),
+                                      color: AppColors.textPrimary)),
                             ),
-                            if (selected) Icon(Icons.check_rounded, size: 20, color: o.color),
+                            if (selected) Icon(Icons.check_rounded, size: 20, color: AppColors.textPrimary),
                           ],
                         ),
                       ),
@@ -368,6 +359,8 @@ class _StatusFilterSheet extends StatelessWidget {
 }
 
 // ─── Transfer Card ────────────────────────────────────────
+/// One transfer as a compact row: who it is with, when, what is in it (real
+/// product pictures), how much, and what SAP says — no empty space.
 class _TransferCard extends StatelessWidget {
   final StockTransfer transfer;
   final String tab; // 'send' | 'receive'
@@ -407,101 +400,105 @@ class _TransferCard extends StatelessWidget {
     }
   }
 
+  /// «23/07/2026 · 86 days ago» from the SAP document date.
+  String _when(BuildContext context) {
+    final d = DateTime.tryParse(transfer.docDate ?? '');
+    if (d == null) return '';
+    final date = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    final today = DateTime.now();
+    final days = DateTime(today.year, today.month, today.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    final ago = days <= 0 ? context.tr('st_today') : context.tr('st_days_ago').replaceAll('{n}', '$days');
+    return '$date · $ago';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(transfer.internalStatus);
-    // Receive tab tracks the receiving %, send tab tracks the sending %.
+    final isArabic = AppLocalizations.isArabic;
+    final t = transfer;
+    final color = _statusColor(t.internalStatus);
     final isReceive = tab == 'receive';
-    final percent = (isReceive ? transfer.receivingPercentage : transfer.sendingPercentage).clamp(0, 100).toDouble();
-    final percentLabel = isReceive ? context.tr('received_qty') : context.tr('sent');
+    final other = isReceive ? t.fromName(isArabic) : t.toName(isArabic);
+    final percent = (isReceive ? t.receivingPercentage : t.sendingPercentage).clamp(0, 100).toDouble();
+    final sapPending = t.sapReceivedQty > 0 && t.internalStatus != 'Received' && t.internalStatus != 'Completed';
+    final meta = AppTypography.labelSmall.copyWith(color: AppColors.textSecondary);
 
     return Pressable(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => TransferDetailPage(transferId: transfer.id)),
+        MaterialPageRoute(builder: (_) => TransferDetailPage(transferId: t.id, side: tab)),
       ).then((_) => onReturn()),
       child: Container(
-        margin: const EdgeInsets.only(top: AppSpacing.md),
-        padding: const EdgeInsets.all(AppSpacing.base),
+        margin: const EdgeInsets.only(top: AppSpacing.xs + 2),
+        padding: const EdgeInsets.all(AppSpacing.sm + 2),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: AppRadius.borderXl,
-          border: Border.all(color: AppColors.borderLight, width: 1.2),
-          boxShadow: AppShadows.card,
+          borderRadius: AppRadius.borderLg,
+          border: Border.all(color: AppColors.borderLight),
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: doc number + status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('#${transfer.docNum ?? transfer.id}',
-                    style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.3)),
-                StatusBadge(label: _statusLabel(context, transfer.internalStatus), color: color),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Warehouse path: from → to
-            _WarehousePath(
-              from: transfer.fromWarehouse,
-              to: transfer.toWarehouse,
-              highlightTo: isReceive,
-              accent: color,
-            ),
-            const SizedBox(height: AppSpacing.base),
-
-            // Images + item count
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _ProductImageStack(imageUrls: transfer.images, totalItems: transfer.linesCount),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: AppRadius.borderFull,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(Icons.category_rounded, size: 15, color: AppColors.primary),
-                      const SizedBox(width: 5),
-                      Text('${transfer.linesCount} ${context.tr('items')}',
-                          style: AppTypography.labelMedium.copyWith(
-                              color: AppColors.primary, fontWeight: FontWeight.w800)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            // Progress (only meaningful once something is sent/received)
-            if (percent > 0) ...[
-              const SizedBox(height: AppSpacing.md),
-              Row(
+            _Collage(imageUrls: t.images, totalItems: t.linesCount),
+            const SizedBox(width: AppSpacing.sm + 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: ClipRRect(
+                  Row(children: [
+                    Expanded(
+                      child: Text(
+                        context.tr(isReceive ? 'st_from_branch' : 'st_to_branch').replaceAll('{name}', other),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    StatusBadge(label: _statusLabel(context, t.internalStatus), color: color),
+                  ]),
+                  const SizedBox(height: 2),
+                  Text('#${t.docNum ?? t.id}  ·  ${_when(context)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: meta),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    Text('${t.linesCount} ${context.tr('items')} · ${context.tr('st_pcs').replaceAll('{n}', '${t.totalQty.toInt()}')}',
+                        style: meta.copyWith(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    const Spacer(),
+                    if (t.isDirect)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(color: AppColors.infoLight, borderRadius: AppRadius.borderFull),
+                        child: Text(
+                          context.tr('st_direct_chip'),
+                          style: AppTypography.labelSmall.copyWith(color: AppColors.info, fontWeight: FontWeight.w700),
+                        ),
+                      )
+                    else if (sapPending)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(color: AppColors.infoLight, borderRadius: AppRadius.borderFull),
+                        child: Text(
+                          context.tr('st_sap_chip')
+                              .replaceAll('{d}', '${t.sapReceivedQty.toInt()}')
+                              .replaceAll('{q}', '${t.totalQty.toInt()}'),
+                          style: AppTypography.labelSmall.copyWith(color: AppColors.info, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                  ]),
+                  if (percent > 0) ...[
+                    const SizedBox(height: 6),
+                    ClipRRect(
                       borderRadius: AppRadius.borderFull,
                       child: LinearProgressIndicator(
                         value: percent / 100,
                         backgroundColor: AppColors.borderLight,
                         valueColor: AlwaysStoppedAnimation(color),
-                        minHeight: 7,
+                        minHeight: 3,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text('${percent.toInt()}% $percentLabel',
-                      style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w700)),
+                  ],
                 ],
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -509,143 +506,70 @@ class _TransferCard extends StatelessWidget {
   }
 }
 
-// ─── Warehouse path (from → to) ───────────────────────────
-class _WarehousePath extends StatelessWidget {
-  final String from;
-  final String to;
-  final bool highlightTo;
-  final Color accent;
-  const _WarehousePath({required this.from, required this.to, required this.highlightTo, required this.accent});
+// ─── Product collage ──────────────────────────────────────
+/// The transfer's first products in one small square: 1 picture, or a 2×2
+/// grid with «+N» on the last cell. Plain Image.network — cached_network_image
+/// never painted on the owner's iPhone.
+class _Collage extends StatelessWidget {
+  final List<String> imageUrls;
+  final int totalItems;
+  const _Collage({required this.imageUrls, required this.totalItems});
+
+  static const double _size = 62;
+
+  Widget _img(String url, double side) => Container(
+        width: side,
+        height: side,
+        color: Colors.white,
+        padding: const EdgeInsets.all(2),
+        child: Image.network(
+          url,
+          fit: BoxFit.contain,
+          cacheWidth: (side * 3).round(),
+          gaplessPlayback: true,
+          errorBuilder: (_, _, _) => Icon(Icons.inventory_2_outlined, size: side * 0.45, color: AppColors.textTertiary),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = AppLocalizations.isArabic;
+    final urls = imageUrls.take(4).toList();
+    Widget child;
+    if (urls.isEmpty) {
+      child = Icon(Icons.inventory_2_outlined, size: 26, color: AppColors.textTertiary);
+    } else if (urls.length == 1) {
+      child = _img(urls.first, _size - 2);
+    } else {
+      const cell = (_size - 4) / 2; // 1 px border each side + 2 px gap
+      final more = totalItems - 3;
+      child = Wrap(spacing: 2, runSpacing: 2, children: [
+        for (var i = 0; i < 4; i++)
+          if (i == 3 && more > 1)
+            Container(
+              width: cell,
+              height: cell,
+              alignment: Alignment.center,
+              color: AppColors.surfaceVariant,
+              child: Text('+$more',
+                  style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+            )
+          else if (i < urls.length)
+            _img(urls[i], cell)
+          else
+            Container(width: cell, height: cell, color: AppColors.surfaceVariant),
+      ]);
+    }
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
+      width: _size,
+      height: _size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.6),
+        color: AppColors.borderLight,
         borderRadius: AppRadius.borderMd,
         border: Border.all(color: AppColors.borderLight),
       ),
-      child: Row(
-        children: [
-          Expanded(child: _node(context, context.tr('from'), from, highlightTo ? false : true)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: GlowIconChip(
-              icon: isArabic ? Icons.west_rounded : Icons.east_rounded,
-              color: accent,
-              size: 25,
-              iconSize: 15,
-              borderRadius: AppRadius.borderFull,
-            ),
-          ),
-          Expanded(child: _node(context, context.tr('to'), to, highlightTo)),
-        ],
-      ),
-    );
-  }
-
-  Widget _node(BuildContext context, String label, String code, bool highlight) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
-        const SizedBox(height: 2),
-        Row(
-          children: [
-            Icon(Icons.store_rounded, size: 15, color: highlight ? accent : AppColors.textSecondary),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(code,
-                  style: AppTypography.labelLarge.copyWith(
-                      color: highlight ? accent : AppColors.textPrimary, fontWeight: FontWeight.bold),
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Product Image Stack (overlapping circles) ────────────
-class _ProductImageStack extends StatelessWidget {
-  final List<String> imageUrls;
-  final int totalItems;
-
-  const _ProductImageStack({required this.imageUrls, required this.totalItems});
-
-  @override
-  Widget build(BuildContext context) {
-    if (imageUrls.isEmpty) {
-      // No images yet — show a neutral item indicator.
-      return GlowIconChip(
-        icon: Icons.inventory_2_rounded,
-        color: AppDomain.transfers.accent,
-        size: 40,
-        iconSize: 18,
-        borderRadius: AppRadius.borderFull,
-      );
-    }
-
-    final displayCount = imageUrls.length > 3 ? 3 : imageUrls.length;
-    final remaining = totalItems > displayCount ? totalItems - displayCount : 0;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 0; i < displayCount; i++)
-          Align(
-            widthFactor: 0.68,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.surface, width: 2),
-                color: AppColors.background,
-                boxShadow: [
-                  BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.10), blurRadius: 4, offset: const Offset(0, 2)),
-                ],
-              ),
-              child: ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl: imageUrls[i],
-                  fit: BoxFit.cover,
-                  // Tinted product chip while loading / on error — never a blank
-                  // white circle on the white card.
-                  placeholder: (context, url) => Container(
-                    color: AppColors.surfaceVariant,
-                    alignment: Alignment.center,
-                    child: Icon(Icons.image_outlined, size: 16, color: AppColors.textTertiary),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppColors.surfaceVariant,
-                    alignment: Alignment.center,
-                    child: Icon(Icons.inventory_2_rounded, size: 18, color: AppColors.textTertiary),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        if (remaining > 0)
-          Align(
-            widthFactor: 0.68,
-            child: Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.surface, width: 2),
-                color: AppDomain.transfers.soft,
-              ),
-              child: Text('+$remaining',
-                  style: AppTypography.labelMedium.copyWith(color: AppDomain.transfers.accentDark, fontWeight: FontWeight.bold)),
-            ),
-          ),
-      ],
+      clipBehavior: Clip.antiAlias,
+      child: child,
     );
   }
 }

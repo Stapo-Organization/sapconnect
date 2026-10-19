@@ -119,7 +119,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 children: [
                   Text('${p.level}',
                       style: AppTypography.headlineMedium.copyWith(
-                          color: Colors.white, fontWeight: FontWeight.w900)),
+                          color: Colors.white, fontWeight: FontWeight.w700)),
                   Text(context.tr('level'),
                       style: AppTypography.labelSmall.copyWith(color: Colors.white70)),
                 ],
@@ -193,7 +193,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
           const SizedBox(height: 6),
           Text(value,
               style: AppTypography.titleLarge.copyWith(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   color: isZero ? AppColors.textTertiary : AppColors.textPrimary)),
           Text(label,
               textAlign: TextAlign.center,

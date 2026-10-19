@@ -96,7 +96,7 @@ class OwnerHubPage extends StatelessWidget {
                     context.tr(e.titleKey),
                     style: AppTypography.titleMedium.copyWith(
                       color: OwnerTheme.textHi,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 3),

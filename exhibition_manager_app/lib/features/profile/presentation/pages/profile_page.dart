@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
-import 'package:exhibition_manager_app/core/design_system/tokens/shadows.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/widgets.dart';
 import 'package:exhibition_manager_app/core/design_system/theme/theme_controller.dart';
 import 'package:exhibition_manager_app/features/notifications/presentation/pages/notification_preferences_page.dart';
@@ -13,7 +11,6 @@ import 'package:exhibition_manager_app/core/localization/language_switch_overlay
 import 'package:exhibition_manager_app/shared/models/user.dart';
 import 'package:exhibition_manager_app/features/auth/data/auth_repository.dart';
 import 'package:exhibition_manager_app/features/public/presentation/pages/public_landing_page.dart';
-import 'package:exhibition_manager_app/shared/widgets/muntajat_app_bar.dart';
 
 /// Profile Page — User info, Language Switcher, and Logout (Bilingual & Premium Redesign)
 class ProfilePage extends StatelessWidget {
@@ -93,315 +90,156 @@ class ProfilePage extends StatelessWidget {
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: MuntajatAppBar(
-          title: context.tr('nav_profile'),
-        ),
         body: ListView(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
           children: [
-            // ─── Avatar & User Card (Premium Gradient Backing) ────
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                gradient: AppDomain.profile.gradient,
-                borderRadius: AppRadius.borderXxxl,
-                boxShadow: AppShadows.glow(AppDomain.profile.accentDark, alpha: 0.28),
-              ),
+            PageHeader(title: context.tr('nav_profile')),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  CircleAvatar(
-                    radius: 44,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    child: CircleAvatar(
-                      radius: 40,
-                      backgroundColor: AppColors.accent, // Gold highlight
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0] : '?',
-                        style: AppTypography.headlineLarge.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  // ─── Identity ────────────────────────────────
+                  AppCard(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                          child: Text(
+                            user.name.isNotEmpty ? user.name[0] : '?',
+                            style: AppTypography.headlineSmall.copyWith(color: Colors.white),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(user.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.titleLarge.copyWith(color: AppColors.textPrimary)),
+                              Text(user.email,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.base),
-                  Text(
-                    user.name,
-                    style: AppTypography.headlineSmall.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    user.email,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ─── Language Switcher Card (Interactive Segmented) ──
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.base),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: AppRadius.borderLg,
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                  // ─── Settings ────────────────────────────────
+                  AppSection(
+                    title: context.tr('profile_settings'),
                     children: [
-                      Icon(Icons.language_rounded, color: AppDomain.profile.accent, size: 22),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        context.tr('language'),
-                        style: AppTypography.labelLarge.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _settingLabel(Icons.language_rounded, context.tr('language')),
+                            const SizedBox(height: AppSpacing.sm),
+                            AppSegmentedControl(
+                              selectedIndex: isArabic ? 0 : 1,
+                              onChanged: (i) {
+                                if ((i == 0) != isArabic) animatedLanguageSwitch(context);
+                              },
+                              items: [SegmentItem(context.tr('arabic')), SegmentItem(context.tr('english'))],
+                            ),
+                          ],
+                        ),
+                      ),
+                      ValueListenableBuilder<AppThemeMode>(
+                        valueListenable: AppThemeController.modeNotifier,
+                        builder: (context, mode, _) => Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _settingLabel(Icons.contrast_rounded, context.tr('appearance')),
+                              const SizedBox(height: AppSpacing.sm),
+                              AppSegmentedControl(
+                                selectedIndex: mode.index,
+                                onChanged: (i) => AppThemeController.setMode(AppThemeMode.values[i]),
+                                items: [
+                                  SegmentItem(context.tr('theme_system'), icon: Icons.brightness_auto_rounded),
+                                  SegmentItem(context.tr('theme_light'), icon: Icons.light_mode_rounded),
+                                  SegmentItem(context.tr('theme_dark'), icon: Icons.dark_mode_rounded),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      AppListRow(
+                        icon: Icons.notifications_none_rounded,
+                        title: context.tr('notifications_title'),
+                        subtitle: context.tr('notifications_subtitle'),
+                        chevron: true,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const NotificationPreferencesPage()),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  // Custom Segmented Toggle Buttons
-                  Row(
+                  const SizedBox(height: AppSpacing.base),
+
+                  // ─── Account details ─────────────────────────
+                  AppSection(
+                    title: context.tr('profile_details'),
+                    dividerIndent: 64,
                     children: [
-                      // Arabic Toggle
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            if (!isArabic) animatedLanguageSwitch(context);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
-                            decoration: BoxDecoration(
-                              color: isArabic ? AppDomain.profile.accent : AppColors.background,
-                              borderRadius: AppRadius.borderMd,
-                              border: Border.all(
-                                color: isArabic ? AppDomain.profile.accent : AppColors.borderLight,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                context.tr('arabic'),
-                                style: AppTypography.labelMedium.copyWith(
-                                  color: isArabic ? Colors.white : AppColors.textSecondary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      if (user.mobileNumber != null)
+                        _InfoTile(icon: Icons.phone_outlined, title: context.tr('phone'), value: user.mobileNumber!),
+                      _InfoTile(
+                        icon: Icons.storefront_outlined,
+                        title: context.tr('warehouses'),
+                        value: user.warehouseCodes.isNotEmpty ? user.warehouseCodes.join(' · ') : '—',
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      // English Toggle
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            if (isArabic) animatedLanguageSwitch(context);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
-                            decoration: BoxDecoration(
-                              color: !isArabic ? AppDomain.profile.accent : AppColors.background,
-                              borderRadius: AppRadius.borderMd,
-                              border: Border.all(
-                                color: !isArabic ? AppDomain.profile.accent : AppColors.borderLight,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                context.tr('english'),
-                                style: AppTypography.labelMedium.copyWith(
-                                  color: !isArabic ? Colors.white : AppColors.textSecondary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      _InfoTile(
+                        icon: Icons.shield_outlined,
+                        title: context.tr('roles'),
+                        value: user.roles.isNotEmpty ? user.roles.join(' · ') : '—',
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                  const SizedBox(height: AppSpacing.xl),
 
-            const SizedBox(height: AppSpacing.base),
-
-            // ─── Appearance (Light / Dark / System) ─────────────
-            ValueListenableBuilder<AppThemeMode>(
-              valueListenable: AppThemeController.modeNotifier,
-              builder: (context, mode, _) {
-                return Container(
-                  padding: const EdgeInsets.all(AppSpacing.base),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: AppRadius.borderLg,
-                    border: Border.all(color: AppColors.borderLight),
+                  AppButton(
+                    label: context.tr('logout'),
+                    onPressed: () => _logout(context),
+                    icon: Icons.logout_rounded,
+                    variant: AppButtonVariant.tonal,
+                    color: AppColors.error,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.dark_mode_rounded,
-                              color: AppDomain.profile.accent, size: 22),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            context.tr('appearance'),
-                            style: AppTypography.labelLarge.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppSegmentedControl(
-                        selectedIndex: mode.index,
-                        onChanged: (i) =>
-                            AppThemeController.setMode(AppThemeMode.values[i]),
-                        activeColor: AppDomain.profile.accent,
-                        items: [
-                          SegmentItem(context.tr('theme_system'),
-                              icon: Icons.brightness_auto_rounded),
-                          SegmentItem(context.tr('theme_light'),
-                              icon: Icons.light_mode_rounded),
-                          SegmentItem(context.tr('theme_dark'),
-                              icon: Icons.dark_mode_rounded),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: AppSpacing.base),
-
-            // ─── Notifications Preferences (tap → full screen) ──
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const NotificationPreferencesPage()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.base),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppRadius.borderLg,
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.notifications_active_outlined,
-                        color: AppDomain.profile.accent, size: 22),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr('notifications_title'),
-                            style: AppTypography.labelLarge.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            context.tr('notifications_subtitle'),
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.textTertiary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
-                      color: AppColors.textTertiary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: AppSpacing.base),
-
-            // ─── Info tiles ──────────────────────────────
-            if (user.mobileNumber != null)
-              _InfoTile(
-                icon: Icons.phone_outlined,
-                title: context.tr('phone'),
-                value: user.mobileNumber!,
-              ),
-            _InfoTile(
-              icon: Icons.warehouse_outlined,
-              title: context.tr('warehouses'),
-              value: user.warehouseCodes.isNotEmpty ? user.warehouseCodes.join(' • ') : '—',
-              index: 1,
-            ),
-            _InfoTile(
-              icon: Icons.shield_outlined,
-              title: context.tr('roles'),
-              value: user.roles.isNotEmpty ? user.roles.join(' • ') : '—',
-              index: 2,
-            ),
-
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ─── System Info Footer ──────────────────────────
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.base),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: AppRadius.borderLg,
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Column(
-                children: [
+                  const SizedBox(height: AppSpacing.base),
                   Text(
                     context.tr('system_title'),
-                    style: AppTypography.labelMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    '${context.tr('version')} 1.0.0',
+                    textAlign: TextAlign.center,
                     style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
                   ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ─── Logout Button ───────────────────────────
-            AppButton(
-              label: context.tr('logout'),
-              onPressed: () => _logout(context),
-              icon: Icons.logout_rounded,
-              variant: AppButtonVariant.outline,
-              color: AppColors.error,
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _settingLabel(IconData icon, String text) => Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.textSecondary),
+          const SizedBox(width: 8),
+          Text(text, style: AppTypography.titleSmall.copyWith(color: AppColors.textPrimary)),
+        ],
+      );
 }
 
 class _InfoTile extends StatelessWidget {
@@ -409,63 +247,10 @@ class _InfoTile extends StatelessWidget {
   final String title;
   final String value;
 
-  /// Position in the tile list — staggers the icon chip's pop-in wave.
-  final int index;
-
-  const _InfoTile({
-    required this.icon,
-    required this.title,
-    required this.value,
-    this.index = 0,
-  });
+  const _InfoTile({required this.icon, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.base),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.borderLg,
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: AppShadows.sm,
-      ),
-      child: Row(
-        children: [
-          PopIn(
-            delay: Duration(milliseconds: 60 * index.clamp(0, 10)),
-            child: GlowIconChip(
-              icon: icon,
-              color: AppDomain.profile.accent,
-              size: 32,
-              iconSize: 18,
-              borderRadius: AppRadius.borderMd,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textTertiary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return AppListRow(icon: icon, title: value, subtitle: title, titleMaxLines: 2);
   }
 }

@@ -252,7 +252,7 @@ class _BranchItemsPageState extends State<BranchItemsPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(total, style: AppTypography.titleMedium.copyWith(color: _accent, fontWeight: FontWeight.w900)),
+              Text(total, style: AppTypography.titleMedium.copyWith(color: _accent, fontWeight: FontWeight.w700)),
               Text('${items.length} · $totalLabel',
                   style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10)),
             ],

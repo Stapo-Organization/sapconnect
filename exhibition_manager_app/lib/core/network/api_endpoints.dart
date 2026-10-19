@@ -2,7 +2,8 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'https://sapapi.muntajat.sa/api';
+  /// Override for local testing: --dart-define=API_BASE=http://127.0.0.1:8010/api
+  static const String baseUrl = String.fromEnvironment('API_BASE', defaultValue: 'https://sapapi.muntajat.sa/api');
 
   // ─── Auth ──────────────────────────────────────────────────
   static const String login = '$baseUrl/login';
@@ -30,6 +31,15 @@ class ApiEndpoints {
 
   // ─── Inventory Counting ────────────────────────────────────
   static const String inventoryCountings = '$baseUrl/inventory-countings';
+
+  // ─── Full count + showroom map ─────────────────────────────
+  static String storeLocations(String wh) => '$baseUrl/stores/$wh/locations';
+  static String storeLocationUnit(String wh, String unit) => '$baseUrl/stores/$wh/locations/$unit';
+  static String storeLocationsVerify(String wh) => '$baseUrl/stores/$wh/locations/verify';
+  static String storeLabelsLink(String wh) => '$baseUrl/stores/$wh/locations/labels-link';
+  static const String fullCounts = '$baseUrl/full-counts';
+  static const String fullCountActive = '$baseUrl/full-counts/active';
+  static String fullCount(int id) => '$baseUrl/full-counts/$id';
   static String inventoryCounting(int id) => '$baseUrl/inventory-countings/$id';
   static String countingScan(int id) => '$baseUrl/inventory-countings/$id/scan';
   static String countingLines(int id) => '$baseUrl/inventory-countings/$id/lines';
@@ -50,6 +60,8 @@ class ApiEndpoints {
   static const String productSearch = '$baseUrl/products/search';
   static String productDetail(String itemCode) =>
       '$baseUrl/products/${Uri.encodeComponent(itemCode)}/detail';
+  static String productBatches(String itemCode) =>
+      '$baseUrl/products/${Uri.encodeComponent(itemCode)}/batches';
 
   // ─── Warehouses ────────────────────────────────────────────
   // ─── Gamification ──────────────────────────────────────────

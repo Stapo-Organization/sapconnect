@@ -12,12 +12,12 @@ Color containerStateColor(String key) {
     case 'rose': // overdue
       return AppColors.error;
     case 'amber': // arriving soon
-      return const Color(0xFFE0A012);
+      return AppColors.warning;
     case 'cyan': // in transit
-      return const Color(0xFF0E9BB0);
+      return AppColors.info;
     case 'slate': // pending / being prepared
     default:
-      return const Color(0xFF64748B);
+      return AppColors.textTertiary;
   }
 }
 

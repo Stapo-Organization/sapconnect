@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:exhibition_manager_app/shared/widgets/error_state_widget.dart';
 
 import 'package:exhibition_manager_app/core/design_system/tokens/colors.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/domain.dart';
@@ -6,10 +7,10 @@ import 'package:exhibition_manager_app/core/design_system/tokens/radius.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/spacing.dart';
 import 'package:exhibition_manager_app/core/design_system/tokens/typography.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/animated_icons.dart';
-import 'package:exhibition_manager_app/core/design_system/widgets/app_button.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/app_card.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/gradient_header.dart';
 import 'package:exhibition_manager_app/core/design_system/widgets/progress_ring.dart';
+import 'package:exhibition_manager_app/core/design_system/widgets/status_badge.dart';
 import 'package:exhibition_manager_app/core/localization/app_localizations.dart';
 import 'package:exhibition_manager_app/shared/utils/number_format.dart';
 
@@ -200,7 +201,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
               children: [
                 Text(
                   score.value.round().toString(),
-                  style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                  style: AppTypography.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
                 ),
                 Text(
                   scoreLabel(score.value),
@@ -328,7 +329,7 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
             child: LinearProgressIndicator(
               value: pct / 100.0,
               minHeight: 8,
-              backgroundColor: const Color(0xFFE8EDF4),
+              backgroundColor: AppColors.borderLight,
               valueColor: AlwaysStoppedAnimation(color),
             ),
           ),
@@ -456,21 +457,15 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
             Expanded(
               child: Text(
                 title,
-                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w800),
+                style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary),
               ),
             ),
             if (showAllCount != null && onShowAll != null)
               TextButton(
                 onPressed: onShowAll,
-                style: TextButton.styleFrom(foregroundColor: color, padding: const EdgeInsets.symmetric(horizontal: 8)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(context.tr('sp_show_all_n').replaceAll('{n}', '$showAllCount'),
-                        style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
-                    Icon(Icons.chevron_left_rounded, size: 18, color: color),
-                  ],
-                ),
+                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+                child: Text(context.tr('sp_show_all_n').replaceAll('{n}', '$showAllCount'),
+                    style: AppTypography.labelLarge.copyWith(color: AppColors.link, fontSize: 13)),
               ),
           ],
         ),
@@ -479,12 +474,15 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
           Padding(
             // aligns the total under the title text (chip 30 + gap 8).
             padding: const EdgeInsetsDirectional.only(start: 38),
-            child: Text(total, style: AppTypography.labelMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
+            child: Text(total, style: AppTypography.labelMedium.copyWith(color: StatusBadge.ink(color), fontWeight: FontWeight.w600)),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
         if (isEmpty)
-          AppCard(child: Text(emptyText, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)))
+          SizedBox(
+            width: double.infinity,
+            child: AppCard(child: Text(emptyText, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary))),
+          )
         else
           // دخول متتابع: كل بطاقة تدخل كموجة (لا حلقات مستمرة على الصفوف).
           for (var i = 0; i < children.length; i++)
@@ -497,25 +495,6 @@ class _ShowroomPulsePageState extends State<ShowroomPulsePage> {
   }
 
   Widget _errorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.textTertiary),
-            const SizedBox(height: AppSpacing.md),
-            Text(context.tr('sp_load_error'), style: AppTypography.titleMedium.copyWith(color: AppColors.textPrimary)),
-            const SizedBox(height: AppSpacing.lg),
-            AppButton(
-              label: context.tr('retry'),
-              icon: Icons.refresh_rounded,
-              expand: false,
-              onPressed: _controller.refresh,
-            ),
-          ],
-        ),
-      ),
-    );
+    return ErrorStateWidget(title: context.tr('sp_load_error'), onRetry: _controller.refresh);
   }
 }

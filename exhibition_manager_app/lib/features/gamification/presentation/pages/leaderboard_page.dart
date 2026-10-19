@@ -194,7 +194,7 @@ class _LeaderRow extends StatelessWidget {
           ],
           Text('${row.points}',
               style: AppTypography.titleMedium.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.w800)),
+                  color: AppColors.primary, fontWeight: FontWeight.w700)),
         ],
       ),
     );

@@ -11,7 +11,7 @@ class ProgressRing extends StatelessWidget {
   final double stroke;
   final Widget? center;
   final Color? color;
-  final Color trackColor;
+  final Color? trackColor;
 
   const ProgressRing({
     super.key,
@@ -20,7 +20,7 @@ class ProgressRing extends StatelessWidget {
     this.stroke = 12,
     this.center,
     this.color,
-    this.trackColor = const Color(0xFFE8EDF4),
+    this.trackColor,
   });
 
   Color get _autoColor {
@@ -45,7 +45,7 @@ class ProgressRing extends StatelessWidget {
             curve: Curves.easeOutCubic,
             builder: (_, value, _) => CustomPaint(
               size: Size(size, size),
-              painter: _RingPainter(value: value, color: c, stroke: stroke, track: trackColor),
+              painter: _RingPainter(value: value, color: c, stroke: stroke, track: trackColor ?? AppColors.borderLight),
             ),
           ),
           center ??
@@ -53,7 +53,7 @@ class ProgressRing extends StatelessWidget {
                 '${percent.round()}%',
                 style: AppTypography.headlineSmall.copyWith(
                   color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
         ],

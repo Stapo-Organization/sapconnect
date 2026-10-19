@@ -1,64 +1,66 @@
 import 'package:flutter/material.dart';
 
-/// Muntajat Exhibition Manager — Design Tokens: Typography
+/// Muntajat HUB — Design Tokens: Typography («المتجر», Shopify-calm).
 ///
-/// Uses Cairo font for Arabic-first UI with fallback to system fonts.
+/// One face: IBM Plex Sans Arabic, bundled at its real weights 400/500/600/700
+/// — nothing asks for 800/900, which the engine would fake. Codes (items,
+/// shelves, barcodes) use IBM Plex Mono via [mono]/[monoSmall].
 ///
-/// All styles use [TextLeadingDistribution.even] so the extra line-height
-/// (`height` multiplier) is split evenly above and below the glyph. This keeps
-/// single-line labels visually centered inside fixed-height pills/tabs/buttons
-/// (otherwise Cairo glyphs float toward the top of their line box) without
-/// changing line-height totals or paragraph wrapping.
+/// Arabic is cursive: any letterSpacing pulls the joins apart, so every style
+/// keeps it at 0. Numbers that line up (stats, quantities) use tabular digits.
+///
+/// All styles use [TextLeadingDistribution.even] so the extra line-height is
+/// split evenly above and below the glyph, keeping single-line labels centred
+/// inside fixed-height pills/tabs/buttons.
 class AppTypography {
   AppTypography._();
 
-  static const String fontFamily = 'Cairo';
+  static const String fontFamily = 'IBMPlexSansArabic';
+  static const String monoFamily = 'IBMPlexMono';
 
-  /// Fallback stack: Cairo carries all Arabic/Latin/digit glyphs; the new Saudi
-  /// Riyal symbol (U+E900, PUA) lives only in the SaudiRiyal font, so every text
-  /// style falls back to it for that one glyph — rendering ﷼ inline everywhere.
+  /// The Saudi Riyal symbol (U+E900, PUA) lives only in the SaudiRiyal font,
+  /// so every style falls back to it for that one glyph.
   static const List<String> fontFamilyFallback = ['SaudiRiyal'];
 
-  static const TextLeadingDistribution _evenLeading =
-      TextLeadingDistribution.even;
+  static const TextLeadingDistribution _evenLeading = TextLeadingDistribution.even;
+  static const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
-  // ─── Display (hero numbers, points, big stats) ─────────────
+  // ─── Display (hero numbers) ────────────────────────────────
   static const TextStyle displayLarge = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 40,
-    fontWeight: FontWeight.w800,
-    height: 1.1,
-    letterSpacing: -1,
+    fontSize: 34,
+    fontWeight: FontWeight.w700,
+    height: 1.15,
+    fontFeatures: _tabular,
     leadingDistribution: _evenLeading,
   );
 
   static const TextStyle displayMedium = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
-    height: 1.15,
-    letterSpacing: -0.5,
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+    fontFeatures: _tabular,
     leadingDistribution: _evenLeading,
   );
 
-  // ─── Headline ──────────────────────────────────────────────
+  // ─── Headline (page titles) ────────────────────────────────
   static const TextStyle headlineLarge = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.3,
-    letterSpacing: -0.5,
     leadingDistribution: _evenLeading,
   );
 
   static const TextStyle headlineMedium = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
     height: 1.3,
     leadingDistribution: _evenLeading,
   );
@@ -67,16 +69,16 @@ class AppTypography {
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
     fontSize: 20,
-    fontWeight: FontWeight.w600,
-    height: 1.3,
+    fontWeight: FontWeight.w700,
+    height: 1.35,
     leadingDistribution: _evenLeading,
   );
 
-  // ─── Title ─────────────────────────────────────────────────
+  // ─── Title (card and section headings) ─────────────────────
   static const TextStyle titleLarge = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: FontWeight.w600,
     height: 1.4,
     leadingDistribution: _evenLeading,
@@ -85,8 +87,8 @@ class AppTypography {
   static const TextStyle titleMedium = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
     height: 1.4,
     leadingDistribution: _evenLeading,
   );
@@ -95,7 +97,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
     fontSize: 14,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     height: 1.4,
     leadingDistribution: _evenLeading,
   );
@@ -106,7 +108,7 @@ class AppTypography {
     fontFamilyFallback: fontFamilyFallback,
     fontSize: 16,
     fontWeight: FontWeight.w400,
-    height: 1.5,
+    height: 1.55,
     leadingDistribution: _evenLeading,
   );
 
@@ -115,20 +117,20 @@ class AppTypography {
     fontFamilyFallback: fontFamilyFallback,
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    height: 1.5,
+    height: 1.55,
     leadingDistribution: _evenLeading,
   );
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: FontWeight.w400,
     height: 1.5,
     leadingDistribution: _evenLeading,
   );
 
-  // ─── Label ─────────────────────────────────────────────────
+  // ─── Label (buttons, chips, badges, captions) ──────────────
   static const TextStyle labelLarge = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
@@ -141,8 +143,8 @@ class AppTypography {
   static const TextStyle labelMedium = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
     height: 1.4,
     leadingDistribution: _evenLeading,
   );
@@ -150,9 +152,39 @@ class AppTypography {
   static const TextStyle labelSmall = TextStyle(
     fontFamily: fontFamily,
     fontFamilyFallback: fontFamilyFallback,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: FontWeight.w500,
     height: 1.4,
+    leadingDistribution: _evenLeading,
+  );
+
+  // ─── Mono (codes: P17300055, W12-R3, RUH010, barcodes) ─────
+  static const TextStyle mono = TextStyle(
+    fontFamily: monoFamily,
+    fontFamilyFallback: [fontFamily, 'SaudiRiyal'],
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+    leadingDistribution: _evenLeading,
+  );
+
+  static const TextStyle monoSmall = TextStyle(
+    fontFamily: monoFamily,
+    fontFamilyFallback: [fontFamily, 'SaudiRiyal'],
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+    leadingDistribution: _evenLeading,
+  );
+
+  /// Quantities and money inside rows/tables: same face, tabular digits.
+  static const TextStyle numeric = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    height: 1.3,
+    fontFeatures: _tabular,
     leadingDistribution: _evenLeading,
   );
 }
