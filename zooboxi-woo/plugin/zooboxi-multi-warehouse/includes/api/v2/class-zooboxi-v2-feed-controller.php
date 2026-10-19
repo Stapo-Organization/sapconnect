@@ -102,6 +102,10 @@ class Zooboxi_V2_Feed_Controller
             'bundles'     => $this->bundles($uid, $lat, $lng),
             'needs'       => $this->needs($uid, $species),
             'forpet'      => $forpet,
+            // «براندات لولو»: the brands this customer buys, still on this shelf.
+            'my_brands'   => ($uid > 0 && class_exists('Zooboxi_Brand_Activation'))
+                ? Zooboxi_Brand_Activation::mine($uid, Zooboxi_V2_Bootstrap::lang($request))
+                : [],
             'login_nudge' => $uid <= 0,
         ], null);
     }

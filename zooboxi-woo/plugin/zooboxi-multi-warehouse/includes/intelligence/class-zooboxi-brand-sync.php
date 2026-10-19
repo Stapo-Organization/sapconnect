@@ -59,6 +59,12 @@ class Zooboxi_Brand_Sync
         // A SUCCESSFUL pull replaces the cache (so unpublished brands drop out).
         set_transient(self::CACHE_KEY, $by_code, 30 * MINUTE_IN_SECONDS);
         update_option(self::SYNCED_OPT, current_time('mysql'), false);
+
+        // Every brand's identity (colours, story) for the app's brand page —
+        // published boutique or not. Rides the same hourly pull.
+        if (class_exists('Zooboxi_Brand_Kit')) {
+            Zooboxi_Brand_Kit::sync($this->api_base, $this->api_token);
+        }
         return $by_code;
     }
 

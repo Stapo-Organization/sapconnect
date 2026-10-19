@@ -378,8 +378,14 @@ class Zooboxi_Fulfillment
                 return $en ? 'tomorrow' : __('غدًا', 'zooboxi');
             default:
                 // «السبت» — the weekday, which is the only word a customer
-                // needs for a day inside this week.
-                return date_i18n('l', self::standard_eta_ts($now));
+                // needs for a day inside this week. Named here, not by
+                // date_i18n('l'): the site locale is en_US, so the Arabic app
+                // was told «يوصلك Saturday» on every standard card.
+                $w = (int) date_i18n('w', self::standard_eta_ts($now));
+                $names = $en
+                    ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                    : ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                return $names[$w] ?? '';
         }
     }
 

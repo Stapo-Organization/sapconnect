@@ -38,6 +38,7 @@ class Zooboxi_V2_Loyalty_Controller
 
         // ── Phase 2 «العادة» ──
         Zooboxi_V2_Bootstrap::route('/loyalty/supply', 'GET', [$this, 'supply']);
+        Zooboxi_V2_Bootstrap::route('/loyalty/lasts/(?P<id>\d+)', 'GET', [$this, 'lasts']);
         Zooboxi_V2_Bootstrap::route('/loyalty/supply/(?P<id>\d+)/out', 'POST', [$this, 'supply_out']);
         Zooboxi_V2_Bootstrap::route('/loyalty/supply/(?P<id>\d+)/snooze', 'POST', [$this, 'supply_snooze']);
 
@@ -622,6 +623,21 @@ class Zooboxi_V2_Loyalty_Controller
             'window'      => Zooboxi_Loyalty_Supply::window(),
             'on_time_pct' => Zooboxi_Loyalty::opt_int('on_time_pct'),
             'enabled'     => true,
+        ]);
+    }
+
+    /** «يكفي لولو كم يوم؟» for one product page — per customer, never cached. */
+    public function lasts(\WP_REST_Request $request): \WP_REST_Response
+    {
+        [$user_id, $refused] = $this->guard();
+        if ($refused !== null) {
+            return $refused;
+        }
+        if (!Zooboxi_Loyalty_Supply::enabled() || !method_exists('Zooboxi_Loyalty_Supply', 'lasts')) {
+            return Zooboxi_V2_Bootstrap::ok(['lasts' => null]);
+        }
+        return Zooboxi_V2_Bootstrap::ok([
+            'lasts' => Zooboxi_Loyalty_Supply::lasts($user_id, (int) $request->get_param('id')),
         ]);
     }
 

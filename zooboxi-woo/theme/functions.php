@@ -542,7 +542,8 @@ add_filter('woocommerce_product_get_image', function ($image, $product, $size) {
 add_action('woocommerce_before_cart_totals', function() {
     if (!WC()->cart) return;
     
-    $cart_subtotal = WC()->cart->get_subtotal();
+    // Measured on shelf prices, VAT included — the figure the fee waiver uses.
+    $cart_subtotal = method_exists('Zooboxi_Delivery_Engine', 'threshold_total') ? Zooboxi_Delivery_Engine::threshold_total() : (float) WC()->cart->get_subtotal();
     // Single source of truth: read the same threshold the shipping methods use
     // (Zooboxi plugin option), so the bar and the actual free-shipping never disagree.
     $free_shipping_threshold = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));

@@ -850,8 +850,10 @@ class Zooboxi_V2_Cart_Controller
             // is asked for pieces, the answers are given back in units.
             $units = class_exists('Zooboxi_Units') ? Zooboxi_Units::for_cart_item($item) : 1;
 
+            // The chosen variation: a size is its own stock, a pack its parent's pool.
+            $stock_id = (int) ($item['variation_id'] ?? 0) ?: $pid;
             $plan = ($lat && $lng)
-                ? Zooboxi_Fulfillment::resolve($pid, max(1, $qty) * $units, $lat, $lng, null, $shelf)
+                ? Zooboxi_Fulfillment::resolve($stock_id, max(1, $qty) * $units, $lat, $lng, null, $shelf)
                 : null;
 
             // Cap like every other stock figure (an exact warehouse count is commercial
@@ -885,6 +887,10 @@ class Zooboxi_V2_Cart_Controller
                 'unit_price'       => (float) $product->get_price(),
                 'line_subtotal'    => (float) ($item['line_subtotal'] ?? 0),
                 'line_total'       => (float) ($item['line_total'] ?? 0),
+                // What the customer reads: the shelf price, VAT included. The two
+                // fields above stay ex-VAT for builds before 1.0.4.
+                'unit_price_incl'  => round((float) wc_get_price_including_tax($product), 2),
+                'line_total_incl'  => round((float) ($item['line_subtotal'] ?? 0) + (float) ($item['line_subtotal_tax'] ?? 0), 2),
                 'fulfillment'      => $plan ? [
                     'headline'  => Zooboxi_Fulfillment::headline($plan),
                     'tier'      => (string) $plan['slowest'],
@@ -896,7 +902,12 @@ class Zooboxi_V2_Cart_Controller
 
         $free_min  = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
         $subtotal  = (float) $cart->get_subtotal();
-        $qualified = $subtotal >= $free_min;
+        // Thresholds are measured on shelf prices, VAT included — the same figure
+        // the shipping methods waive the fee on (Delivery_Engine::threshold_total).
+        $basis     = method_exists('Zooboxi_Delivery_Engine', 'threshold_total')
+            ? Zooboxi_Delivery_Engine::threshold_total($cart)
+            : round($subtotal + (float) $cart->get_subtotal_tax(), 2);
+        $qualified = $basis >= $free_min;
 
         // The express basket measures itself against its own, reachable line.
         // Sent alongside the national one; the app shows whichever the basket
@@ -929,7 +940,7 @@ class Zooboxi_V2_Cart_Controller
                     'other_serves'    => true,
                     'other_since'     => null,
                 ],
-            'shipments'     => self::shipments($lat, $lng, $qualified, $express_min > 0 && $subtotal >= $express_min),
+            'shipments'     => self::shipments($lat, $lng, $qualified, $express_min > 0 && $basis >= $express_min),
             'totals'        => [
                 'subtotal' => $subtotal,
                 'discount' => (float) $cart->get_discount_total(),
@@ -937,15 +948,27 @@ class Zooboxi_V2_Cart_Controller
                 'tax'      => (float) $cart->get_total_tax(),
                 'total'    => (float) $cart->get_total('edit'),
                 'currency' => 'SAR',
+                // One set of figures the customer can add up: every line VAT
+                // included, and the VAT named as a part of the total, not added to it.
+                'display'  => [
+                    'items'        => $basis,
+                    'discount'     => round((float) $cart->get_discount_total() + (float) $cart->get_discount_tax(), 2),
+                    'shipping'     => round((float) $cart->get_shipping_total() + (float) $cart->get_shipping_tax(), 2),
+                    'fees'         => round((float) $cart->get_fee_total() + (float) $cart->get_fee_tax(), 2),
+                    'total'        => round((float) $cart->get_total('edit'), 2),
+                    'tax'          => round((float) $cart->get_total_tax(), 2),
+                    'tax_included' => true,
+                ],
             ],
             'free_shipping' => [
                 'min'       => $free_min,
-                'remaining' => max(0, $free_min - $subtotal),
+                'remaining' => round(max(0, $free_min - $basis), 2),
                 'qualified' => $qualified,
+                'basis'     => 'incl_vat',
                 'express'   => [
                     'min'       => $express_min,
-                    'remaining' => max(0, $express_min - $subtotal),
-                    'qualified' => $express_min > 0 && $subtotal >= $express_min,
+                    'remaining' => round(max(0, $express_min - $basis), 2),
+                    'qualified' => $express_min > 0 && $basis >= $express_min,
                 ],
             ],
             'coupons'       => $coupons,

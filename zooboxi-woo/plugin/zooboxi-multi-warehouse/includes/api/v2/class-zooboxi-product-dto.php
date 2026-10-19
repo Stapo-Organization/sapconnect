@@ -192,6 +192,12 @@ class Zooboxi_Product_DTO
             'gallery'            => self::gallery($product),
             'description_html'   => self::description_html($id, $post ? (string) $post->post_content : ''),
             'short_description'  => self::short_description($id, (string) $product->get_short_description()),
+            // «قصة المنتج»: the description split into typed sections, highlights,
+            // key facts, ingredient shares and the feeding table. Null when the
+            // copy has no usable structure — the app then falls back to the HTML.
+            'story'              => class_exists('Zooboxi_Product_Story')
+                ? Zooboxi_Product_Story::get($product, Zooboxi_V2_Bootstrap::lang())
+                : null,
             'brand_detail'       => self::brand_detail($id),
             'categories'         => self::categories($id),
             'attributes'         => self::flat_attributes($product),
@@ -343,7 +349,7 @@ class Zooboxi_Product_DTO
             return null;
         }
         $term = $terms[0];
-        return ['name' => $term->name, 'slug' => $term->slug];
+        return ['name' => trim(html_entity_decode((string) $term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8')), 'slug' => $term->slug];
     }
 
     /** Brand + SAP code + kit accent, when the boutique payload is published. */
@@ -356,7 +362,7 @@ class Zooboxi_Product_DTO
         $term = $terms[0];
         $code = preg_match('/(\d+)/', (string) $term->description, $m) ? $m[1] : '';
 
-        $out = ['name' => $term->name, 'slug' => $term->slug, 'code' => $code, 'accent' => null, 'logo' => null];
+        $out = ['name' => trim(html_entity_decode((string) $term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8')), 'slug' => $term->slug, 'code' => $code, 'accent' => null, 'logo' => null];
 
         if ($code !== '' && class_exists('Zooboxi_Brand_Sync')) {
             $payload = Zooboxi_Brand_Sync::get($code);

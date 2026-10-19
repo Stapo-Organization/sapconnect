@@ -53,6 +53,12 @@ class Zooboxi_V2_Meta_Controller
                 : null,
             // The paid-launch seams the app shows (first-order offer banner).
             'marketing'   => class_exists('Zooboxi_Marketing') ? Zooboxi_Marketing::meta_block() : null,
+            // «كلّمنا على واتساب»: the app shows the support row and the order
+            // page's help button only while a number is set (settings page).
+            'support'     => [
+                'whatsapp' => (string) preg_replace('/\D+/', '', (string) get_option('zooboxi_support_whatsapp', '')) ?: null,
+                'hours'    => (string) get_option('zooboxi_support_hours', '') ?: null,
+            ],
             'maintenance' => get_option('zooboxi_v2_maintenance', 'no') === 'yes',
             'lang'        => Zooboxi_V2_Bootstrap::lang(),
         ], Zooboxi_V2_Bootstrap::TTL_META);

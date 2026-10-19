@@ -822,6 +822,7 @@ class Zooboxi_Loyalty_Care
         }
 
         $supply = [];
+        $brands = [];
         try {
             if (class_exists('Zooboxi_Loyalty_Supply') && Zooboxi_Loyalty_Supply::enabled()) {
                 $rows = array_values(array_filter(
@@ -829,6 +830,14 @@ class Zooboxi_Loyalty_Care
                     static fn ($r) => (int) ($r['pet_id'] ?? 0) === (int) $pet['id']
                 ));
                 $supply = Zooboxi_Loyalty_Supply::dtos(array_slice($rows, 0, 4), $user_id);
+                // «براندات لولو»: the brands in this pet's gauge, each with the
+                // row that runs out first (every row, not just the four above).
+                if (class_exists('Zooboxi_Brand_Activation')) {
+                    $brands = Zooboxi_Brand_Activation::for_pet(
+                        Zooboxi_Loyalty_Supply::dtos($rows, $user_id),
+                        class_exists('Zooboxi_V2_Bootstrap') ? Zooboxi_V2_Bootstrap::lang() : 'ar'
+                    );
+                }
             }
         } catch (\Throwable $e) {
             $supply = [];
@@ -844,6 +853,7 @@ class Zooboxi_Loyalty_Care
             ],
             'reminders' => self::reminders($user_id, $pet, true),
             'supply'    => $supply,
+            'brands'    => $brands,
             'kinds'     => self::kinds_for((string) $pet['species']),
         ];
     }

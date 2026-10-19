@@ -101,7 +101,7 @@ function zooboxi_account_stats(int $user_id = 0): array
 
         // Real savings only: recorded discounts, plus waived delivery fees.
         $stats['savings'] += (float) $order->get_total_discount();
-        if ((float) $order->get_shipping_total() <= 0 && (float) $order->get_subtotal() >= $free_min) {
+        if ((float) $order->get_shipping_total() <= 0 && (method_exists('Zooboxi_Delivery_Engine', 'order_threshold_total') ? Zooboxi_Delivery_Engine::order_threshold_total($order) : (float) $order->get_subtotal()) >= $free_min) {
             $stats['free_shipping_count']++;
         }
 

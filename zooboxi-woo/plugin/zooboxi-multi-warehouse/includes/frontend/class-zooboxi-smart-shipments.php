@@ -219,6 +219,8 @@ class Zooboxi_Smart_Shipments
             if (!$pid) {
                 continue;
             }
+            // Plan the variation chosen: a size is its own stock, a pack its parent's pool.
+            $stock_id = (int) ($item['variation_id'] ?? 0) ?: $pid;
             $qty = max(1, (int) ($item['quantity'] ?? 1));
 
             // Stock allocates in PIECES; a pack line (كرتون = N حبة) needs
@@ -230,7 +232,7 @@ class Zooboxi_Smart_Shipments
             // own storefront is the right constraint: an إكسبريس basket
             // splits into express packages, a زوبكسي one never does.
             $shelf = class_exists('Zooboxi_Cart_Shelf') ? Zooboxi_Cart_Shelf::current() : '';
-            $plan  = Zooboxi_Fulfillment::resolve($pid, $qty * $units, $lat, $lng, null, $shelf);
+            $plan  = Zooboxi_Fulfillment::resolve($stock_id, $qty * $units, $lat, $lng, null, $shelf);
             $alloc = $plan['allocation'];
 
             if ($units > 1) {
@@ -346,7 +348,7 @@ class Zooboxi_Smart_Shipments
         // Order-level free shipping (owner decision): the WHOLE order qualifies or it does not —
         // a qualifying order shows EVERY shipment free, never a surprise per-basket charge.
         $freeMin   = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
-        $orderSub  = (float) WC()->cart->get_subtotal();
+        $orderSub  = (method_exists('Zooboxi_Delivery_Engine', 'threshold_total') ? Zooboxi_Delivery_Engine::threshold_total() : (float) WC()->cart->get_subtotal());
         $qualifies = $orderSub >= $freeMin;
         $remain    = max(0, $freeMin - $orderSub);
 

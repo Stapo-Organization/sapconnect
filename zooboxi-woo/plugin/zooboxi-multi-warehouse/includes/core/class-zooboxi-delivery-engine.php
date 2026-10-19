@@ -126,6 +126,38 @@ class Zooboxi_Delivery_Engine
     }
 
     /**
+     * The basket value every free-delivery threshold is measured against: the
+     * item prices the customer actually sees, VAT included, before coupons.
+     *
+     * Owner decision 2026-09-24: «150» means 150 ﷼ of shelf prices. Measured on
+     * WooCommerce's ex-VAT subtotal it silently meant 172.50, and the app's
+     * meter, the web bar and the fee waiver each read a different figure. Every
+     * reader — shipping methods, cart DTO, web bar, cart page — goes through here.
+     */
+    public static function threshold_total(?\WC_Cart $cart = null): float
+    {
+        if ($cart === null) {
+            $cart = (function_exists('WC') && WC()->cart) ? WC()->cart : null;
+        }
+        if ($cart === null) {
+            return 0.0;
+        }
+        return round((float) $cart->get_subtotal() + (float) $cart->get_subtotal_tax(), 2);
+    }
+
+    /** The same figure for a placed order (line subtotals plus their VAT). */
+    public static function order_threshold_total(\WC_Order $order): float
+    {
+        $sum = 0.0;
+        foreach ($order->get_items() as $item) {
+            if ($item instanceof \WC_Order_Item_Product) {
+                $sum += (float) $item->get_subtotal() + (float) $item->get_subtotal_tax();
+            }
+        }
+        return round($sum, 2);
+    }
+
+    /**
      * Determine the fastest delivery option for a SINGLE product.
      * Used on product cards and product detail pages. Projected from
      * Zooboxi_Fulfillment::resolve() so a card can never promise a speed the

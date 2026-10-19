@@ -467,6 +467,72 @@ class Zooboxi_Loyalty_Supply
         return ($pack_kg * 1000.0) / $grams;
     }
 
+    /**
+     * «يكفي لولو 38 يوماً» — how long one unit of a food lasts THIS customer's pet,
+     * and what a day of it costs. The same prior the gauge uses (the pet's feeding
+     * plan, else the per-kilo table), asked before the purchase instead of after.
+     *
+     * One answer per purchasable unit: a variable product's 2 كغ and 7 كغ differ.
+     * Null when the product is not food/litter, has no readable pack size, or the
+     * customer has no pet of a matching species on file.
+     *
+     * @return array{pet:string,species:string,kind:string,units:array<int,array{variation_id:int,days:int,per_day:?float}>}|null
+     */
+    public static function lasts(int $user_id, int $product_id): ?array
+    {
+        $product = wc_get_product($product_id);
+        if (!$product instanceof \WC_Product || $user_id <= 0) {
+            return null;
+        }
+        $kind = self::kind_of($product_id, (string) $product->get_name());
+        if (!in_array($kind, ['dry', 'wet', 'litter'], true)) {
+            return null;
+        }
+        $species = self::species_of_product($product_id);
+        $pets    = Zooboxi_Loyalty_Pets::all($user_id);
+        $pet     = null;
+        foreach ($pets as $candidate) {
+            if ($species !== '' && (string) $candidate['species'] === $species) {
+                $pet = $candidate;
+                break;
+            }
+        }
+        if ($pet === null) {
+            return null;
+        }
+
+        $variants = $product->is_type('variable')
+            ? array_filter(array_map('wc_get_product', $product->get_children()))
+            : [$product];
+
+        $units = [];
+        foreach ($variants as $unit) {
+            if (!$unit instanceof \WC_Product) {
+                continue;
+            }
+            $kg   = self::pack_kg($unit, $unit->is_type('variation') ? $product : null);
+            $days = self::prior_days($species, $kind, $kg, $pet);
+            if ($days === null || $days < 1) {
+                continue;
+            }
+            $price = (float) wc_get_price_including_tax($unit);
+            $units[] = [
+                'variation_id' => $unit->is_type('variation') ? (int) $unit->get_id() : 0,
+                'days'         => (int) round($days),
+                'per_day'      => $price > 0 ? round($price / $days, 2) : null,
+            ];
+        }
+        if (empty($units)) {
+            return null;
+        }
+        return [
+            'pet'     => (string) $pet['name'],
+            'species' => $species,
+            'kind'    => $kind,
+            'units'   => $units,
+        ];
+    }
+
     /** The pet this product most likely feeds: species match first, else the first pet. */
     private static function pick_pet(array $pets, string $species): ?array
     {

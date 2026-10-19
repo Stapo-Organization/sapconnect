@@ -209,7 +209,7 @@ class Zooboxi_V2_Auth_Controller
             'billing_address_1', 'billing_address_2', 'billing_city', 'billing_postcode',
             'shipping_first_name', 'shipping_last_name', 'shipping_address_1', 'shipping_address_2',
             'shipping_city', 'shipping_postcode', 'first_name', 'last_name', 'nickname', 'description',
-            Zooboxi_V2_Account_Controller::ADDRESSES_META, '_zbx_wishlist',
+            Zooboxi_V2_Account_Controller::ADDRESSES_META, '_zbx_wishlist', '_zb_followed_brands',
             'zooboxi_phone_verified', 'zooboxi_pending_address',
         ] as $key) {
             delete_user_meta($user_id, $key);

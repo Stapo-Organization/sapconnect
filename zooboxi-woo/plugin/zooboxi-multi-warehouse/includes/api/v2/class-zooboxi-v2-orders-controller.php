@@ -126,6 +126,8 @@ class Zooboxi_V2_Orders_Controller
                 'image'        => $product ? Zooboxi_Product_DTO::image_url($product, 'woocommerce_thumbnail') : null,
                 'qty'          => (int) $item->get_quantity(),
                 'line_total'   => (float) $item->get_total(),
+                // The line as the customer paid it: VAT included, before coupons.
+                'line_total_incl' => round((float) $item->get_subtotal() + (float) $item->get_subtotal_tax(), 2),
             ];
         }
 
@@ -147,6 +149,19 @@ class Zooboxi_V2_Orders_Controller
                 'tax'      => (float) $order->get_total_tax(),
                 'total'    => (float) $order->get_total(),
                 'currency' => 'SAR',
+                // Same shape as the cart's: every figure VAT included, the VAT
+                // named as part of the total.
+                'display'  => [
+                    'items'        => method_exists('Zooboxi_Delivery_Engine', 'order_threshold_total')
+                        ? Zooboxi_Delivery_Engine::order_threshold_total($order)
+                        : round((float) $order->get_subtotal() + (float) $order->get_cart_tax(), 2),
+                    'discount'     => round((float) $order->get_discount_total() + (float) $order->get_discount_tax(), 2),
+                    'shipping'     => round((float) $order->get_shipping_total() + (float) $order->get_shipping_tax(), 2),
+                    'fees'         => round(array_sum(array_map(static fn($fee) => (float) $fee->get_total() + (float) $fee->get_total_tax(), $order->get_fees())), 2),
+                    'total'        => round((float) $order->get_total(), 2),
+                    'tax'          => round((float) $order->get_total_tax(), 2),
+                    'tax_included' => true,
+                ],
             ],
             'timeline' => $this->timeline($order),
             'tracking' => $this->tracking($order),

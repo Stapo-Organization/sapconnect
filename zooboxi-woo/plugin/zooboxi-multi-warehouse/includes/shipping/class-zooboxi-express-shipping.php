@@ -107,7 +107,7 @@ class Zooboxi_Express_Shipping extends WC_Shipping_Method
             $freeMin = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
             // Order-level free shipping: if the WHOLE order qualifies, every shipment (incl. express)
             // is free — so splitting into baskets never adds a surprise charge.
-            $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);
+            $orderTotal = (function_exists('WC') && WC()->cart) ? (method_exists('Zooboxi_Delivery_Engine', 'threshold_total') ? Zooboxi_Delivery_Engine::threshold_total() : (float) WC()->cart->get_subtotal()) : (float) ($package['contents_cost'] ?? 0);
             if ($orderTotal >= $freeMin) $fee = 0;
             // …and express's own, lower threshold (see Zooboxi_Delivery_Engine::express_free_min).
             $expressFreeMin = class_exists('Zooboxi_Delivery_Engine') ? Zooboxi_Delivery_Engine::express_free_min() : 0.0;

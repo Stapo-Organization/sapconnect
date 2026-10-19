@@ -59,6 +59,9 @@ class Zooboxi_V2_Catalog_Controller
         // «يخلص طعام أوريو» — drawn by the app from its own food gauge, only
         // when something is actually running out.
         ['type' => 'replenish'],
+        // «براندات لولو» — the brands this customer buys, in their own colours.
+        // Hydrated from /home/feed (per customer); an older app skips the type.
+        ['type' => 'my_brands'],
         ['type' => 'missions'],
         ['type' => 'shipping_nudge'],
         ['type' => 'rail', 'key' => 'trending'],
@@ -123,6 +126,8 @@ class Zooboxi_V2_Catalog_Controller
         ['type' => 'grid', 'key' => 'bestsellers'],
         ['type' => 'clearance_band'],
         ['type' => 'grid', 'key' => 'new'],
+        // Every brand this branch can send in two hours — the wall is scoped.
+        ['type' => 'brands'],
         ['type' => 'trust'],
     ];
 
@@ -151,6 +156,7 @@ class Zooboxi_V2_Catalog_Controller
         // `$used` carries every id already shown so the four rails never repeat a
         // product (same accumulator pattern as Zooboxi_Homepage::cached_rail()).
         $used  = [];
+        $this->line_seen = [];
         $rails = [
             $this->rail('trending', __('رائج الآن', 'zooboxi'), [
                 Zooboxi_Product_Rail::q_trending(24),
@@ -177,6 +183,8 @@ class Zooboxi_V2_Catalog_Controller
             'need_nav'      => $this->need_nav(),
             'rails'         => array_values(array_filter($rails)),
             'brands'        => $this->brand_list(12),
+            // The seal's number: every brand this shelf carries, not just the twelve shown.
+            'brands_total'  => class_exists('Zooboxi_Brand_Activation') ? Zooboxi_Brand_Activation::shelf_count() : 0,
             'layout'        => $this->layout(),
             'scope'         => Zooboxi_V2_Scope::payload(),
             'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
@@ -253,6 +261,8 @@ class Zooboxi_V2_Catalog_Controller
         $clearance = ['type' => 'clearance_band'];
         $new       = ['type' => 'grid', 'key' => 'new'];
         $bundles   = ['type' => 'feed_rail', 'key' => 'bundles'];
+        $mybrands  = ['type' => 'my_brands'];
+        $brands    = ['type' => 'brands'];
         $trust     = ['type' => 'trust'];
 
         $head = $hour < 11
@@ -264,10 +274,10 @@ class Zooboxi_V2_Catalog_Controller
         }
 
         $body = $hour >= 18
-            ? [$animals, $needs, $clearance, $nudge, $trending, $family, $missions, $foryou, $best, $new]
-            : [$animals, $needs, $nudge, $trending, $family, $missions, $foryou, $best, $clearance, $new];
+            ? [$animals, $needs, $clearance, $nudge, $trending, $mybrands, $family, $missions, $foryou, $best, $new]
+            : [$animals, $needs, $nudge, $trending, $mybrands, $family, $missions, $foryou, $best, $clearance, $new];
 
-        return array_merge($head, $body, [$trust]);
+        return array_merge($head, $body, [$brands, $trust]);
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -933,7 +943,7 @@ class Zooboxi_V2_Catalog_Controller
                 }
                 $link  = get_term_link($t);
                 $found = [
-                    'name' => (string) $t->name,
+                    'name' => self::plain_name((string) $t->name),
                     'logo' => (string) $url,
                     'link' => is_string($link) ? $link : '',
                 ];
@@ -1384,6 +1394,54 @@ class Zooboxi_V2_Catalog_Controller
      *
      * @param int[] $used Ids already shown — read and extended in place.
      */
+    /**
+     * A stored name as a person reads it: WordPress keeps term names
+     * HTML-escaped («Mark &amp; Chappell») and the app draws text, not HTML.
+     */
+    private static function plain_name(string $name): string
+    {
+        return trim(html_entity_decode($name, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    /** Per-response count of product lines already shown on the home (see spread_lines). */
+    private array $line_seen = [];
+
+    /**
+     * Five flavours of «زولكس سويتيز» are five products but one packshot: spread
+     * over four rails they read as the same card again and again. A line — the
+     * first three words of the title — shows once per rail and twice per home.
+     *
+     * @param int[] $ids
+     * @return int[]
+     */
+    private function spread_lines(array $ids): array
+    {
+        $out  = [];
+        $here = [];
+        foreach ($ids as $id) {
+            $line = self::line_key((int) $id);
+            if ($line !== '' && (isset($here[$line]) || ($this->line_seen[$line] ?? 0) >= 2)) {
+                continue;
+            }
+            if ($line !== '') {
+                $here[$line] = true;
+            }
+            $out[] = (int) $id;
+        }
+        foreach (array_keys($here) as $line) {
+            $this->line_seen[$line] = ($this->line_seen[$line] ?? 0) + 1;
+        }
+        return $out;
+    }
+
+    private static function line_key(int $id): string
+    {
+        $title = wp_strip_all_tags((string) get_the_title($id));
+        $title = preg_replace('/[\d٠-٩]+|[×*+·\-–—()]|\bx\b/u', ' ', $title);
+        $words = preg_split('/\s+/u', trim((string) $title), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        return count($words) >= 3 ? mb_strtolower(implode(' ', array_slice($words, 0, 3))) : '';
+    }
+
     private function rail(string $key, string $title, array $queries, array &$used): ?array
     {
         // Pools are cached per warehouse: a rail drawn from the الملك فهد shelf is
@@ -1418,6 +1476,7 @@ class Zooboxi_V2_Catalog_Controller
         if (!empty($used)) {
             $ids = array_values(array_diff($ids, $used));
         }
+        $ids = $this->spread_lines($ids);
         $ids = array_slice($ids, 0, self::RAIL_SIZE);
         if (empty($ids)) {
             return null;
@@ -1460,6 +1519,8 @@ class Zooboxi_V2_Catalog_Controller
                 if (Zooboxi_V2_Scope::warehouse_code() !== '' && $dto['count'] === 0) {
                     continue;
                 }
+                // «تسوّق حسب الاحتياج» — additive; older builds ignore the key.
+                $dto['needs'] = $this->needs_for($term);
                 $out[]        = $dto;
             }
 
@@ -1499,6 +1560,163 @@ class Zooboxi_V2_Catalog_Controller
             'parent'     => $parent,
             'categories' => $out,
         ], Zooboxi_V2_Bootstrap::TTL_CATEGORIES);
+    }
+
+    /** Condition name → sticker. Only conditions the app can draw are offered. */
+    private const NEED_ICONS = [
+        'الانتقائيه'     => 'picky',
+        'السمنه'         => 'light',
+        'الوزن'          => 'light',
+        'رائحه البراز'   => 'odour',
+        'رائحه الليتر'   => 'odour',
+        'تساقط الشعر'    => 'brush',
+        'تشابك'          => 'brush',
+        'اتساخ'          => 'brush',
+        'كرات الشعر'     => 'hairball',
+        'حساسيه الجلد'   => 'hypo',
+        'الحساسيه'       => 'hypo',
+        'اجهاد السفر'    => 'carrier',
+        'القلق'          => 'moon',
+        'عدم الراحه'     => 'moon',
+        'زوميز'          => 'star',
+        'المسالك'        => 'urinary',
+        'الجهاز الهضمي'  => 'digest',
+        'المفاصل'        => 'treat',
+        'الاسنان'        => 'tooth',
+        'الفم'           => 'tooth',
+    ];
+
+    /**
+     * «تسوّق حسب الاحتياج»: a pet's conditions from the parallel health tree
+     * («المعايير الصحية» → قطط → الانتقائية في الأكل …), biggest first. Each is
+     * a real product_cat term, so a tap is an ordinary category listing.
+     *
+     * @return array<int, array{id:int,slug:string,name:string,icon:string,count:int}>
+     */
+    private function needs_for(WP_Term $root): array
+    {
+        if (!class_exists('Zooboxi_Facet_Index')) {
+            return [];
+        }
+        $tree = get_term(Zooboxi_Facet_Index::NEED_TREE_ROOT, 'product_cat');
+        if (!$tree || is_wp_error($tree)) {
+            return [];
+        }
+        $want = Zooboxi_Facet_Index::norm((string) $root->name);
+        $node = null;
+        foreach ((array) get_terms(['taxonomy' => 'product_cat', 'parent' => (int) $tree->term_id, 'hide_empty' => false, 'lang' => self::term_lang($tree)]) as $t) {
+            if ($t instanceof WP_Term && Zooboxi_Facet_Index::norm((string) $t->name) === $want) {
+                $node = $t;
+                break;
+            }
+        }
+        if (!$node) {
+            return [];
+        }
+
+        $conditions = array_values(array_filter(
+            (array) get_terms(['taxonomy' => 'product_cat', 'parent' => (int) $node->term_id, 'hide_empty' => true, 'lang' => self::term_lang($node)]),
+            static fn($t) => $t instanceof WP_Term
+        ));
+        $counts = $this->need_counts($conditions);
+        $out    = [];
+        foreach ($conditions as $t) {
+            if (!$t instanceof WP_Term) {
+                continue;
+            }
+            $norm = Zooboxi_Facet_Index::norm((string) $t->name);
+            $icon = null;
+            foreach (self::NEED_ICONS as $needle => $sticker) {
+                if (mb_strpos($norm, $needle) !== false) {
+                    $icon = $sticker;
+                    break;
+                }
+            }
+            if ($icon === null) {
+                continue;
+            }
+            $count = (int) ($counts[(int) $t->term_id] ?? 0);
+            if ($count <= 0) {
+                continue;
+            }
+            // «نشاط ليلي مفرط (زوميز)» → «نشاط ليلي مفرط»; «الحساسية/حساسية الجلد» → «الحساسية».
+            $name = Zooboxi_V2_Bootstrap::term_name($t);
+            $name = trim((string) preg_replace('/\s*\(.*$/u', '', $name));
+            $name = trim(explode('/', $name)[0]);
+            $out[] = ['id' => (int) $t->term_id, 'slug' => (string) $t->slug, 'name' => $name, 'icon' => $icon, 'count' => $count];
+        }
+        usort($out, static fn($a, $b) => $b['count'] <=> $a['count']);
+
+        // One tile per sticker: two «رائحة» conditions would read as a duplicate.
+        $seen = [];
+        $out  = array_values(array_filter($out, static function ($n) use (&$seen) {
+            if (isset($seen[$n['icon']])) {
+                return false;
+            }
+            return $seen[$n['icon']] = true;
+        }));
+        return array_slice($out, 0, 9);
+    }
+
+    /**
+     * What each condition's listing will actually show: its products and its
+     * sub-conditions' products, published, not hidden from the catalogue, on
+     * this shelf's warehouse — the listing's own scope, so the number on the
+     * tile is the number on the page it opens. One query per condition,
+     * cached an hour per shelf.
+     *
+     * @param WP_Term[] $terms
+     * @return array<int,int> term_id => products
+     */
+    private function need_counts(array $terms): array
+    {
+        global $wpdb;
+        if (empty($terms)) {
+            return [];
+        }
+        $key    = 'zb_need_counts_' . md5(implode(',', array_map(static fn($t) => (int) $t->term_id, $terms)) . '|' . Zooboxi_V2_Scope::cache_suffix());
+        $cached = get_transient($key);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $hidden = get_term_by('name', 'exclude-from-catalog', 'product_visibility');
+        $hidden_tt = $hidden instanceof WP_Term ? (int) $hidden->term_taxonomy_id : 0;
+
+        $scope_sql = '';
+        $codes     = Zooboxi_V2_Scope::codes();
+        if (!empty($codes)) {
+            $pattern   = '(^|,)(' . implode('|', array_map(static fn($c) => preg_quote((string) $c, '/'), $codes)) . ')(,|$)';
+            $scope_sql = $wpdb->prepare(
+                " AND EXISTS (SELECT 1 FROM {$wpdb->postmeta} pm WHERE pm.post_id = p.ID AND pm.meta_key = '_zb_avail_branches' AND pm.meta_value REGEXP %s)",
+                $pattern
+            );
+        }
+
+        $out = [];
+        foreach ($terms as $t) {
+            $ids = array_merge([(int) $t->term_id], array_map('intval', (array) get_term_children((int) $t->term_id, 'product_cat')));
+            $tts = [];
+            foreach ($ids as $id) {
+                $term = get_term($id, 'product_cat');
+                if ($term instanceof WP_Term) {
+                    $tts[] = (int) $term->term_taxonomy_id;
+                }
+            }
+            if (empty($tts)) {
+                continue;
+            }
+            $in  = implode(',', $tts);
+            $sql = "SELECT COUNT(DISTINCT p.ID) FROM {$wpdb->posts} p
+                    JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID AND tr.term_taxonomy_id IN ({$in})
+                    WHERE p.post_type = 'product' AND p.post_status = 'publish'"
+                . ($hidden_tt ? " AND p.ID NOT IN (SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = {$hidden_tt})" : '')
+                . $scope_sql;
+            $out[(int) $t->term_id] = (int) $wpdb->get_var($sql);
+        }
+
+        set_transient($key, $out, HOUR_IN_SECONDS);
+        return $out;
     }
 
     /**
@@ -1594,6 +1812,12 @@ class Zooboxi_V2_Catalog_Controller
 
     public function products(\WP_REST_Request $request): \WP_REST_Response
     {
+        // «فهرس الفلاتر»: builds that send fv=2 get scoped, narrowing facets.
+        // Everything below stays exactly what older builds were shipped with.
+        if ((string) $request->get_param('fv') === '2' && class_exists('Zooboxi_Facet_Index')) {
+            return $this->products_v2($request);
+        }
+
         $page     = max(1, (int) $request->get_param('page'));
         $per_page = (int) $request->get_param('per_page');
         $per_page = $per_page > 0 ? min(self::PER_PAGE_MAX, $per_page) : self::PER_PAGE_DEFAULT;
@@ -1757,6 +1981,344 @@ class Zooboxi_V2_Catalog_Controller
             'sort_options'  => self::sort_options(),
             'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
         ], Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       GET /catalog/products?fv=2  — the listing over «فهرس الفلاتر»
+       ══════════════════════════════════════════════════════════════ */
+
+    /** Base scopes (category × shelf × rail) are reused for this long; searches are never cached. */
+    private const FACET_BASE_TTL = 600;
+
+    /**
+     * The same listing, answered from the facet index.
+     *
+     * 1. SQL scopes the ids exactly as the old listing did (visibility,
+     *    category, brand, sku, rail, shelf warehouse, search).
+     * 2. The index narrows them by the picks (`f_<facet>=a,b`, min/max
+     *    price) and counts every facet against the OTHER picks.
+     * 3. PHP orders the survivors (in stock first, then the sort) and one
+     *    small post__in query builds the page's cards.
+     */
+    private function products_v2(\WP_REST_Request $request): \WP_REST_Response
+    {
+        global $wpdb;
+
+        $page     = max(1, (int) $request->get_param('page'));
+        $per_page = (int) $request->get_param('per_page');
+        $per_page = $per_page > 0 ? min(self::PER_PAGE_MAX, $per_page) : self::PER_PAGE_DEFAULT;
+        $raw_sort = sanitize_key((string) $request->get_param('orderby'));
+        $search   = sanitize_text_field((string) $request->get_param('q'));
+        $sku      = sanitize_text_field((string) $request->get_param('sku'));
+        $lang     = Zooboxi_V2_Bootstrap::lang();
+
+        $rail      = sanitize_key((string) $request->get_param('rail'));
+        $rail_args = self::rail_listing_args($rail, $per_page);
+        if (empty($rail_args)) {
+            $rail = '';
+        }
+        $orderby = $raw_sort !== '' ? $raw_sort : ($rail === 'new' ? 'date' : ($rail === 'bestsellers' ? 'popularity' : 'recommended'));
+
+        $category = $this->resolve_category($request->get_param('category'));
+        $brand    = sanitize_title((string) $request->get_param('brand'));
+
+        // ── 1. The scope, as ids.
+        $tax_query = ['relation' => 'AND', [
+            'taxonomy' => 'product_visibility',
+            'field'    => 'name',
+            'terms'    => 'exclude-from-catalog',
+            'operator' => 'NOT IN',
+        ]];
+        if ($category) {
+            $tax_query[] = ['taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => (int) $category->term_id, 'include_children' => true];
+        }
+        if ($brand !== '') {
+            $tax_query[] = ['taxonomy' => taxonomy_exists('product_brand') ? 'product_brand' : 'pa_brand', 'field' => 'slug', 'terms' => [$brand]];
+        }
+        $meta_query = ['relation' => 'AND'];
+        if ($sku !== '') {
+            $meta_query[] = ['relation' => 'OR', ['key' => '_sku', 'value' => $sku], ['key' => '_zooboxi_item_code', 'value' => $sku]];
+        }
+        if (!empty($rail_args['meta_query'])) {
+            $meta_query[] = $rail_args['meta_query'];
+        }
+        $scope_clause = Zooboxi_V2_Scope::meta_clause();
+        if ($scope_clause) {
+            $meta_query[] = $scope_clause;
+        }
+
+        $args = [
+            'post_type'           => 'product',
+            'post_status'         => 'publish',
+            'fields'              => 'ids',
+            'posts_per_page'      => -1,
+            'no_found_rows'       => true,
+            'ignore_sticky_posts' => true,
+            'orderby'             => 'ID',
+            'order'               => 'ASC',
+            'tax_query'           => $tax_query,
+            'suppress_filters'    => false,
+        ];
+        if (count($meta_query) > 1) {
+            $args['meta_query'] = $meta_query;
+        }
+
+        $cache_key = null;
+        $base      = null;
+        if ($search === '') {
+            $cache_key = 'zb_fbase_' . md5(wp_json_encode($args) . '|' . Zooboxi_V2_Scope::cache_suffix() . '|' . get_option(Zooboxi_Facet_Index::OPTION_BUILT, 0));
+            $cached    = get_transient($cache_key);
+            if (is_array($cached)) {
+                $base = array_map('intval', $cached);
+            }
+        }
+        if ($base === null) {
+            if ($search !== '') {
+                $args['s']                  = $search;
+                $args['zooboxi_v2_listing'] = 1; // the identifier-search filter keys on it
+                add_filter('posts_search', [$this, 'inject_identifier_search'], 10, 2);
+            }
+            $plugin = class_exists('Zooboxi_Plugin') ? Zooboxi_Plugin::instance() : null;
+            $had_sort = $plugin && has_filter('posts_clauses', [$plugin, 'sort_products_by_stock']);
+            if ($had_sort) {
+                // Ordering is PHP's job here; the stock sort's two joins would only cost.
+                remove_filter('posts_clauses', [$plugin, 'sort_products_by_stock'], 999);
+            }
+            $base = array_map('intval', (new WP_Query($args))->posts);
+            if ($had_sort) {
+                add_filter('posts_clauses', [$plugin, 'sort_products_by_stock'], 999, 2);
+            }
+            if ($search !== '') {
+                remove_filter('posts_search', [$this, 'inject_identifier_search'], 10);
+            }
+            if ($cache_key !== null) {
+                set_transient($cache_key, $base, self::FACET_BASE_TTL);
+            }
+        }
+
+        // ── 2. Picks → the index.
+        $selected = [];
+        foreach (Zooboxi_Facet_Index::FACETS as $facet) {
+            $raw = (string) $request->get_param('f_' . $facet);
+            if ($raw === '') {
+                continue;
+            }
+            $vals = array_values(array_filter(array_map(
+                static fn($v) => $facet === 'brand' ? rawurldecode(sanitize_title(rawurldecode(trim($v)))) : sanitize_key($v),
+                explode(',', $raw)
+            )));
+            if (!empty($vals)) {
+                $selected[$facet] = array_slice($vals, 0, 20);
+            }
+        }
+        $min_price = $request->get_param('min_price');
+        $max_price = $request->get_param('max_price');
+        $price = [
+            'min' => ($min_price !== null && $min_price !== '') ? (float) $min_price : null,
+            'max' => ($max_price !== null && $max_price !== '') ? (float) $max_price : null,
+        ];
+
+        $species = $category ? $this->species_of($category) : '';
+        $express = class_exists('Zooboxi_Price_Book') && Zooboxi_Price_Book::is_express();
+        // The whole store («كل المنتجات»): no department, brand, search or rail.
+        $whole   = !$category && $brand === '' && $search === '' && $sku === '' && $rail === '';
+        $res     = Zooboxi_Facet_Index::search($base, $selected, $price, $species, $express, $lang, $whole);
+        $ids     = $res['ids'];
+        $meta    = $res['meta'];
+
+        // ── 3. Order: in stock first, then the chosen sort.
+        $pkey = $express ? 'price_express' : 'price';
+        $key  = [];
+        switch ($orderby) {
+            case 'price':
+            case 'price-desc':
+                foreach ($ids as $id) {
+                    $key[$id] = (float) ($meta[$id][$pkey] ?? 0);
+                }
+                break;
+            case 'value':
+                foreach ($ids as $id) {
+                    $v = $meta[$id]['per_kg'] ?? null;
+                    $key[$id] = ($v === null || (float) $v <= 0) ? PHP_FLOAT_MAX : (float) $v;
+                }
+                break;
+            case 'discount':
+                foreach ($ids as $id) {
+                    $key[$id] = -(int) ($meta[$id]['discount'] ?? 0);
+                }
+                break;
+            case 'date':
+                $key = $this->sort_values($ids, "SELECT ID, UNIX_TIMESTAMP(post_date) FROM {$wpdb->posts} WHERE ID IN (%s)", true);
+                break;
+            case 'popularity':
+                $key = $this->sort_values($ids, "SELECT product_id, total_sales FROM {$wpdb->prefix}wc_product_meta_lookup WHERE product_id IN (%s)", true);
+                break;
+            case 'recommended':
+            default:
+                $orderby = 'recommended';
+                $key = $this->sort_values($ids, "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_zb_rank_score' AND post_id IN (%s)", true);
+                break;
+        }
+        $desc = $orderby === 'price-desc';
+        usort($ids, static function ($a, $b) use ($meta, $key, $desc) {
+            $sa = (int) ($meta[$a]['instock'] ?? 1);
+            $sb = (int) ($meta[$b]['instock'] ?? 1);
+            if ($sa !== $sb) {
+                return $sb <=> $sa;
+            }
+            $ka = $key[$a] ?? 0;
+            $kb = $key[$b] ?? 0;
+            if ($ka == $kb) {
+                return $b <=> $a; // newer id first — stable and deterministic
+            }
+            return $desc ? ($kb <=> $ka) : ($ka <=> $kb);
+        });
+
+        $total = count($ids);
+        $pages = (int) max(1, ceil($total / $per_page));
+        $slice = array_slice($ids, ($page - 1) * $per_page, $per_page);
+
+        $cards = [];
+        if (!empty($slice)) {
+            $q = new WP_Query([
+                'post_type'           => 'product',
+                'post_status'         => 'publish',
+                'post__in'            => $slice,
+                'orderby'             => 'post__in',
+                'posts_per_page'      => count($slice),
+                'no_found_rows'       => true,
+                'ignore_sticky_posts' => true,
+            ]);
+            $cards = self::cards_from_query($q);
+            wp_reset_postdata();
+        }
+
+        return Zooboxi_V2_Bootstrap::ok([
+            'products'      => $cards,
+            'total'         => $total,
+            'pages'         => $total === 0 ? 0 : $pages,
+            'page'          => $page,
+            'per_page'      => $per_page,
+            'orderby'       => $orderby,
+            'rail'          => $rail !== '' ? $rail : null,
+            'facets'        => $res['facets'],
+            'sort_options'  => self::sort_options_v2($ids, $meta, $lang),
+            'context'       => $category ? $this->listing_context($category) : null,
+            'lang_fallback' => Zooboxi_V2_Bootstrap::lang_fallback(),
+        ], Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /**
+     * One numeric sort key per id from a two-column query (`%s` = the id list).
+     *
+     * @param int[] $ids
+     * @return array<int,float> negated when $desc, so every sort runs ascending
+     */
+    private function sort_values(array $ids, string $sql, bool $desc): array
+    {
+        global $wpdb;
+        $out = [];
+        foreach (array_chunk($ids, 2000) as $chunk) {
+            $list = implode(',', array_map('intval', $chunk));
+            foreach ($wpdb->get_results(sprintf($sql, $list), ARRAY_N) as [$id, $v]) {
+                $out[(int) $id] = $desc ? -(float) $v : (float) $v;
+            }
+        }
+        return $out;
+    }
+
+    /** The species root a department hangs under ('' outside the four pets). */
+    private function species_of(WP_Term $term): string
+    {
+        $id    = (int) $term->term_id;
+        $guard = 0;
+        while ($id && $guard++ < 8) {
+            if (isset(Zooboxi_Facet_Index::SPECIES_ROOTS[$id])) {
+                return Zooboxi_Facet_Index::SPECIES_ROOTS[$id];
+            }
+            $t = get_term($id, 'product_cat');
+            if (!$t || is_wp_error($t)) {
+                return '';
+            }
+            // The health tree names its species nodes like the shopping roots
+            // («المعايير الصحية» → «قطط»), so a condition page knows its pet too.
+            if ((int) $t->parent === Zooboxi_Facet_Index::NEED_TREE_ROOT) {
+                $name = Zooboxi_Facet_Index::norm((string) $t->name);
+                foreach (Zooboxi_Facet_Index::SPECIES_ROOTS as $root_id => $key) {
+                    $root = get_term($root_id, 'product_cat');
+                    if ($root && !is_wp_error($root) && Zooboxi_Facet_Index::norm((string) $root->name) === $name) {
+                        return $key;
+                    }
+                }
+                return '';
+            }
+            $id = (int) $t->parent;
+        }
+        return '';
+    }
+
+    /**
+     * Where the listing stands in the tree, for the department chips above it:
+     * the node's own children when it has some, else its siblings — so «الطعام
+     * الرطب» sits in a row with «الجاف» and «الحليب», «الكل» being the parent.
+     */
+    private function listing_context(WP_Term $term): array
+    {
+        $node   = $this->term_dto($term, true);
+        $parent = null;
+        $chips  = $node['children'];
+        $of     = 'children';
+        if (empty($chips) && (int) $term->parent > 0) {
+            $p = get_term((int) $term->parent, 'product_cat');
+            if ($p && !is_wp_error($p)) {
+                $parent = $this->term_dto($p, true);
+                $chips  = $parent['children'];
+                $of     = 'siblings';
+            }
+        }
+        unset($node['children']);
+        if ($parent) {
+            unset($parent['children']);
+        }
+        // Biggest shelf first — the tree itself is alphabetical.
+        usort($chips, static fn($a, $b) => $b['count'] <=> $a['count']);
+        return ['node' => $node, 'parent' => $parent, 'chips' => array_values($chips), 'chips_of' => $of];
+    }
+
+    /**
+     * The sorts that mean something for THESE results: «الأوفر للكيلو» only
+     * when enough of them carry a weight, «أكبر خصم» only when one is on sale.
+     */
+    private static function sort_options_v2(array $ids, array $meta, string $lang): array
+    {
+        $weighed  = 0;
+        $discount = false;
+        foreach ($ids as $id) {
+            if (!empty($meta[$id]['per_kg'])) {
+                $weighed++;
+            }
+            if (!empty($meta[$id]['discount'])) {
+                $discount = true;
+            }
+        }
+        $en  = $lang === 'en';
+        $opt = static fn(string $key, string $icon, string $ar, string $e, ?string $subAr = null, ?string $subEn = null) => [
+            'key' => $key, 'icon' => $icon, 'label' => $en ? $e : $ar, 'sub' => $en ? $subEn : $subAr,
+        ];
+        $out = [
+            $opt('recommended', 'spark', 'الأنسب لك', 'Best match', 'يمزج الأنواع والعلامات في أول الصفحة', 'Mixes types and brands at the top'),
+            $opt('popularity', 'star', 'الأكثر مبيعًا', 'Best selling', 'ما يطلبه العملاء أكثر', 'What customers order most'),
+            $opt('price', 'price_low', 'الأقل سعرًا', 'Price: low to high'),
+            $opt('price-desc', 'price_high', 'الأعلى سعرًا', 'Price: high to low'),
+        ];
+        if ($weighed >= 5 && $weighed >= count($ids) * 0.3) {
+            $out[] = $opt('value', 'carton', 'الأوفر للكيلو', 'Best value per kg', 'السعر لكل كيلو — الكرتون والحبة معًا', 'Price per kilo, piece or carton');
+        }
+        if ($discount) {
+            $out[] = $opt('discount', 'sale', 'أكبر خصم', 'Biggest discount');
+        }
+        $out[] = $opt('date', 'bundle', 'وصل حديثًا', 'New in');
+        return $out;
     }
 
     /**
@@ -2287,6 +2849,16 @@ class Zooboxi_V2_Catalog_Controller
 
         $ids = array_map('intval', (array) $ids);
 
+        // Spellings, English names, brands and synonyms (Zooboxi_Search_Index) lead;
+        // the title/identifier match above stays as the safety net.
+        if (class_exists('Zooboxi_Search_Index')) {
+            try {
+                $ids = array_values(array_unique(array_merge(Zooboxi_Search_Index::search($q, 40), $ids)));
+            } catch (\Throwable $e) {
+                // keep the plain match
+            }
+        }
+
         // Anything they have bought whose name carries the query goes first,
         // whether or not the title query above happened to rank it.
         if ($bought) {
@@ -2305,8 +2877,18 @@ class Zooboxi_V2_Catalog_Controller
         $ids = array_slice(Zooboxi_V2_Scope::filter_ids($ids), 0, 8);
         $out = $this->suggestion_rows($ids, $bought);
 
+        // «اينابا» is a brand before it is eight products: the brand's card
+        // leads (older builds read only `suggestions`).
+        $brand = null;
+        if (class_exists('Zooboxi_Brand_Activation')) {
+            $term = Zooboxi_Brand_Activation::match($q);
+            if ($term !== null) {
+                $brand = Zooboxi_Brand_Activation::search_card($term, Zooboxi_V2_Bootstrap::lang($request));
+            }
+        }
+
         // A list that knows who is asking cannot be shared between askers.
-        return Zooboxi_V2_Bootstrap::ok(['suggestions' => $out], $bought ? null : Zooboxi_V2_Bootstrap::TTL_LISTING);
+        return Zooboxi_V2_Bootstrap::ok(['suggestions' => $out, 'brand' => $brand], $bought ? null : Zooboxi_V2_Bootstrap::TTL_LISTING);
     }
 
     /**
@@ -2390,6 +2972,12 @@ class Zooboxi_V2_Catalog_Controller
     /** Published brands (boutique payload) intersected with the store's brand terms. */
     private function brand_list(int $limit): array
     {
+        // «تفعيل البراندات»: colours, the official-distributor seal and counts
+        // for the shelf actually served (إكسبريس lists what the branch holds).
+        if (class_exists('Zooboxi_Brand_Activation')) {
+            return Zooboxi_Brand_Activation::shelf_brands(Zooboxi_V2_Bootstrap::lang(), $limit);
+        }
+
         $terms = get_terms([
             'taxonomy'   => 'product_brand',
             'hide_empty' => true,
@@ -2422,7 +3010,7 @@ class Zooboxi_V2_Catalog_Controller
             $out[] = [
                 'code'      => $code,
                 'slug'      => (string) $t->slug,
-                'name'      => $payload['name'] ?? (string) $t->name,
+                'name'      => self::plain_name((string) ($payload['name'] ?? $t->name)),
                 'logo'      => $logo,
                 'count'     => (int) $t->count,
                 'boutique'  => $payload !== null,
@@ -2471,31 +3059,100 @@ class Zooboxi_V2_Catalog_Controller
             }
         }
 
+        // Every brand has an identity now, published boutique or not: the
+        // boutique's own kit wins, then the kit on file in sapconnect.
+        if (empty($kit) && class_exists('Zooboxi_Brand_Kit')) {
+            $kit = Zooboxi_Brand_Kit::kit($code) ?? [];
+        }
+        $lang  = Zooboxi_V2_Bootstrap::lang();
+        $story = class_exists('Zooboxi_Brand_Kit')
+            ? Zooboxi_Brand_Kit::story($kit, $lang)
+            : ['lead' => '', 'country' => '', 'founded' => '', 'mood' => [], 'specialty' => '', 'category' => '', 'tagline' => ''];
+
+        // The page's shelves, counted on the shelf the customer is on.
+        $page = class_exists('Zooboxi_Brand_Kit')
+            ? Zooboxi_Brand_Kit::page((string) $term->slug, $this->brand_scope_ids($term), $lang)
+            : ['lines' => [], 'shelves' => [], 'value' => null, 'in_stock' => 0, 'total' => 0, 'species' => ''];
+
+        // Which character stands on the page: the kit's specialty, else what
+        // the brand actually sells.
+        $species = in_array($story['category'], ['cat', 'dog', 'bird', 'small', 'fish'], true)
+            ? $story['category']
+            : ($page['species'] ?? '');
+
         return Zooboxi_V2_Bootstrap::ok([
             'code'     => $code,
             'slug'     => (string) $term->slug,
-            'name'     => is_array($payload) ? (string) ($payload['name'] ?? $term->name) : (string) $term->name,
+            'name'     => self::plain_name(is_array($payload) ? (string) ($payload['name'] ?? $term->name) : (string) $term->name),
             'boutique' => is_array($payload),
+            'has_kit'  => !empty($kit),
             'hero'     => is_array($payload) && !empty($payload['hero_url']) ? esc_url_raw((string) $payload['hero_url']) : null,
             'logo'     => $this->brand_logo($payload, $term),
             'kit'      => [
                 'accent'      => $this->safe_color((string) ($kit['accent'] ?? '')),
                 'accent_dark' => $this->safe_color((string) ($kit['accent_dark'] ?? '')),
                 'gold'        => $this->safe_color((string) ($kit['gold'] ?? '')),
-                'tagline'     => (string) ($kit['tagline_ar'] ?? ''),
+                'tagline'     => $story['tagline'],
             ],
+            // `mood` stays the raw line older builds fold into their story paragraph.
             'story'    => [
-                'lead'    => (string) ($kit['audience_ar'] ?? ''),
-                'country' => (string) ($kit['country'] ?? ''),
-                'founded' => (string) ($kit['founded'] ?? ''),
-                'mood'    => (string) ($kit['mood_ar'] ?? ''),
+                'lead'       => $story['lead'],
+                'country'    => $story['country'],
+                'founded'    => $story['founded'],
+                'mood'       => $lang === 'en' ? '' : (string) ($kit['mood_ar'] ?? ''),
+                'mood_words' => $story['mood'],
+                'specialty'  => $story['specialty'],
             ],
+            'species'       => $species,
             'tiles'         => $tiles,
             'products'      => $curated,
             // What the boutique's own shelf filter is built from.
             'categories'    => $this->brand_categories($term),
             'product_count' => max(0, (int) $term->count),
+            // «صفحة البراند»: its lines (curated), else its best split; the
+            // honest bigger-pack saving; how much of it this shelf holds.
+            'lines'         => $page['lines'],
+            'shelves'       => $page['shelves'],
+            'value'         => $page['value'],
+            'shelf_total'   => $page['total'],
+            'in_stock'      => $page['in_stock'],
         ], Zooboxi_V2_Bootstrap::TTL_LISTING);
+    }
+
+    /**
+     * The brand's products the customer's shelf can serve — the same scope
+     * the grid below lists (visibility + shelf warehouses). Cached briefly.
+     *
+     * @return int[]
+     */
+    private function brand_scope_ids(\WP_Term $term): array
+    {
+        $args = [
+            'post_type'        => 'product',
+            'post_status'      => 'publish',
+            'fields'           => 'ids',
+            'posts_per_page'   => -1,
+            'no_found_rows'    => true,
+            'orderby'          => 'ID',
+            'order'            => 'ASC',
+            'suppress_filters' => false,
+            'tax_query'        => ['relation' => 'AND',
+                ['taxonomy' => 'product_visibility', 'field' => 'name', 'terms' => 'exclude-from-catalog', 'operator' => 'NOT IN'],
+                ['taxonomy' => 'product_brand', 'field' => 'slug', 'terms' => [$term->slug]],
+            ],
+        ];
+        $scope = Zooboxi_V2_Scope::meta_clause();
+        if ($scope) {
+            $args['meta_query'] = ['relation' => 'AND', $scope];
+        }
+        $key    = 'zb_brandids_' . md5(wp_json_encode($args) . '|' . Zooboxi_V2_Scope::cache_suffix());
+        $cached = get_transient($key);
+        if (is_array($cached)) {
+            return array_map('intval', $cached);
+        }
+        $ids = array_map('intval', (new WP_Query($args))->posts);
+        set_transient($key, $ids, 10 * MINUTE_IN_SECONDS);
+        return $ids;
     }
 
     /** Boutique logo when the sync has one, else the brand term's own thumbnail. */

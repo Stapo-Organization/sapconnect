@@ -29,6 +29,7 @@ class Zooboxi_Settings_Page
                 'zooboxi_low_stock_threshold', 'zooboxi_new_days',
                 'zooboxi_badge_pct_hot', 'zooboxi_badge_pct_back',
                 'zooboxi_badge_pct_trend', 'zooboxi_badge_pct_new',
+                'zooboxi_support_whatsapp', 'zooboxi_support_hours',
             ];
             foreach ($fields as $field) {
                 if (isset($_POST[$field])) {
@@ -311,8 +312,8 @@ class Zooboxi_Settings_Page
                                     'zooboxi_express_fee'      => ['⚡', __('توصيل سريع', 'zooboxi'), 15, 'express_fee'],
                                     'zooboxi_standard_fee'     => ['📦', __('توصيل عادي', 'zooboxi'), 10, 'standard_fee'],
                                     'zooboxi_shipping_fee'     => ['🚛', __('شحن وطني', 'zooboxi'), 25, 'shipping_fee'],
-                                    'zooboxi_free_shipping_min'=> ['🎁', __('حد الشحن المجاني', 'zooboxi'), 200, 'free_shipping_min'],
-                                    'zooboxi_express_free_min' => ['⚡', __('حد التوصيل السريع المجاني', 'zooboxi'), 79, 'express_free_min'],
+                                    'zooboxi_free_shipping_min'=> ['🎁', __('حد الشحن المجاني (شامل الضريبة)', 'zooboxi'), 200, 'free_shipping_min'],
+                                    'zooboxi_express_free_min' => ['⚡', __('حد التوصيل السريع المجاني (شامل الضريبة)', 'zooboxi'), 79, 'express_free_min'],
                                 ];
                                 foreach ($fees as $name => $f): ?>
                                     <div class="zbx-fee">
@@ -327,6 +328,35 @@ class Zooboxi_Settings_Page
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ── دعم العملاء ── -->
+                    <section class="zbx-card">
+                        <header class="zbx-card__head">
+                            <span class="zbx-card__icon">💬</span>
+                            <div>
+                                <h2 class="zbx-card__title"><?php esc_html_e('دعم العملاء', 'zooboxi'); ?></h2>
+                                <p class="zbx-card__sub"><?php esc_html_e('يظهر في التطبيق زر «كلّمنا على واتساب» في الحساب وصفحة الطلب ما دام الرقم موجوداً. اتركه فارغاً لإخفائه.', 'zooboxi'); ?></p>
+                            </div>
+                        </header>
+                        <div class="zbx-card__body">
+                            <div class="zbx-fees">
+                                <div class="zbx-fee">
+                                    <span class="zbx-fee__ic">📱</span>
+                                    <div class="zbx-fee__top"><label class="zbx-fee__label" for="zooboxi_support_whatsapp"><?php esc_html_e('رقم واتساب', 'zooboxi'); ?></label></div>
+                                    <div class="zbx-fee__input">
+                                        <input type="tel" dir="ltr" name="zooboxi_support_whatsapp" id="zooboxi_support_whatsapp" value="<?php echo esc_attr(get_option('zooboxi_support_whatsapp', '')); ?>" placeholder="9665XXXXXXXX">
+                                    </div>
+                                </div>
+                                <div class="zbx-fee">
+                                    <span class="zbx-fee__ic">🕘</span>
+                                    <div class="zbx-fee__top"><label class="zbx-fee__label" for="zooboxi_support_hours"><?php esc_html_e('أوقات الرد', 'zooboxi'); ?></label></div>
+                                    <div class="zbx-fee__input">
+                                        <input type="text" name="zooboxi_support_hours" id="zooboxi_support_hours" value="<?php echo esc_attr(get_option('zooboxi_support_hours', '')); ?>" placeholder="<?php esc_attr_e('يومياً 9 ص – 11 م', 'zooboxi'); ?>">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -583,11 +613,11 @@ class Zooboxi_Settings_Page
             ],
             'free_shipping_min' => [
                 'title' => __('حد الشحن المجاني', 'zooboxi'),
-                'body'  => __('<p>إجمالي السلة الذي عنده يصبح الشحن <strong>مجانياً</strong>.</p><p>مثال: <code>200</code> يعني الطلبات ≥ 200 ر.س تُشحن مجاناً.</p><p>ارفع الرقم لزيادة متوسط قيمة الطلب، أو اخفضه لتشجيع الطلبات الصغيرة.</p>', 'zooboxi'),
+                'body'  => __('<p>إجمالي السلة الذي عنده يصبح الشحن <strong>مجانياً</strong>، محسوباً بأسعار الرف <strong>شاملة الضريبة</strong> — نفس الأرقام التي يراها العميل.</p><p>مثال: <code>200</code> يعني الطلبات ≥ 200 ر.س تُشحن مجاناً.</p><p>ارفع الرقم لزيادة متوسط قيمة الطلب، أو اخفضه لتشجيع الطلبات الصغيرة.</p>', 'zooboxi'),
             ],
             'express_free_min' => [
                 'title' => __('حد التوصيل السريع المجاني', 'zooboxi'),
-                'body'  => __('<p>إجمالي السلة الذي عنده يصبح <strong>التوصيل السريع</strong> مجانياً — منفصل عن حد الشحن الوطني.</p><p>سلة إكسبريس صغيرة بطبيعتها (متوسطها ~36 ر.س)، فالحد المناسب هو ما يُبلغ بعبوة إضافية واحدة: <code>79</code> يغطي تكلفة المندوب حتى ~10 كم من هامش السلة.</p><p>اكتب <strong>0</strong> لتعطيله.</p>', 'zooboxi'),
+                'body'  => __('<p>إجمالي السلة الذي عنده يصبح <strong>التوصيل السريع</strong> مجانياً — منفصل عن حد الشحن الوطني، ومحسوب بأسعار الرف <strong>شاملة الضريبة</strong>.</p><p>سلة إكسبريس صغيرة بطبيعتها (متوسطها ~36 ر.س)، فالحد المناسب هو ما يُبلغ بعبوة إضافية واحدة: <code>79</code> يغطي تكلفة المندوب حتى ~10 كم من هامش السلة.</p><p>اكتب <strong>0</strong> لتعطيله.</p>', 'zooboxi'),
             ],
             'smart_shipments' => [
                 'title' => __('الشحنات الذكية', 'zooboxi'),

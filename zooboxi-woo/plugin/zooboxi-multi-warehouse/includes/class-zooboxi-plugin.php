@@ -104,6 +104,17 @@ class Zooboxi_Plugin
         // read through the WooCommerce price getters for the served shelf.
         require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-price-book.php';
         Zooboxi_Price_Book::hooks();
+        // «قصة المنتج»: descriptions as structured sections for the web page and the app.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-product-story.php';
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/frontend/class-zooboxi-story-view.php';
+        Zooboxi_Story_View::hooks();
+        // «صفحة البراند»: brand identity, curated product lines, bigger-pack savings.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-brand-kit.php';
+        // «تفعيل البراندات»: the customer's brands, brand search, follow, the cart's brand help.
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-brand-activation.php';
+        // «فهرس الفلاتر»: normalised facets + counts for the app's listing (hourly cron).
+        require_once ZOOBOXI_PLUGIN_DIR . 'includes/core/class-zooboxi-facet-index.php';
+        Zooboxi_Facet_Index::hooks();
 
         // An archive that lists nothing is not a search destination: keep empty
         // categories and brands out of the sitemap and out of the index.
@@ -203,6 +214,7 @@ class Zooboxi_Plugin
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-push-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-meta-controller.php';
             require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-bundles-controller.php';
+            require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-brands-controller.php';
             if (get_option('zooboxi_loyalty_enabled', 'yes') === 'yes') {
                 require_once ZOOBOXI_PLUGIN_DIR . 'includes/api/v2/class-zooboxi-v2-loyalty-controller.php';
             }
@@ -306,6 +318,8 @@ class Zooboxi_Plugin
             new Zooboxi_Dynamic_Badges();
             new Zooboxi_Smart_Shipments();
             new Zooboxi_Sku_Search();
+            // Spellings, English names, brands and synonyms for every product search.
+            Zooboxi_Search_Index::hooks();
 
             // Filter stock to show only active warehouse quantity
             add_filter('woocommerce_product_get_stock_quantity', [$this, 'filter_stock_for_customer'], 10, 2);

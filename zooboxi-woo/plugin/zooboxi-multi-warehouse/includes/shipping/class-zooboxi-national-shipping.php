@@ -69,7 +69,7 @@ class Zooboxi_National_Shipping extends WC_Shipping_Method
         $fee = (float) get_option('zooboxi_shipping_fee', 25);
         $freeMin = (float) apply_filters('zooboxi_free_shipping_min', (float) get_option('zooboxi_free_shipping_min', 200));
         // Order-level free shipping (matches express/standard): qualify once, every shipment is free.
-        $orderTotal = (function_exists('WC') && WC()->cart) ? (float) WC()->cart->get_subtotal() : (float) ($package['contents_cost'] ?? 0);
+        $orderTotal = (function_exists('WC') && WC()->cart) ? (method_exists('Zooboxi_Delivery_Engine', 'threshold_total') ? Zooboxi_Delivery_Engine::threshold_total() : (float) WC()->cart->get_subtotal()) : (float) ($package['contents_cost'] ?? 0);
         if ($orderTotal >= $freeMin) $fee = 0;
 
         $this->add_rate([
